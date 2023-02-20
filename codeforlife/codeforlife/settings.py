@@ -31,7 +31,9 @@ ALLOWED_HOSTS = []
 
 # Application definition
 
+#TODO: Add future apps in here. See reference_app for reference.
 INSTALLED_APPS = [
+    'reference_app.apps.ReferenceAppConfig',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
