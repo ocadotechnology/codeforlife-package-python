@@ -1,0 +1,13 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+
+[dev-packages]
+black = "23.1.0"
+pytest = "7.2.1"
+
+[requires]
+python_version = "3.7"
