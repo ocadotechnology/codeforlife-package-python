@@ -10,8 +10,8 @@ on:
     branches: [ "main" ]
 
 jobs:
-  job:
-    name: Test Package
+  test:
+    name:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -58,7 +58,7 @@ jobs:
       run: |
         pytest
   
-  job:
+  release:
     name: Create Release
     runs-on: ubuntu-latest
     steps:
