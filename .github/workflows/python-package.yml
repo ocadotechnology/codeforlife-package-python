@@ -31,6 +31,7 @@ jobs:
         python -m pip install --upgrade pip
         python -m pip install pipenv
         pipenv install --dev
+        pipenv shell
     
     - name: Lint with flake8
       run: |
@@ -42,7 +43,7 @@ jobs:
     
     - name: Test with pytest
       run: |
-        pytest
+        pytest ./tests
   
   requirements:
     name: Generate Requirements
