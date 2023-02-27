@@ -71,7 +71,7 @@ jobs:
         git config user.email github-actions@github.com
         git add .
         # Only commit and push if there are differences.
-        git diff --staged --quiet || git commit -m "auto-generated requirements.txt" && git push
+        git diff --staged --quiet || git commit -m "ci[requirements]: auto-generated" && git push
   
   # https://github.com/actions/create-release#example-workflow---create-a-release
   release:
