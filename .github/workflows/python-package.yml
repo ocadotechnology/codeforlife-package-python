@@ -87,11 +87,16 @@ jobs:
       with:
         python-version: '3.7'
     
-    - name: Semantic Release1
+    - name: Install Semantic Release
       run: |
         python -m pip install --upgrade pip
         python -m pip install python-semantic-release
-        semantic-release print-version
+    
+    - name: Get Package Metadata
+      run: |
+        echo "PACKAGE_VERSION=$(semantic-release print-version)" >> $GITHUB_ENV
+        echo $PACKAGE_VERSION
+        semantic-version changelog
     
     # - name: Create Release
     #   id: create_release
