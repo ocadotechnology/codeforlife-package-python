@@ -70,9 +70,10 @@ jobs:
         git config user.name github-actions
         git config user.email github-actions@github.com
         git add .
-        git commit -m "auto-generated requirements.txt"
-        git push
+        # Only commit and push if there are differences.
+        git diff --staged --quiet || git commit -m "auto-generated requirements.txt" && git push
   
+  # https://github.com/actions/create-release#example-workflow---create-a-release
   release:
     name: Create Release
     runs-on: ubuntu-latest
@@ -87,10 +88,11 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
       with:
-        tag_name: ${{ github.ref }}
-        release_name: Release ${{ github.ref }}
+        # TODO: set dynamically
+        tag_name: 0.0.0 #${{ github.ref }}
+        release_name: 0.0.0 #Release ${{ github.ref }}
+        # TODO: set dynamically
         body: |
-          # TODO: set this dynamically
           Changes in this Release
           - First Change
           - Second Change

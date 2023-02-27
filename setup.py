@@ -1,4 +1,3 @@
-from pkg_resources import parse_requirements
 from setuptools import setup, find_packages
 import os
 
@@ -7,13 +6,17 @@ from codeforlife import DATA_DIR
 
 # TODO: Dynamically set from GitHub action on push/merge.
 # On push, a new release of this package will be created in GitHub actions.
-# https://github.com/actions/create-release#example-workflow---create-a-release
 # VERSION will be set to be the same as the new release version.
 VERSION = "0.0.0"
 
 
 with open("requirements.txt", "r", encoding="utf-8") as requirements:
-    install_requires = [str(r) for r in parse_requirements(requirements)]
+    install_requires, dependency_links = [], []
+    for requirement in requirements.read().splitlines():
+        if requirement.startswith("-i "):
+            dependency_links.append(requirement[3:])
+        else:
+            install_requires.append(requirement)
 
 with open("README.md", "r", encoding="utf-8") as readme:
     long_description = readme.read()
@@ -35,6 +38,7 @@ setup(
     url="https://github.com/ocadotechnology/codeforlife",
     packages=find_packages(exclude=["tests", "tests.*"]),
     install_requires=install_requires,
+    dependency_links=dependency_links,
     include_package_data=True,
     data_files=[(str(DATA_DIR), data_files)],
     python_requires="==3.7.*",
