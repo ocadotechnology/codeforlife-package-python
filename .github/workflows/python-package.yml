@@ -95,7 +95,10 @@ jobs:
     - name: Get Package Metadata
       run: |
         echo "PACKAGE_VERSION=$(semantic-release print-version)" >> $GITHUB_ENV
-        echo $PACKAGE_VERSION
+        $PACKAGE_VERSION
+    
+    - name: Changelog
+      run: |
         semantic-release changelog
     
     # - name: Create Release
