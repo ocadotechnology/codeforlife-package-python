@@ -96,7 +96,7 @@ jobs:
       run: |
         echo "PACKAGE_VERSION=$(semantic-release print-version)" >> $GITHUB_ENV
         echo $PACKAGE_VERSION
-        semantic-version changelog
+        semantic-release changelog
     
     # - name: Create Release
     #   id: create_release
