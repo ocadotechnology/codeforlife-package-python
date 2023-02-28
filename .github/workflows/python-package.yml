@@ -60,4 +60,6 @@ jobs:
         fi
     
     - name: Publish Semantic Release
+      env:
+        GH_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
       run: pipenv run semantic-release publish --verbosity=DEBUG
