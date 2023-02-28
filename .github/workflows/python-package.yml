@@ -44,7 +44,7 @@ jobs:
     
     - name: Generate Requirements
       env:
-        GT: ${{ secrets.GITHUB_TOKEN }}
+        GT: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
       run: |
         pipenv requirements > requirements.txt
         git config user.name github-actions
