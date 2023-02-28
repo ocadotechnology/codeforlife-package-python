@@ -57,5 +57,5 @@ jobs:
           git push
         fi
     
-    # - name: Publish Semantic Release
-    #   run: semantic-release publish --verbosity=DEBUG
+    - name: Publish Semantic Release
+      run: semantic-release publish --verbosity=DEBUG
