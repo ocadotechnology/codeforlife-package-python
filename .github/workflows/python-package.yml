@@ -23,7 +23,7 @@ jobs:
       uses: relekang/python-semantic-release@master
       with:
         github_token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
-        repository_username: SKairinos
+        repository_username: __token__
         repository_password: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
 
   # test:
