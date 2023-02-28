@@ -21,7 +21,7 @@ jobs:
     - name: 🔍 GH_TOKEN
       if: env.GH_TOKEN == ''
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
       run: echo "GH_TOKEN=${GITHUB_TOKEN}" >> $GITHUB_ENV
 
     - uses: actions/checkout@v3
