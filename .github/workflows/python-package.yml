@@ -18,6 +18,17 @@ jobs:
     - uses: actions/checkout@v2
       with:
         fetch-depth: 0
+    
+    - name: Setup Python 3.7
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.7'
+    
+    - name: Setup pip
+      run: |
+        python -m pip install --upgrade pip
+        python -m pip install --upgrade setuptools
+        python -m pip install wheel
 
     - name: Python Semantic Release
       uses: relekang/python-semantic-release@master
