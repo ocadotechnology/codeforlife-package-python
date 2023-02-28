@@ -29,7 +29,7 @@ jobs:
         fetch-depth: 0
         ref: main
         token: ${{ env.GH_TOKEN }}
-        username: ${{ secrets.USERNAME }}
+        username: SKairinos
 
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v4
