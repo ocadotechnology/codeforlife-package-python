@@ -46,13 +46,14 @@ jobs:
       env:
         GT: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
       run: |
-        pipenv requirements > requirements.txt
-        git config user.name github-actions
-        git config user.email github-actions@github.com
-        git add .
-        # Only commit and push if there are differences.
-        echo "https://github-actions:$env:GT@github.com/ocadotechnology/codeforlife.git"
-        git diff --staged --quiet || git commit -m "ci[requirements]: auto-generated" && git push "https://github-actions:$env:GT@github.com/ocadotechnology/codeforlife.git"
+        echo "https://github-actions:$env:GT@github.com/ocadotechnology/codeforlife.git"  
+    # pipenv requirements > requirements.txt
+    # git config user.name github-actions
+    # git config user.email github-actions@github.com
+    # git add .
+    # # Only commit and push if there are differences.
+    # echo "https://github-actions:$env:GT@github.com/ocadotechnology/codeforlife.git"
+    # git diff --staged --quiet || git commit -m "ci[requirements]: auto-generated" && git push "https://github-actions:$env:GT@github.com/ocadotechnology/codeforlife.git"
     
-    - name: Publish Semantic Release
-      run: semantic-release publish --verbosity=DEBUG
+    # - name: Publish Semantic Release
+    #   run: semantic-release publish --verbosity=DEBUG
