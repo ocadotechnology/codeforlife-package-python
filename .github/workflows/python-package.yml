@@ -6,8 +6,10 @@ name: Python package
 on:
   push:
     branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
+    paths-ignore:
+    - "codeforlife/version.py"
+    - "requirements.txt"
+    - "CHANGELOG.md"
 
 jobs:
   release:
@@ -58,4 +60,4 @@ jobs:
         fi
     
     - name: Publish Semantic Release
-      run: semantic-release publish --verbosity=DEBUG
+      run: pipenv run semantic-release publish --verbosity=DEBUG

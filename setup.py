@@ -1,13 +1,7 @@
 from setuptools import setup, find_packages
 import os
 
-from codeforlife import DATA_DIR
-
-
-# TODO: Dynamically set from GitHub action on push/merge.
-# On push, a new release of this package will be created in GitHub actions.
-# VERSION will be set to be the same as the new release version.
-__version__ = "0.1.0"
+from codeforlife import DATA_DIR, __version__
 
 
 with open("requirements.txt", "r", encoding="utf-8") as requirements:
