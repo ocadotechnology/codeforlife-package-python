@@ -44,7 +44,7 @@ jobs:
     
     - name: Generate Requirements
       env:
-        GT: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+        GT: "abc"
       run: |
         echo "https://github-actions:$env:GT@github.com/ocadotechnology/codeforlife.git"  
     # pipenv requirements > requirements.txt
