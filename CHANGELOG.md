@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v0.1.2 (2023-02-28)
+### Fix
+* **settings:** Cleanup ([`7d3980a`](https://github.com/ocadotechnology/codeforlife/commit/7d3980a017b4cf0ddd4ae8697d92e519c8789214))
+
 ## v0.1.1 (2023-02-28)
 ### Fix
 * **release:** Publish ([`d3f9b48`](https://github.com/ocadotechnology/codeforlife/commit/d3f9b48dc6e9df1c3c7611f0ed198e3272f03e4b))
