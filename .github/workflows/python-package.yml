@@ -51,7 +51,7 @@ jobs:
         git config user.email github-actions@github.com
         git add .
         # Only commit and push if there are differences.
-        git diff --staged --quiet || git commit -m "ci[requirements]: auto-generated" && git push "https://$env:GT@github.com/ocadotechnology/codeforlife.git"
+        git diff --staged --quiet || git commit -m "ci[requirements]: auto-generated" && git push "https://github-actions:$env:GT@github.com/ocadotechnology/codeforlife.git"
     
     - name: Publish Semantic Release
       run: semantic-release publish --verbosity=DEBUG
