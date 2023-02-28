@@ -22,6 +22,7 @@ jobs:
     - name: Python Semantic Release
       uses: relekang/python-semantic-release@master
       with:
+        github_token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
         repository_username: SKairinos
         repository_password: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
 
