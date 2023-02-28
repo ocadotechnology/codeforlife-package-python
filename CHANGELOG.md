@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v0.1.4 (2023-02-28)
+### Fix
+* **pipeline:** Test and release job ([`d5e69c7`](https://github.com/ocadotechnology/codeforlife/commit/d5e69c71953a07328441100769f1c882e92abae3))
+
 ## v0.1.3 (2023-02-28)
 ### Fix
 * **pipeline:** GH_TOKEN ([`1780618`](https://github.com/ocadotechnology/codeforlife/commit/1780618711adaba3c4333cc3f486779c2f3fd0f0))
