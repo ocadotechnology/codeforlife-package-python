@@ -61,7 +61,7 @@ jobs:
   requirements:
     name: Generate Requirements
     runs-on: ubuntu-latest
-    #needs: [test]
+    ##needs: [test]
     steps:
     - name: Checkout Code
       uses: actions/checkout@v3
