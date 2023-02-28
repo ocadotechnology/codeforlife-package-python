@@ -23,7 +23,7 @@ with open("README.md", "r", encoding="utf-8") as readme:
 
 # Walk through data directory and get relative file paths.
 data_files, root_dir = [], os.path.dirname(__file__)
-for (dir_path, dir_names, file_names) in os.walk(DATA_DIR):
+for dir_path, dir_names, file_names in os.walk(DATA_DIR):
     rel_data_dir = os.path.relpath(dir_path, root_dir)
     data_files += [os.path.join(rel_data_dir, file_name) for file_name in file_names]
 
