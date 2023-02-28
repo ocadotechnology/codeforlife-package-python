@@ -44,7 +44,7 @@ jobs:
     
     - name: Generate Requirements
       env:
-        GT: ${{ secrets.GITHUB_TOKEN }}
+        GT: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
       run: |
         pipenv requirements > requirements.txt
         git config user.name github-actions
@@ -53,7 +53,7 @@ jobs:
         # Only commit and push if there are differences.
         if ! git diff --staged --quiet; then
           git commit -m "ci[requirements]: auto-generated"
-          git push "https://github-actions:$GT@github.com/ocadotechnology/codeforlife.git"
+          git push "https://admin:$GT@github.com/ocadotechnology/codeforlife.git"
         fi
     
     # - name: Publish Semantic Release
