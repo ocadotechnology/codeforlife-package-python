@@ -2,6 +2,11 @@
 
 <!--next-version-placeholder-->
 
+## v0.1.1 (2023-02-28)
+### Fix
+* **release:** Publish ([`d3f9b48`](https://github.com/ocadotechnology/codeforlife/commit/d3f9b48dc6e9df1c3c7611f0ed198e3272f03e4b))
+* Format ([`d5c9507`](https://github.com/ocadotechnology/codeforlife/commit/d5c950797081b0ab489971e1cbd3b835ed8d806f))
+
 ## v0.1.0 (2023-02-28)
 ### Feature
 * Update license, add .gitignore and create default Django files ([#1](https://github.com/ocadotechnology/codeforlife/issues/1)) ([`c25e67a`](https://github.com/ocadotechnology/codeforlife/commit/c25e67a82ac47b0cebf2d59a890f1639f49a3158))
