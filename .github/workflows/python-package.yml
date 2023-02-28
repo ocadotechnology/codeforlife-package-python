@@ -53,7 +53,7 @@ jobs:
         # Only commit and push if there are differences.
         if ! git diff --staged --quiet; then
           git commit -m "ci[requirements]: auto-generated"
-          git push "https://admin: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@github.com/ocadotechnology/codeforlife.git"
+          git push "https://github-actions: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@github.com/ocadotechnology/codeforlife.git"
         fi
     
     # - name: Publish Semantic Release
