@@ -10,19 +10,20 @@ on:
     branches: [ "main" ]
 
 jobs:
-  # release:
-  #   runs-on: ubuntu-latest
-  #   concurrency: release
+  release:
+    runs-on: ubuntu-latest
+    concurrency: release
 
-  #   steps:
-  #   - uses: actions/checkout@v2
-  #     with:
-  #       fetch-depth: 0
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
 
-  #   - name: Python Semantic Release
-  #     uses: relekang/python-semantic-release@master
-  #     with:
-  #       github_token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+    - name: Python Semantic Release
+      uses: relekang/python-semantic-release@master
+      with:
+        repository_username: SKairinos
+        repository_password: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
 
   # test:
   #   name: Test Code
@@ -58,36 +59,36 @@ jobs:
   #     run: |
   #       pipenv run pytest tests
   
-  requirements:
-    name: Generate Requirements
-    runs-on: ubuntu-latest
-    ##needs: [test]
-    steps:
-    - name: Checkout Code
-      uses: actions/checkout@v3
+  # requirements:
+  #   name: Generate Requirements
+  #   runs-on: ubuntu-latest
+  #   ##needs: [test]
+  #   steps:
+  #   - name: Checkout Code
+  #     uses: actions/checkout@v3
     
-    - name: Setup Python 3.7
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.7'
+  #   - name: Setup Python 3.7
+  #     uses: actions/setup-python@v4
+  #     with:
+  #       python-version: '3.7'
 
-    - name: Generate requirements.txt
-      run: |
-        python -m pip install --upgrade pip
-        python -m pip install pipenv
-        # https://pipenv.pypa.io/en/latest/advanced/#generating-a-requirements-txt
-        pipenv requirements > requirements.txt
+  #   - name: Generate requirements.txt
+  #     run: |
+  #       python -m pip install --upgrade pip
+  #       python -m pip install pipenv
+  #       # https://pipenv.pypa.io/en/latest/advanced/#generating-a-requirements-txt
+  #       pipenv requirements > requirements.txt
 
-    - name: Commit and push requirements.txt
-      env:
-        PAT: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
-      run: |
-        # https://github.com/actions/checkout#push-a-commit-using-the-built-in-token
-        git config user.name github-actions
-        git config user.email github-actions@github.com
-        git add .
-        # Only commit and push if there are differences.
-        git diff --staged --quiet || git commit -m "ci[requirements]: auto-generated" && git push "https://$env:PAT@github.com/ocadotechnology/codeforlife.git"
+  #   - name: Commit and push requirements.txt
+  #     env:
+  #       PAT: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+  #     run: |
+  #       # https://github.com/actions/checkout#push-a-commit-using-the-built-in-token
+  #       git config user.name github-actions
+  #       git config user.email github-actions@github.com
+  #       git add .
+  #       # Only commit and push if there are differences.
+  #       git diff --staged --quiet || git commit -m "ci[requirements]: auto-generated" && git push "https://$env:PAT@github.com/ocadotechnology/codeforlife.git"
   
   # https://github.com/actions/create-release#example-workflow---create-a-release
   # release:
