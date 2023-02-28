@@ -18,18 +18,17 @@ jobs:
       matrix:
         python-version: ["3.7"]
     steps:
-    - name: 🔍 GH_TOKEN
-      if: env.GH_TOKEN == ''
-      env:
-        GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
-      run: echo "GH_TOKEN=${GITHUB_TOKEN}" >> $GITHUB_ENV
+    # - name: 🔍 GH_TOKEN
+    #   if: env.GH_TOKEN == ''
+    #   env:
+    #     GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+    #   run: echo "GH_TOKEN=${GITHUB_TOKEN}" >> $GITHUB_ENV
 
     - uses: actions/checkout@v3
       with:
+        persist-credentials: false
         fetch-depth: 0
         ref: main
-        token: ${{ env.GH_TOKEN }}
-        username: SKairinos
 
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v4
@@ -59,7 +58,7 @@ jobs:
         # Only commit and push if there are differences.
         if ! git diff --staged --quiet; then
           git commit -m "ci[requirements]: auto-generated"
-          git push
+          git push https://${{ secrets.PERSONAL_ACCESS_TOKEN }}@github.com/ocadotechnology/codeforlife.git
         fi
     
     # - name: Publish Semantic Release
