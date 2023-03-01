@@ -1,0 +1,20 @@
+{
+  "folders": [
+    {
+      "path": ".",
+      "name": "package"
+    },
+    {
+      "path": "../codeforlife-portal",
+      "name": "portal"
+    },
+    {
+      "path": "../aimmo",
+      "name": "aimmo"
+    },
+    {
+      "path": "../rapid-router",
+      "name": "rapid-router"
+    }
+  ]
+}
