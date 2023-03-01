@@ -6,3 +6,6 @@ DATA_DIR = BASE_DIR.joinpath("data")
 
 
 from .version import __version__
+
+
+default_app_config = "codeforlife.apps.CodeForLifeConfig"
