@@ -15,6 +15,10 @@
     {
       "path": "../rapid-router",
       "name": "rapid-router"
+    },
+    {
+      "path": "../codeforlife-deploy-appengine",
+      "name": "appengine"
     }
   ]
 }

@@ -7,9 +7,8 @@ upload_to_release = true
 
 [tool.black]
 line-length = 120
-extend-exclude = "^/codeforlife/migrations/"
+extend-exclude = "^/codeforlife/common/migrations/"
 
-#[tool.pytest.ini_options]
-#DJANGO_SETTINGS_MODULE = "tests.settings"
-#testpaths = []
-#addopts = "-p no:warnings"
+[tool.pytest.ini_options]
+# env = ["DJANGO_SETTINGS_MODULE=example_project.settings"]
+python_files = "tests.py test_*.py"

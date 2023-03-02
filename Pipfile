@@ -4,14 +4,14 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-django = "3.2.18"
-djangorestframework = "3.13.1"
-django-two-factor-auth = "1.13.2"
-django-countries = "7.3.1"
+django = "==3.2.18"
+djangorestframework = "==3.13.1"
+django-two-factor-auth = "==1.13.2"
+django-countries = "==7.3.1"
 
 [dev-packages]
-black = "23.1.0"
-pytest = "7.2.1"
+black = "==23.1.0"
+pytest = "==7.2.1"
 pytest-django = "==4.5.2"
 
 [requires]
