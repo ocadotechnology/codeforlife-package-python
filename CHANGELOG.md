@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v0.1.5 (2023-03-02)
+### Fix
+* **common:** New release ([`4b473af`](https://github.com/ocadotechnology/codeforlife/commit/4b473afe5b8de70fc0db86fe425f7e5ac4598806))
+
 ## v0.1.4 (2023-02-28)
 ### Fix
 * **pipeline:** Test and release job ([`d5e69c7`](https://github.com/ocadotechnology/codeforlife/commit/d5e69c71953a07328441100769f1c882e92abae3))
