@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v0.1.8 (2023-03-03)
+### Fix
+* Setup ([`1aeca37`](https://github.com/ocadotechnology/codeforlife/commit/1aeca379cbaa16713c87af88dcfdbe8aeaae11cf))
+
 ## v0.1.7 (2023-03-03)
 ### Fix
 * **common:** Use relative imports ([`b571546`](https://github.com/ocadotechnology/codeforlife/commit/b5715461c8515529d9cd6f66f993adf88aac4d51))
