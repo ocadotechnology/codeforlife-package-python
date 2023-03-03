@@ -30,7 +30,7 @@ setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/ocadotechnology/codeforlife",
-    packages=find_packages(exclude=["tests", "tests.*"]),
+    packages=find_packages(exclude=["tests", "tests.*", "example_project", "example_project.*"]),
     install_requires=install_requires,
     dependency_links=dependency_links,
     include_package_data=True,
