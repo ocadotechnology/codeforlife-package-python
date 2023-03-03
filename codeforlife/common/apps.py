@@ -2,5 +2,5 @@ from django.apps import AppConfig
 
 
 class CommonConfig(AppConfig):
-    name = "common"
+    name = "codeforlife.common"
     verbose_name = "Code for Life Common"
