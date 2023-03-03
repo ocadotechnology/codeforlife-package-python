@@ -2,6 +2,11 @@
 
 <!--next-version-placeholder-->
 
+## v0.1.6 (2023-03-03)
+### Fix
+* Code format ([`0a8ed45`](https://github.com/ocadotechnology/codeforlife/commit/0a8ed45d64b8ee6522e547aeccd7757d50fcea93))
+* Add example django project and initial migration ([`e940dab`](https://github.com/ocadotechnology/codeforlife/commit/e940dab6ef903450f57bdaf543e66496374ba351))
+
 ## v0.1.5 (2023-03-02)
 ### Fix
 * **common:** New release ([`4b473af`](https://github.com/ocadotechnology/codeforlife/commit/4b473afe5b8de70fc0db86fe425f7e5ac4598806))
