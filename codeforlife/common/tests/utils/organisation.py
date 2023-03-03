@@ -1,4 +1,4 @@
-from common.models import Teacher, School
+from ...models import Teacher, School
 
 
 def generate_details(**kwargs):

@@ -1,6 +1,6 @@
 from functools import wraps
 
-from common.utils import using_two_factor
+from .utils import using_two_factor
 from django.http import Http404
 from django.http import HttpResponseRedirect
 from django.urls import reverse_lazy

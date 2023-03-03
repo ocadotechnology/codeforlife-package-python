@@ -1,9 +1,9 @@
 from builtins import range
 from typing import Tuple
 
-from common.helpers.emails import generate_token
-from common.helpers.generators import generate_login_id
-from common.models import Class, Student
+from ...helpers.emails import generate_token
+from ...helpers.generators import generate_login_id
+from ...models import Class, Student
 from django.core import mail
 
 from . import email

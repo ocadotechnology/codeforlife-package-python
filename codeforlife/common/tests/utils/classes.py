@@ -1,7 +1,7 @@
 from typing import Tuple
 
-from common.helpers.generators import generate_access_code
-from common.models import Class, Teacher
+from ...helpers.generators import generate_access_code
+from ...models import Class, Teacher
 
 
 def generate_details():

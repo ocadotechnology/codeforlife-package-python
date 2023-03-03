@@ -4,7 +4,7 @@ import hashlib
 from builtins import range, str
 from uuid import uuid4
 
-from common.models import Class, Student
+from ..models import Class, Student
 from django.contrib.auth.models import User
 
 

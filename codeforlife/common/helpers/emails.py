@@ -3,16 +3,16 @@ import json
 from enum import Enum, auto
 from uuid import uuid4
 
-from common import app_settings
-from common.app_settings import domain
-from common.email_messages import (
+from .. import app_settings
+from ..app_settings import domain
+from ..email_messages import (
     emailChangeNotificationEmail,
     emailChangeVerificationEmail,
     emailChangeDuplicateNotificationEmail,
     emailVerificationNeededEmail,
     parentsEmailVerificationNeededEmail,
 )
-from common.models import EmailVerification, Teacher, Student
+from ..models import EmailVerification, Teacher, Student
 from django.contrib.auth.models import User
 from django.core.mail import EmailMultiAlternatives
 from django.http import HttpResponse

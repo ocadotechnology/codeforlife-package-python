@@ -1,4 +1,4 @@
-from common.models import Student, Teacher, DailyActivity
+from ..models import Student, Teacher, DailyActivity
 from django.test import TestCase
 from django.utils import timezone
 

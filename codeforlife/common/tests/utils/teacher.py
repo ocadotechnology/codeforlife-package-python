@@ -1,8 +1,8 @@
 import random
 import sys
 
-from common.helpers.emails import generate_token
-from common.models import Teacher
+from ...helpers.emails import generate_token
+from ...models import Teacher
 from django.core import mail
 
 from . import email
