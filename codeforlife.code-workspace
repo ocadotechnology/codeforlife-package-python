@@ -20,5 +20,8 @@
       "path": "../codeforlife-deploy-appengine",
       "name": "appengine"
     }
-  ]
+  ],
+  "settings": {
+    "python.terminal.activateEnvironment": false
+  }
 }
