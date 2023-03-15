@@ -60,6 +60,11 @@ jobs:
         python -m pip install --upgrade pip
         # pipenv-setup requires downgraded vistir: https://github.com/Madoshakalaka/pipenv-setup/issues/138
         python -m pip install python-semantic-release~=7.33 pipenv-setup[black]==3.2.0 vistir==0.6.1
+      
+    - name: Setup Git
+      run: |
+        git config --local user.name github-actions
+        git config --local user.email github-actions@github.com
 
     - name: Sync Setup Dependencies
       run: |
@@ -68,8 +73,6 @@ jobs:
 
         # Only commit and push if there are differences.
         if ! git diff --staged --quiet; then
-          git config --local user.name github-actions
-          git config --local user.email github-actions@github.com
           git commit -m "ci[setup]: sync dependencies [skip ci]"
           git push
         fi
