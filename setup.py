@@ -4,14 +4,6 @@ import os
 from codeforlife import DATA_DIR, __version__
 
 
-with open("requirements.txt", "r", encoding="utf-8") as requirements:
-    install_requires, dependency_links = [], []
-    for requirement in requirements.read().splitlines():
-        if requirement.startswith("-i "):
-            dependency_links.append(requirement[3:])
-        else:
-            install_requires.append(requirement)
-
 with open("README.md", "r", encoding="utf-8") as readme:
     long_description = readme.read()
 
@@ -31,8 +23,8 @@ setup(
     long_description_content_type="text/markdown",
     url="https://github.com/ocadotechnology/codeforlife-package-python",
     packages=find_packages(exclude=["tests", "tests.*"]),
-    install_requires=install_requires,
-    dependency_links=dependency_links,
+    install_requires=[],
+    dependency_links=[],
     include_package_data=True,
     data_files=[(str(DATA_DIR), data_files)],
     python_requires="==3.7.*",
