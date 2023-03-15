@@ -2,6 +2,11 @@
 
 <!--next-version-placeholder-->
 
+## v0.1.9 (2023-03-15)
+### Fix
+* Common import ([`2a945ef`](https://github.com/ocadotechnology/codeforlife-package-python/commit/2a945efada6fd060b9c13bdbf3bb8da50c049a88))
+* Cleanup ([`2856305`](https://github.com/ocadotechnology/codeforlife-package-python/commit/28563059874f427a02d9f74af1f6169a7a2491af))
+
 ## v0.1.8 (2023-03-03)
 ### Fix
 * Setup ([`1aeca37`](https://github.com/ocadotechnology/codeforlife/commit/1aeca379cbaa16713c87af88dcfdbe8aeaae11cf))
