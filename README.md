@@ -30,7 +30,3 @@ A new package may only be released if:
 1. there are no formatting errors;
 1. all unit tests pass;
 1. (TODO) test/code coverage is acceptable.
-
-## Limitations
-
-[TOML Parsing](https://docs.python.org/3/library/tomllib.html) was only added to Python's standard library in Python 3.11. This creates an issue for the [setup](setup.py) script when reading the package's dependencies. Until we upgrade to Python >=3.11 a workaround has been created in the [package workflow](.github/workflows/python-package.yml) to export the Pipfile to a requirements.txt and then parse that instead.  
