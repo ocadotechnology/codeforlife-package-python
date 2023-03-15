@@ -28,6 +28,20 @@ setup(
     python_requires="==3.7.*",
     # These will be synced with Pipfile by the pipeline.
     # DO NOT edit these manually. Instead, update the Pipfile.
-    install_requires=[],
+    install_requires=[
+        "asgiref==3.6.0; python_version >= '3.7'",
+        "django==3.2.18",
+        "django-countries==7.3.1",
+        "django-formtools==2.4; python_version >= '3.6'",
+        "django-otp==1.1.6",
+        "django-phonenumber-field==6.4.0; python_version >= '3.7'",
+        "django-two-factor-auth==1.13.2",
+        "djangorestframework==3.13.1",
+        "pypng==0.20220715.0",
+        "pytz==2022.7.1",
+        "qrcode==7.4.2; python_version >= '3.7'",
+        "sqlparse==0.4.3; python_version >= '3.5'",
+        "typing-extensions==4.5.0; python_version >= '3.7'",
+    ],
     dependency_links=[],
 )
