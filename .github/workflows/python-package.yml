@@ -63,7 +63,7 @@ jobs:
 
     - name: Sync Setup Dependencies
       run: |
-        python -m pipenv-setup sync
+        pipenv-setup sync
         git add setup.py
 
         # Only commit and push if there are differences.
