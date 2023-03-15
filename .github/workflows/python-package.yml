@@ -36,6 +36,7 @@ jobs:
     - name: Check Code Format
       run: if ! pipenv run black --check .; then exit 1; fi
     
+    # TODO: assert code coverage target.
     - name: Test Code Units
       run: pipenv run pytest tests
   
