@@ -77,4 +77,4 @@ jobs:
     - name: Publish Semantic Release
       env:
         GH_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
-      run: python -m semantic-release publish --verbosity=INFO
+      run: semantic-release publish --verbosity=INFO
