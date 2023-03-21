@@ -17,7 +17,7 @@ setup(
     name="codeforlife",
     version=__version__,
     author="Ocado",
-    author_email="codeforlife@ocado.com",
+    author_email="code-for-life-full-time-xd@ocado.com",
     description="Code for Life's common code.",
     long_description=long_description,
     long_description_content_type="text/markdown",
