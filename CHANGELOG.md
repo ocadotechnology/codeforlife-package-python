@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v0.1.12 (2023-03-21)
+### Fix
+* Setup Python 3.11 third attempt ([`c9ba16a`](https://github.com/ocadotechnology/codeforlife-package-python/commit/c9ba16ae8478534a2321453cd0b62fe57abaa2f7))
+
 ## v0.1.11 (2023-03-15)
 ### Fix
 * Test install_requires format ([`2546182`](https://github.com/ocadotechnology/codeforlife-package-python/commit/2546182a2be9a64efab782052e14e48f5ee0224c))
