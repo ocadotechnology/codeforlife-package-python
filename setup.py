@@ -1,8 +1,8 @@
-from setuptools import setup, find_packages
 import os
 
-from codeforlife import DATA_DIR, __version__
+from setuptools import setup, find_packages
 
+from codeforlife import DATA_DIR, __version__
 
 with open("README.md", "r", encoding="utf-8") as readme:
     long_description = readme.read()
