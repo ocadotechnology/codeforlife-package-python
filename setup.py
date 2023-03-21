@@ -4,14 +4,6 @@ import os
 from codeforlife import DATA_DIR, __version__
 
 
-with open("requirements.txt", "r", encoding="utf-8") as requirements:
-    install_requires, dependency_links = [], []
-    for requirement in requirements.read().splitlines():
-        if requirement.startswith("-i "):
-            dependency_links.append(requirement[3:])
-        else:
-            install_requires.append(requirement)
-
 with open("README.md", "r", encoding="utf-8") as readme:
     long_description = readme.read()
 
@@ -29,11 +21,27 @@ setup(
     description="Code for Life's common code.",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/ocadotechnology/codeforlife",
-    packages=find_packages(exclude=["tests", "tests.*", "example_project", "example_project.*"]),
-    install_requires=install_requires,
-    dependency_links=dependency_links,
+    url="https://github.com/ocadotechnology/codeforlife-package-python",
+    packages=find_packages(exclude=["tests", "tests.*"]),
     include_package_data=True,
     data_files=[(str(DATA_DIR), data_files)],
-    python_requires="==3.11.*",
+    python_requires="==3.7.*",
+    # These will be synced with Pipfile by the pipeline.
+    # DO NOT edit these manually. Instead, update the Pipfile.
+    install_requires=[
+        "asgiref==3.6.0; python_version >= '3.7'",
+        "django==3.2.18",
+        "django-countries==7.3.1",
+        "django-formtools==2.4; python_version >= '3.6'",
+        "django-otp==1.1.6",
+        "django-phonenumber-field==6.4.0; python_version >= '3.7'",
+        "django-two-factor-auth==1.13.2",
+        "djangorestframework==3.13.1",
+        "pypng==0.20220715.0",
+        "pytz==2022.7.1",
+        "qrcode==7.4.2; python_version >= '3.7'",
+        "sqlparse==0.4.3; python_version >= '3.5'",
+        "typing-extensions==4.5.0; python_version >= '3.7'",
+    ],
+    dependency_links=[],
 )
