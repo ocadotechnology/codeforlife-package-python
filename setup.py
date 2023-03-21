@@ -25,7 +25,7 @@ setup(
     packages=find_packages(exclude=["tests", "tests.*"]),
     include_package_data=True,
     data_files=[(str(DATA_DIR), data_files)],
-    python_requires="==3.7.*",
+    python_requires="==3.11.*",
     # These will be synced with Pipfile by the pipeline.
     # DO NOT edit these manually. Instead, update the Pipfile.
     install_requires=[
