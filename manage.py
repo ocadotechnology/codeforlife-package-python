@@ -119,7 +119,6 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 
 if __name__ == "__main__":
-
     from django.core.management import execute_from_command_line
     import sys
     import os
