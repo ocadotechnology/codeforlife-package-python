@@ -14,21 +14,21 @@ class StudentModelManager(models.Manager):
                 return random_username
 
     def schoolFactory(self, klass, name, password, login_id=None):
-        cfl_user = User.objects.create_user(username=self.get_random_username(), password=password, first_name=name)
+        user = User.objects.create_user(username=self.get_random_username(), password=password, first_name=name)
 
-        return Student.objects.create(class_field=klass, cfl_user=cfl_user, login_id=login_id)
+        return Student.objects.create(class_field=klass, user=user, login_id=login_id)
 
     def independentStudentFactory(self, name, email, password):
-        cfl_user = User.objects.create_user(username=email, email=email, password=password, first_name=name)
+        user = User.objects.create_user(username=email, email=email, password=password, first_name=name)
 
-        return Student.objects.create(cfl_user=cfl_user)
+        return Student.objects.create(user=user)
 
 
 class Student(models.Model):
     class_field = models.ForeignKey(Class, related_name="students", null=True, blank=True, on_delete=models.CASCADE)
     # hashed uuid used for the unique direct login url
     login_id = models.CharField(max_length=64, null=True)
-    cfl_user = models.OneToOneField(User, related_name="student", null=True, blank=True, on_delete=models.CASCADE)
+    user = models.OneToOneField(User, related_name="student", null=True, blank=True, on_delete=models.CASCADE)
     pending_class_request = models.ForeignKey(
         Class, related_name="class_request", null=True, blank=True, on_delete=models.SET_NULL
     )
@@ -40,7 +40,7 @@ class Student(models.Model):
         return not self.class_field
 
     def __str__(self):
-        return f"{self.cfl_user.first_name} {self.cfl_user.last_name}"
+        return f"{self.user.first_name} {self.user.last_name}"
 
 
 def stripStudentName(name):
