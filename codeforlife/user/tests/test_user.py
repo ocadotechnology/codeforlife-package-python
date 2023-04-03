@@ -1,9 +1,6 @@
 import django
 import pytest
 
-from django.contrib.auth.hashers import make_password
-
-
 django.setup()
 
 from ..models import User
@@ -18,7 +15,7 @@ def test_user_import():
         "first_name": "Albert",
         "last_name": "Einstein",
         "email": "alberteinstein@codeforlife.com",
-        "password": make_password("Password1"),
+        "password": "Password1",
     }
 
     user = User.objects.create_user(**user_kwargs)
