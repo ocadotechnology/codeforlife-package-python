@@ -11,4 +11,5 @@ extend-exclude = "^/codeforlife/common/migrations/"
 
 [tool.pytest.ini_options]
 # env = ["DJANGO_SETTINGS_MODULE=example_project.settings"]
+DJANGO_SETTINGS_MODULE = "manage"
 python_files = "tests.py test_*.py"

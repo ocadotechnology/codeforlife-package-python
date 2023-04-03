@@ -1,5 +1,0 @@
-[tool.pytest.ini_options]
-DJANGO_SETTINGS_MODULE = settings
-testpaths = [
-    "user/tests",
-    ]

@@ -13,6 +13,9 @@ django-two-factor-auth = "==1.13.2"
 black = "==23.1.0"
 pytest = "==7.2.1"
 pytest-django = "==4.5.2"
+django-extensions = "==3.2.1"
+pyparsing = "==3.0.9"
+pydot = "==1.4.2"
 
 [requires]
 python_version = "3.11"
