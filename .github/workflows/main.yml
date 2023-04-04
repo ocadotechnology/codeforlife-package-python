@@ -23,7 +23,7 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
-      - name: Echo author
+      - name: Echo author 2
         run: echo "$GH_AUTHOR"
         env:
           GH_AUTHOR: ${{ github.event.commits[0].author.name }}
