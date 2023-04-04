@@ -1,0 +1,50 @@
+name: Release
+
+on:
+  workflow_run:
+    workflows: [Test]
+    branches: [main]
+    types: [completed]
+
+jobs:
+  release:
+    name: Publish Release
+    concurrency: release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+          fetch-depth: 0
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          # pipenv-setup requires downgraded vistir: https://github.com/Madoshakalaka/pipenv-setup/issues/138
+          python -m pip install python-semantic-release~=7.33 pipenv-setup[black]==3.2.0 vistir==0.6.1
+
+      - name: Setup Git
+        run: |
+          git config --local user.name github-actions
+          git config --local user.email github-actions@github.com
+
+      - name: Sync Setup Dependencies
+        run: |
+          pipenv-setup sync
+          git add setup.py
+
+          # Only commit and push if there are differences.
+          if ! git diff --staged --quiet; then
+            git commit -m "chore[setup]: sync dependencies"
+            git push
+          fi
+
+      - name: Publish Semantic Release
+        env:
+          GH_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+        run: semantic-release publish --verbosity=INFO
