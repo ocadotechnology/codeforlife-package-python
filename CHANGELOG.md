@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v0.2.3 (2023-04-04)
+### Fix
+* Test one workflow ([`38f1e0b`](https://github.com/ocadotechnology/codeforlife-package-python/commit/38f1e0be3635ca8315b9c7053576c8c6c4b9355f))
+
 ## v0.2.2 (2023-04-04)
 ### Fix
 * Author name 2 ([`dbbd92a`](https://github.com/ocadotechnology/codeforlife-package-python/commit/dbbd92a15cdb72e6713efe53fca7ab6763270f8d))
