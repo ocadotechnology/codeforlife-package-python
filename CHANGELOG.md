@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v0.2.6 (2023-04-04)
+### Fix
+* Run on all branches, not tags ([`2c65978`](https://github.com/ocadotechnology/codeforlife-package-python/commit/2c65978ebc4edce4db979fe650f469845153799e))
+
 ## v0.2.5 (2023-04-04)
 ### Fix
 * Echo author test ([`b8bfd76`](https://github.com/ocadotechnology/codeforlife-package-python/commit/b8bfd76b0fecc9cd3b2f8f1ae6e61a41a3196ef1))
