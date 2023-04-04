@@ -2,13 +2,13 @@ name: Main
 
 on:
   push:
+    branches: ["*"]
     paths-ignore:
       - "codeforlife/version.py"
       - "CHANGELOG.md"
 
 jobs:
   test:
-    if: github.event.commits[0].author.name != 'semantic-release'
     name: Test Code
     runs-on: ubuntu-latest
     strategy:
