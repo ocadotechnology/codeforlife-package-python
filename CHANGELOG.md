@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v0.2.2 (2023-04-04)
+### Fix
+* Author name 2 ([`dbbd92a`](https://github.com/ocadotechnology/codeforlife-package-python/commit/dbbd92a15cdb72e6713efe53fca7ab6763270f8d))
+
 ## v0.2.1 (2023-04-04)
 ### Fix
 * Break up workflow ([`938a5be`](https://github.com/ocadotechnology/codeforlife-package-python/commit/938a5be25039fdf1386cbffe604b6c336bed6f8d))
