@@ -2,7 +2,7 @@ name: Main
 
 on:
   push:
-    branches: ["*"]
+    branches: ["*"] # Run only when push to branches (not tags).
     paths-ignore:
       - "codeforlife/version.py"
       - "CHANGELOG.md"
