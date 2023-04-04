@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v0.2.4 (2023-04-04)
+### Fix
+* Ignore paths ([`8cf0725`](https://github.com/ocadotechnology/codeforlife-package-python/commit/8cf07259d9d292bd5cd7528cb9d4669f11689698))
+
 ## v0.2.3 (2023-04-04)
 ### Fix
 * Test one workflow ([`38f1e0b`](https://github.com/ocadotechnology/codeforlife-package-python/commit/38f1e0be3635ca8315b9c7053576c8c6c4b9355f))
