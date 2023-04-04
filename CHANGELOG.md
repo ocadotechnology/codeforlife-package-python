@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v0.2.0 (2023-04-04)
+### Feature
+* User package ([#8](https://github.com/ocadotechnology/codeforlife-package-python/issues/8)) ([`5788590`](https://github.com/ocadotechnology/codeforlife-package-python/commit/57885901673da5ab53bda19866173277755a0492))
+
 ## v0.1.12 (2023-03-21)
 ### Fix
 * Setup Python 3.11 third attempt ([`c9ba16a`](https://github.com/ocadotechnology/codeforlife-package-python/commit/c9ba16ae8478534a2321453cd0b62fe57abaa2f7))
