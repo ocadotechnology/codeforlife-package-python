@@ -1,6 +1,10 @@
 name: Main
 
-on: push
+on:
+  push:
+    paths-ignore:
+      - "codeforlife/version.py"
+      - "CHANGELOG.md"
 
 jobs:
   test:
