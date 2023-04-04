@@ -38,7 +38,7 @@ setup(
         "django-two-factor-auth==1.13.2",
         "djangorestframework==3.13.1",
         "pypng==0.20220715.0",
-        "pytz==2022.7.1",
+        "pytz==2023.3",
         "qrcode==7.4.2; python_version >= '3.7'",
         "sqlparse==0.4.3; python_version >= '3.5'",
         "typing-extensions==4.5.0; python_version >= '3.7'",
