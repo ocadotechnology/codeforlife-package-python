@@ -2,6 +2,11 @@
 
 <!--next-version-placeholder-->
 
+## v0.3.1 (2023-04-24)
+### Fix
+* Comment extra dependency ([`520508d`](https://github.com/ocadotechnology/codeforlife-package-python/commit/520508d79f068bb6a33ab3c7126e02ebd22a8a9f))
+* Install aiohttp and typing-extensions ([`c32ef41`](https://github.com/ocadotechnology/codeforlife-package-python/commit/c32ef414ad0515398a537deed1f7aca40fad8458))
+
 ## v0.3.0 (2023-04-24)
 ### Feature
 * Common kurono code ([`ac4c1e3`](https://github.com/ocadotechnology/codeforlife-package-python/commit/ac4c1e337f4fe96e5f86f2906dac6b5a10d0fc6f))
