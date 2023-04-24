@@ -12,11 +12,7 @@ class SpawnLocationFinder:
         """
         Used to make sure that the cell is free before spawning.
         """
-        return (
-            c
-            for c in self._world_map.all_cells()
-            if c.habitable and not c.avatar and not c.interactable
-        )
+        return (c for c in self._world_map.all_cells() if c.habitable and not c.avatar and not c.interactable)
 
     def get_random_spawn_locations(self, max_locations):
         if max_locations <= 0:

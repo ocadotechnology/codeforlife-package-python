@@ -58,18 +58,10 @@ class WorldMap(object):
         return (cell for cell in self.all_cells() if cell.interactable)
 
     def score_cells(self):
-        return (
-            cell
-            for cell in self.all_cells()
-            if isinstance(cell.interactable, ScoreLocation)
-        )
+        return (cell for cell in self.all_cells() if isinstance(cell.interactable, ScoreLocation))
 
     def pickup_cells(self):
-        return (
-            cell
-            for cell in self.all_cells()
-            if isinstance(cell.interactable, ALL_PICKUPS)
-        )
+        return (cell for cell in self.all_cells() if isinstance(cell.interactable, ALL_PICKUPS))
 
     def is_on_map(self, location):
         try:
@@ -124,11 +116,7 @@ class WorldMap(object):
             return False
         cell = self.get_cell(target_location)
 
-        return (
-            cell.habitable
-            and (not cell.is_occupied or cell.avatar.is_moving)
-            and len(cell.moves) <= 1
-        )
+        return cell.habitable and (not cell.is_occupied or cell.avatar.is_moving) and len(cell.moves) <= 1
 
     def attackable_avatar(self, target_location):
         """
@@ -162,10 +150,7 @@ class WorldMap(object):
 
     def __iter__(self):
         return (
-            (
-                self.get_cell(Location(x, y))
-                for y in range(self.min_y(), self.max_y() + 1)
-            )
+            (self.get_cell(Location(x, y)) for y in range(self.min_y(), self.max_y() + 1))
             for x in range(self.min_x(), self.max_x() + 1)
         )
 
@@ -201,11 +186,7 @@ class WorldMap(object):
         def get_coords(cell):
             return {"location": {"x": cell.location.x, "y": cell.location.y}}
 
-        return [
-            get_coords(cell)
-            for cell in self.all_cells()
-            if isinstance(cell.interactable, ScoreLocation)
-        ]
+        return [get_coords(cell) for cell in self.all_cells() if isinstance(cell.interactable, ScoreLocation)]
 
     def serialize_obstacles(self):
         """
@@ -223,11 +204,7 @@ class WorldMap(object):
                 "orientation": "north",
             }
 
-        return [
-            cell.obstacle.serialize(cell)
-            for cell in self.all_cells()
-            if not cell.habitable
-        ]
+        return [cell.obstacle.serialize(cell) for cell in self.all_cells() if not cell.habitable]
 
 
 def WorldMapStaticSpawnDecorator(world_map, spawn_location):

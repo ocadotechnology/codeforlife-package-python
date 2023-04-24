@@ -39,10 +39,7 @@ class Main(_BaseGenerator):
         always_empty_location = Location(always_empty_edge_x, always_empty_edge_y)
 
         for cell in shuffled(world_map.all_cells()):
-            if (
-                cell.location != always_empty_location
-                and random.random() < self.settings.get("OBSTACLE_RATIO", 0.1)
-            ):
+            if cell.location != always_empty_location and random.random() < self.settings.get("OBSTACLE_RATIO", 0.1):
                 cell.obstacle = Obstacle.make_obstacle()
                 # So long as all habitable neighbours can still reach each other, then the
                 # map cannot get bisected.
@@ -76,10 +73,7 @@ def _all_habitable_neighbours_can_reach_each_other(cell, world_map):
 
     assert len(neighbours) >= 1
     neighbour_pairs = ((n1, n2) for n1, n2 in pairwise(neighbours))
-    shortest_path_exists = (
-        get_shortest_path_between(n1, n2, world_map) is not None
-        for n1, n2 in neighbour_pairs
-    )
+    shortest_path_exists = (get_shortest_path_between(n1, n2, world_map) is not None for n1, n2 in neighbour_pairs)
     return all(shortest_path_exists)
 
 
@@ -90,9 +84,7 @@ def get_shortest_path_between(source_cell, destination_cell, world_map):
         y_distance = abs(branch_tip_location.y - destination_cell.location.y)
         return x_distance + y_distance + len(this_branch)
 
-    branches = PriorityQueuef(
-        key=manhattan_distance_to_destination_cell, init_items=[[source_cell]]
-    )
+    branches = PriorityQueuef(key=manhattan_distance_to_destination_cell, init_items=[[source_cell]])
     visited_cells = set()
 
     while not branches.queue.empty():
@@ -142,9 +134,7 @@ def get_random_edge_index(world_map, rng=random):
 
 def get_adjacent_habitable_cells(cell, world_map):
     adjacent_locations = [cell.location + d for d in ALL_DIRECTIONS]
-    adjacent_locations = [
-        location for location in adjacent_locations if world_map.is_on_map(location)
-    ]
+    adjacent_locations = [location for location in adjacent_locations if world_map.is_on_map(location)]
 
     adjacent_cells = [world_map.get_cell(location) for location in adjacent_locations]
     return [c for c in adjacent_cells if c.habitable]

@@ -18,7 +18,7 @@ class TurnState:
 
 
 def avatar_on_cell(turn_state: TurnState):
-    """ Returns an expression that checks if an avatar is on a specified cell. """
+    """Returns an expression that checks if an avatar is on a specified cell."""
     return turn_state.interactable_cell.avatar is not None
 
 

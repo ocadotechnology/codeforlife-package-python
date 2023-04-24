@@ -74,11 +74,7 @@ class SimulationRunner(object):
 
     def add_avatar(self, player_id, location=None):
         with self._lock:
-            location = (
-                self.game_state.world_map.get_random_spawn_location()
-                if location is None
-                else location
-            )
+            location = self.game_state.world_map.get_random_spawn_location() if location is None else location
             avatar = self.game_state.avatar_manager.add_avatar(player_id, location)
             self.game_state.world_map.get_cell(location).avatar = avatar
 
@@ -112,9 +108,7 @@ class SequentialSimulationRunner(SimulationRunner):
         avatars = self.game_state.avatar_manager.active_avatars
 
         for avatar in avatars:
-            await self._run_turn_for_avatar(
-                avatar, collected_turn_actions.get_action_for_player(avatar.player_id)
-            )
+            await self._run_turn_for_avatar(avatar, collected_turn_actions.get_action_for_player(avatar.player_id))
             location_to_clear = avatar.action.target_location
             avatar.action.process(self.game_state.world_map)
             self.game_state.world_map.clear_cell_actions(location_to_clear)
@@ -132,18 +126,13 @@ class ConcurrentSimulationRunner(SimulationRunner):
         """
 
         avatars = self.game_state.avatar_manager.active_avatars
-        args = [
-            (avatar, collected_turn_actions.get_action_for_player(avatar.player_id))
-            for avatar in avatars
-        ]
+        args = [(avatar, collected_turn_actions.get_action_for_player(avatar.player_id)) for avatar in avatars]
         await self.async_map(self._run_turn_for_avatar, args)
 
         # Waits applied first, then attacks, then moves.
         avatars.sort(key=lambda a: PRIORITIES[type(a.action)])
 
-        locations_to_clear = {
-            a.action.target_location for a in avatars if a.action is not None
-        }
+        locations_to_clear = {a.action.target_location for a in avatars if a.action is not None}
 
         for action in (a.action for a in avatars if a.action is not None):
             action.process(self.game_state.world_map)

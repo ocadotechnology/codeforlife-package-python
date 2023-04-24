@@ -63,9 +63,7 @@ class _Effect(object):
         try:
             self._recipient.effects.remove(self)
         except KeyError as e:
-            raise KeyError(
-                "The target object does not exist! Cannot remove the effect."
-            )
+            raise KeyError("The target object does not exist! Cannot remove the effect.")
 
 
 class InvulnerabilityEffect(_Effect):
