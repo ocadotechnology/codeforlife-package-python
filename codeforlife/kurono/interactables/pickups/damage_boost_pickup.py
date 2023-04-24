@@ -1,0 +1,24 @@
+from ...interactables.conditions import avatar_on_cell
+from ...interactables.effects import DamageBoostEffect
+from ...interactables.interactable import _Interactable
+
+
+class DamageBoostPickup(_Interactable):
+    def __init__(self, cell):
+        super(DamageBoostPickup, self).__init__(cell)
+        self.delete_after_effects_applied = True
+
+        self.conditions.append(avatar_on_cell)
+        self.effects.append(DamageBoostEffect)
+
+    def get_targets(self):
+        return [self.cell.avatar]
+
+    def __repr__(self):
+        return "DamageBoostPickup(Location={})".format(self.cell.location)
+
+    def serialize(self):
+        return {
+            "type": "damage_boost",
+            "location": {"x": self.cell.location.x, "y": self.cell.location.y},
+        }
