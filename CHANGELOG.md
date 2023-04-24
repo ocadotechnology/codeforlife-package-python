@@ -2,6 +2,14 @@
 
 <!--next-version-placeholder-->
 
+## v0.3.0 (2023-04-24)
+### Feature
+* Common kurono code ([`ac4c1e3`](https://github.com/ocadotechnology/codeforlife-package-python/commit/ac4c1e337f4fe96e5f86f2906dac6b5a10d0fc6f))
+
+### Fix
+* Install typing-extensions ([`3027c05`](https://github.com/ocadotechnology/codeforlife-package-python/commit/3027c053ce4d9572de1c75553c7c2bee05115f95))
+* Format files ([`45c4670`](https://github.com/ocadotechnology/codeforlife-package-python/commit/45c4670b73d59754ca312d9e290df66babe8f496))
+
 ## v0.2.6 (2023-04-04)
 ### Fix
 * Run on all branches, not tags ([`2c65978`](https://github.com/ocadotechnology/codeforlife-package-python/commit/2c65978ebc4edce4db979fe650f469845153799e))
