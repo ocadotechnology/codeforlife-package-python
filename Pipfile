@@ -8,10 +8,9 @@ django = "==3.2.18"
 djangorestframework = "==3.13.1"
 django-countries = "==7.3.1"
 django-two-factor-auth = "==1.13.2"
-# aiohttp = "==3.8.4"
-
+aiohttp = "==3.8.4"
+typing-extensions = "==4.5.0"
 [dev-packages]
-# typing-extensions = "==4.5.0"
 black = "==23.1.0"
 pytest = "==7.2.1"
 pytest-django = "==4.5.2"
