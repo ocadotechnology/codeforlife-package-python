@@ -87,7 +87,6 @@ def astar(world_map, start_cell, end_cell):
 
     # Loop until you find the goal or exhaust the nodes
     while len(open_list) > 0:
-
         # look for the lowest F cost square on the open list for current node (returned by the heapq)
         current_node = heapq.heappop(open_list)
         closed_list.append(current_node)
@@ -108,17 +107,13 @@ def astar(world_map, start_cell, end_cell):
 
             # calculate the f, g, and h values
             child.g = current_node.g + 1
-            child.h = ((child.location.x - end_node.location.x) ** 2) + (
-                (child.location.y - end_node.location.y) ** 2
-            )
+            child.h = ((child.location.x - end_node.location.x) ** 2) + ((child.location.y - end_node.location.y) ** 2)
             child.f = child.g + child.h
 
             # check if it is already in the open list, and if this path to that square is better,
             # using G cost as the measure (lower G is better)
             open_nodes = [
-                open_node
-                for open_node in open_list
-                if (child.location == open_node.location and child.g > open_node.g)
+                open_node for open_node in open_list if (child.location == open_node.location and child.g > open_node.g)
             ]
             if len(open_nodes) > 0:
                 continue
