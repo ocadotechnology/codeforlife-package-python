@@ -7,4 +7,5 @@ DATA_DIR = BASE_DIR.joinpath("data")
 
 from .version import __version__
 
+from . import kurono
 from . import user
