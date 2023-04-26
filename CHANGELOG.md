@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v0.3.3 (2023-04-26)
+### Fix
+* Backpack check ([`5af5316`](https://github.com/ocadotechnology/codeforlife-package-python/commit/5af5316edf01cfe5d0083377f509838ac905c90a))
+
 ## v0.3.2 (2023-04-26)
 ### Fix
 * File format ([`123f959`](https://github.com/ocadotechnology/codeforlife-package-python/commit/123f959123b51fd3126d898ed53da509e1e7e4b7))
