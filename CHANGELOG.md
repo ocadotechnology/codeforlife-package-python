@@ -2,6 +2,11 @@
 
 <!--next-version-placeholder-->
 
+## v0.3.2 (2023-04-26)
+### Fix
+* File format ([`123f959`](https://github.com/ocadotechnology/codeforlife-package-python/commit/123f959123b51fd3126d898ed53da509e1e7e4b7))
+* Kurono modules ([`15cd5c0`](https://github.com/ocadotechnology/codeforlife-package-python/commit/15cd5c0b7005cf6bf4c88ec12604e2cede23998f))
+
 ## v0.3.1 (2023-04-24)
 ### Fix
 * Comment extra dependency ([`520508d`](https://github.com/ocadotechnology/codeforlife-package-python/commit/520508d79f068bb6a33ab3c7126e02ebd22a8a9f))
