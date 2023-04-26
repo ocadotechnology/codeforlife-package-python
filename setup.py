@@ -29,13 +29,7 @@ setup(
     # These will be synced with Pipfile by the pipeline.
     # DO NOT edit these manually. Instead, update the Pipfile.
     install_requires=[
-        "aiohttp==3.8.4",
-        "aiosignal==1.3.1; python_version >= '3.7'",
         "asgiref==3.6.0; python_version >= '3.7'",
-        "async-timeout==4.0.2; python_version >= '3.6'",
-        "asynctest==0.13.0; python_version < '3.8'",
-        "attrs==23.1.0; python_version >= '3.7'",
-        "charset-normalizer==3.1.0; python_full_version >= '3.7.0'",
         "django==3.2.18",
         "django-countries==7.3.1",
         "django-formtools==2.4; python_version >= '3.6'",
@@ -43,17 +37,12 @@ setup(
         "django-phonenumber-field==6.4.0; python_version >= '3.7'",
         "django-two-factor-auth==1.13.2",
         "djangorestframework==3.13.1",
-        "frozenlist==1.3.3; python_version >= '3.7'",
-        "idna==3.4; python_version >= '3.5'",
-        "importlib-metadata==6.6.0; python_version < '3.8'",
-        "multidict==6.0.4; python_version >= '3.7'",
+        "pydantic==1.10.7",
         "pypng==0.20220715.0",
         "pytz==2023.3",
         "qrcode==7.4.2; python_version >= '3.7'",
         "sqlparse==0.4.4; python_version >= '3.5'",
-        "typing-extensions==4.5.0",
-        "yarl==1.9.1; python_version >= '3.7'",
-        "zipp==3.15.0; python_version >= '3.7'",
+        "typing-extensions==4.5.0; python_version >= '3.7'",
     ],
     dependency_links=[],
 )
