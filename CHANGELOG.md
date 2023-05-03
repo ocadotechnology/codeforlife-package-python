@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v0.4.2 (2023-05-03)
+### Fix
+* Release job ([`7b5eecf`](https://github.com/ocadotechnology/codeforlife-package-python/commit/7b5eecfff1adb328cd4df08e48dc6d87a78cc23b))
+
 ## v0.4.1 (2023-05-03)
 ### Fix
 * Put flask back ([`67afb91`](https://github.com/ocadotechnology/codeforlife-package-python/commit/67afb9142db8410eaebeb42b7e2c3912d1b313c7))
