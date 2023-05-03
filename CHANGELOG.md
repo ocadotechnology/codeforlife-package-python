@@ -2,6 +2,11 @@
 
 <!--next-version-placeholder-->
 
+## v0.4.3 (2023-05-03)
+### Fix
+* Test pt2 ([`e727c2f`](https://github.com/ocadotechnology/codeforlife-package-python/commit/e727c2f930a4c7f8b58739549246f5c726d49642))
+* Test new release ([`b675fc9`](https://github.com/ocadotechnology/codeforlife-package-python/commit/b675fc91d6850f7b57f19e7cbb928b9b9a9dd718))
+
 ## v0.4.2 (2023-05-03)
 ### Fix
 * Release job ([`7b5eecf`](https://github.com/ocadotechnology/codeforlife-package-python/commit/7b5eecfff1adb328cd4df08e48dc6d87a78cc23b))
