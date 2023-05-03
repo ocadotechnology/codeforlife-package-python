@@ -20,23 +20,22 @@ from ...kurono import (
 )
 
 
-class Source(BaseModel):
-    code: str = Field()
-    _globals: t.Dict[str, t.Any] = PrivateAttr(
-        default_factory=lambda: {
-            "direction": direction,
-            "location": location,
-            "MoveAction": MoveAction,
-            "PickupAction": PickupAction,
-            "WaitAction": WaitAction,
-            "MoveTowardsAction": MoveTowardsAction,
-            "DropAction": DropAction,
-        }
-    )
-    _locals: t.Dict[str, t.Any] = PrivateAttr(default_factory=dict)
+class RequestBody(BaseModel):
+    class Source(BaseModel):
+        code: str = Field()
+        _globals: t.Dict[str, t.Any] = PrivateAttr(
+            default_factory=lambda: {
+                "direction": direction,
+                "location": location,
+                "MoveAction": MoveAction,
+                "PickupAction": PickupAction,
+                "WaitAction": WaitAction,
+                "MoveTowardsAction": MoveTowardsAction,
+                "DropAction": DropAction,
+            }
+        )
+        _locals: t.Dict[str, t.Any] = PrivateAttr(default_factory=dict)
 
-
-class KuronoBadges(BaseModel):
     source: Source = Field()
     current_avatar_id: int = Field()
     task_id: t.Optional[int] = Field(ge=1)
@@ -61,3 +60,13 @@ class KuronoBadges(BaseModel):
             raise ValueError("next_turn has the wrong named parameters")
 
         return source
+
+
+class ResponseBody(BaseModel):
+    class Report(BaseModel):
+        task_id: int = Field(ge=1)
+
+    passed: t.List[Report] = Field()
+    failed: t.List[Report] = Field()
+    xfailed: t.List[Report] = Field()
+    skipped: t.List[Report] = Field()

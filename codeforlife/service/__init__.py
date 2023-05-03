@@ -1,2 +1,2 @@
-from . import request_bodies
+from . import interfaces
 from . import api
