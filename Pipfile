@@ -9,7 +9,7 @@ djangorestframework = "==3.13.1"
 django-countries = "==7.3.1"
 django-two-factor-auth = "==1.13.2"
 pydantic = "==1.10.7"
-# flask = "==2.2.3"
+flask = "==2.2.3"
 
 [dev-packages]
 black = "==23.1.0"
