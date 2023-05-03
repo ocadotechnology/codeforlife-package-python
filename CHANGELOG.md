@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v0.4.0 (2023-05-03)
+### Feature
+* Add kurono badges request body ([`8f12b80`](https://github.com/ocadotechnology/codeforlife-package-python/commit/8f12b80c96ee49a4ee9f0bd88cd26c30c5e909ca))
+
 ## v0.3.3 (2023-04-26)
 ### Fix
 * Backpack check ([`5af5316`](https://github.com/ocadotechnology/codeforlife-package-python/commit/5af5316edf01cfe5d0083377f509838ac905c90a))
