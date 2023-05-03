@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v0.4.4 (2023-05-03)
+### Fix
+* Add kurono_badges response body ([`872e6fb`](https://github.com/ocadotechnology/codeforlife-package-python/commit/872e6fbe2518fc1816fc02cf72ee7630e0d38f04))
+
 ## v0.4.3 (2023-05-03)
 ### Fix
 * Test pt2 ([`e727c2f`](https://github.com/ocadotechnology/codeforlife-package-python/commit/e727c2f930a4c7f8b58739549246f5c726d49642))
