@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v0.4.5 (2023-05-03)
+### Fix
+* Reset pipeline and remove module imports ([`743965c`](https://github.com/ocadotechnology/codeforlife-package-python/commit/743965c2d6ea63e03ca2476205f34000fd28de8a))
+
 ## v0.4.4 (2023-05-03)
 ### Fix
 * Add kurono_badges response body ([`872e6fb`](https://github.com/ocadotechnology/codeforlife-package-python/commit/872e6fbe2518fc1816fc02cf72ee7630e0d38f04))
