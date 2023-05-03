@@ -2,6 +2,11 @@
 
 <!--next-version-placeholder-->
 
+## v0.4.1 (2023-05-03)
+### Fix
+* Put flask back ([`67afb91`](https://github.com/ocadotechnology/codeforlife-package-python/commit/67afb9142db8410eaebeb42b7e2c3912d1b313c7))
+* Test remove flask ([`99839d9`](https://github.com/ocadotechnology/codeforlife-package-python/commit/99839d94b066c2ec13cf2283d800b57011d45da3))
+
 ## v0.4.0 (2023-05-03)
 ### Feature
 * Add kurono badges request body ([`8f12b80`](https://github.com/ocadotechnology/codeforlife-package-python/commit/8f12b80c96ee49a4ee9f0bd88cd26c30c5e909ca))
