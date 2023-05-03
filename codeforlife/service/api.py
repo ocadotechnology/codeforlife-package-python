@@ -9,11 +9,11 @@ ResponseBody = t.TypeVar("ResponseBody", bound=BaseModel)
 
 
 def handle_flask_request(
-    requestBodyType: t.Type[RequestBody],
+    request_body_type: t.Type[RequestBody],
     run: t.Callable[[RequestBody], ResponseBody],
 ):
     try:
-        request_body = requestBodyType(**request.json)
+        request_body = request_body_type(**request.json)
     except ValidationError as error:
         return Response(error.json(), status=400, content_type="application/json")
 
