@@ -1,10 +1,10 @@
 import typing as t
-from inspect import signature
 
 from pydantic import (
     BaseModel,
     Field,
-    validator,
+    root_validator,
+    PrivateAttr,
 )
 
 from ...kurono import schema
@@ -13,29 +13,21 @@ from ...kurono import schema
 class RequestBody(BaseModel):
     class Source(BaseModel):
         code: str = Field()
-        globals: t.Optional[t.Dict[str, t.Any]] = Field()
-        locals: t.Optional[t.Dict[str, t.Any]] = Field()
-
-        @validator("locals")
-        def defines_next_turn(cls, locals: t.Dict[str, t.Any]):
-            next_turn = locals.get("next_turn")
-            if not next_turn:
-                raise ValueError("next_turn is not defined")
-            if not callable(next_turn):
-                raise ValueError("next_turn is not a callable")
-
-            next_turn_parameters = signature(next_turn).parameters
-            if len(next_turn_parameters) != 2:
-                raise ValueError("next_turn expected 2 parameters")
-            if list(next_turn_parameters.keys()) != ["world_state", "avatar_state"]:
-                raise ValueError("next_turn has the wrong named parameters")
-
-            return locals
+        _globals: t.Dict[str, t.Any] = PrivateAttr(default_factory=dict)
+        _locals: t.Dict[str, t.Any] = PrivateAttr(default_factory=dict)
 
     source: Source = Field()
+    execute: t.Optional[t.Callable[[Source], None]] = Field()
+
     current_avatar_id: int = Field()
     task_id: t.Optional[int] = Field(ge=1)
     game_state: schema.GameState = Field()
+
+    @root_validator
+    def defines_next_turn(cls, request_body: t.Dict[str, t.Any]):
+        if "execute" in request_body:
+            request_body["execute"](request_body["source"])
+        return request_body
 
 
 class ResponseBody(BaseModel):
