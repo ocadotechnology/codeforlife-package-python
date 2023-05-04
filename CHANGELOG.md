@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v0.4.6 (2023-05-04)
+### Fix
+* Remove code exec from source ([`98951e4`](https://github.com/ocadotechnology/codeforlife-package-python/commit/98951e487110be96f26bf8993d3876be0063f498))
+
 ## v0.4.5 (2023-05-03)
 ### Fix
 * Reset pipeline and remove module imports ([`743965c`](https://github.com/ocadotechnology/codeforlife-package-python/commit/743965c2d6ea63e03ca2476205f34000fd28de8a))
