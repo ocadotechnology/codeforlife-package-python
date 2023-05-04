@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v0.4.7 (2023-05-04)
+### Fix
+* Create callback for code execution ([`83abd03`](https://github.com/ocadotechnology/codeforlife-package-python/commit/83abd03616a90639cc1497e3740bb4045c80e01d))
+
 ## v0.4.6 (2023-05-04)
 ### Fix
 * Remove code exec from source ([`98951e4`](https://github.com/ocadotechnology/codeforlife-package-python/commit/98951e487110be96f26bf8993d3876be0063f498))
