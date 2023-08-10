@@ -21,4 +21,11 @@ class Backpack(List[T]):
         Returns:
             The index of the artefact or -1 if it doesn't exist.
         """
-        return next((i for i, artefact in enumerate(self) if artefact.type == artefact_type), -1)
+        return next(
+            (
+                i
+                for i, artefact in enumerate(self)
+                if artefact.type == artefact_type
+            ),
+            -1,
+        )
