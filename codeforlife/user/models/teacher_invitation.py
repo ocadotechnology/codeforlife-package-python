@@ -15,8 +15,18 @@ class SchoolTeacherInvitationModelManager(models.Manager):
 
 class SchoolTeacherInvitation(models.Model):
     token = models.CharField(max_length=32)
-    school = models.ForeignKey(School, related_name="teacher_invitations", null=True, on_delete=models.SET_NULL)
-    from_teacher = models.ForeignKey(Teacher, related_name="school_invitations", null=True, on_delete=models.SET_NULL)
+    school = models.ForeignKey(
+        School,
+        related_name="teacher_invitations",
+        null=True,
+        on_delete=models.SET_NULL,
+    )
+    from_teacher = models.ForeignKey(
+        Teacher,
+        related_name="school_invitations",
+        null=True,
+        on_delete=models.SET_NULL,
+    )
     creation_time = models.DateTimeField(default=timezone.now, null=True)
     is_active = models.BooleanField(default=True)
 

@@ -19,7 +19,9 @@ class JoinReleaseStudent(models.Model):
     JOIN = "join"
     RELEASE = "release"
 
-    student = models.ForeignKey(Student, related_name="student", on_delete=models.CASCADE)
+    student = models.ForeignKey(
+        Student, related_name="student", on_delete=models.CASCADE
+    )
     # either "release" or "join"
     action_type = models.CharField(max_length=64)
     action_time = models.DateTimeField(default=timezone.now)

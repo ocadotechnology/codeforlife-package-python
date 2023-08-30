@@ -29,7 +29,9 @@ class ClassModelManager(models.Manager):
 
 class Class(models.Model):
     name = models.CharField(max_length=200)
-    teacher = models.ForeignKey(Teacher, related_name="class_teacher", on_delete=models.CASCADE)
+    teacher = models.ForeignKey(
+        Teacher, related_name="class_teacher", on_delete=models.CASCADE
+    )
     access_code = models.CharField(max_length=5, null=True)
     classmates_data_viewable = models.BooleanField(default=False)
     always_accept_requests = models.BooleanField(default=False)
@@ -37,7 +39,11 @@ class Class(models.Model):
     creation_time = models.DateTimeField(default=timezone.now, null=True)
     is_active = models.BooleanField(default=True)
     created_by = models.ForeignKey(
-        Teacher, null=True, blank=True, related_name="created_classes", on_delete=models.SET_NULL
+        Teacher,
+        null=True,
+        blank=True,
+        related_name="created_classes",
+        on_delete=models.SET_NULL,
     )
 
     objects = ClassModelManager()
@@ -49,7 +55,9 @@ class Class(models.Model):
     def active_game(self):
         games = self.game_set.filter(game_class=self, is_archived=False)
         if len(games) >= 1:
-            assert len(games) == 1  # there should NOT be more than one active game
+            assert (
+                len(games) == 1
+            )  # there should NOT be more than one active game
             return games[0]
         return None
 
@@ -59,8 +67,13 @@ class Class(models.Model):
 
     def get_requests_message(self):
         if self.always_accept_requests:
-            external_requests_message = "This class is currently set to always accept requests."
-        elif self.accept_requests_until is not None and (self.accept_requests_until - timezone.now()) >= timedelta():
+            external_requests_message = (
+                "This class is currently set to always accept requests."
+            )
+        elif (
+            self.accept_requests_until is not None
+            and (self.accept_requests_until - timezone.now()) >= timedelta()
+        ):
             external_requests_message = (
                 "This class is accepting external requests until "
                 + self.accept_requests_until.strftime("%d-%m-%Y %H:%M")
@@ -68,7 +81,9 @@ class Class(models.Model):
                 + timezone.get_current_timezone_name()
             )
         else:
-            external_requests_message = "This class is not currently accepting external requests."
+            external_requests_message = (
+                "This class is not currently accepting external requests."
+            )
 
         return external_requests_message
 

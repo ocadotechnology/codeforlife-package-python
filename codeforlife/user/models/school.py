@@ -35,7 +35,11 @@ class School(models.Model):
 
     def admins(self):
         teachers = self.school_teacher.all()
-        return [teacher for teacher in teachers if teacher.is_admin] if teachers else None
+        return (
+            [teacher for teacher in teachers if teacher.is_admin]
+            if teachers
+            else None
+        )
 
     def anonymise(self):
         self.name = uuid4().hex

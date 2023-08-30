@@ -13,7 +13,12 @@ def create_avatar_state(avatar_state_json: Dict):
     if avatar_state_json.get("backpack"):
         # use namedtuple for artefacts to allow accessing fields by name
         avatar_state_dict["backpack"] = Backpack(
-            [namedtuple("Artefact", artefact.keys())(*artefact.values()) for artefact in avatar_state_json["backpack"]]
+            [
+                namedtuple("Artefact", artefact.keys())(*artefact.values())
+                for artefact in avatar_state_json["backpack"]
+            ]
         )
 
-    return namedtuple("AvatarState", avatar_state_dict.keys())(*avatar_state_dict.values())
+    return namedtuple("AvatarState", avatar_state_dict.keys())(
+        *avatar_state_dict.values()
+    )

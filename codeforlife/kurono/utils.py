@@ -16,6 +16,8 @@ class NearbyArtefactsList(List[T]):
             return super().__getitem__(i)
         except IndexError:
             if len(self) == 0:
-                print("There aren't any nearby artefacts, you need to move closer!")
+                print(
+                    "There aren't any nearby artefacts, you need to move closer!"
+                )
             else:
                 raise
