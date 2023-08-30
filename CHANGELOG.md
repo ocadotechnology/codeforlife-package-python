@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.5.0 (2023-08-30)
+
+### Feature
+
+* Google cron mixin ([#11](https://github.com/ocadotechnology/codeforlife-package-python/issues/11)) ([`1d4d196`](https://github.com/ocadotechnology/codeforlife-package-python/commit/1d4d196a781c9ae733236de17f2eb444016818d0))
+
 ## v0.4.7 (2023-05-04)
 ### Fix
 * Create callback for code execution ([`83abd03`](https://github.com/ocadotechnology/codeforlife-package-python/commit/83abd03616a90639cc1497e3740bb4045c80e01d))
