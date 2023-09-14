@@ -34,7 +34,7 @@ setup(
         "django==3.2.20",
         "django-countries==7.3.1",
         "django-formtools==2.2",
-        "django-otp==1.2.2; python_version >= '3.7'",
+        "django-otp==1.0.2",
         "django-phonenumber-field==6.4.0; python_version >= '3.7'",
         "django-two-factor-auth==1.13.2",
         "djangorestframework==3.13.1",
