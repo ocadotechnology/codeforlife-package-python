@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.6.4 (2023-09-14)
+
+### Fix
+
+* Python requires ([`0d8a89e`](https://github.com/ocadotechnology/codeforlife-package-python/commit/0d8a89ee2c92b52a7cccbcec7d211f81c5a9d717))
+
 ## v0.6.3 (2023-09-14)
 
 ### Fix
