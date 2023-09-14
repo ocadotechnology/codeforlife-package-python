@@ -33,7 +33,7 @@ setup(
         "click==8.1.7; python_version >= '3.7'",
         "django==3.2.20",
         "django-countries==7.3.1",
-        "django-formtools==2.4.1; python_version >= '3.7'",
+        "django-formtools==2.2",
         "django-otp==1.2.2; python_version >= '3.7'",
         "django-phonenumber-field==6.4.0; python_version >= '3.7'",
         "django-two-factor-auth==1.13.2",
