@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.6.7 (2023-09-14)
+
+### Fix
+
+* Add cron test client and case ([`e3dbc88`](https://github.com/ocadotechnology/codeforlife-package-python/commit/e3dbc88f71f365ff5504d2921295002fe7d9ab44))
+
 ## v0.6.6 (2023-09-14)
 
 ### Fix
