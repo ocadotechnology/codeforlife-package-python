@@ -1,1 +1,1 @@
-from .cron_mixin import CronMixin
+from .cron import CronMixin
