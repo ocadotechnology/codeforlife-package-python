@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.6.3 (2023-09-14)
+
+### Fix
+
+* Deps ([`e8f5f57`](https://github.com/ocadotechnology/codeforlife-package-python/commit/e8f5f57206235c388803eb890b468bb4ca7b46af))
+
 ## v0.6.2 (2023-09-14)
 
 ### Fix
