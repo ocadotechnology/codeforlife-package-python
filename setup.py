@@ -39,7 +39,7 @@ setup(
         "django-two-factor-auth==1.13.2",
         "djangorestframework==3.13.1",
         "flask==2.2.3",
-        "importlib-metadata==6.8.0; python_version < '3.10'",
+        "importlib-metadata==4.13.0",
         "itsdangerous==2.1.2; python_version >= '3.7'",
         "jinja2==3.1.2; python_version >= '3.7'",
         "markupsafe==2.1.3; python_version >= '3.7'",
