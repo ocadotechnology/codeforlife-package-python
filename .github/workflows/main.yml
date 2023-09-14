@@ -7,6 +7,9 @@ on:
       - "codeforlife/version.py"
       - "CHANGELOG.md"
 
+env:
+  PYTHON_VERSION: 3.8
+
 jobs:
   test:
     name: Test Code
@@ -14,7 +17,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.11"]
+        python-version: [${{ env.PYTHON_VERSION }}]
     steps:
       - uses: actions/checkout@v3
 
@@ -51,10 +54,10 @@ jobs:
           token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
           fetch-depth: 0
 
-      - name: Set up Python 3.11
+      - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: "3.11"
+          python-version: ${{ env.PYTHON_VERSION }}
 
       - name: Install Dependencies
         run: |
