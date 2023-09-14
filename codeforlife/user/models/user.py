@@ -1,8 +1,8 @@
-import typing as t
 from datetime import timedelta
+from enum import Enum
 
-from django.contrib.auth.models import UserManager as AbstractUserManager
 from django.contrib.auth.models import AbstractUser
+from django.contrib.auth.models import UserManager as AbstractUserManager
 from django.db import models
 from django.utils import timezone
 
@@ -20,6 +20,11 @@ class UserManager(AbstractUserManager):
 
 
 class User(AbstractUser):
+    class Type(str, Enum):
+        TEACHER = "teacher"
+        DEP_STUDENT = "dependent-student"
+        INDEP_STUDENT = "independent-student"
+
     developer = models.BooleanField(default=False)
     is_verified = models.BooleanField(default=False)
 
