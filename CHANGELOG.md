@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.6.6 (2023-09-14)
+
+### Fix
+
+* Add user type ([`eda7fb7`](https://github.com/ocadotechnology/codeforlife-package-python/commit/eda7fb72862aecfc5b055e512da8fc1e73ec39cd))
+
 ## v0.6.5 (2023-09-14)
 
 ### Fix
