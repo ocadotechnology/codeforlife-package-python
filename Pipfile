@@ -11,6 +11,7 @@ django-two-factor-auth = "==1.13.2"
 pydantic = "==1.10.7"
 flask = "==2.2.3"
 importlib-metadata = "==4.13.0" # TODO: remove. needed by old portal
+django-formtools = "==2.2" # TODO: remove. needed by old portal
 
 [dev-packages]
 black = "==23.1.0"
