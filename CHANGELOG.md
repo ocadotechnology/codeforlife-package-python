@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.6.0 (2023-09-14)
+
+### Feature
+
+* Use python 3.8 ([`d449272`](https://github.com/ocadotechnology/codeforlife-package-python/commit/d4492727868f8eccbf65351c1a7fa4e6cfe0cc41))
+
 ## v0.5.0 (2023-08-30)
 
 ### Feature
