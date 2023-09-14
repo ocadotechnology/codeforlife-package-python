@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.6.5 (2023-09-14)
+
+### Fix
+
+* Rename file ([`4d7b775`](https://github.com/ocadotechnology/codeforlife-package-python/commit/4d7b7753461ee8a1a5818cf95a9391acae4bfe01))
+
 ## v0.6.4 (2023-09-14)
 
 ### Fix
