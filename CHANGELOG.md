@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.7.4 (2023-09-18)
+
+### Fix
+
+* Add urls helper ([`1c8ebca`](https://github.com/ocadotechnology/codeforlife-package-python/commit/1c8ebcad218e02b2cea797af15ddc9791d22ab01))
+
 ## v0.7.3 (2023-09-18)
 
 ### Fix
