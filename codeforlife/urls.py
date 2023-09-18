@@ -5,6 +5,7 @@ from django.urls import include, path, re_path
 from rest_framework import status
 
 from .settings import SERVICE_IS_ROOT, SERVICE_NAME
+from .views import csrf
 
 
 def service_urlpatterns(
@@ -16,6 +17,11 @@ def service_urlpatterns(
             "admin/",
             admin.site.urls,
             name="admin",
+        ),
+        path(
+            "api/csrf/cookie/",
+            csrf.CookieView.as_view(),
+            name="get-csrf-cookie",
         ),
         path(
             "api/",
