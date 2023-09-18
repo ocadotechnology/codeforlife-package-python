@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.7.3 (2023-09-18)
+
+### Fix
+
+* Service base route ([`739b57e`](https://github.com/ocadotechnology/codeforlife-package-python/commit/739b57eb6d2504980472deb868fce96a1f0769b9))
+
 ## v0.7.2 (2023-09-18)
 
 ### Fix
