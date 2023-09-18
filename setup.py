@@ -35,6 +35,7 @@ setup(
         "charset-normalizer==3.2.0; python_full_version >= '3.7.0'",
         "click==8.1.7; python_version >= '3.7'",
         "django==3.2.20",
+        "django-cors-headers==4.1.0",
         "django-countries==7.3.1",
         "django-formtools==2.2",
         "django-otp==1.0.2",
