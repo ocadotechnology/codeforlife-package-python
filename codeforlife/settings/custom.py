@@ -18,6 +18,7 @@ SERVICE_PORT = int(os.getenv("SITE_PORT", "8000"))
 # The base url of the current service.
 # The root service does not need its name included in the base url.
 SERVICE_BASE_URL = f"{SERVICE_PROTOCOL}://{SERVICE_DOMAIN}:{SERVICE_PORT}"
+SERVICE_BASE_ROUTE = "" if SERVICE_IS_ROOT else f"{SERVICE_NAME}/"
 if not SERVICE_IS_ROOT:
     SERVICE_BASE_URL += f"/{SERVICE_NAME}"
 
