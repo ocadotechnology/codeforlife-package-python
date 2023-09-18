@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.7.1 (2023-09-18)
+
+### Fix
+
+* Authentication backends paths ([`612f1aa`](https://github.com/ocadotechnology/codeforlife-package-python/commit/612f1aab91571034f14969b3c7c7b3e7711d109c))
+
 ## v0.7.0 (2023-09-18)
 
 ### Feature
