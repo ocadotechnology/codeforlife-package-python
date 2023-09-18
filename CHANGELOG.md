@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.7.0 (2023-09-18)
+
+### Feature
+
+* Settings and auth_backends ([`be3d33b`](https://github.com/ocadotechnology/codeforlife-package-python/commit/be3d33b64cb362ca269a55235e9fbefe9cee1f16))
+
 ## v0.6.7 (2023-09-14)
 
 ### Fix
