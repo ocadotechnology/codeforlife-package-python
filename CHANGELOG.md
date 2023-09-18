@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.7.5 (2023-09-18)
+
+### Fix
+
+* Get csrf cookie endpoint ([`4b412dd`](https://github.com/ocadotechnology/codeforlife-package-python/commit/4b412dd7509abd6643abd79c347e1598ae92fbca))
+
 ## v0.7.4 (2023-09-18)
 
 ### Fix
