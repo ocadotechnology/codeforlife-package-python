@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.7.2 (2023-09-18)
+
+### Fix
+
+* Cors settings ([`9853424`](https://github.com/ocadotechnology/codeforlife-package-python/commit/9853424d0f1470ab9cd0139e8ad5f9d1d5963c58))
+
 ## v0.7.1 (2023-09-18)
 
 ### Fix
