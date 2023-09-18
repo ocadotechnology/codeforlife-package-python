@@ -17,9 +17,9 @@ SECRET_KEY = os.getenv("SECRET_KEY", "replace-me")
 # https://docs.djangoproject.com/en/3.2/ref/settings/#authentication-backends
 
 AUTHENTICATION_BACKENDS = [
-    "user.auth_backends.EmailAndPasswordBackend",
-    "user.auth_backends.UserIdAndLoginIdBackend",
-    "user.auth_backends.UsernameAndPasswordAndClassIdBackend",
+    "codeforlife.user.auth_backends.EmailAndPasswordBackend",
+    "codeforlife.user.auth_backends.UserIdAndLoginIdBackend",
+    "codeforlife.user.auth_backends.UsernameAndPasswordAndClassIdBackend",
 ]
 
 # Sessions
