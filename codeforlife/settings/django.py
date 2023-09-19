@@ -7,13 +7,18 @@ import os
 
 from django.utils.translation import gettext_lazy as _
 
-from .custom import SERVICE_NAME
+from .custom import SERVICE_API_URL, SERVICE_NAME
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = bool(int(os.getenv("DEBUG", "1")))
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.getenv("SECRET_KEY", "replace-me")
+
+# Auth
+# https://docs.djangoproject.com/en/3.2/topics/auth/default/
+
+LOGIN_URL = f"{SERVICE_API_URL}/session/expired/"
 
 # Authentication backends
 # https://docs.djangoproject.com/en/3.2/ref/settings/#authentication-backends

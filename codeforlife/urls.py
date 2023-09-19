@@ -29,6 +29,19 @@ def service_urlpatterns(
             LogoutView.as_view(),
             name="logout",
         ),
+        # Django's default behavior with the @login_required decorator is to
+        # redirect users to the login template found in setting LOGIN_URL.
+        # Because we're using a React frontend, we want to return a
+        # 401-Unauthorized whenever a user's session-cookie expires so we can
+        # redirect them to the login page. Therefore, all login redirects will
+        # direct to this view which will return the desired 401.
+        path(
+            "api/session/expired/",
+            lambda request: HttpResponse(
+                status=status.HTTP_401_UNAUTHORIZED,
+            ),
+            name="session-expired",
+        ),
         path(
             "api/",
             include(api_urls_path),
