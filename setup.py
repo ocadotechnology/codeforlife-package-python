@@ -31,7 +31,7 @@ setup(
     install_requires=[
         "asgiref==3.7.2; python_version >= '3.7'",
         "certifi==2023.7.22; python_version >= '3.6'",
-        "cfl-common==6.36.0",
+        "cfl-common==6.36.2",
         "charset-normalizer==3.2.0; python_full_version >= '3.7.0'",
         "click==8.1.7; python_version >= '3.7'",
         "django==3.2.20",
@@ -64,7 +64,7 @@ setup(
         "tzdata==2023.3; python_version >= '2'",
         "urllib3==2.0.4; python_version >= '3.7'",
         "werkzeug==2.3.7; python_version >= '3.8'",
-        "zipp==3.16.2; python_version >= '3.8'",
+        "zipp==3.17.0; python_version >= '3.8'",
     ],
     dependency_links=[],
 )
