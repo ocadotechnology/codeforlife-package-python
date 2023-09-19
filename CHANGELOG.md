@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.7.12 (2023-09-19)
+
+### Fix
+
+* Add service name default ([`3f55db0`](https://github.com/ocadotechnology/codeforlife-package-python/commit/3f55db0a4c005a804ab01c4e99abfb98753821c1))
+
 ## v0.7.11 (2023-09-19)
 
 ### Fix
