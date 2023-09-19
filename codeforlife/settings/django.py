@@ -52,3 +52,27 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 CSRF_COOKIE_NAME = f"{SERVICE_NAME}_csrftoken"
 CSRF_COOKIE_SAMESITE = "None"
 CSRF_COOKIE_SECURE = True
+
+# Logging
+# https://docs.djangoproject.com/en/3.2/topics/logging/
+
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "default": {
+            "format": "[%(asctime)s][%(name)s][%(levelname)s] %(message)s",
+            "style": "%",
+        },
+    },
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
+            "formatter": "default",
+        },
+    },
+    "root": {
+        "level": os.getenv("LOG_LEVEL", "INFO"),
+        "handlers": ["console"],
+    },
+}
