@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.7.6 (2023-09-19)
+
+### Fix
+
+* Logout view ([`57d4821`](https://github.com/ocadotechnology/codeforlife-package-python/commit/57d4821443e5d75da44f55a538a43dd2853dcac1))
+
 ## v0.7.5 (2023-09-18)
 
 ### Fix
