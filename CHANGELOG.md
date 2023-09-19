@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.7.9 (2023-09-19)
+
+### Fix
+
+* Env var keys ([`22692a6`](https://github.com/ocadotechnology/codeforlife-package-python/commit/22692a6066c955323087bb514735828b948a02df))
+
 ## v0.7.8 (2023-09-19)
 
 ### Fix
