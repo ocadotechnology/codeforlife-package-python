@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.7.7 (2023-09-19)
+
+### Fix
+
+* Logging ([`9f9f78f`](https://github.com/ocadotechnology/codeforlife-package-python/commit/9f9f78f9119a105aee357e3c89b30b7bfd70bcd3))
+
 ## v0.7.6 (2023-09-19)
 
 ### Fix
