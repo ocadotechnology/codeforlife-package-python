@@ -2,6 +2,13 @@
 
 <!--next-version-placeholder-->
 
+## v0.7.8 (2023-09-19)
+
+### Fix
+
+* Formatting ([`db5d384`](https://github.com/ocadotechnology/codeforlife-package-python/commit/db5d384a4c96a4a53d1da313bc8b077a9dada07e))
+* Django settings ([`0242b3b`](https://github.com/ocadotechnology/codeforlife-package-python/commit/0242b3b6586daa0ad4d7c2feb53e59c2e23a236e))
+
 ## v0.7.7 (2023-09-19)
 
 ### Fix
