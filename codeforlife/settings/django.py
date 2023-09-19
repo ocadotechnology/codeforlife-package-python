@@ -39,7 +39,7 @@ SESSION_COOKIE_DOMAIN = "localhost" if DEBUG else "codeforlife.education"
 
 LANGUAGE_CODE = "en-gb"
 LANGUAGES = [("en-gb", _("English"))]
-TIME_ZONE = "Europe/London" # TODO: use UTC?
+TIME_ZONE = "Europe/London"  # TODO: use UTC?
 USE_I18N = True
 USE_L10N = True
 USE_TZ = True
