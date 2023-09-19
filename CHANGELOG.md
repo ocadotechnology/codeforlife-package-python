@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.7.10 (2023-09-19)
+
+### Fix
+
+* Add session expired path ([`e801b37`](https://github.com/ocadotechnology/codeforlife-package-python/commit/e801b37502586af13fedda27f18f9d4cf1d18b64))
+
 ## v0.7.9 (2023-09-19)
 
 ### Fix
