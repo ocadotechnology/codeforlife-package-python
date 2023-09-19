@@ -11,9 +11,9 @@ SERVICE_NAME = os.environ["SERVICE_NAME"]  # *required
 SERVICE_IS_ROOT = bool(int(os.getenv("SERVICE_IS_ROOT", "0")))
 
 # The protocol, domain and port of the current service.
-SERVICE_PROTOCOL = os.getenv("SITE_PROTOCOL", "http")
-SERVICE_DOMAIN = os.getenv("SITE_DOMAIN", "localhost")
-SERVICE_PORT = int(os.getenv("SITE_PORT", "8000"))
+SERVICE_PROTOCOL = os.getenv("SERVICE_PROTOCOL", "http")
+SERVICE_DOMAIN = os.getenv("SERVICE_DOMAIN", "localhost")
+SERVICE_PORT = int(os.getenv("SERVICE_PORT", "8000"))
 
 # The base url of the current service.
 # The root service does not need its name included in the base url.
