@@ -5,6 +5,8 @@ https://docs.djangoproject.com/en/3.2/ref/settings/
 
 import os
 
+from django.utils.translation import gettext_lazy as _
+
 from .custom import SERVICE_NAME
 
 # SECURITY WARNING: don't run with debug turned on in production!
@@ -35,8 +37,9 @@ SESSION_COOKIE_DOMAIN = "localhost" if DEBUG else "codeforlife.education"
 # Internationalization
 # https://docs.djangoproject.com/en/3.2/topics/i18n/
 
-LANGUAGE_CODE = "en-us"
-TIME_ZONE = "UTC"
+LANGUAGE_CODE = "en-gb"
+LANGUAGES = [("en-gb", _("English"))]
+TIME_ZONE = "Europe/London" # TODO: use UTC?
 USE_I18N = True
 USE_L10N = True
 USE_TZ = True
@@ -44,7 +47,7 @@ USE_TZ = True
 # Default primary key field type
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
 
-DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+DEFAULT_AUTO_FIELD = "django.db.models.AutoField"  # TODO: use BugAutoField
 
 # CSRF
 # https://docs.djangoproject.com/en/3.2/ref/csrf/
