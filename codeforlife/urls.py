@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.contrib.auth.views import LogoutView
 from django.http import HttpResponse
 from django.shortcuts import render
 from django.urls import include, path, re_path
@@ -22,6 +23,11 @@ def service_urlpatterns(
             "api/csrf/cookie/",
             csrf.CookieView.as_view(),
             name="get-csrf-cookie",
+        ),
+        path(
+            "api/session/logout/",
+            LogoutView.as_view(),
+            name="logout",
         ),
         path(
             "api/",
