@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.7.11 (2023-09-19)
+
+### Fix
+
+* Update cfl-common ([`45f1025`](https://github.com/ocadotechnology/codeforlife-package-python/commit/45f102589d760f484b0dd11601636831fd615209))
+
 ## v0.7.10 (2023-09-19)
 
 ### Fix
