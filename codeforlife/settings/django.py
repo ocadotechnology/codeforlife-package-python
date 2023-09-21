@@ -24,9 +24,9 @@ LOGIN_URL = f"{SERVICE_API_URL}/session/expired/"
 # https://docs.djangoproject.com/en/3.2/ref/settings/#authentication-backends
 
 AUTHENTICATION_BACKENDS = [
-    "codeforlife.user.auth_backends.EmailAndPasswordBackend",
-    "codeforlife.user.auth_backends.UserIdAndLoginIdBackend",
-    "codeforlife.user.auth_backends.UsernameAndPasswordAndClassIdBackend",
+    "codeforlife.user.auth.backends.EmailAndPasswordBackend",
+    "codeforlife.user.auth.backends.UserIdAndLoginIdBackend",
+    "codeforlife.user.auth.backends.UsernameAndPasswordAndClassIdBackend",
 ]
 
 # Sessions
@@ -52,7 +52,7 @@ USE_TZ = True
 # Default primary key field type
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
 
-DEFAULT_AUTO_FIELD = "django.db.models.AutoField"  # TODO: use BugAutoField
+DEFAULT_AUTO_FIELD = "django.db.models.AutoField"  # TODO: use BigAutoField
 
 # CSRF
 # https://docs.djangoproject.com/en/3.2/ref/csrf/
@@ -84,3 +84,36 @@ LOGGING = {
         "handlers": ["console"],
     },
 }
+
+# URLs
+# https://docs.djangoproject.com/en/4.2/ref/settings/#root-urlconf
+
+ROOT_URLCONF = "service.urls"
+
+# App
+# https://docs.djangoproject.com/en/4.2/ref/settings/#wsgi-application
+
+WSGI_APPLICATION = "service.wsgi.application"
+
+# Password validation
+# https://docs.djangoproject.com/en/3.2/ref/settings/#auth-password-validators
+
+# TODO: replace with custom validators:
+# 1. codeforlife.user.auth.password_validators.TeacherPasswordValidator
+# 2. codeforlife.user.auth.password_validators.DependentStudentPasswordValidator
+# 3. codeforlife.user.auth.password_validators.IndependentStudentPasswordValidator
+# 4. codeforlife.user.auth.password_validators.CommonPasswordValidator
+AUTH_PASSWORD_VALIDATORS = [
+    {
+        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
+    },
+    {
+        "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
+    },
+    {
+        "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",
+    },
+    {
+        "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
+    },
+]
