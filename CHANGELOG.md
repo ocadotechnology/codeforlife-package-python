@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.7.13 (2023-09-21)
+
+### Fix
+
+* Add more reusable settings ([`8bed5a8`](https://github.com/ocadotechnology/codeforlife-package-python/commit/8bed5a8832344c2eec55b5f77a199030326274f3))
+
 ## v0.7.12 (2023-09-19)
 
 ### Fix
