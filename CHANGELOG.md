@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.7.14 (2023-09-21)
+
+### Fix
+
+* Rename authentication to auth ([`27ab354`](https://github.com/ocadotechnology/codeforlife-package-python/commit/27ab35488e163ca15308145a7837adf53299000c))
+
 ## v0.7.13 (2023-09-21)
 
 ### Fix
