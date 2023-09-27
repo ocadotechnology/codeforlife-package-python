@@ -2,12 +2,11 @@ import typing as t
 
 from common.helpers.generators import get_hashed_login_id
 from common.models import Student
-from django.contrib.auth import get_user_model
 from django.contrib.auth.backends import BaseBackend
 from django.contrib.auth.base_user import AbstractBaseUser
-from django.core.handlers.wsgi import WSGIRequest
 
-User = get_user_model()
+from ....request import WSGIRequest
+from ...models import User
 
 
 class UserIdAndLoginIdBackend(BaseBackend):
@@ -22,7 +21,7 @@ class UserIdAndLoginIdBackend(BaseBackend):
             return
 
         user = self.get_user(user_id)
-        if user and getattr(user, "is_active", True):
+        if user:
             # Check the url against the student's stored hash.
             student = Student.objects.get(new_user=user)
             if (
