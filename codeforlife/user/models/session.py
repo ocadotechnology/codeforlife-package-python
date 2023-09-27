@@ -46,6 +46,10 @@ class Session(AbstractBaseSession):
     )
 
     @property
+    def is_expired(self):
+        return self.expire_date < timezone.now()
+
+    @property
     def store(self):
         return self.get_session_store_class()(self.session_key)
 
@@ -58,7 +62,8 @@ class SessionStore(DBStore):
     """
     A custom session store interface to support:
     1. creating only one session per user;
-    2. clearing expired sessions per user.
+    2. setting a session's auth factors;
+    3. clearing a user's expired sessions.
     https://docs.djangoproject.com/en/3.2/topics/http/sessions/#example
     """
 
@@ -68,45 +73,38 @@ class SessionStore(DBStore):
 
     def create_model_instance(self, data):
         Session = self.get_model_class()
-        session: Session = None
+        session: Session
 
-        # Get user ID if not an anon user.
         try:
             user_id = int(data.get(SESSION_KEY))
-        except (ValueError, TypeError):
-            user_id = None
-
-        if user_id:
-            # Clear expired sessions for user.
-            self.clear_expired(user_id)
 
             try:
-                # Return user's non-expired session and update its data.
-                session: Session = Session.objects.get(user_id=user_id)
-                session.session_data = self.encode(data)
-                return session
+                session = Session.objects.get(user_id=user_id)
+
+                if session.is_expired:
+                    self.clear_expired(user_id)
+                    session = super().create_model_instance(data)
+                    # Despite having the user's ID, DO NOT set session.user.
+                else:
+                    session.session_data = self.encode(data)
+
             except Session.DoesNotExist:
-                # Get and set user's enabled auth factors in the session.
-                user = User.objects.get(id=user_id)
-        else:
-            user = None
+                session = Session.objects.get(session_key=self.session_key)
+                session.user = user.User.objects.get(id=user_id)
+                session.session_data = self.encode(data)
+                session_auth_factor.SessionAuthFactor.objects.bulk_create(
+                    [
+                        session_auth_factor.SessionAuthFactor(
+                            session=session,
+                            auth_factor=auth_factor,
+                        )
+                        for auth_factor in session.user.auth_factors.all()
+                    ]
+                )
 
-        # Create session.
-        session = super().create_model_instance(data)
-        session.user = user
-        session.save()
-
-        # Create session auth factors.
-        if user:
-            session_auth_factor.SessionAuthFactor.objects.bulk_create(
-                [
-                    session_auth_factor.SessionAuthFactor(
-                        session=session,
-                        auth_factor=auth_factor,
-                    )
-                    for auth_factor in user.auth_factors
-                ]
-            )
+        except (ValueError, TypeError):
+            # Create an anon session.
+            session = super().create_model_instance(data)
 
         return session
 

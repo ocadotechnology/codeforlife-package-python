@@ -10,7 +10,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "django.contrib.sites",
-    "codeforlife.user.apps.UserConfig",
+    "codeforlife.user",
     "aimmo",  # TODO: remove this
     "game",  # TODO: remove this
     "common",  # TODO: remove this
