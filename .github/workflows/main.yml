@@ -6,6 +6,7 @@ on:
     paths-ignore:
       - "codeforlife/version.py"
       - "CHANGELOG.md"
+  workflow_dispatch:
 
 env:
   PYTHON_VERSION: 3.8
