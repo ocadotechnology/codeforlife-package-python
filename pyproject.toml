@@ -10,6 +10,4 @@ line-length = 80
 extend-exclude = "^/setup.py|^/codeforlife/user/migrations/"
 
 [tool.pytest.ini_options]
-# env = ["DJANGO_SETTINGS_MODULE=example_project.settings"]
-DJANGO_SETTINGS_MODULE = "manage"
-python_files = "tests.py test_*.py"
+env = ["DJANGO_SETTINGS_MODULE=manage"]

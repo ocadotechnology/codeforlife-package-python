@@ -1,6 +1,11 @@
 {
+    "black-formatter.args": [
+        "--config",
+        "pyproject.toml"
+    ],
     "python.testing.pytestArgs": [
-        "tests"
+        "-c=pyproject.toml",
+        "."
     ],
     "python.testing.unittestEnabled": false,
     "python.testing.pytestEnabled": true
