@@ -4,13 +4,19 @@ from django.test import RequestFactory, TestCase
 from django.utils import timezone
 from django.utils.crypto import get_random_string
 
-from ....auth.backends import TokenBackend
-from ....models import AuthFactor, BackupToken, Session, SessionAuthFactor, User
+from ....auth.backends import OtpBypassTokenBackend
+from ....models import (
+    AuthFactor,
+    OtpBypassToken,
+    Session,
+    SessionAuthFactor,
+    User,
+)
 
 
 class TestTokenBackend(TestCase):
     def setUp(self):
-        self.backend = TokenBackend()
+        self.backend = OtpBypassTokenBackend()
         self.request_factory = RequestFactory()
 
         self.user = User.objects.get(id=2)
@@ -33,10 +39,13 @@ class TestTokenBackend(TestCase):
         )
 
         self.tokens = [
-            get_random_string(8) for _ in range(BackupToken.max_count)
+            get_random_string(8) for _ in range(OtpBypassToken.max_count)
         ]
-        self.backup_tokens = BackupToken.objects.bulk_create(
-            [BackupToken(user=self.user, token=token) for token in self.tokens]
+        self.otp_bypass_tokens = OtpBypassToken.objects.bulk_create(
+            [
+                OtpBypassToken(user=self.user, token=token)
+                for token in self.tokens
+            ]
         )
 
     def test_authenticate(self):
@@ -46,4 +55,4 @@ class TestTokenBackend(TestCase):
         user = self.backend.authenticate(request, token=self.tokens[0])
 
         assert user == self.user
-        assert self.backup_tokens[0].id is None
+        assert self.otp_bypass_tokens[0].id is None

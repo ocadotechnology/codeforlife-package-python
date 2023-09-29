@@ -6,7 +6,7 @@ from ....request import WSGIRequest
 from ...models import AuthFactor, User
 
 
-class TokenBackend(BaseBackend):
+class OtpBypassTokenBackend(BaseBackend):
     def authenticate(
         self,
         request: WSGIRequest,
@@ -22,8 +22,8 @@ class TokenBackend(BaseBackend):
         ):
             return
 
-        for backup_token in request.user.backup_tokens.all():
-            if backup_token.check_token(token):
+        for otp_bypass_token in request.user.otp_bypass_tokens.all():
+            if otp_bypass_token.check_token(token):
                 # Delete OTP auth factor from session.
                 request.user.session.session_auth_factors.filter(
                     auth_factor__type=AuthFactor.Type.OTP

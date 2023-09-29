@@ -42,12 +42,12 @@ from django.contrib.auth.models import User as _User
 from django.db.models.query import QuerySet
 from django.utils.translation import gettext_lazy as _
 
-from . import auth_factor, backup_token, session
+from . import auth_factor, otp_bypass_token, session
 
 
 class User(_User):
     auth_factors: QuerySet["auth_factor.AuthFactor"]
-    backup_tokens: QuerySet["backup_token.BackupToken"]
+    otp_bypass_tokens: QuerySet["otp_bypass_token.OtpBypassToken"]
     session: "session.Session"
     userprofile: UserProfile
 

@@ -9,44 +9,44 @@ from django.db import models
 from . import user
 
 
-class BackupToken(models.Model):
+class OtpBypassToken(models.Model):
     max_count = 10
     max_count_validation_error = ValidationError(
         f"Exceeded max count of {max_count}"
     )
 
-    class Manager(models.Manager["BackupToken"]):
+    class Manager(models.Manager["OtpBypassToken"]):
         def create(self, token: str, **kwargs):
             return super().create(token=make_password(token), **kwargs)
 
         def bulk_create(
             self,
-            backup_tokens: t.List["BackupToken"],
+            otp_bypass_tokens: t.List["OtpBypassToken"],
             *args,
             **kwargs,
         ):
-            def key(backup_token: BackupToken):
-                return backup_token.user.id
+            def key(otp_bypass_token: OtpBypassToken):
+                return otp_bypass_token.user.id
 
-            backup_tokens.sort(key=key)
-            for user_id, group in groupby(backup_tokens, key=key):
+            otp_bypass_tokens.sort(key=key)
+            for user_id, group in groupby(otp_bypass_tokens, key=key):
                 if (
                     len(list(group))
-                    + BackupToken.objects.filter(user_id=user_id).count()
-                    > BackupToken.max_count
+                    + OtpBypassToken.objects.filter(user_id=user_id).count()
+                    > OtpBypassToken.max_count
                 ):
-                    raise BackupToken.max_count_validation_error
+                    raise OtpBypassToken.max_count_validation_error
 
-            for backup_token in backup_tokens:
-                backup_token.token = make_password(backup_token.token)
+            for otp_bypass_token in otp_bypass_tokens:
+                otp_bypass_token.token = make_password(otp_bypass_token.token)
 
-            return super().bulk_create(backup_tokens, *args, **kwargs)
+            return super().bulk_create(otp_bypass_tokens, *args, **kwargs)
 
     objects: Manager = Manager()
 
     user: "user.User" = models.ForeignKey(
         "user.User",
-        related_name="backup_tokens",
+        related_name="otp_bypass_tokens",
         on_delete=models.CASCADE,
     )
 
@@ -61,10 +61,10 @@ class BackupToken(models.Model):
     def save(self, *args, **kwargs):
         if self.id is None:
             if (
-                BackupToken.objects.filter(user=self.user).count()
-                >= BackupToken.max_count
+                OtpBypassToken.objects.filter(user=self.user).count()
+                >= OtpBypassToken.max_count
             ):
-                raise BackupToken.max_count_validation_error
+                raise OtpBypassToken.max_count_validation_error
 
         return super().save(*args, **kwargs)
 
