@@ -2,7 +2,6 @@ import typing as t
 
 import pyotp
 from django.contrib.auth.backends import BaseBackend
-from django.contrib.auth.base_user import AbstractBaseUser
 from django.utils import timezone
 
 from ....request import WSGIRequest
@@ -15,7 +14,7 @@ class OtpBackend(BaseBackend):
         request: WSGIRequest,
         otp: t.Optional[str] = None,
         **kwargs,
-    ) -> t.Optional[AbstractBaseUser]:
+    ):
         # Avoid near misses by getting the timestamp before any processing.
         now = timezone.now()
 
@@ -47,7 +46,7 @@ class OtpBackend(BaseBackend):
 
             return request.user
 
-    def get_user(self, user_id: int) -> t.Optional[AbstractBaseUser]:
+    def get_user(self, user_id: int):
         try:
             return User.objects.get(id=user_id)
         except User.DoesNotExist:

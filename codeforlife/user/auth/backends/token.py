@@ -1,7 +1,6 @@
 import typing as t
 
 from django.contrib.auth.backends import BaseBackend
-from django.contrib.auth.base_user import AbstractBaseUser
 
 from ....request import WSGIRequest
 from ...models import AuthFactor, User
@@ -13,7 +12,7 @@ class TokenBackend(BaseBackend):
         request: WSGIRequest,
         token: t.Optional[str] = None,
         **kwargs,
-    ) -> t.Optional[AbstractBaseUser]:
+    ):
         if (
             token is None
             or not isinstance(request.user, User)
@@ -27,7 +26,7 @@ class TokenBackend(BaseBackend):
             if backup_token.check_token(token):
                 return request.user
 
-    def get_user(self, user_id: int) -> t.Optional[AbstractBaseUser]:
+    def get_user(self, user_id: int):
         try:
             return User.objects.get(id=user_id)
         except User.DoesNotExist:

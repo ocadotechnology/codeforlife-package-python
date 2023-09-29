@@ -1,7 +1,6 @@
 import typing as t
 
 from django.contrib.auth.backends import BaseBackend
-from django.contrib.auth.base_user import AbstractBaseUser
 
 from ....request import WSGIRequest
 from ...models import User
@@ -14,7 +13,7 @@ class EmailAndPasswordBackend(BaseBackend):
         email: t.Optional[str] = None,
         password: t.Optional[str] = None,
         **kwargs
-    ) -> t.Optional[AbstractBaseUser]:
+    ):
         if email is None or password is None:
             return
 
@@ -25,7 +24,7 @@ class EmailAndPasswordBackend(BaseBackend):
         except User.DoesNotExist:
             return
 
-    def get_user(self, user_id: int) -> t.Optional[AbstractBaseUser]:
+    def get_user(self, user_id: int):
         try:
             return User.objects.get(id=user_id)
         except User.DoesNotExist:
