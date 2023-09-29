@@ -23,8 +23,9 @@ class OtpBackend(BaseBackend):
             otp is None
             or not isinstance(request.user, User)
             or not request.user.userprofile.otp_secret
-            or not AuthFactor.Type.OTP
-            in request.user.session.session_auth_factors
+            or not request.user.session.session_auth_factors.filter(
+                auth_factor__type=AuthFactor.Type.OTP
+            ).exists()
         ):
             return
 

@@ -25,8 +25,8 @@ LOGIN_URL = f"{SERVICE_API_URL}/session/expired/"
 
 AUTHENTICATION_BACKENDS = [
     "codeforlife.user.auth.backends.EmailAndPasswordBackend",
-    "codeforlife.user.auth.backends.EmailAndTokenBackend",
     "codeforlife.user.auth.backends.OtpBackend",
+    "codeforlife.user.auth.backends.TokenBackend",
     "codeforlife.user.auth.backends.UserIdAndLoginIdBackend",
     "codeforlife.user.auth.backends.UsernameAndPasswordAndClassIdBackend",
 ]

@@ -4,29 +4,28 @@ from django.contrib.auth.backends import BaseBackend
 from django.contrib.auth.base_user import AbstractBaseUser
 
 from ....request import WSGIRequest
-from ...models import User
+from ...models import AuthFactor, User
 
 
-class EmailAndTokenBackend(BaseBackend):
+class TokenBackend(BaseBackend):
     def authenticate(
         self,
         request: WSGIRequest,
-        email: t.Optional[str] = None,
         token: t.Optional[str] = None,
         **kwargs,
     ) -> t.Optional[AbstractBaseUser]:
-        if email is None or token is None:
+        if (
+            token is None
+            or not isinstance(request.user, User)
+            or not request.user.session.session_auth_factors.filter(
+                auth_factor__type=AuthFactor.Type.OTP
+            ).exists()
+        ):
             return
 
-        try:
-            user = User.objects.get(email=email)
-            if any(
-                backup_token.check_token(token)
-                for backup_token in user.backup_tokens
-            ):
-                return user
-        except User.DoesNotExist:
-            return
+        for backup_token in request.user.backup_tokens.all():
+            if backup_token.check_token(token):
+                return request.user
 
     def get_user(self, user_id: int) -> t.Optional[AbstractBaseUser]:
         try:
