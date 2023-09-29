@@ -24,6 +24,11 @@ class TokenBackend(BaseBackend):
 
         for backup_token in request.user.backup_tokens.all():
             if backup_token.check_token(token):
+                # Delete OTP auth factor from session.
+                request.user.session.session_auth_factors.filter(
+                    auth_factor__type=AuthFactor.Type.OTP
+                ).delete()
+
                 return request.user
 
     def get_user(self, user_id: int):
