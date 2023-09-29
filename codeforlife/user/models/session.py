@@ -80,18 +80,10 @@ class SessionStore(DBStore):
 
             try:
                 session = Session.objects.get(user_id=user_id)
-
-                if session.is_expired:
-                    self.clear_expired(user_id)
-                    session = super().create_model_instance(data)
-                    # Despite having the user's ID, DO NOT set session.user.
-                else:
-                    session.session_data = self.encode(data)
-
             except Session.DoesNotExist:
+                # Associate session to user.
                 session = Session.objects.get(session_key=self.session_key)
                 session.user = user.User.objects.get(id=user_id)
-                session.session_data = self.encode(data)
                 session_auth_factor.SessionAuthFactor.objects.bulk_create(
                     [
                         session_auth_factor.SessionAuthFactor(
@@ -101,6 +93,8 @@ class SessionStore(DBStore):
                         for auth_factor in session.user.auth_factors.all()
                     ]
                 )
+
+            session.session_data = self.encode(data)
 
         except (ValueError, TypeError):
             # Create an anon session.
