@@ -25,6 +25,8 @@ LOGIN_URL = f"{SERVICE_API_URL}/session/expired/"
 
 AUTHENTICATION_BACKENDS = [
     "codeforlife.user.auth.backends.EmailAndPasswordBackend",
+    "codeforlife.user.auth.backends.OtpBackend",
+    "codeforlife.user.auth.backends.OtpBypassTokenBackend",
     "codeforlife.user.auth.backends.UserIdAndLoginIdBackend",
     "codeforlife.user.auth.backends.UsernameAndPasswordAndClassIdBackend",
 ]
@@ -32,6 +34,7 @@ AUTHENTICATION_BACKENDS = [
 # Sessions
 # https://docs.djangoproject.com/en/3.2/topics/http/sessions/
 
+SESSION_ENGINE = "codeforlife.user.models.session"
 SESSION_COOKIE_AGE = 60 * 60
 SESSION_SAVE_EVERY_REQUEST = True
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
