@@ -11,11 +11,16 @@ django-two-factor-auth = "==1.13.2"
 django-cors-headers = "==4.1.0"
 pydantic = "==1.10.7"
 flask = "==2.2.3"
+pyotp = "==2.9.0"
 importlib-metadata = "==4.13.0" # TODO: remove. needed by old portal
 django-formtools = "==2.2" # TODO: remove. needed by old portal
 django-otp = "==1.0.2" # TODO: remove. needed by old portal
 # https://pypi.org/user/codeforlife/
-cfl-common = "==6.36.2" # TODO: remove
+cfl-common = "==6.37.1" # TODO: remove
+codeforlife-portal = "==6.37.1" # TODO: remove
+aimmo = "==2.10.6" # TODO: remove
+rapid-router = "==5.11.3" # TODO: remove
+phonenumbers = "==8.12.12" # TODO: remove
 
 [dev-packages]
 black = "==23.1.0"
@@ -24,6 +29,7 @@ pytest-django = "==4.5.2"
 django-extensions = "==3.2.1"
 pyparsing = "==3.0.9"
 pydot = "==1.4.2"
+pytest-env = "==0.8.1"
 
 [requires]
 python_version = "3.8"
