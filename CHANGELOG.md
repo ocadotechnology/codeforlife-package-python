@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.8.2 (2023-10-02)
+
+### Fix
+
+* Service name not found pattern ([#15](https://github.com/ocadotechnology/codeforlife-package-python/issues/15)) ([`da41930`](https://github.com/ocadotechnology/codeforlife-package-python/commit/da41930b83dde127cf5c37d525c7466a3189efd7))
+
 ## v0.8.1 (2023-10-02)
 
 ### Fix
