@@ -48,15 +48,7 @@ def service_urlpatterns(
             name="api",
         ),
         re_path(
-            r"^api/.*",
-            lambda request: HttpResponse(
-                "API endpoint not found",
-                status=status.HTTP_404_NOT_FOUND,
-            ),
-            name="api-endpoint-not-found",
-        ),
-        re_path(
-            r".*",
+            r"^(?!api/).*",
             lambda request: render(request, frontend_template_name),
             name="frontend",
         ),
