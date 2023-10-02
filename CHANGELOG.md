@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.8.1 (2023-10-02)
+
+### Fix
+
+* Alter the react endpoint and remove not found for /api/ endpoint ([#14](https://github.com/ocadotechnology/codeforlife-package-python/issues/14)) ([`8d30360`](https://github.com/ocadotechnology/codeforlife-package-python/commit/8d303603b2eb793368a3ea64f3252014f93ff05a))
+
 ## v0.8.0 (2023-10-02)
 
 ### Feature
