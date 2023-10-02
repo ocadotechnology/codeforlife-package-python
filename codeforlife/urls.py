@@ -48,7 +48,7 @@ def service_urlpatterns(
             name="api",
         ),
         re_path(
-            r"^(?!.*api/).*",
+            r"^(?!api/).*",
             lambda request: render(request, frontend_template_name),
             name="frontend",
         ),
