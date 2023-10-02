@@ -102,6 +102,11 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install python-semantic-release~=7.33
 
+      - name: ⚙️ Configure Git
+        run: |
+          git config --local user.name cfl-bot
+          git config --local user.email codeforlife-bot@ocado.com
+
       - name: 🚀 Publish Semantic Release
         env:
           GH_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
