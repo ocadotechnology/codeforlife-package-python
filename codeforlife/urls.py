@@ -64,7 +64,7 @@ def service_urlpatterns(
             name="service",
         ),
         re_path(
-            r".*",
+            rf"^(?!{SERVICE_NAME}/).*",
             lambda request: HttpResponse(
                 f'The base route is "{SERVICE_NAME}/".',
                 status=status.HTTP_404_NOT_FOUND,
