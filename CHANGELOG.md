@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.8.3 (2023-10-12)
+
+### Fix
+
+* Session cookie and drf request ([#16](https://github.com/ocadotechnology/codeforlife-package-python/issues/16)) ([`88b3ecf`](https://github.com/ocadotechnology/codeforlife-package-python/commit/88b3ecfe9da94170650423ccb66a042b97e155bd))
+
 ## v0.8.2 (2023-10-02)
 
 ### Fix
