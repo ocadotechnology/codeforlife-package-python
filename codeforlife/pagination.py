@@ -15,6 +15,6 @@ class LimitOffsetPagination(_LimitOffsetPagination):
                 "offset": self.offset,
                 "limit": self.limit,
                 "max_limit": self.max_limit,
-                "results": data,
+                "data": data,
             }
         )
