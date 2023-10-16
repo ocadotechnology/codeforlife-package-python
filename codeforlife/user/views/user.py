@@ -1,6 +1,6 @@
 from rest_framework.viewsets import ModelViewSet
 
-from ..filters import UserFilter
+from ..filters import UserFilterSet
 from ..models import User
 from ..serializers import UserSerializer
 
@@ -8,7 +8,7 @@ from ..serializers import UserSerializer
 class UserViewSet(ModelViewSet):
     http_method_names = ["get", "post", "patch"]
     serializer_class = UserSerializer
-    filterset_class = UserFilter
+    filterset_class = UserFilterSet
 
     def get_queryset(self):
         queryset = User.objects.all()

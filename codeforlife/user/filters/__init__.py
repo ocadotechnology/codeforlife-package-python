@@ -1,1 +1,1 @@
-from .user import UserFilter
+from .user import UserFilterSet
