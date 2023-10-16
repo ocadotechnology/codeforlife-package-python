@@ -44,6 +44,11 @@ def service_urlpatterns(
         ),
         path(
             "api/",
+            include("codeforlife.user.urls"),
+            name="user",
+        ),
+        path(
+            "api/",
             include(api_urls_path),
             name="api",
         ),
