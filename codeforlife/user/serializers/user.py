@@ -6,8 +6,8 @@ from .teacher import TeacherSerializer
 
 
 class UserSerializer(serializers.ModelSerializer):
-    student = StudentSerializer(source="new_student")
-    teacher = TeacherSerializer(source="new_teacher")
+    student = StudentSerializer(source="new_student", read_only=True)
+    teacher = TeacherSerializer(source="new_teacher", read_only=True)
 
     class Meta:
         model = User
