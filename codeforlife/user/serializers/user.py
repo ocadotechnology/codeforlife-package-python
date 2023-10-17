@@ -14,6 +14,7 @@ class UserSerializer(serializers.ModelSerializer):
         model = User
         fields = "__all__"
         extra_kwargs = {
+            "id": {"read_only": True},
             "username": {"read_only": True},
             "isActive": {"read_only": True},
             "isStaff": {"read_only": True},
