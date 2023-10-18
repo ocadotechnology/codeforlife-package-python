@@ -9,4 +9,7 @@ class ClassSerializer(serializers.ModelSerializer):
         fields = "__all__"
         extra_kwargs = {
             "id": {"read_only": True},
+            "access_code": {"read_only": True},
+            "creation_time": {"read_only": True},
+            "created_by": {"read_only": True},
         }
