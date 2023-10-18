@@ -1,10 +1,9 @@
-# from .classroom import Class
-
-# # from .other import *
+# from .other import *
 # from .school import School
 # from .session import UserSession
 # from .teacher_invitation import SchoolTeacherInvitation
 from .auth_factor import AuthFactor
+from .klass import Class  # 'class' is a reserved keyword
 from .otp_bypass_token import OtpBypassToken
 from .session import Session
 from .session_auth_factor import SessionAuthFactor

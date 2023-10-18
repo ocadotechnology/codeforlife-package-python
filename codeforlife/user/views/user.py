@@ -11,14 +11,12 @@ class UserViewSet(ModelViewSet):
     filterset_class = UserFilterSet
 
     def get_queryset(self):
-        queryset = User.objects.all()
         user: User = self.request.user
-        if user.teacher is not None:
-            queryset = queryset.filter(
+        if user.teacher is None:
+            return User.objects.filter(id=user.id)
+        else:
+            return User.objects.filter(
                 new_teacher__school=user.teacher.school_id,
                 # TODO: add school foreign key to student model.
-                new_student__class_field__created_by__school=user.teacher.school_id,
+                new_student__class_field__teacher__school=user.teacher.school_id,
             )
-        else:
-            queryset = queryset.filter(id=user.id)
-        return queryset
