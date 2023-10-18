@@ -5,6 +5,7 @@ from ..serializers import ClassSerializer
 
 
 class ClassViewSet(ModelViewSet):
+    lookup_field = "access_code"
     serializer_class = ClassSerializer
 
     def get_queryset(self):
