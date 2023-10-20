@@ -6,7 +6,7 @@ from ..serializers import UserSerializer
 
 
 class UserViewSet(ModelViewSet):
-    http_method_names = ["get", "post", "patch"]
+    http_method_names = ["get"]
     serializer_class = UserSerializer
     filterset_class = UserFilterSet
 
