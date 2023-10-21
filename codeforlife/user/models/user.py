@@ -66,17 +66,23 @@ class User(_User):
         """
 
         try:
-            return not self.session.session_auth_factors
+            return not self.session.session_auth_factors.exists()
         except session.Session.DoesNotExist:
             return False
 
     @property
     def student(self) -> t.Optional[Student]:
-        return self.new_student
+        try:
+            return self.new_student
+        except Student.DoesNotExist:
+            return None
 
     @property
     def teacher(self) -> t.Optional[Teacher]:
-        return self.new_teacher
+        try:
+            return self.new_teacher
+        except Teacher.DoesNotExist:
+            return None
 
     @property
     def otp_secret(self):

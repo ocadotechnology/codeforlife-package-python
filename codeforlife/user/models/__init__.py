@@ -9,4 +9,4 @@ from .session import Session
 from .session_auth_factor import SessionAuthFactor
 from .student import Student
 from .teacher import Teacher
-from .user import User
+from .user import User, UserProfile  # TODO: remove UserProfile

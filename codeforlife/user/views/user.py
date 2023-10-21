@@ -14,9 +14,13 @@ class UserViewSet(ModelViewSet):
         user: User = self.request.user
         if user.teacher is None:
             return User.objects.filter(id=user.id)
-        else:
-            return User.objects.filter(
-                new_teacher__school=user.teacher.school_id,
-                # TODO: add school foreign key to student model.
-                new_student__class_field__teacher__school=user.teacher.school_id,
-            )
+
+        teachers = User.objects.filter(
+            new_teacher__school=user.teacher.school_id
+        )
+        students = User.objects.filter(
+            # TODO: add school foreign key to student model.
+            new_student__class_field__teacher__school=user.teacher.school_id,
+        )
+
+        return teachers | students
