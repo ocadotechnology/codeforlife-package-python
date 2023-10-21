@@ -1,4 +1,5 @@
-from django.urls import reverse
+import typing as t
+
 from django.db.models.query import QuerySet
 from rest_framework import status
 
@@ -9,25 +10,11 @@ from ...models import User, School, Teacher, Student, Class, UserProfile
 
 class TestUserViewSet(APITestCase):
     """
-    Naming convention:
-
-    test_{action}__{user_type}__{other_user_type}__{same_school}
+    Base naming convention:
+        test_{action}
 
     action: This view set action.
         https://www.django-rest-framework.org/api-guide/viewsets/#viewset-actions
-
-    user_type: The type of user that is making the request. Options:
-        - teacher: A teacher.
-        - student: A student.
-
-    other_user_type: The type of user whose data is being requested. Options:
-        - self: User's own data.
-        - teacher: Another teacher's data.
-        - student: Another student's data.
-
-    same_school: A flag for if the other user is from the same school. Options:
-        - same_school: The other user is from the same school.
-        - not_same_school: The other user is not from the same school.
     """
 
     # TODO: replace this setup with data fixtures.
@@ -91,19 +78,6 @@ class TestUserViewSet(APITestCase):
         assert user.student.class_field.teacher.school
         return user
 
-    def _retrieve_user(
-        self,
-        user: User,
-        status_code_assertion: APIClient.StatusCodeAssertion = None,
-    ):
-        response = self.client.get(
-            reverse("user-detail", kwargs={"pk": user.id}),
-            status_code_assertion=status_code_assertion,
-        )
-        if 200 <= response.status_code < 300:
-            assert response.json() == UserSerializer(user).data
-        return response
-
     def _get_other_user(
         self,
         user: User,
@@ -136,6 +110,36 @@ class TestUserViewSet(APITestCase):
 
         return other_user
 
+    """
+    Retrieve naming convention:
+        test_retrieve__{user_type}__{other_user_type}__{same_school}
+
+    user_type: The type of user that is making the request. Options:
+        - teacher: A teacher.
+        - student: A student.
+
+    other_user_type: The type of user whose data is being requested. Options:
+        - self: User's own data.
+        - teacher: Another teacher's data.
+        - student: Another student's data.
+
+    same_school: A flag for if the other user is from the same school. Options:
+        - same_school: The other user is from the same school.
+        - not_same_school: The other user is not from the same school.
+    """
+
+    def _retrieve_user(
+        self,
+        user: User,
+        status_code_assertion: APIClient.StatusCodeAssertion = None,
+    ):
+        return self.client.retrieve(
+            "user",
+            user,
+            UserSerializer,
+            status_code_assertion,
+        )
+
     def test_retrieve__teacher__self(self):
         """
         Teacher can retrieve their own user data.
@@ -152,7 +156,7 @@ class TestUserViewSet(APITestCase):
         user = self._login_student()
         self._retrieve_user(user)
 
-    def test_retrieve__teacher__not_self__same_school__teacher(self):
+    def test_retrieve__teacher__teacher__same_school(self):
         """
         Teacher can retrieve another teacher from the same school.
         """
@@ -170,7 +174,7 @@ class TestUserViewSet(APITestCase):
 
         self._retrieve_user(other_user)
 
-    def test_retrieve__teacher__not_self__same_school__student(self):
+    def test_retrieve__teacher__student__same_school(self):
         """
         Teacher can retrieve a student from the same school.
         """
@@ -188,7 +192,7 @@ class TestUserViewSet(APITestCase):
 
         self._retrieve_user(other_user)
 
-    def test_retrieve__student__not_self__same_school__teacher(self):
+    def test_retrieve__student__teacher__same_school(self):
         """
         Student can not retrieve a teacher from the same school.
         """
@@ -209,7 +213,7 @@ class TestUserViewSet(APITestCase):
             status_code_assertion=status.HTTP_404_NOT_FOUND,
         )
 
-    def test_retrieve__student__not_self__same_school__student(self):
+    def test_retrieve__student__student__same_school(self):
         """
         Student can not retrieve another student from the same school.
         """
@@ -230,7 +234,7 @@ class TestUserViewSet(APITestCase):
             status_code_assertion=status.HTTP_404_NOT_FOUND,
         )
 
-    def test_retrieve__teacher__not_self__not_same_school__teacher(self):
+    def test_retrieve__teacher__teacher__not_same_school(self):
         """
         Teacher can not retrieve another teacher from another school.
         """
@@ -251,7 +255,7 @@ class TestUserViewSet(APITestCase):
             status_code_assertion=status.HTTP_404_NOT_FOUND,
         )
 
-    def test_retrieve__teacher__not_self__not_same_school__student(self):
+    def test_retrieve__teacher__student__not_same_school(self):
         """
         Teacher can not retrieve a student from another school.
         """
@@ -272,7 +276,7 @@ class TestUserViewSet(APITestCase):
             status_code_assertion=status.HTTP_404_NOT_FOUND,
         )
 
-    def test_retrieve__student__not_self__not_same_school__teacher(self):
+    def test_retrieve__student__teacher__not_same_school(self):
         """
         Student can not retrieve a teacher from another school.
         """
@@ -293,7 +297,7 @@ class TestUserViewSet(APITestCase):
             status_code_assertion=status.HTTP_404_NOT_FOUND,
         )
 
-    def test_retrieve__student__not_self__not_same_school__student(self):
+    def test_retrieve__student__student__not_same_school(self):
         """
         Student can not retrieve another student from another school.
         """
@@ -313,3 +317,47 @@ class TestUserViewSet(APITestCase):
             other_user,
             status_code_assertion=status.HTTP_404_NOT_FOUND,
         )
+
+    """
+    List naming convention:
+        test_list__{user_type}
+
+    user_type: The type of user that is making the request. Options:
+        - teacher: A teacher.
+        - student: A student.
+    """
+
+    def _list_users(
+        self,
+        users: t.Iterable[User],
+        status_code_assertion: APIClient.StatusCodeAssertion = None,
+    ):
+        return self.client.list(
+            "user",
+            users,
+            UserSerializer,
+            status_code_assertion,
+        )
+
+    def test_list__teacher(self):
+        """
+        Teacher can list all the users in the same school.
+        """
+
+        user = self._login_teacher()
+
+        self._list_users(
+            User.objects.filter(new_teacher__school=user.teacher.school)
+            | User.objects.filter(
+                new_student__class_field__teacher__school=user.teacher.school
+            )
+        )
+
+    def test_list__student(self):
+        """
+        Student can list only themselves.
+        """
+
+        user = self._login_student()
+
+        self._list_users([user])
