@@ -7,13 +7,13 @@ from django.utils import timezone
 from django.db.models import Model
 from rest_framework.test import APITestCase as _APITestCase
 from rest_framework.test import APIClient as _APIClient
-from rest_framework.serializers import BaseSerializer
+from rest_framework.serializers import ModelSerializer
 from rest_framework.response import Response
 
 from ..user.models import User, AuthFactor
 
 
-AnySerializer = t.TypeVar("AnySerializer", bound=BaseSerializer)
+AnyModelSerializer = t.TypeVar("AnyModelSerializer", bound=ModelSerializer)
 AnyModel = t.TypeVar("AnyModel", bound=Model)
 
 
@@ -78,17 +78,17 @@ class APIClient(_APIClient):
     def assert_data_equals_model(
         data: t.Dict[str, t.Any],
         model: AnyModel,
-        serializer_class: t.Type[AnySerializer],
+        model_serializer_class: t.Type[AnyModelSerializer],
     ):
         assert (
-            data == serializer_class(model).data
+            data == model_serializer_class(model).data
         ), "Data does not equal serialized model."
 
     def retrieve(
         self,
         basename: str,
         model: AnyModel,
-        serializer_class: t.Type[AnySerializer],
+        model_serializer_class: t.Type[AnyModelSerializer],
         status_code_assertion: StatusCodeAssertion = None,
         **kwargs,
     ):
@@ -102,7 +102,7 @@ class APIClient(_APIClient):
             self.assert_data_equals_model(
                 response.json(),
                 model,
-                serializer_class,
+                model_serializer_class,
             )
 
         return response
@@ -111,10 +111,15 @@ class APIClient(_APIClient):
         self,
         basename: str,
         models: t.Iterable[AnyModel],
-        serializer_class: t.Type[AnySerializer],
+        model_serializer_class: t.Type[AnyModelSerializer],
         status_code_assertion: StatusCodeAssertion = None,
         **kwargs,
     ):
+        model_class: t.Type[AnyModel] = model_serializer_class.Meta.model
+        assert model_class.objects.difference(
+            model_class.objects.filter(pk__in=[model.pk for model in models])
+        ).exists(), "List must exclude some models for a valid test."
+
         response: Response = self.get(
             reverse(f"{basename}-list"),
             status_code_assertion=status_code_assertion,
@@ -126,7 +131,7 @@ class APIClient(_APIClient):
                 self.assert_data_equals_model(
                     data,
                     model,
-                    serializer_class,
+                    model_serializer_class,
                 )
 
         return response

@@ -13,7 +13,7 @@ class TestUserViewSet(APITestCase):
     Base naming convention:
         test_{action}
 
-    action: This view set action.
+    action: The view set action.
         https://www.django-rest-framework.org/api-guide/viewsets/#viewset-actions
     """
 
@@ -78,7 +78,27 @@ class TestUserViewSet(APITestCase):
         assert user.student.class_field.teacher.school
         return user
 
-    def _get_other_user(
+    def _login_indy_student(self):
+        user = self.client.login(
+            email="indianajones@codeforlife.com", password="Password1"
+        )
+        assert user.student
+        assert not user.student.class_field
+        return user
+
+    def _get_other_school_user(
+        self,
+        user: User,
+        other_users: QuerySet[User],
+        is_teacher: bool,
+    ):
+        other_user = other_users.first()
+        assert other_user
+        assert user != other_user
+        assert other_user.teacher if is_teacher else other_user.student
+        return other_user
+
+    def _get_another_school_user(
         self,
         user: User,
         other_users: QuerySet[User],
@@ -90,24 +110,14 @@ class TestUserViewSet(APITestCase):
             if user.teacher
             else user.student.class_field.teacher.school
         )
-
-        other_user = other_users.first()
-        assert other_user
-        assert user != other_user
-
-        if is_teacher:
-            assert other_user.teacher
-            other_school = other_user.teacher.school
-        else:
-            assert other_user.student
-            other_school = other_user.student.class_field.teacher.school
-
+        other_user = self._get_other_school_user(user, other_users, is_teacher)
+        other_school = (
+            other_user.teacher.school
+            if is_teacher
+            else other_user.student.class_field.teacher.school
+        )
         assert other_school
-        if same_school:
-            assert school == other_school
-        else:
-            assert school != other_school
-
+        assert school == other_school if same_school else school != other_school
         return other_user
 
     """
@@ -116,7 +126,8 @@ class TestUserViewSet(APITestCase):
 
     user_type: The type of user that is making the request. Options:
         - teacher: A teacher.
-        - student: A student.
+        - student: A school student.
+        - indy_student: A non-school student.
 
     other_user_type: The type of user whose data is being requested. Options:
         - self: User's own data.
@@ -146,6 +157,7 @@ class TestUserViewSet(APITestCase):
         """
 
         user = self._login_teacher()
+
         self._retrieve_user(user)
 
     def test_retrieve__student__self(self):
@@ -154,6 +166,16 @@ class TestUserViewSet(APITestCase):
         """
 
         user = self._login_student()
+
+        self._retrieve_user(user)
+
+    def test_retrieve__indy_student__self(self):
+        """
+        Independent student can retrieve their own user data.
+        """
+
+        user = self._login_indy_student()
+
         self._retrieve_user(user)
 
     def test_retrieve__teacher__teacher__same_school(self):
@@ -163,7 +185,7 @@ class TestUserViewSet(APITestCase):
 
         user = self._login_teacher()
 
-        other_user = self._get_other_user(
+        other_user = self._get_another_school_user(
             user,
             other_users=User.objects.exclude(id=user.id).filter(
                 new_teacher__school=user.teacher.school
@@ -181,7 +203,7 @@ class TestUserViewSet(APITestCase):
 
         user = self._login_teacher()
 
-        other_user = self._get_other_user(
+        other_user = self._get_another_school_user(
             user,
             other_users=User.objects.filter(
                 new_student__class_field__teacher__school=user.teacher.school
@@ -199,7 +221,7 @@ class TestUserViewSet(APITestCase):
 
         user = self._login_student()
 
-        other_user = self._get_other_user(
+        other_user = self._get_another_school_user(
             user,
             other_users=User.objects.filter(
                 new_teacher__school=user.student.class_field.teacher.school
@@ -220,7 +242,7 @@ class TestUserViewSet(APITestCase):
 
         user = self._login_student()
 
-        other_user = self._get_other_user(
+        other_user = self._get_another_school_user(
             user,
             other_users=User.objects.exclude(id=user.id).filter(
                 new_student__class_field__teacher__school=user.student.class_field.teacher.school
@@ -241,7 +263,7 @@ class TestUserViewSet(APITestCase):
 
         user = self._login_teacher()
 
-        other_user = self._get_other_user(
+        other_user = self._get_another_school_user(
             user,
             other_users=User.objects.exclude(
                 new_teacher__school=user.teacher.school
@@ -262,7 +284,7 @@ class TestUserViewSet(APITestCase):
 
         user = self._login_teacher()
 
-        other_user = self._get_other_user(
+        other_user = self._get_another_school_user(
             user,
             other_users=User.objects.exclude(
                 new_student__class_field__teacher__school=user.teacher.school
@@ -283,7 +305,7 @@ class TestUserViewSet(APITestCase):
 
         user = self._login_student()
 
-        other_user = self._get_other_user(
+        other_user = self._get_another_school_user(
             user,
             other_users=User.objects.exclude(
                 new_teacher__school=user.student.class_field.teacher.school
@@ -304,7 +326,7 @@ class TestUserViewSet(APITestCase):
 
         user = self._login_student()
 
-        other_user = self._get_other_user(
+        other_user = self._get_another_school_user(
             user,
             other_users=User.objects.exclude(
                 new_student__class_field__teacher__school=user.student.class_field.teacher.school
@@ -318,13 +340,42 @@ class TestUserViewSet(APITestCase):
             status_code_assertion=status.HTTP_404_NOT_FOUND,
         )
 
+    def test_retrieve__indy_student__teacher(self):
+        """
+        Independent student can not retrieve a teacher.
+        """
+
+        user = self._login_indy_student()
+
+        self._get_other_school_user(
+            user,
+            other_users=User.objects.filter(new_teacher__school__isnull=False),
+            is_teacher=True,
+        )
+
+    def test_retrieve__indy_student__student(self):
+        """
+        Independent student can not retrieve a student.
+        """
+
+        user = self._login_indy_student()
+
+        self._get_other_school_user(
+            user,
+            other_users=User.objects.filter(
+                new_student__class_field__teacher__school__isnull=False
+            ),
+            is_teacher=False,
+        )
+
     """
     List naming convention:
         test_list__{user_type}
 
     user_type: The type of user that is making the request. Options:
         - teacher: A teacher.
-        - student: A student.
+        - student: A school student.
+        - indy_student: A non-school student.
     """
 
     def _list_users(
@@ -355,9 +406,18 @@ class TestUserViewSet(APITestCase):
 
     def test_list__student(self):
         """
-        Student can list only themselves.
+        Student can list only themself.
         """
 
         user = self._login_student()
+
+        self._list_users([user])
+
+    def test_list__indy_student(self):
+        """
+        Independent student can list only themself.
+        """
+
+        user = self._login_indy_student()
 
         self._list_users([user])
