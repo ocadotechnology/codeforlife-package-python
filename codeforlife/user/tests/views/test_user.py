@@ -8,6 +8,28 @@ from ...models import User, School, Teacher, Student, Class, UserProfile
 
 
 class TestUserViewSet(APITestCase):
+    """
+    Naming convention:
+
+    test_{action}__{user_type}__{other_user_type}__{same_school}
+
+    action: This view set action.
+        https://www.django-rest-framework.org/api-guide/viewsets/#viewset-actions
+
+    user_type: The type of user that is making the request. Options:
+        - teacher: A teacher.
+        - student: A student.
+
+    other_user_type: The type of user whose data is being requested. Options:
+        - self: User's own data.
+        - teacher: Another teacher's data.
+        - student: Another student's data.
+
+    same_school: A flag for if the other user is from the same school. Options:
+        - same_school: The other user is from the same school.
+        - not_same_school: The other user is not from the same school.
+    """
+
     # TODO: replace this setup with data fixtures.
     def setUp(self):
         school = School.objects.create(
