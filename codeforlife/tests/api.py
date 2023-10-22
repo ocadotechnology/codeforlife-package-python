@@ -5,6 +5,7 @@ from pyotp import TOTP
 from django.urls import reverse
 from django.utils import timezone
 from django.db.models import Model
+from django.db.models.query import QuerySet
 from rest_framework.test import APITestCase as _APITestCase
 from rest_framework.test import APIClient as _APIClient
 from rest_framework.serializers import ModelSerializer
@@ -140,3 +141,85 @@ class APIClient(_APIClient):
 class APITestCase(_APITestCase):
     client: APIClient
     client_class = APIClient
+
+    def login_teacher(self, **credentials):
+        user = self.client.login(**credentials)
+        assert user.teacher
+        assert user.teacher.school
+        return user
+
+    def login_student(self, **credentials):
+        user = self.client.login(**credentials)
+        assert user.student
+        assert user.student.class_field.teacher.school
+        return user
+
+    def login_indy_student(self, **credentials):
+        user = self.client.login(**credentials)
+        assert user.student
+        assert not user.student.class_field
+        return user
+
+    def get_other_user(
+        self,
+        user: User,
+        other_users: QuerySet[User],
+        is_teacher: bool,
+    ):
+        """
+        Get a different user.
+        """
+
+        other_user = other_users.first()
+        assert other_user
+        assert user != other_user
+        assert other_user.teacher if is_teacher else other_user.student
+        return other_user
+
+    def get_other_school_user(
+        self,
+        user: User,
+        other_users: QuerySet[User],
+        is_teacher: bool,
+    ):
+        """
+        Get a different user that is in a school.
+        """
+
+        other_user = self.get_other_user(user, other_users, is_teacher)
+        assert (
+            other_user.teacher.school
+            if is_teacher
+            else other_user.student.class_field.teacher.school
+        )
+        return other_user
+
+    def get_another_school_user(
+        self,
+        user: User,
+        other_users: QuerySet[User],
+        is_teacher: bool,
+        same_school: bool,
+    ):
+        """
+        Get a different user that is also in a school.
+        """
+
+        other_user = self.get_other_school_user(user, other_users, is_teacher)
+
+        school = (
+            user.teacher.school
+            if user.teacher
+            else user.student.class_field.teacher.school
+        )
+        assert school
+
+        other_school = (
+            other_user.teacher.school
+            if is_teacher
+            else other_user.student.class_field.teacher.school
+        )
+        assert other_school
+
+        assert school == other_school if same_school else school != other_school
+        return other_user

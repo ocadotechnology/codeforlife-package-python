@@ -61,64 +61,22 @@ class TestUserViewSet(APITestCase):
         )
 
     def _login_teacher(self):
-        user = self.client.login(
+        return self.login_teacher(
             email="alberteinstein@codeforlife.com",
             password="Password1",
         )
-        assert user.teacher
-        assert user.teacher.school
-        return user
 
     def _login_student(self):
-        user = self.client.login(
+        return self.login_student(
             email="leonardodavinci@codeforlife.com",
             password="Password1",
         )
-        assert user.student
-        assert user.student.class_field.teacher.school
-        return user
 
     def _login_indy_student(self):
-        user = self.client.login(
-            email="indianajones@codeforlife.com", password="Password1"
+        return self.login_indy_student(
+            email="indianajones@codeforlife.com",
+            password="Password1",
         )
-        assert user.student
-        assert not user.student.class_field
-        return user
-
-    def _get_other_school_user(
-        self,
-        user: User,
-        other_users: QuerySet[User],
-        is_teacher: bool,
-    ):
-        other_user = other_users.first()
-        assert other_user
-        assert user != other_user
-        assert other_user.teacher if is_teacher else other_user.student
-        return other_user
-
-    def _get_another_school_user(
-        self,
-        user: User,
-        other_users: QuerySet[User],
-        is_teacher: bool,
-        same_school: bool,
-    ):
-        school = (
-            user.teacher.school
-            if user.teacher
-            else user.student.class_field.teacher.school
-        )
-        other_user = self._get_other_school_user(user, other_users, is_teacher)
-        other_school = (
-            other_user.teacher.school
-            if is_teacher
-            else other_user.student.class_field.teacher.school
-        )
-        assert other_school
-        assert school == other_school if same_school else school != other_school
-        return other_user
 
     """
     Retrieve naming convention:
@@ -185,7 +143,7 @@ class TestUserViewSet(APITestCase):
 
         user = self._login_teacher()
 
-        other_user = self._get_another_school_user(
+        other_user = self.get_another_school_user(
             user,
             other_users=User.objects.exclude(id=user.id).filter(
                 new_teacher__school=user.teacher.school
@@ -203,7 +161,7 @@ class TestUserViewSet(APITestCase):
 
         user = self._login_teacher()
 
-        other_user = self._get_another_school_user(
+        other_user = self.get_another_school_user(
             user,
             other_users=User.objects.filter(
                 new_student__class_field__teacher__school=user.teacher.school
@@ -221,7 +179,7 @@ class TestUserViewSet(APITestCase):
 
         user = self._login_student()
 
-        other_user = self._get_another_school_user(
+        other_user = self.get_another_school_user(
             user,
             other_users=User.objects.filter(
                 new_teacher__school=user.student.class_field.teacher.school
@@ -242,7 +200,7 @@ class TestUserViewSet(APITestCase):
 
         user = self._login_student()
 
-        other_user = self._get_another_school_user(
+        other_user = self.get_another_school_user(
             user,
             other_users=User.objects.exclude(id=user.id).filter(
                 new_student__class_field__teacher__school=user.student.class_field.teacher.school
@@ -263,7 +221,7 @@ class TestUserViewSet(APITestCase):
 
         user = self._login_teacher()
 
-        other_user = self._get_another_school_user(
+        other_user = self.get_another_school_user(
             user,
             other_users=User.objects.exclude(
                 new_teacher__school=user.teacher.school
@@ -284,7 +242,7 @@ class TestUserViewSet(APITestCase):
 
         user = self._login_teacher()
 
-        other_user = self._get_another_school_user(
+        other_user = self.get_another_school_user(
             user,
             other_users=User.objects.exclude(
                 new_student__class_field__teacher__school=user.teacher.school
@@ -305,7 +263,7 @@ class TestUserViewSet(APITestCase):
 
         user = self._login_student()
 
-        other_user = self._get_another_school_user(
+        other_user = self.get_another_school_user(
             user,
             other_users=User.objects.exclude(
                 new_teacher__school=user.student.class_field.teacher.school
@@ -326,7 +284,7 @@ class TestUserViewSet(APITestCase):
 
         user = self._login_student()
 
-        other_user = self._get_another_school_user(
+        other_user = self.get_another_school_user(
             user,
             other_users=User.objects.exclude(
                 new_student__class_field__teacher__school=user.student.class_field.teacher.school
@@ -347,7 +305,7 @@ class TestUserViewSet(APITestCase):
 
         user = self._login_indy_student()
 
-        self._get_other_school_user(
+        self.get_other_school_user(
             user,
             other_users=User.objects.filter(new_teacher__school__isnull=False),
             is_teacher=True,
@@ -360,7 +318,7 @@ class TestUserViewSet(APITestCase):
 
         user = self._login_indy_student()
 
-        self._get_other_school_user(
+        self.get_other_school_user(
             user,
             other_users=User.objects.filter(
                 new_student__class_field__teacher__school__isnull=False
