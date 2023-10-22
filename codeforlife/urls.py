@@ -12,6 +12,7 @@ from .views import csrf
 def service_urlpatterns(
     api_urls_path: str = "api.urls",
     frontend_template_name: str = "frontend.html",
+    user_urls_path: str = "codeforlife.user.urls",
 ):
     urlpatterns = [
         path(
@@ -44,7 +45,7 @@ def service_urlpatterns(
         ),
         path(
             "api/",
-            include("codeforlife.user.urls"),
+            include(user_urls_path),
             name="user",
         ),
         path(
