@@ -71,6 +71,12 @@ class TestSchoolViewSet(APITestCase):
             password="Password1",
         )
 
+    def _login_indy_student(self):
+        return self.login_indy_student(
+            email="indianajones@codeforlife.com",
+            password="Password1",
+        )
+
     """
     Retrieve naming convention:
         test_retrieve__{user_type}__{same_school}
@@ -78,6 +84,7 @@ class TestSchoolViewSet(APITestCase):
     user_type: The type of user that is making the request. Options:
         - teacher: A teacher.
         - student: A school student.
+        - indy_student: A non-school student.
     
     same_school: A flag for if the school is the same school that the user
         is in. Options:
@@ -95,6 +102,21 @@ class TestSchoolViewSet(APITestCase):
             school,
             SchoolSerializer,
             status_code_assertion,
+        )
+
+    def test_retrieve__indy_student(self):
+        """
+        Independent student can not retrieve any school.
+        """
+
+        self._login_indy_student()
+
+        school = School.objects.first()
+        assert school
+
+        self._retrieve_school(
+            school,
+            status_code_assertion=status.HTTP_403_FORBIDDEN,
         )
 
     def test_retrieve__teacher__same_school(self):
@@ -154,6 +176,7 @@ class TestSchoolViewSet(APITestCase):
     user_type: The type of user that is making the request. Options:
         - teacher: A teacher.
         - student: A school student.
+        - indy_student: A non-school student.
     """
 
     def _list_schools(
@@ -166,6 +189,18 @@ class TestSchoolViewSet(APITestCase):
             schools,
             SchoolSerializer,
             status_code_assertion,
+        )
+
+    def test_list__indy_student(self):
+        """
+        Independent student can not list any schools.
+        """
+
+        self._login_indy_student()
+
+        self._list_schools(
+            [],
+            status_code_assertion=status.HTTP_403_FORBIDDEN,
         )
 
     def test_list__teacher(self):
