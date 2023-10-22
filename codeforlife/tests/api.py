@@ -4,6 +4,7 @@ from unittest.mock import patch
 from pyotp import TOTP
 from django.urls import reverse
 from django.utils import timezone
+from django.utils.http import urlencode
 from django.db.models import Model
 from django.db.models.query import QuerySet
 from rest_framework.test import APITestCase as _APITestCase
@@ -20,6 +21,7 @@ AnyModel = t.TypeVar("AnyModel", bound=Model)
 
 class APIClient(_APIClient):
     StatusCodeAssertion = t.Optional[t.Union[int, t.Callable[[int], bool]]]
+    ListFilters = t.Optional[t.Dict[str, str]]
 
     @staticmethod
     def status_code_is_ok(status_code: int):
@@ -114,6 +116,7 @@ class APIClient(_APIClient):
         models: t.Iterable[AnyModel],
         model_serializer_class: t.Type[AnyModelSerializer],
         status_code_assertion: StatusCodeAssertion = None,
+        filters: ListFilters = None,
         **kwargs,
     ):
         model_class: t.Type[AnyModel] = model_serializer_class.Meta.model
@@ -122,7 +125,7 @@ class APIClient(_APIClient):
         ).exists(), "List must exclude some models for a valid test."
 
         response: Response = self.get(
-            reverse(f"{basename}-list"),
+            f"{reverse(f'{basename}-list')}?{urlencode(filters or {})}",
             status_code_assertion=status_code_assertion,
             **kwargs,
         )

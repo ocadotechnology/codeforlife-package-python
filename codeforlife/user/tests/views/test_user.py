@@ -328,24 +328,28 @@ class TestUserViewSet(APITestCase):
 
     """
     List naming convention:
-        test_list__{user_type}
+        test_list__{user_type}__{filters}
 
     user_type: The type of user that is making the request. Options:
         - teacher: A teacher.
         - student: A school student.
         - indy_student: A non-school student.
+    
+    filters: Any search params used to dynamically filter the list.
     """
 
     def _list_users(
         self,
         users: t.Iterable[User],
         status_code_assertion: APIClient.StatusCodeAssertion = None,
+        filters: APIClient.ListFilters = None,
     ):
         return self.client.list(
             "user",
             users,
             UserSerializer,
             status_code_assertion,
+            filters,
         )
 
     def test_list__teacher(self):
@@ -360,6 +364,23 @@ class TestUserViewSet(APITestCase):
             | User.objects.filter(
                 new_student__class_field__teacher__school=user.teacher.school
             )
+        )
+
+    def test_list__teacher__students_in_class(self):
+        """
+        Teacher can list all the users in the same school.
+        """
+
+        user = self._login_teacher()
+
+        access_code = user.teacher.class_teacher.first().access_code
+        assert access_code
+
+        self._list_users(
+            User.objects.filter(
+                new_student__class_field__access_code=access_code
+            ),
+            filters={"students_in_class": access_code},
         )
 
     def test_list__student(self):
