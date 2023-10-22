@@ -77,6 +77,24 @@ class APIClient(_APIClient):
 
         return user
 
+    def login_teacher(self, **credentials):
+        user = self.login(**credentials)
+        assert user.teacher
+        assert user.teacher.school
+        return user
+
+    def login_student(self, **credentials):
+        user = self.login(**credentials)
+        assert user.student
+        assert user.student.class_field.teacher.school
+        return user
+
+    def login_indy_student(self, **credentials):
+        user = self.login(**credentials)
+        assert user.student
+        assert not user.student.class_field
+        return user
+
     @staticmethod
     def assert_data_equals_model(
         data: t.Dict[str, t.Any],
@@ -144,24 +162,6 @@ class APIClient(_APIClient):
 class APITestCase(_APITestCase):
     client: APIClient
     client_class = APIClient
-
-    def login_teacher(self, **credentials):
-        user = self.client.login(**credentials)
-        assert user.teacher
-        assert user.teacher.school
-        return user
-
-    def login_student(self, **credentials):
-        user = self.client.login(**credentials)
-        assert user.student
-        assert user.student.class_field.teacher.school
-        return user
-
-    def login_indy_student(self, **credentials):
-        user = self.client.login(**credentials)
-        assert user.student
-        assert not user.student.class_field
-        return user
 
     def get_other_user(
         self,

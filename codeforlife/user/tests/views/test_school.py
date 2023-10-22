@@ -1,9 +1,11 @@
 import typing as t
 
 from rest_framework import status
+from rest_framework.permissions import IsAuthenticated
 
 from ....tests import APITestCase, APIClient
 from ...serializers import SchoolSerializer
+from ...views import SchoolViewSet
 from ...models import User, School, Teacher, Student, Class, UserProfile
 
 
@@ -60,19 +62,19 @@ class TestSchoolViewSet(APITestCase):
         )
 
     def _login_teacher(self):
-        return self.login_teacher(
+        return self.client.login_teacher(
             email="alberteinstein@codeforlife.com",
             password="Password1",
         )
 
     def _login_student(self):
-        return self.login_student(
+        return self.client.login_student(
             email="leonardodavinci@codeforlife.com",
             password="Password1",
         )
 
     def _login_indy_student(self):
-        return self.login_indy_student(
+        return self.client.login_indy_student(
             email="indianajones@codeforlife.com",
             password="Password1",
         )
@@ -220,3 +222,23 @@ class TestSchoolViewSet(APITestCase):
         user = self._login_student()
 
         self._list_schools([user.student.class_field.teacher.school])
+
+    """
+    General tests that apply to all actions.
+    """
+
+    def test_all__requires_authentication(self):
+        """
+        User must be authenticated to call any endpoint.
+        """
+
+        assert IsAuthenticated in SchoolViewSet.permission_classes
+
+    def test_all__only_http_get(self):
+        """
+        These model are read-only.
+        """
+
+        assert [name.lower() for name in SchoolViewSet.http_method_names] == [
+            "get"
+        ]

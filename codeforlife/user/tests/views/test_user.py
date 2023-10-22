@@ -1,10 +1,12 @@
 import typing as t
 
-from django.db.models.query import QuerySet
 from rest_framework import status
+from rest_framework.permissions import IsAuthenticated
 
 from ....tests import APITestCase, APIClient
 from ...serializers import UserSerializer
+from ...views import UserViewSet
+
 from ...models import User, School, Teacher, Student, Class, UserProfile
 
 
@@ -61,19 +63,19 @@ class TestUserViewSet(APITestCase):
         )
 
     def _login_teacher(self):
-        return self.login_teacher(
+        return self.client.login_teacher(
             email="alberteinstein@codeforlife.com",
             password="Password1",
         )
 
     def _login_student(self):
-        return self.login_student(
+        return self.client.login_student(
             email="leonardodavinci@codeforlife.com",
             password="Password1",
         )
 
     def _login_indy_student(self):
-        return self.login_indy_student(
+        return self.client.login_indy_student(
             email="indianajones@codeforlife.com",
             password="Password1",
         )
@@ -400,3 +402,23 @@ class TestUserViewSet(APITestCase):
         user = self._login_indy_student()
 
         self._list_users([user])
+
+    """
+    General tests that apply to all actions.
+    """
+
+    def test_all__requires_authentication(self):
+        """
+        User must be authenticated to call any endpoint.
+        """
+
+        assert IsAuthenticated in UserViewSet.permission_classes
+
+    def test_all__only_http_get(self):
+        """
+        These model are read-only.
+        """
+
+        assert [name.lower() for name in UserViewSet.http_method_names] == [
+            "get"
+        ]
