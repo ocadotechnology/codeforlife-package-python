@@ -374,14 +374,12 @@ class TestUserViewSet(APITestCase):
 
         user = self._login_teacher()
 
-        access_code = user.teacher.class_teacher.first().access_code
-        assert access_code
+        klass = user.teacher.class_teacher.first()
+        assert klass
 
         self._list_users(
-            User.objects.filter(
-                new_student__class_field__access_code=access_code
-            ),
-            filters={"students_in_class": access_code},
+            User.objects.filter(new_student__class_field=klass),
+            filters={"students_in_class": klass.id},
         )
 
     def test_list__student(self):

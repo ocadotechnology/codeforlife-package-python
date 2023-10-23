@@ -5,7 +5,8 @@ from ..models import User
 
 class UserFilterSet(filters.FilterSet):
     students_in_class = filters.CharFilter(
-        "new_student__class_field__access_code", "exact"
+        "new_student__class_field",
+        "exact",
     )
 
     class Meta:
