@@ -1,9 +1,9 @@
-from rest_framework.viewsets import ModelViewSet
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.viewsets import ModelViewSet
 
 from ..models import Class, User
-from ..serializers import ClassSerializer
 from ..permissions import IsSchoolMember
+from ..serializers import ClassSerializer
 
 
 class ClassViewSet(ModelViewSet):
