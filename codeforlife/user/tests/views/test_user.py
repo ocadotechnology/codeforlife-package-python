@@ -63,8 +63,16 @@ class TestUserViewSet(APITestCase):
 
     def _login_teacher(self):
         return self.client.login_teacher(
+            email="maxplanck@codeforlife.com",
+            password="Password1",
+            is_admin=False,
+        )
+
+    def _login_admin_teacher(self):
+        return self.client.login_teacher(
             email="alberteinstein@codeforlife.com",
             password="Password1",
+            is_admin=True,
         )
 
     def _login_student(self):
@@ -81,10 +89,11 @@ class TestUserViewSet(APITestCase):
 
     """
     Retrieve naming convention:
-        test_retrieve__{user_type}__{other_user_type}__{same_school}
+        test_retrieve__{user_type}__{other_user_type}__{same_school}__{same_class}
 
     user_type: The type of user that is making the request. Options:
-        - teacher: A teacher.
+        - teacher: A non-admin teacher.
+        - admin_teacher: An admin teacher.
         - student: A school student.
         - indy_student: A non-school student.
 
@@ -96,6 +105,10 @@ class TestUserViewSet(APITestCase):
     same_school: A flag for if the other user is from the same school. Options:
         - same_school: The other user is from the same school.
         - not_same_school: The other user is not from the same school.
+
+    same_class: A flag for if the other user is from the same class. Options:
+        - same_class: The other user is from the same class.
+        - not_same_class: The other user is not from the same class.
     """
 
     def _retrieve_user(
@@ -155,9 +168,30 @@ class TestUserViewSet(APITestCase):
 
         self._retrieve_user(other_user)
 
-    def test_retrieve__teacher__student__same_school(self):
+    def test_retrieve__teacher__student__same_school__same_class(self):
         """
-        Teacher can retrieve a student from the same school.
+        Teacher can retrieve a student from the same school and class.
+        """
+
+        user = self._login_teacher()
+
+        other_user = self.get_another_school_user(
+            user,
+            other_users=User.objects.filter(
+                new_student__class_field__teacher__school=user.teacher.school,
+                new_student__class_field__teacher=user.teacher,
+            ),
+            is_teacher=False,
+            same_school=True,
+            same_class=True,
+        )
+
+        self._retrieve_user(other_user)
+
+    def test_retrieve__teacher__student__same_school__not_same_class(self):
+        """
+        Teacher cannot retrieve a student from the same school and a different
+        class.
         """
 
         user = self._login_teacher()
@@ -166,16 +200,86 @@ class TestUserViewSet(APITestCase):
             user,
             other_users=User.objects.filter(
                 new_student__class_field__teacher__school=user.teacher.school
+            ).exclude(new_student__class_field__teacher=user.teacher),
+            is_teacher=False,
+            same_school=True,
+            same_class=False,
+        )
+
+        self._retrieve_user(
+            other_user,
+            status_code_assertion=status.HTTP_404_NOT_FOUND,
+        )
+
+    def test_retrieve__admin_teacher__student__same_school__same_class(self):
+        """
+        Admin teacher can retrieve a student from the same school and class.
+        """
+
+        user = self._login_admin_teacher()
+
+        other_user = self.get_another_school_user(
+            user,
+            other_users=User.objects.filter(
+                new_student__class_field__teacher__school=user.teacher.school,
+                new_student__class_field__teacher=user.teacher,
             ),
             is_teacher=False,
             same_school=True,
+            same_class=True,
         )
 
         self._retrieve_user(other_user)
 
-    def test_retrieve__student__teacher__same_school(self):
+    def test_retrieve__admin_teacher__student__same_school__not_same_class(
+        self,
+    ):
         """
-        Student cannot retrieve a teacher from the same school.
+        Admin teacher can retrieve a student from the same school and a
+        different class.
+        """
+
+        user = self._login_admin_teacher()
+
+        other_user = self.get_another_school_user(
+            user,
+            other_users=User.objects.filter(
+                new_student__class_field__teacher__school=user.teacher.school
+            ).exclude(new_student__class_field__teacher=user.teacher),
+            is_teacher=False,
+            same_school=True,
+            same_class=False,
+        )
+
+        self._retrieve_user(other_user)
+
+    def test_retrieve__student__teacher__same_school__same_class(self):
+        """
+        Student cannot retrieve a teacher from the same school and class.
+        """
+
+        user = self._login_student()
+
+        other_user = self.get_another_school_user(
+            user,
+            other_users=User.objects.filter(
+                new_teacher__school=user.student.class_field.teacher.school,
+                new_teacher__class_teacher=user.student.class_field,
+            ),
+            is_teacher=True,
+            same_school=True,
+            same_class=True,
+        )
+
+        self._retrieve_user(
+            other_user,
+            status_code_assertion=status.HTTP_404_NOT_FOUND,
+        )
+
+    def test_retrieve__student__teacher__same_school__not_same_class(self):
+        """
+        Student cannot retrieve a teacher from the same school and a different
+        class.
         """
 
         user = self._login_student()
@@ -184,9 +288,10 @@ class TestUserViewSet(APITestCase):
             user,
             other_users=User.objects.filter(
                 new_teacher__school=user.student.class_field.teacher.school
-            ),
+            ).exclude(new_teacher__class_teacher=user.student.class_field),
             is_teacher=True,
             same_school=True,
+            same_class=False,
         )
 
         self._retrieve_user(
@@ -194,9 +299,9 @@ class TestUserViewSet(APITestCase):
             status_code_assertion=status.HTTP_404_NOT_FOUND,
         )
 
-    def test_retrieve__student__student__same_school(self):
+    def test_retrieve__student__student__same_school__same_class(self):
         """
-        Student cannot retrieve another student from the same school.
+        Student can retrieve another student from the same school and class.
         """
 
         user = self._login_student()
@@ -204,10 +309,34 @@ class TestUserViewSet(APITestCase):
         other_user = self.get_another_school_user(
             user,
             other_users=User.objects.exclude(id=user.id).filter(
-                new_student__class_field__teacher__school=user.student.class_field.teacher.school
+                new_student__class_field__teacher__school=user.student.class_field.teacher.school,
+                new_student__class_field=user.student.class_field,
             ),
             is_teacher=False,
             same_school=True,
+            same_class=True,
+        )
+
+        self._retrieve_user(other_user)
+
+    def test_retrieve__student__student__same_school__not_same_class(self):
+        """
+        Student cannot retrieve another student from the same school and a
+        different class.
+        """
+
+        user = self._login_student()
+
+        other_user = self.get_another_school_user(
+            user,
+            other_users=User.objects.exclude(id=user.id)
+            .filter(
+                new_student__class_field__teacher__school=user.student.class_field.teacher.school,
+            )
+            .exclude(new_student__class_field=user.student.class_field),
+            is_teacher=False,
+            same_school=True,
+            same_class=False,
         )
 
         self._retrieve_user(
@@ -345,7 +474,7 @@ class TestUserViewSet(APITestCase):
         - teacher: A teacher.
         - student: A school student.
         - indy_student: A non-school student.
-    
+
     filters: Any search params used to dynamically filter the list.
     """
 
@@ -373,13 +502,14 @@ class TestUserViewSet(APITestCase):
         self._list_users(
             User.objects.filter(new_teacher__school=user.teacher.school)
             | User.objects.filter(
-                new_student__class_field__teacher__school=user.teacher.school
+                new_student__class_field__teacher__school=user.teacher.school,
+                new_student__class_field__teacher=user.teacher,
             )
         )
 
     def test_list__teacher__students_in_class(self):
         """
-        Teacher can list all the users in the same school.
+        Teacher can list all the users in a class they own.
         """
 
         user = self._login_teacher()

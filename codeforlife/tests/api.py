@@ -76,10 +76,11 @@ class APIClient(_APIClient):
 
         return user
 
-    def login_teacher(self, **credentials):
+    def login_teacher(self, is_admin: bool, **credentials):
         user = self.login(**credentials)
         assert user.teacher
         assert user.teacher.school
+        assert is_admin == user.teacher.is_admin
         return user
 
     def login_student(self, **credentials):
@@ -204,6 +205,7 @@ class APITestCase(_APITestCase):
         other_users: QuerySet[User],
         is_teacher: bool,
         same_school: bool,
+        same_class: bool = None,
     ):
         """
         Get a different user that is also in a school.
@@ -227,5 +229,41 @@ class APITestCase(_APITestCase):
         )
         assert other_school
 
-        assert school == other_school if same_school else school != other_school
+        if same_school:
+            assert school == other_school
+
+            # Cannot assert that 2 teachers are in the same class since a class
+            # can only have 1 teacher.
+            if not (user.teacher is not None and is_teacher):
+                # At this point, same_class needs to be set.
+                assert same_class is not None, "same_class must be set."
+
+                # If one of the users is a teacher.
+                if user.teacher is not None or is_teacher:
+                    # Get the teacher.
+                    teacher = other_user if is_teacher else user
+
+                    # Get the student's class' teacher.
+                    class_teacher = (
+                        user if is_teacher else other_user
+                    ).student.class_field.teacher.new_user
+
+                    # Assert the teacher is the class' teacher.
+                    assert (
+                        teacher == class_teacher
+                        if same_class
+                        else teacher != class_teacher
+                    )
+                # Else, both users are students.
+                else:
+                    assert (
+                        user.student.class_field
+                        == other_user.student.class_field
+                        if same_class
+                        else user.student.class_field
+                        != other_user.student.class_field
+                    )
+        else:
+            assert school != other_school
+
         return other_user

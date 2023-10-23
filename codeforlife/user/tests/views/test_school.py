@@ -65,6 +65,7 @@ class TestSchoolViewSet(APITestCase):
         return self.client.login_teacher(
             email="alberteinstein@codeforlife.com",
             password="Password1",
+            is_admin=True,
         )
 
     def _login_student(self):
