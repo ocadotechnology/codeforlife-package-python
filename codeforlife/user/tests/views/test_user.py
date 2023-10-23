@@ -3,11 +3,10 @@ import typing as t
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 
-from ....tests import APITestCase, APIClient
+from ....tests import APIClient, APITestCase
+from ...models import Class, School, Student, Teacher, User, UserProfile
 from ...serializers import UserSerializer
 from ...views import UserViewSet
-
-from ...models import User, School, Teacher, Student, Class, UserProfile
 
 
 class TestUserViewSet(APITestCase):
@@ -176,7 +175,7 @@ class TestUserViewSet(APITestCase):
 
     def test_retrieve__student__teacher__same_school(self):
         """
-        Student can not retrieve a teacher from the same school.
+        Student cannot retrieve a teacher from the same school.
         """
 
         user = self._login_student()
@@ -197,7 +196,7 @@ class TestUserViewSet(APITestCase):
 
     def test_retrieve__student__student__same_school(self):
         """
-        Student can not retrieve another student from the same school.
+        Student cannot retrieve another student from the same school.
         """
 
         user = self._login_student()
@@ -218,7 +217,7 @@ class TestUserViewSet(APITestCase):
 
     def test_retrieve__teacher__teacher__not_same_school(self):
         """
-        Teacher can not retrieve another teacher from another school.
+        Teacher cannot retrieve another teacher from another school.
         """
 
         user = self._login_teacher()
@@ -239,7 +238,7 @@ class TestUserViewSet(APITestCase):
 
     def test_retrieve__teacher__student__not_same_school(self):
         """
-        Teacher can not retrieve a student from another school.
+        Teacher cannot retrieve a student from another school.
         """
 
         user = self._login_teacher()
@@ -260,7 +259,7 @@ class TestUserViewSet(APITestCase):
 
     def test_retrieve__student__teacher__not_same_school(self):
         """
-        Student can not retrieve a teacher from another school.
+        Student cannot retrieve a teacher from another school.
         """
 
         user = self._login_student()
@@ -281,7 +280,7 @@ class TestUserViewSet(APITestCase):
 
     def test_retrieve__student__student__not_same_school(self):
         """
-        Student can not retrieve another student from another school.
+        Student cannot retrieve another student from another school.
         """
 
         user = self._login_student()
@@ -302,7 +301,7 @@ class TestUserViewSet(APITestCase):
 
     def test_retrieve__indy_student__teacher(self):
         """
-        Independent student can not retrieve a teacher.
+        Independent student cannot retrieve a teacher.
         """
 
         user = self._login_indy_student()
@@ -315,7 +314,7 @@ class TestUserViewSet(APITestCase):
 
     def test_retrieve__indy_student__student(self):
         """
-        Independent student can not retrieve a student.
+        Independent student cannot retrieve a student.
         """
 
         user = self._login_indy_student()

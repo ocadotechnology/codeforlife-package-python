@@ -3,10 +3,10 @@ import typing as t
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 
-from ....tests import APITestCase, APIClient
+from ....tests import APIClient, APITestCase
+from ...models import Class, School, Student, Teacher, User, UserProfile
 from ...serializers import SchoolSerializer
 from ...views import SchoolViewSet
-from ...models import User, School, Teacher, Student, Class, UserProfile
 
 
 class TestSchoolViewSet(APITestCase):
@@ -87,7 +87,7 @@ class TestSchoolViewSet(APITestCase):
         - teacher: A teacher.
         - student: A school student.
         - indy_student: A non-school student.
-    
+
     same_school: A flag for if the school is the same school that the user
         is in. Options:
         - same_school: The other user is from the same school.
@@ -108,7 +108,7 @@ class TestSchoolViewSet(APITestCase):
 
     def test_retrieve__indy_student(self):
         """
-        Independent student can not retrieve any school.
+        Independent student cannot retrieve any school.
         """
 
         self._login_indy_student()
@@ -141,7 +141,7 @@ class TestSchoolViewSet(APITestCase):
 
     def test_retrieve__teacher__not_same_school(self):
         """
-        Teacher can not retrieve a school they are not in.
+        Teacher cannot retrieve a school they are not in.
         """
 
         user = self._login_teacher()
@@ -156,7 +156,7 @@ class TestSchoolViewSet(APITestCase):
 
     def test_retrieve__student__not_same_school(self):
         """
-        Student can not retrieve a school they are not in.
+        Student cannot retrieve a school they are not in.
         """
 
         user = self._login_student()
@@ -195,7 +195,7 @@ class TestSchoolViewSet(APITestCase):
 
     def test_list__indy_student(self):
         """
-        Independent student can not list any schools.
+        Independent student cannot list any schools.
         """
 
         self._login_indy_student()

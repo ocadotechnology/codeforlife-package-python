@@ -124,7 +124,7 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 # Installed Apps
-# https://docs.djangoproject.com/en/4.2/ref/settings/#installed-apps
+# https://docs.djangoproject.com/en/3.2/ref/settings/#installed-apps
 
 INSTALLED_APPS = [
     "codeforlife.user",

@@ -93,10 +93,6 @@ class User(_User):
         return self.userprofile.last_otp_for_time
 
     @property
-    def developer(self):
-        return self.userprofile.developer
-
-    @property
     def is_verified(self):
         return self.userprofile.is_verified
 

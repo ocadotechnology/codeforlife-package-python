@@ -1,19 +1,18 @@
 import typing as t
 from unittest.mock import patch
 
-from pyotp import TOTP
+from django.db.models import Model
+from django.db.models.query import QuerySet
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.http import urlencode
-from django.db.models import Model
-from django.db.models.query import QuerySet
-from rest_framework.test import APITestCase as _APITestCase
-from rest_framework.test import APIClient as _APIClient
-from rest_framework.serializers import ModelSerializer
+from pyotp import TOTP
 from rest_framework.response import Response
+from rest_framework.serializers import ModelSerializer
+from rest_framework.test import APIClient as _APIClient
+from rest_framework.test import APITestCase as _APITestCase
 
-from ..user.models import User, AuthFactor
-
+from ..user.models import AuthFactor, User
 
 AnyModelSerializer = t.TypeVar("AnyModelSerializer", bound=ModelSerializer)
 AnyModel = t.TypeVar("AnyModel", bound=Model)
@@ -187,6 +186,8 @@ class APITestCase(_APITestCase):
     ):
         """
         Get a different user that is in a school.
+        - the provided user does not have to be in a school.
+        - the other user has to be in a school.
         """
 
         other_user = self.get_other_user(user, other_users, is_teacher)
@@ -206,6 +207,8 @@ class APITestCase(_APITestCase):
     ):
         """
         Get a different user that is also in a school.
+         - the provided user has to be in a school.
+         - the other user has to be in a school.
         """
 
         other_user = self.get_other_school_user(user, other_users, is_teacher)
