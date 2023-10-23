@@ -306,10 +306,15 @@ class TestUserViewSet(APITestCase):
 
         user = self._login_indy_student()
 
-        self.get_other_school_user(
+        other_user = self.get_other_school_user(
             user,
             other_users=User.objects.filter(new_teacher__school__isnull=False),
             is_teacher=True,
+        )
+
+        self._retrieve_user(
+            other_user,
+            status_code_assertion=status.HTTP_404_NOT_FOUND,
         )
 
     def test_retrieve__indy_student__student(self):
@@ -319,12 +324,17 @@ class TestUserViewSet(APITestCase):
 
         user = self._login_indy_student()
 
-        self.get_other_school_user(
+        other_user = self.get_other_school_user(
             user,
             other_users=User.objects.filter(
                 new_student__class_field__teacher__school__isnull=False
             ),
             is_teacher=False,
+        )
+
+        self._retrieve_user(
+            other_user,
+            status_code_assertion=status.HTTP_404_NOT_FOUND,
         )
 
     """
