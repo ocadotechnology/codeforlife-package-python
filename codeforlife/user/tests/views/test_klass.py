@@ -33,7 +33,7 @@ class TestClassViewSet(APITestCase):
         in. Options:
         - same_school: The class is in the same school as the user.
         - not_same_school: The class is not in the same school as the user.
-    
+
     in_class: A flag for if the user is in the class. Options:
         - in_class: The user is in the class.
         - not_in_class: The user is not in the class.
