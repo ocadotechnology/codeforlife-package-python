@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.8.4 (2023-10-24)
+
+### Fix
+
+* Foundation of breaking circular dependencies ([#17](https://github.com/ocadotechnology/codeforlife-package-python/issues/17)) ([`21309b6`](https://github.com/ocadotechnology/codeforlife-package-python/commit/21309b6d22755f8c9c02bc0037410cc6087a245e))
+
 ## v0.8.3 (2023-10-12)
 
 ### Fix
