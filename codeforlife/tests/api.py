@@ -11,9 +11,11 @@ from rest_framework.response import Response
 from rest_framework.serializers import ModelSerializer
 from rest_framework.test import APIClient as _APIClient
 from rest_framework.test import APITestCase as _APITestCase
+from rest_framework.viewsets import ModelViewSet
 
 from ..user.models import AuthFactor, User
 
+AnyModelViewSet = t.TypeVar("AnyModelViewSet", bound=ModelViewSet)
 AnyModelSerializer = t.TypeVar("AnyModelSerializer", bound=ModelSerializer)
 AnyModel = t.TypeVar("AnyModel", bound=Model)
 
@@ -111,10 +113,20 @@ class APIClient(_APIClient):
         model: AnyModel,
         model_serializer_class: t.Type[AnyModelSerializer],
         status_code_assertion: StatusCodeAssertion = None,
+        model_view_set_class: t.Type[AnyModelViewSet] = None,
         **kwargs,
     ):
+        lookup_field = (
+            "pk"
+            if model_view_set_class is None
+            else model_view_set_class.lookup_field
+        )
+
         response: Response = self.get(
-            reverse(f"{basename}-detail", kwargs={"pk": model.pk}),
+            reverse(
+                f"{basename}-detail",
+                kwargs={lookup_field: getattr(model, lookup_field)},
+            ),
             status_code_assertion=status_code_assertion,
             **kwargs,
         )
@@ -176,7 +188,7 @@ class APITestCase(_APITestCase):
         other_user = other_users.first()
         assert other_user
         assert user != other_user
-        assert other_user.teacher if is_teacher else other_user.student
+        assert other_user.is_teacher if is_teacher else other_user.is_student
         return other_user
 
     def get_other_school_user(
@@ -234,12 +246,12 @@ class APITestCase(_APITestCase):
 
             # Cannot assert that 2 teachers are in the same class since a class
             # can only have 1 teacher.
-            if not (user.teacher is not None and is_teacher):
+            if not (user.is_teacher and other_user.is_teacher):
                 # At this point, same_class needs to be set.
                 assert same_class is not None, "same_class must be set."
 
                 # If one of the users is a teacher.
-                if user.teacher is not None or is_teacher:
+                if user.is_teacher or is_teacher:
                     # Get the teacher.
                     teacher = other_user if is_teacher else user
 

@@ -14,8 +14,8 @@ class ClassViewSet(ModelViewSet):
 
     def get_queryset(self):
         user: User = self.request.user
-        if user.teacher is None:
-            return Class.objects.filter(students=user)
+        if user.is_student:
+            return Class.objects.filter(students=user.student)
         elif user.teacher.is_admin:
             # TODO: add school field to class object
             return Class.objects.filter(teacher__school=user.teacher.school)

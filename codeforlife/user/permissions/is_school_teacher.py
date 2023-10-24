@@ -10,6 +10,6 @@ class IsSchoolTeacher(BasePermission):
         user = request.user
         return (
             isinstance(user, User)
-            and user.teacher is not None
+            and user.is_teacher
             and user.teacher.school is not None
         )

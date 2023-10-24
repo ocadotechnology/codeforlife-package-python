@@ -13,7 +13,7 @@ class SchoolViewSet(ModelViewSet):
 
     def get_queryset(self):
         user: User = self.request.user
-        if user.teacher is None:
+        if user.is_student:
             return School.objects.filter(
                 # TODO: should be user.student.school_id
                 id=user.student.class_field.teacher.school_id

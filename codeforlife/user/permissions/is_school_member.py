@@ -9,7 +9,7 @@ class IsSchoolMember(BasePermission):
     def has_permission(self, request: Request, view: View):
         user = request.user
         return isinstance(user, User) and (
-            (user.teacher is not None and user.teacher.school is not None)
+            (user.is_teacher and user.teacher.school is not None)
             or (
                 user.student is not None
                 # TODO: should be user.student.school is not None
