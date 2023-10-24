@@ -10,3 +10,16 @@ from .django import DEBUG
 CORS_ALLOW_ALL_ORIGINS = DEBUG
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOWED_ORIGINS = ["https://www.codeforlife.education"]
+
+# REST framework
+# https://www.django-rest-framework.org/api-guide/settings/#settings
+
+REST_FRAMEWORK = {
+    "DEFAULT_PERMISSION_CLASSES": [
+        "rest_framework.permissions.IsAuthenticated",
+    ],
+    "DEFAULT_FILTER_BACKENDS": [
+        "django_filters.rest_framework.DjangoFilterBackend"
+    ],
+    "DEFAULT_PAGINATION_CLASS": "codeforlife.pagination.LimitOffsetPagination",
+}

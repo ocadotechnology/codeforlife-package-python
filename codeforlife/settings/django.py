@@ -122,3 +122,13 @@ AUTH_PASSWORD_VALIDATORS = [
         "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
     },
 ]
+
+# Installed Apps
+# https://docs.djangoproject.com/en/3.2/ref/settings/#installed-apps
+
+INSTALLED_APPS = [
+    "codeforlife.user",
+    "corsheaders",
+    "rest_framework",
+    "django_filters",
+]
