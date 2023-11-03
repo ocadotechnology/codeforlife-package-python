@@ -5,7 +5,8 @@ on:
     branches: ["*"] # Run only when push to branches (not tags).
     paths-ignore:
       - "codeforlife/version.py"
-      - "CHANGELOG.md"
+      - "**/*.md"
+      - "**/.*"
   workflow_dispatch:
 
 env:
