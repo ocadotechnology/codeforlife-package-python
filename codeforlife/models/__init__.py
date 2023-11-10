@@ -1,3 +1,7 @@
+"""Helpers for module "django.db.models".
+https://docs.djangoproject.com/en/3.2/ref/models/
+"""
+
 import typing as t
 
 from django.db.models import Model as _Model
