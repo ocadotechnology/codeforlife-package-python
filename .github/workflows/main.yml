@@ -6,7 +6,8 @@ on:
     paths-ignore:
       - "codeforlife/version.py"
       - "**/*.md"
-      - "**/.*"
+      - ".vscode/**"
+      - ".*"
   workflow_dispatch:
 
 env:
