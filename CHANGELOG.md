@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.9.0 (2023-11-14)
+
+### Feature
+
+* Model signal helpers ([#19](https://github.com/ocadotechnology/codeforlife-package-python/issues/19)) ([`476c777`](https://github.com/ocadotechnology/codeforlife-package-python/commit/476c7774fc515960d97d8772e4355fdb9d3f8df9))
+
 ## v0.8.4 (2023-10-24)
 
 ### Fix
