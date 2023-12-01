@@ -1,6 +1,10 @@
+"""
+Setup the Code for Life package during installation. 
+"""
+
 import os
 
-from setuptools import setup, find_packages
+from setuptools import find_packages, setup
 
 from codeforlife import DATA_DIR, __version__
 
@@ -11,7 +15,9 @@ with open("README.md", "r", encoding="utf-8") as readme:
 data_files, root_dir = [], os.path.dirname(__file__)
 for dir_path, dir_names, file_names in os.walk(DATA_DIR):
     rel_data_dir = os.path.relpath(dir_path, root_dir)
-    data_files += [os.path.join(rel_data_dir, file_name) for file_name in file_names]
+    data_files += [
+        os.path.join(rel_data_dir, file_name) for file_name in file_names
+    ]
 
 setup(
     name="codeforlife",
@@ -25,6 +31,7 @@ setup(
     packages=find_packages(exclude=["tests", "tests.*"]),
     include_package_data=True,
     data_files=[(str(DATA_DIR), data_files)],
+    package_data={"codeforlife": ["py.typed"]},
     python_requires="==3.8.*",
     # These will be synced with Pipfile by the pipeline.
     # DO NOT edit these manually. Instead, update the Pipfile.
