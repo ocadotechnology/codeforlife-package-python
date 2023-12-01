@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.9.2 (2023-12-01)
+
+### Fix
+
+* Setup py.typed ([#24](https://github.com/ocadotechnology/codeforlife-package-python/issues/24)) ([`fb507ac`](https://github.com/ocadotechnology/codeforlife-package-python/commit/fb507ac59c9bc4349d20dfe3cc712c7f1423f364))
+
 ## v0.9.1 (2023-12-01)
 
 ### Fix
