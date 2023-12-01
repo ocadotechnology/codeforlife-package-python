@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.9.1 (2023-12-01)
+
+### Fix
+
+* Add types marker file ([#23](https://github.com/ocadotechnology/codeforlife-package-python/issues/23)) ([`cd5f84d`](https://github.com/ocadotechnology/codeforlife-package-python/commit/cd5f84da96660302ba57a2e1db3a1946dc1d171e))
+
 ## v0.9.0 (2023-11-14)
 
 ### Feature
