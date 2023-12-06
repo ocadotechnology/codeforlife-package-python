@@ -1,102 +1,86 @@
-# from uuid import uuid4
-# from datetime import timedelta
+"""
+© Ocado Group
+Created on 05/12/2023 at 17:44:48(+00:00).
 
-# from django.db import models
-# from django.utils import timezone
+Class model.
 
-# from .teacher import Teacher
+NOTE: This module has been named "klass" as "class" is a reserved keyword.
+"""
 
+from django.core.validators import MinLengthValidator, RegexValidator
+from django.db import models
+from django.db.models import F, Q
+from django.db.models.query import QuerySet
+from django.utils.translation import gettext_lazy as _
 
-# class ClassModelManager(models.Manager):
-#     def all_members(self, user):
-#         members = []
-#         if hasattr(user, "teacher"):
-#             members.append(user.teacher)
-#             if user.teacher.has_school():
-#                 classes = user.teacher.class_teacher.all()
-#                 for c in classes:
-#                     members.extend(c.students.all())
-#         else:
-#             c = user.student.class_field
-#             members.append(c.teacher)
-#             members.extend(c.students.all())
-#         return members
-
-#     # Filter out non active classes by default
-#     def get_queryset(self):
-#         return super().get_queryset().filter(is_active=True)
+from ...models import AbstractModel
+from . import class_student_join_request as _class_student_join_request
+from . import school as _school
+from . import student as _student
+from . import teacher as _teacher
 
 
-# class Class(models.Model):
-#     name = models.CharField(max_length=200)
-#     teacher = models.ForeignKey(
-#         Teacher, related_name="class_teacher", on_delete=models.CASCADE
-#     )
-#     access_code = models.CharField(max_length=5, null=True)
-#     classmates_data_viewable = models.BooleanField(default=False)
-#     always_accept_requests = models.BooleanField(default=False)
-#     accept_requests_until = models.DateTimeField(null=True)
-#     creation_time = models.DateTimeField(default=timezone.now, null=True)
-#     is_active = models.BooleanField(default=True)
-#     created_by = models.ForeignKey(
-#         Teacher,
-#         null=True,
-#         blank=True,
-#         related_name="created_classes",
-#         on_delete=models.SET_NULL,
-#     )
+class Class(AbstractModel):
+    """A collection of students owned by a teacher."""
 
-#     objects = ClassModelManager()
+    pk: str  # type: ignore
+    students: QuerySet["_student.Student"]
+    student_join_requests: QuerySet[
+        "_class_student_join_request.ClassStudentJoinRequest"
+    ]
 
-#     def __str__(self):
-#         return self.name
+    id = models.CharField(
+        _("identifier"),
+        primary_key=True,
+        editable=False,
+        max_length=5,
+        help_text=_("Uniquely identifies a class."),
+        validators=[
+            MinLengthValidator(5),
+            RegexValidator(
+                regex=r"^[0-9a-zA-Z]*$",
+                message="ID must be alphanumeric.",
+                code="id_not_alphanumeric",
+            ),
+        ],
+    )
 
-#     @property
-#     def active_game(self):
-#         games = self.game_set.filter(game_class=self, is_archived=False)
-#         if len(games) >= 1:
-#             assert (
-#                 len(games) == 1
-#             )  # there should NOT be more than one active game
-#             return games[0]
-#         return None
+    teacher: "_teacher.Teacher" = models.ForeignKey(
+        "user.Teacher",
+        related_name="classes",
+        on_delete=models.CASCADE,
+    )
 
-#     def has_students(self):
-#         students = self.students.all()
-#         return students.count() != 0
+    school: "_school.School" = models.ForeignKey(
+        "user.School",
+        related_name="classes",
+        on_delete=models.CASCADE,
+    )
 
-#     def get_requests_message(self):
-#         if self.always_accept_requests:
-#             external_requests_message = (
-#                 "This class is currently set to always accept requests."
-#             )
-#         elif (
-#             self.accept_requests_until is not None
-#             and (self.accept_requests_until - timezone.now()) >= timedelta()
-#         ):
-#             external_requests_message = (
-#                 "This class is accepting external requests until "
-#                 + self.accept_requests_until.strftime("%d-%m-%Y %H:%M")
-#                 + " "
-#                 + timezone.get_current_timezone_name()
-#             )
-#         else:
-#             external_requests_message = (
-#                 "This class is not currently accepting external requests."
-#             )
+    read_classmates_data = models.BooleanField(
+        _("read classmates data"),
+        default=False,
+        help_text=_(
+            "Designates whether students in this class can see their fellow"
+            " classmates' data."
+        ),
+    )
 
-#         return external_requests_message
+    accept_requests_until = models.DateTimeField(
+        _("accept student join requests until"),
+        null=True,
+        blank=True,
+        help_text=_(
+            "A point in the future until which requests from students to join"
+            " this class are accepted. Set to null if it's not accepting"
+            " requests."
+        ),
+    )
 
-#     def anonymise(self):
-#         self.name = uuid4().hex
-#         self.access_code = ""
-#         self.is_active = False
-#         self.save()
-
-#         # Remove independent students' requests to join this class
-#         self.class_request.clear()
-
-#     class Meta(object):
-#         verbose_name_plural = "classes"
-
-from common.models import Class
+    class Meta:
+        constraints = [
+            models.CheckConstraint(
+                check=Q(teacher__school=F("school")),
+                name="class__teacher_in_school",
+            ),
+        ]

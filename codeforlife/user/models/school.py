@@ -1,50 +1,65 @@
-# from uuid import uuid4
+"""
+© Ocado Group
+Created on 05/12/2023 at 17:44:05(+00:00).
 
-# from django.db import models
-# from django.utils import timezone
-# from django_countries.fields import CountryField
+School model.
+"""
+
+from django.db import models
+from django.db.models import Q
+from django.db.models.query import QuerySet
+from django.utils.translation import gettext_lazy as _
+
+from ...models import AbstractModel
+from ...models.fields import Country, UkCounty
+from . import klass as _class
+from . import school_teacher_invitation as _school_teacher_invitation
+from . import student as _student
+from . import teacher as _teacher
 
 
-# class SchoolModelManager(models.Manager):
-#     # Filter out inactive schools by default
-#     def get_queryset(self):
-#         return super().get_queryset().filter(is_active=True)
+class School(AbstractModel):
+    """A collection of teachers and students."""
 
+    teachers: QuerySet["_teacher.Teacher"]
+    students: QuerySet["_student.Student"]
+    teacher_invitations: QuerySet[
+        "_school_teacher_invitation.SchoolTeacherInvitation"
+    ]
+    classes: QuerySet["_class.Class"]
 
-# class School(models.Model):
-#     name = models.CharField(max_length=200)
-#     postcode = models.CharField(max_length=10, null=True)
-#     country = CountryField(blank_label="(select country)")
-#     creation_time = models.DateTimeField(default=timezone.now, null=True)
-#     is_active = models.BooleanField(default=True)
+    name = models.CharField(
+        _("name"),
+        max_length=200,
+        unique=True,
+        help_text=_("The school's name."),
+    )
 
-#     objects = SchoolModelManager()
+    country = models.TextField(
+        _("country"),
+        choices=Country.choices,
+        null=True,
+        blank=True,
+        help_text=_("The school's country."),
+    )
 
-#     def __str__(self):
-#         return self.name
+    uk_county = models.TextField(
+        _("united kingdom county"),
+        choices=UkCounty.choices,
+        null=True,
+        blank=True,
+        help_text=_(
+            "The school's county within the United Kingdom. This value may only"
+            " be set if the school's country is set to UK."
+        ),
+    )
 
-#     def classes(self):
-#         teachers = self.school_teacher.all()
-#         if teachers:
-#             classes = []
-#             for teacher in teachers:
-#                 if teacher.class_teacher.all():
-#                     classes.extend(list(teacher.class_teacher.all()))
-#             return classes
-#         return None
+    # created_at = models.DateTimeField(auto_now_add=True)  # ?
 
-#     def admins(self):
-#         teachers = self.school_teacher.all()
-#         return (
-#             [teacher for teacher in teachers if teacher.is_admin]
-#             if teachers
-#             else None
-#         )
-
-#     def anonymise(self):
-#         self.name = uuid4().hex
-#         self.postcode = ""
-#         self.is_active = False
-#         self.save()
-
-from common.models import School
+    class Meta:
+        constraints = [
+            models.CheckConstraint(
+                check=Q(uk_county__isnull=True) | Q(country="UK"),
+                name="school__uk_county_is_null_or_country_equals_uk",
+            ),
+        ]

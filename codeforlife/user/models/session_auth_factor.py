@@ -1,3 +1,10 @@
+"""
+© Ocado Group
+Created on 05/12/2023 at 17:43:52(+00:00).
+
+Session auth factor model.
+"""
+
 from django.db import models
 
 from . import auth_factor, session

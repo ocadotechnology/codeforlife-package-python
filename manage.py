@@ -13,10 +13,6 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "django.contrib.sites",
     "codeforlife.user",
-    "aimmo",  # TODO: remove this
-    "game",  # TODO: remove this
-    "common",  # TODO: remove this
-    "portal",  # TODO: remove this
 ]
 
 MIDDLEWARE = [
@@ -49,6 +45,8 @@ DATABASES = {
         "NAME": BASE_DIR / "db.sqlite3",
     }
 }
+
+AUTH_USER_MODEL = "user.User"
 
 if __name__ == "__main__":
     import os

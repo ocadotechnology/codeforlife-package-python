@@ -1,22 +1,9 @@
-# from django.db import models
-# from django.utils import timezone
+"""
+© Ocado Group
+Created on 04/12/2023 at 17:20:33(+00:00).
 
-# from .classroom import Class
-# from .school import School
-# from .user import User
-
-
-# class UserSession(models.Model):
-#     user = models.ForeignKey(User, on_delete=models.CASCADE)
-#     login_time = models.DateTimeField(default=timezone.now)
-#     school = models.ForeignKey(School, null=True, on_delete=models.SET_NULL)
-#     class_field = models.ForeignKey(Class, null=True, on_delete=models.SET_NULL)
-#     login_type = models.CharField(
-#         max_length=100, null=True
-#     )  # for student login
-
-#     def __str__(self):
-#         return f"{self.user} login: {self.login_time} type: {self.login_type}"
+Session model and store.
+"""
 
 import typing as t
 
@@ -64,6 +51,7 @@ class SessionStore(DBStore):
     1. creating only one session per user;
     2. setting a session's auth factors;
     3. clearing a user's expired sessions.
+
     https://docs.djangoproject.com/en/3.2/topics/http/sessions/#example
     """
 

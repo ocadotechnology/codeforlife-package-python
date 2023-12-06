@@ -1,68 +1,60 @@
-# from django.db import models
+"""
+© Ocado Group
+Created on 05/12/2023 at 17:43:14(+00:00).
 
-# from .user import User
-# from .school import School
+Teacher model.
+"""
 
+import typing as t
 
-# class TeacherModelManager(models.Manager):
-#     def factory(self, first_name, last_name, email, password):
-#         user = User.objects.create_user(
-#             username=email,
-#             email=email,
-#             password=password,
-#             first_name=first_name,
-#             last_name=last_name,
-#         )
+from django.db import models
+from django.db.models.query import QuerySet
+from django.utils.translation import gettext_lazy as _
 
-#         return Teacher.objects.create(user=user)
-
-#     # Filter out non active teachers by default
-#     def get_queryset(self):
-#         return super().get_queryset().filter(user__is_active=True)
+from ...models import AbstractModel
+from . import klass as _class
+from . import school as _school
+from . import school_teacher_invitation as _school_teacher_invitation
+from . import user as _user
 
 
-# class Teacher(models.Model):
-#     user = models.OneToOneField(
-#         User,
-#         related_name="teacher",
-#         null=True,
-#         blank=True,
-#         on_delete=models.CASCADE,
-#     )
-#     school = models.ForeignKey(
-#         School,
-#         related_name="school_teacher",
-#         null=True,
-#         blank=True,
-#         on_delete=models.SET_NULL,
-#     )
-#     is_admin = models.BooleanField(default=False)
-#     blocked_time = models.DateTimeField(null=True, blank=True)
-#     invited_by = models.ForeignKey(
-#         "self",
-#         related_name="invited_teachers",
-#         null=True,
-#         blank=True,
-#         on_delete=models.SET_NULL,
-#     )
+class Teacher(AbstractModel):
+    """A user's teacher profile."""
 
-#     objects = TeacherModelManager()
+    class Manager(models.Manager):  # pylint: disable=missing-class-docstring
+        def create_user(self, teacher: t.Dict[str, t.Any], **fields):
+            """Create a user with a teacher profile.
 
-#     def teaches(self, userprofile):
-#         if hasattr(userprofile, "student"):
-#             student = userprofile.student
-#             return (
-#                 not student.is_independent()
-#                 and student.class_field.teacher == self
-#             )
+            Args:
+                user: The user fields.
 
-#     def has_school(self):
-#         return self.school is not (None or "")
+            Returns:
+                A teacher profile.
+            """
 
-#     def has_class(self):
-#         return self.class_teacher.exists()
+            return _user.User.objects.create_user(
+                **fields,
+                teacher=self.create(**teacher),
+            )
 
-#     def __str__(self):
-#         return f"{self.user.first_name} {self.user.last_name}"
+    objects: Manager = Manager()
 
-from common.models import Teacher
+    user: "_user.User"
+    classes: QuerySet["_class.Class"]
+    school_invitations: QuerySet[
+        "_school_teacher_invitation.SchoolTeacherInvitation"
+    ]
+
+    school: "_school.School" = models.OneToOneField(
+        "user.School",
+        related_name="teachers",
+        null=True,
+        editable=False,
+        on_delete=models.CASCADE,
+    )
+
+    is_admin = models.BooleanField(
+        _("is administrator"),
+        default=False,
+        help_text=_("Designates if the teacher has admin privileges."),
+    )

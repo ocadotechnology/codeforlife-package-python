@@ -1,3 +1,10 @@
+"""
+© Ocado Group
+Created on 05/12/2023 at 17:44:33(+00:00).
+
+OTP bypass token model.
+"""
+
 import typing as t
 from itertools import groupby
 
@@ -6,10 +13,11 @@ from django.core.exceptions import ValidationError
 from django.core.validators import MinLengthValidator
 from django.db import models
 
+from ...models import AbstractModel
 from . import user
 
 
-class OtpBypassToken(models.Model):
+class OtpBypassToken(AbstractModel):
     max_count = 10
     max_count_validation_error = ValidationError(
         f"Exceeded max count of {max_count}"

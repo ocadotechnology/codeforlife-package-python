@@ -1,73 +1,110 @@
-# from uuid import uuid4
+"""
+© Ocado Group
+Created on 05/12/2023 at 17:43:33(+00:00).
 
-# from django.db import models
+Student model.
+"""
 
-# from .user import User
-# from .classroom import Class
+import typing as t
 
+from django.contrib.auth.hashers import make_password
+from django.core.validators import MinLengthValidator
+from django.db import models
+from django.db.models.query import QuerySet
+from django.utils.translation import gettext_lazy as _
 
-# class StudentModelManager(models.Manager):
-#     def get_random_username(self):
-#         while True:
-#             random_username = uuid4().hex[:30]  # generate a random username
-#             if not User.objects.filter(username=random_username).exists():
-#                 return random_username
-
-#     def schoolFactory(self, klass, name, password, login_id=None):
-#         user = User.objects.create_user(
-#             username=self.get_random_username(),
-#             password=password,
-#             first_name=name,
-#         )
-
-#         return Student.objects.create(
-#             class_field=klass, user=user, login_id=login_id
-#         )
-
-#     def independentStudentFactory(self, name, email, password):
-#         user = User.objects.create_user(
-#             username=email, email=email, password=password, first_name=name
-#         )
-
-#         return Student.objects.create(user=user)
+from ...models import AbstractModel
+from . import class_student_join_request as _class_student_join_request
+from . import klass as _class
+from . import school as _school
+from . import user as _user
 
 
-# class Student(models.Model):
-#     class_field = models.ForeignKey(
-#         Class,
-#         related_name="students",
-#         null=True,
-#         blank=True,
-#         on_delete=models.CASCADE,
-#     )
-#     # hashed uuid used for the unique direct login url
-#     login_id = models.CharField(max_length=64, null=True)
-#     user = models.OneToOneField(
-#         User,
-#         related_name="student",
-#         null=True,
-#         blank=True,
-#         on_delete=models.CASCADE,
-#     )
-#     pending_class_request = models.ForeignKey(
-#         Class,
-#         related_name="class_request",
-#         null=True,
-#         blank=True,
-#         on_delete=models.SET_NULL,
-#     )
-#     blocked_time = models.DateTimeField(null=True, blank=True)
+class Student(AbstractModel):
+    """A user's student profile."""
 
-#     objects = StudentModelManager()
+    class Manager(models.Manager):  # pylint: disable=missing-class-docstring
+        def create(self, direct_login_key: str, **fields):
+            return super().create(
+                **fields,
+                direct_login_key=make_password(direct_login_key),
+            )
 
-#     def is_independent(self):
-#         return not self.class_field
+        def bulk_create(self, students: t.Iterable["Student"], *args, **kwargs):
+            for student in students:
+                student.direct_login_key = make_password(
+                    student.direct_login_key
+                )
 
-#     def __str__(self):
-#         return f"{self.user.first_name} {self.user.last_name}"
+            return super().bulk_create(students, *args, **kwargs)
 
+        def create_user(self, student: t.Dict[str, t.Any], **fields):
+            """Create a user with a student profile.
 
-# def stripStudentName(name):
-#     return re.sub("[ \t]+", " ", name.strip())
+            Args:
+                user: The user fields.
 
-from common.models import Student
+            Returns:
+                A student profile.
+            """
+
+            return _user.User.objects.create_user(
+                **fields,
+                student=self.create(**student),
+            )
+
+        def bulk_create_users(
+            self,
+            student_users: t.List[t.Tuple["Student", "_user.User"]],
+            *args,
+            **kwargs,
+        ):
+            students = [student for (student, _) in student_users]
+            users = [user for (_, user) in student_users]
+
+            students = self.bulk_create(students, *args, **kwargs)
+
+            for student, user in zip(students, users):
+                user.student = student
+
+            return _user.User.objects.bulk_create(users, *args, **kwargs)
+
+        def make_random_direct_login_key(self):
+            return _user.User.objects.make_random_password(
+                length=Student.direct_login_key.max_length
+            )
+
+    objects: Manager = Manager()
+
+    user: "_user.User"
+    class_join_requests: QuerySet[
+        "_class_student_join_request.ClassStudentJoinRequest"
+    ]
+
+    school: "_school.School" = models.OneToOneField(
+        "user.School",
+        related_name="students",
+        null=True,
+        editable=False,
+        on_delete=models.CASCADE,
+    )
+
+    klass: "_class.Class" = models.ForeignKey(
+        "user.Class",
+        related_name="students",
+        on_delete=models.CASCADE,
+    )
+
+    direct_login_key = models.CharField(
+        _("direct login key"),
+        unique=True,
+        max_length=64,
+        editable=False,
+        help_text=_(
+            "A unique key that allows a student to log directly into their"
+            "account."
+        ),
+        validators=[MinLengthValidator(64)],
+    )
+
+    # TODO: add meta constraint for school & direct_login_key
