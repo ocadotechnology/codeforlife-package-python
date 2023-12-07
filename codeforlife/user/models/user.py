@@ -10,22 +10,23 @@ from django.db import models
 from django.db.models import Q
 from django.db.models.query import QuerySet
 from django.utils.translation import gettext_lazy as _
+from django_stubs_ext.db.models import TypedModelMeta
 
 from ...models import AbstractModel
+
+# from . import student as _student
 from . import auth_factor as _auth_factor
 from . import otp_bypass_token as _otp_bypass_token
 from . import session as _session
-from . import student as _student
 from . import teacher as _teacher
 
 
 class User(AbstractUser, AbstractModel):
     """A user within the CFL system."""
 
-    class Manager(UserManager, AbstractModel.Manager):
-        """Combines the user manager and CFL model manager."""
-
-    objects: Manager = Manager()
+    objects = UserManager.from_queryset(  # type: ignore[misc]
+        AbstractModel.QuerySet
+    )()  # type: ignore[assignment]
 
     session: "_session.Session"
     auth_factors: QuerySet["_auth_factor.AuthFactor"]
@@ -49,30 +50,31 @@ class User(AbstractUser, AbstractModel):
         ),
     )
 
-    teacher: "_teacher.Teacher" = models.OneToOneField(
+    # pylint: disable-next=unsubscriptable-object
+    teacher: models.OneToOneField["_teacher.Teacher"] = models.OneToOneField(
         "user.Teacher",
         null=True,
         editable=False,
         on_delete=models.CASCADE,
     )
 
-    student: "_student.Student" = models.OneToOneField(
-        "user.Student",
-        null=True,
-        editable=False,
-        on_delete=models.CASCADE,
-    )
+    # student: "_student.Student" = models.OneToOneField(
+    #     "user.Student",
+    #     null=True,
+    #     editable=False,
+    #     on_delete=models.CASCADE,
+    # )
 
-    class Meta:  # pylint: disable=missing-class-docstring
-        constraints = [
-            models.CheckConstraint(
-                check=(
-                    Q(teacher__isnull=True, student__isnull=False)
-                    | Q(teacher__isnull=False, student__isnull=True)
-                ),
-                name="user__teacher_is_null_or_student_is_null",
-            ),
-        ]
+    # class Meta(TypedModelMeta):  # pylint: disable=missing-class-docstring
+    #     constraints = [
+    #         models.CheckConstraint(
+    #             check=(
+    #                 Q(teacher__isnull=True, student__isnull=False)
+    #                 | Q(teacher__isnull=False, student__isnull=True)
+    #             ),
+    #             name="user__teacher_is_null_or_student_is_null",
+    #         ),
+    #     ]
 
     @property
     def is_authenticated(self):

@@ -31,6 +31,10 @@ django-extensions = "==3.2.1"
 pyparsing = "==3.0.9"
 pydot = "==1.4.2"
 pytest-env = "==0.8.1"
+mypy = "==1.6.1"
+django-stubs = {version = "==4.2.6", extras = ["compatible-mypy"]}
+djangorestframework-stubs = {version = "==3.14.4", extras = ["compatible-mypy"]}
+pylint = "==3.0.2"
 
 [requires]
 python_version = "3.8"

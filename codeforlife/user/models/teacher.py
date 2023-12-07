@@ -12,9 +12,10 @@ from django.db.models.query import QuerySet
 from django.utils.translation import gettext_lazy as _
 
 from ...models import AbstractModel
-from . import klass as _class
-from . import school as _school
-from . import school_teacher_invitation as _school_teacher_invitation
+
+# from . import klass as _class
+# from . import school as _school
+# from . import school_teacher_invitation as _school_teacher_invitation
 from . import user as _user
 
 
@@ -22,7 +23,7 @@ class Teacher(AbstractModel):
     """A user's teacher profile."""
 
     # pylint: disable-next=missing-class-docstring
-    class Manager(AbstractModel.Manager):
+    class Manager(models.Manager["Teacher"]):
         def create_user(self, teacher: t.Dict[str, t.Any], **fields):
             """Create a user with a teacher profile.
 
@@ -38,21 +39,23 @@ class Teacher(AbstractModel):
                 teacher=self.create(**teacher),
             )
 
-    objects: Manager = Manager()
+    objects: Manager = Manager.from_queryset(  # type: ignore[misc]
+        AbstractModel.QuerySet
+    )()  # type: ignore[assignment]
 
     user: "_user.User"
-    classes: QuerySet["_class.Class"]
-    school_invitations: QuerySet[
-        "_school_teacher_invitation.SchoolTeacherInvitation"
-    ]
+    # classes: QuerySet["_class.Class"]
+    # school_invitations: QuerySet[
+    #     "_school_teacher_invitation.SchoolTeacherInvitation"
+    # ]
 
-    school: "_school.School" = models.ForeignKey(
-        "user.School",
-        related_name="teachers",
-        null=True,
-        editable=False,
-        on_delete=models.SET_NULL,
-    )
+    # school: "_school.School" = models.ForeignKey(
+    #     "user.School",
+    #     related_name="teachers",
+    #     null=True,
+    #     editable=False,
+    #     on_delete=models.SET_NULL,
+    # )
 
     is_admin = models.BooleanField(
         _("is administrator"),

@@ -11,6 +11,7 @@ from datetime import timedelta
 from django.db import models
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
+from django_stubs_ext.db.models import TypedModelMeta
 
 from .fields import *
 
@@ -18,16 +19,37 @@ from .fields import *
 class AbstractModel(models.Model):
     """Base model to be inherited by other models throughout the CFL system."""
 
-    class Manager(models.Manager):
-        """Custom model manager to support CFL's system's operations."""
+    class QuerySet(models.QuerySet):
+        """Custom queryset to support CFL's system's operations."""
 
-        def delete(self):
-            """Schedules all objects in the queryset for deletion."""
+        model: "AbstractModel"  # type: ignore[assignment]
 
-            # TODO: only schedule for deletion.
-            super().delete()
+        def update(self, **kwargs):
+            """Updates all models in the queryset and notes when they were last
+            saved.
 
-    objects: Manager = Manager()
+            Args:
+                last_saved_at: When these models were last modified.
+
+            Returns:
+                The number of models updated.
+            """
+
+            kwargs["last_saved_at"] = timezone.now()
+            return super().update(**kwargs)
+
+        def delete(self, wait: t.Optional[timedelta] = None):
+            """Schedules all models in the queryset for deletion.
+
+            Args:
+                wait: How long to wait before these model are deleted. If not
+                    set, the class-level default value is used.
+            """
+
+            wait = wait or self.model.delete_wait
+            self.update(delete_after=timezone.now() + wait)
+
+    objects = models.Manager.from_queryset(QuerySet)()
 
     # Type hints for Django's runtime-generated fields.
     id: int
@@ -59,11 +81,15 @@ class AbstractModel(models.Model):
         ),
     )
 
-    class Meta:
+    # pylint: disable-next=missing-class-docstring
+    class Meta(TypedModelMeta):
         abstract = True
 
     # pylint: disable-next=arguments-differ
-    def delete(self, wait: t.Optional[timedelta] = None):
+    def delete(  # type: ignore[override]
+        self,
+        wait: t.Optional[timedelta] = None,
+    ):
         """Schedules the deletion of this model.
 
         Args:

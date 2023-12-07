@@ -11,3 +11,12 @@ extend-exclude = "^/setup.py|^/codeforlife/user/migrations/"
 
 [tool.pytest.ini_options]
 env = ["DJANGO_SETTINGS_MODULE=manage"]
+
+[tool.mypy]
+plugins = ["mypy_django_plugin.main", "mypy_drf_plugin.main"]
+
+[tool.django-stubs]
+django_settings_module = "manage"
+
+[tool.pylint.format]
+max-line-length = 80

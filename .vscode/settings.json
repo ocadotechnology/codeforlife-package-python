@@ -3,6 +3,9 @@
         "--config",
         "pyproject.toml"
     ],
+    "pylint.args": [
+        "--rcfile=pyproject.toml"
+    ],
     "python.testing.pytestArgs": [
         "-c=pyproject.toml",
         "."
