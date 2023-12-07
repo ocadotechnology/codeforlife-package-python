@@ -10,6 +10,7 @@ import typing as t
 from django.contrib.auth.hashers import make_password
 from django.core.validators import MinLengthValidator
 from django.db import models
+from django.db.models import Q
 from django.db.models.query import QuerySet
 from django.utils.translation import gettext_lazy as _
 
@@ -81,7 +82,8 @@ class Student(AbstractModel):
         "_class_student_join_request.ClassStudentJoinRequest"
     ]
 
-    school: "_school.School" = models.OneToOneField(
+    # Is this needed or can it be inferred from klass.
+    school: "_school.School" = models.ForeignKey(
         "user.School",
         related_name="students",
         null=True,
@@ -92,19 +94,32 @@ class Student(AbstractModel):
     klass: "_class.Class" = models.ForeignKey(
         "user.Class",
         related_name="students",
+        null=True,
+        editable=False,
         on_delete=models.CASCADE,
     )
 
-    direct_login_key = models.CharField(
-        _("direct login key"),
-        unique=True,
-        max_length=64,
+    second_password = models.CharField(  # TODO: make nullable
+        _("secondary password"),
+        max_length=64,  # investigate hash length
         editable=False,
         help_text=_(
             "A unique key that allows a student to log directly into their"
-            "account."
+            "account."  # TODO
         ),
         validators=[MinLengthValidator(64)],
     )
 
+    # TODO: add direct reference to teacher
     # TODO: add meta constraint for school & direct_login_key
+
+    class Meta:
+        constraints = [
+            models.CheckConstraint(
+                check=(
+                    Q(school__isnull=True, klass__isnull=True)
+                    | Q(school__isnull=False, klass__isnull=False)
+                ),
+                name="student__school_is_null_and_class_is_null",
+            ),
+        ]

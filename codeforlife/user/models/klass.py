@@ -38,9 +38,9 @@ class Class(AbstractModel):
         validators=[
             MinLengthValidator(5),
             RegexValidator(
-                regex=r"^[0-9a-zA-Z]*$",
-                message="ID must be alphanumeric.",
-                code="id_not_alphanumeric",
+                regex=r"^[0-9A-Z]*$",
+                message="ID must be alphanumeric with upper case characters.",
+                code="id_not_upper_alphanumeric",
             ),
         ],
     )
@@ -66,13 +66,13 @@ class Class(AbstractModel):
         ),
     )
 
-    accept_requests_until = models.DateTimeField(
+    receive_requests_until = models.DateTimeField(
         _("accept student join requests until"),
         null=True,
         blank=True,
         help_text=_(
-            "A point in the future until which requests from students to join"
-            " this class are accepted. Set to null if it's not accepting"
+            "A point in the future until which the class can receive requests"
+            " from students to join. Set to null if it's not accepting"
             " requests."
         ),
     )

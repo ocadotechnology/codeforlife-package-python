@@ -12,6 +12,7 @@ from . import klass as _class
 from . import student as _student
 
 
+# TODO: move to portal
 class ClassStudentJoinRequest(AbstractModel):
     """A request from a student to join a class."""
 
@@ -35,3 +36,5 @@ class ClassStudentJoinRequest(AbstractModel):
 
     class Meta:
         unique_together = ["klass", "student"]
+        # TODO: check student is independent
+        # assert class is receiving requests

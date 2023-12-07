@@ -21,7 +21,8 @@ from . import user as _user
 class Teacher(AbstractModel):
     """A user's teacher profile."""
 
-    class Manager(models.Manager):  # pylint: disable=missing-class-docstring
+    # pylint: disable-next=missing-class-docstring
+    class Manager(AbstractModel.Manager):
         def create_user(self, teacher: t.Dict[str, t.Any], **fields):
             """Create a user with a teacher profile.
 
@@ -45,12 +46,12 @@ class Teacher(AbstractModel):
         "_school_teacher_invitation.SchoolTeacherInvitation"
     ]
 
-    school: "_school.School" = models.OneToOneField(
+    school: "_school.School" = models.ForeignKey(
         "user.School",
         related_name="teachers",
         null=True,
         editable=False,
-        on_delete=models.CASCADE,
+        on_delete=models.SET_NULL,
     )
 
     is_admin = models.BooleanField(
@@ -58,3 +59,5 @@ class Teacher(AbstractModel):
         default=False,
         help_text=_("Designates if the teacher has admin privileges."),
     )
+
+    # TODO: add direct reference to students

@@ -22,8 +22,10 @@ from . import teacher as _teacher
 class User(AbstractUser, AbstractModel):
     """A user within the CFL system."""
 
-    # Fixes bug with object referencing.
-    objects: UserManager = UserManager()
+    class Manager(UserManager, AbstractModel.Manager):
+        """Combines the user manager and CFL model manager."""
+
+    objects: Manager = Manager()
 
     session: "_session.Session"
     auth_factors: QuerySet["_auth_factor.AuthFactor"]
@@ -65,8 +67,8 @@ class User(AbstractUser, AbstractModel):
         constraints = [
             models.CheckConstraint(
                 check=(
-                    (Q(teacher__isnull=True) & Q(student__isnull=False))
-                    | (Q(teacher__isnull=False) & Q(student__isnull=True))
+                    Q(teacher__isnull=True, student__isnull=False)
+                    | Q(teacher__isnull=False, student__isnull=True)
                 ),
                 name="user__teacher_is_null_or_student_is_null",
             ),
@@ -80,15 +82,3 @@ class User(AbstractUser, AbstractModel):
             return not self.session.session_auth_factors.exists()
         except _session.Session.DoesNotExist:
             return False
-
-    @property
-    def is_teacher(self):
-        """Check if the user is a teacher."""
-
-        return _teacher.Teacher.objects.filter(user=self).exists()
-
-    @property
-    def is_student(self):
-        """Check if the user is a student."""
-
-        return _student.Student.objects.filter(user=self).exists()
