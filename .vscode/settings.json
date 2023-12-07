@@ -3,8 +3,14 @@
         "--config",
         "pyproject.toml"
     ],
+    "pylint.path": [
+        ".venv/bin/python",
+        "-m",
+        "pylint"
+    ],
     "pylint.args": [
-        "--rcfile=pyproject.toml"
+        "--rcfile=pyproject.toml",
+        "--load-plugins=pylint_django"
     ],
     "python.testing.pytestArgs": [
         "-c=pyproject.toml",
