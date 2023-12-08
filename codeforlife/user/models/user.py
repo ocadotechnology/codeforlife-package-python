@@ -16,6 +16,7 @@ from django.contrib.auth.models import (
 from django.db import models
 from django.db.models import Q
 from django.db.models.query import QuerySet
+from django.db.utils import IntegrityError
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from django_stubs_ext.db.models import TypedModelMeta
@@ -40,6 +41,11 @@ class User(AbstractBaseUser, AbstractModel, PermissionsMixin):
         Custom user manager for custom user model.
         """
 
+        def create(self, **kwargs):
+            """Prevent calling create to maintain data integrity."""
+
+            raise IntegrityError("Must call create_user instead.")
+
         def _create_user(
             self,
             password: str,
@@ -57,19 +63,14 @@ class User(AbstractBaseUser, AbstractModel, PermissionsMixin):
             user.save(using=self._db)
             return user
 
-        def create_user(
-            self,
-            password: str,
-            email: t.Optional[str] = None,
-            **fields,
-        ):
+        def create_user(self, password: str, first_name: str, **fields):
             """Create a user.
 
             https://github.com/django/django/blob/19bc11f636ca2b5b80c3d9ad5b489e43abad52bb/django/contrib/auth/models.py#L149C9-L149C20
 
             Args:
                 password: The user's non-hashed password.
-                email: The user's email address.
+                first_name: The user's first name.
 
             Returns:
                 A user instance.
@@ -77,21 +78,16 @@ class User(AbstractBaseUser, AbstractModel, PermissionsMixin):
 
             fields.setdefault("is_staff", False)
             fields.setdefault("is_superuser", False)
-            return self._create_user(password, email, **fields)
+            return self._create_user(password, first_name=first_name, **fields)
 
-        def create_superuser(
-            self,
-            password: str,
-            email: t.Optional[str] = None,
-            **fields,
-        ):
+        def create_superuser(self, password: str, first_name: str, **fields):
             """Create a super user.
 
             https://github.com/django/django/blob/19bc11f636ca2b5b80c3d9ad5b489e43abad52bb/django/contrib/auth/models.py#L154C9-L154C25
 
             Args:
                 password: The user's non-hashed password.
-                email: The user's email address.
+                first_name: The user's first name.
 
             Raises:
                 ValueError: If is_staff is not True.
@@ -109,7 +105,7 @@ class User(AbstractBaseUser, AbstractModel, PermissionsMixin):
             if fields.get("is_superuser") is not True:
                 raise ValueError("Superuser must have is_superuser=True.")
 
-            return self._create_user(password, email, **fields)
+            return self._create_user(password, first_name=first_name, **fields)
 
     objects: Manager = Manager.from_queryset(  # type: ignore[misc]
         AbstractModel.QuerySet
@@ -125,7 +121,7 @@ class User(AbstractBaseUser, AbstractModel, PermissionsMixin):
         blank=True,
     )
 
-    # QUES: is last name required for teachers?
+    # TODO: is last name required for teachers?
     last_name = models.CharField(
         _("last name"),
         max_length=150,
@@ -160,6 +156,7 @@ class User(AbstractBaseUser, AbstractModel, PermissionsMixin):
     date_joined = models.DateTimeField(
         _("date joined"),
         default=timezone.now,
+        editable=False,
     )
 
     otp_secret = models.CharField(
@@ -202,6 +199,24 @@ class User(AbstractBaseUser, AbstractModel, PermissionsMixin):
         verbose_name = _("user")
         verbose_name_plural = _("users")
         constraints = [
+            models.CheckConstraint(
+                check=(
+                    # pylint: disable-next=unsupported-binary-operation
+                    Q(
+                        teacher__isnull=True,
+                        student__isnull=False,
+                    )
+                    | Q(
+                        teacher__isnull=False,
+                        student__isnull=True,
+                    )
+                    | Q(
+                        teacher__isnull=True,
+                        student__isnull=True,
+                    )
+                ),
+                name="user__profile",
+            ),
             models.CheckConstraint(
                 check=(
                     # pylint: disable-next=unsupported-binary-operation

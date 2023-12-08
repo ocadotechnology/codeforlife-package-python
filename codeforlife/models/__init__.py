@@ -2,7 +2,7 @@
 © Ocado Group
 Created on 04/12/2023 at 14:36:56(+00:00).
 
-Base models.
+Base models. Tests at: codeforlife.user.tests.models.test_abstract
 """
 
 import typing as t

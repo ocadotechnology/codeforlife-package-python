@@ -1,89 +1,128 @@
-from unittest.mock import patch
+"""
+© Ocado Group
+Created on 08/12/2023 at 17:37:30(+00:00).
+"""
 
-from django.test import TestCase
-from django.utils import timezone
-
-from ...models import Teacher, User
+from ....tests import ModelTestCase
+from ...models import Student, Teacher, User
 
 
-class TestUser(TestCase):
+class TestUser(ModelTestCase[User]):
     """Tests the User model."""
 
-    fixtures = [
-        "users.json",
-        "teachers.json",
-    ]
+    def test_constraints__profile(self):
+        """
+        Independents must have an email.
+        """
 
-    def setUp(self):
-        self.john_doe = User.objects.get(pk=1)
-        self.jane_doe = User.objects.get(pk=2)
+        with self.assert_raises_integrity_error():
+            User.objects.create(
+                first_name="student_and_teacher",
+                teacher=Teacher.objects.create(),
+                student=Student.objects.create(auto_gen_password="password"),
+            )
 
-    def test_delete(self):
-        now = timezone.now()
-        with patch.object(timezone, "now", return_value=now) as timezone_now:
-            self.john_doe.delete()
+    def test_constraints__email__teacher(self):
+        """
+        Teachers must have an email.
+        """
 
-            assert timezone_now.call_count == 2
-            assert self.john_doe.delete_after == now + User.delete_wait
-            assert self.john_doe.last_saved_at == now
+        with self.assert_raises_integrity_error():
+            User.objects.create(
+                first_name="teacher",
+                teacher=Teacher.objects.create(),
+            )
 
-    def test_objects__delete(self):
-        now = timezone.now()
-        with patch.object(timezone, "now", return_value=now) as timezone_now:
-            User.objects.filter(
-                pk__in=[
-                    self.john_doe.pk,
-                    self.jane_doe.pk,
-                ]
-            ).delete()
+    def test_constraints__email__student(self):
+        """
+        Student cannot have an email.
+        """
 
-            assert timezone_now.call_count == 2
+        with self.assert_raises_integrity_error():
+            User.objects.create(
+                first_name="student",
+                student=Student.objects.create(auto_gen_password="password"),
+                email="student@codeforlife.com",
+            )
 
-            self.john_doe.refresh_from_db()
-            assert self.john_doe.delete_after == now + User.delete_wait
-            assert self.john_doe.last_saved_at == now
+    def test_constraints__email__indy(self):
+        """
+        Independents must have an email.
+        """
 
-            self.jane_doe.refresh_from_db()
-            assert self.jane_doe.delete_after == now + User.delete_wait
-            assert self.jane_doe.last_saved_at == now
+        with self.assert_raises_integrity_error():
+            User.objects.create(
+                first_name="first_name",
+            )
 
     def test_objects__create(self):
-        teacher = Teacher.objects.create()
+        """
+        Cannot call objects.create.
+        """
 
-        now = timezone.now()
-        with patch.object(timezone, "now", return_value=now) as timezone_now:
-            user = User.objects.create(
-                first_name="first_name",
-                last_name="last_name",
-                email="example@email.com",
-                teacher=teacher,
-            )
+        with self.assert_raises_integrity_error():
+            User.objects.create()
 
-            assert timezone_now.call_count == 1
-            assert user.last_saved_at == now
+    def test_objects__create_user__teacher(self):
+        """
+        Create a teacher user.
+        """
 
-    def test_objects__bulk_create(self):
-        teacher_1 = Teacher.objects.create()
-        teacher_2 = Teacher.objects.create()
+        raise NotImplementedError()  # TODO
 
-        now = timezone.now()
-        with patch.object(timezone, "now", return_value=now) as timezone_now:
-            users = User.objects.bulk_create(
-                [
-                    User(
-                        first_name="first_name_1",
-                        last_name="last_name_1",
-                        email="example_1@email.com",
-                        teacher=teacher_1,
-                    ),
-                    User(
-                        first_name="first_name_2",
-                        last_name="last_name_2",
-                        email="example_2@email.com",
-                        teacher=teacher_2,
-                    ),
-                ]
-            )
+    def test_objects__create_user__student(self):
+        """
+        Create a student user.
+        """
 
-            assert timezone_now.call_count == 2
-            assert all(user.last_saved_at == now for user in users)
+        raise NotImplementedError()  # TODO
+
+    def test_objects__create_user__indy(self):
+        """
+        Create an independent user.
+        """
+
+        user_fields = {
+            "first_name": "first_name",
+            "email": "example@codeforlife.com",
+            "password": "password",
+        }
+
+        user = User.objects.create_user(**user_fields)
+        assert user.first_name == user_fields["first_name"]
+        assert user.email == user_fields["email"]
+        assert user.password != user_fields["password"]
+        assert user.check_password(user_fields["password"])
+
+    def test_objects__create_superuser__teacher(self):
+        """
+        Create a teacher super user.
+        """
+
+        raise NotImplementedError()  # TODO
+
+    def test_objects__create_superuser__student(self):
+        """
+        Create a student super user.
+        """
+
+        raise NotImplementedError()  # TODO
+
+    def test_objects__create_superuser__indy(self):
+        """
+        Create an independent super user.
+        """
+
+        user_fields = {
+            "first_name": "first_name",
+            "email": "example@codeforlife.com",
+            "password": "password",
+        }
+
+        user = User.objects.create_superuser(**user_fields)
+        assert user.first_name == user_fields["first_name"]
+        assert user.email == user_fields["email"]
+        assert user.password != user_fields["password"]
+        assert user.check_password(user_fields["password"])
+        assert user.is_staff
+        assert user.is_superuser
