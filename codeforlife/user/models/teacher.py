@@ -10,6 +10,7 @@ import typing as t
 from django.db import models
 from django.db.models.query import QuerySet
 from django.utils.translation import gettext_lazy as _
+from django_stubs_ext.db.models import TypedModelMeta
 
 from ...models import AbstractModel
 
@@ -64,3 +65,7 @@ class Teacher(AbstractModel):
     )
 
     # TODO: add direct reference to students
+
+    class Meta(TypedModelMeta):
+        verbose_name = _("teacher")
+        verbose_name_plural = _("teachers")

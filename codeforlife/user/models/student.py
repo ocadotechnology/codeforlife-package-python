@@ -13,6 +13,7 @@ from django.db import models
 from django.db.models import Q
 from django.db.models.query import QuerySet
 from django.utils.translation import gettext_lazy as _
+from django_stubs_ext.db.models import TypedModelMeta
 
 from ...models import AbstractModel
 from . import class_student_join_request as _class_student_join_request
@@ -24,18 +25,47 @@ from . import user as _user
 class Student(AbstractModel):
     """A user's student profile."""
 
-    class Manager(models.Manager):  # pylint: disable=missing-class-docstring
-        def create(self, direct_login_key: str, **fields):
-            return super().create(
-                **fields,
-                direct_login_key=make_password(direct_login_key),
-            )
+    # pylint: disable-next=missing-class-docstring
+    class Manager(models.Manager["Student"]):
+        def create(  # type: ignore[override]
+            self,
+            auto_gen_password: t.Optional[str] = None,
+            **fields,
+        ):
+            """Create a student.
 
-        def bulk_create(self, students: t.Iterable["Student"], *args, **kwargs):
+            Args:
+                auto_gen_password: The student's auto-generated password.
+
+            Returns:
+                A student instance.
+            """
+
+            if auto_gen_password:
+                auto_gen_password = make_password(auto_gen_password)
+
+            return super().create(**fields, auto_gen_password=auto_gen_password)
+
+        def bulk_create(  # type: ignore[override]
+            self,
+            students: t.Iterable["Student"],
+            *args,
+            **kwargs,
+        ):
+            """Bulk create students.
+
+            Args:
+                students: An iteration of student objects.
+
+            Returns:
+                A list of student instances.
+            """
+
             for student in students:
-                student.direct_login_key = make_password(
-                    student.direct_login_key
-                )
+                if student.auto_gen_password:
+                    student.auto_gen_password = make_password(
+                        student.auto_gen_password
+                    )
 
             return super().bulk_create(students, *args, **kwargs)
 
@@ -60,6 +90,17 @@ class Student(AbstractModel):
             *args,
             **kwargs,
         ):
+            """Bulk create users with student profiles.
+
+            Args:
+                student_users: A list of tuples where the first object is the
+                    student profile and the second is the user whom the student
+                    profile belongs to.
+
+            Returns:
+                A list of users that have been assigned their student profile.
+            """
+
             students = [student for (student, _) in student_users]
             users = [user for (_, user) in student_users]
 
@@ -70,56 +111,62 @@ class Student(AbstractModel):
 
             return _user.User.objects.bulk_create(users, *args, **kwargs)
 
-        def make_random_direct_login_key(self):
-            return _user.User.objects.make_random_password(
-                length=Student.direct_login_key.max_length
-            )
-
-    objects: Manager = Manager()
+    objects: Manager = Manager.from_queryset(  # type: ignore[misc]
+        AbstractModel.QuerySet
+    )()  # type: ignore[assignment]
 
     user: "_user.User"
-    class_join_requests: QuerySet[
-        "_class_student_join_request.ClassStudentJoinRequest"
-    ]
+    # class_join_requests: QuerySet[
+    #     "_class_student_join_request.ClassStudentJoinRequest"
+    # ]
 
     # Is this needed or can it be inferred from klass.
-    school: "_school.School" = models.ForeignKey(
-        "user.School",
-        related_name="students",
-        null=True,
-        editable=False,
-        on_delete=models.CASCADE,
-    )
+    # school: "_school.School" = models.ForeignKey(
+    #     "user.School",
+    #     related_name="students",
+    #     null=True,
+    #     editable=False,
+    #     on_delete=models.CASCADE,
+    # )
 
-    klass: "_class.Class" = models.ForeignKey(
-        "user.Class",
-        related_name="students",
-        null=True,
-        editable=False,
-        on_delete=models.CASCADE,
-    )
+    # klass: "_class.Class" = models.ForeignKey(
+    #     "user.Class",
+    #     related_name="students",
+    #     null=True,
+    #     editable=False,
+    #     on_delete=models.CASCADE,
+    # )
 
-    second_password = models.CharField(  # TODO: make nullable
-        _("secondary password"),
-        max_length=64,  # investigate hash length
+    auto_gen_password = models.CharField(
+        _("automatically generated password"),
+        max_length=64,
         editable=False,
+        null=True,
         help_text=_(
-            "A unique key that allows a student to log directly into their"
-            "account."  # TODO
+            "An auto-generated password that allows student to log directly"
+            " into their account."
         ),
         validators=[MinLengthValidator(64)],
     )
 
     # TODO: add direct reference to teacher
-    # TODO: add meta constraint for school & direct_login_key
 
-    class Meta:
+    class Meta(TypedModelMeta):
+        verbose_name = _("student")
+        verbose_name_plural = _("students")
         constraints = [
             models.CheckConstraint(
                 check=(
                     Q(school__isnull=True, klass__isnull=True)
                     | Q(school__isnull=False, klass__isnull=False)
                 ),
-                name="student__school_is_null_and_class_is_null",
+                name="student__school_and_klass",
+            ),
+            models.CheckConstraint(
+                check=(
+                    Q(school__isnull=False, auto_gen_password__isnull=False)
+                    | Q(school__isnull=True, auto_gen_password__isnull=True)
+                ),
+                name="student__auto_gen_password",
             ),
         ]

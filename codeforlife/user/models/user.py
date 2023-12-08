@@ -5,32 +5,161 @@ Created on 04/12/2023 at 17:19:37(+00:00).
 User model.
 """
 
-from django.contrib.auth.models import AbstractUser, UserManager
+import typing as t
+
+from django.contrib.auth.hashers import make_password
+from django.contrib.auth.models import (
+    AbstractBaseUser,
+    BaseUserManager,
+    PermissionsMixin,
+)
 from django.db import models
 from django.db.models import Q
 from django.db.models.query import QuerySet
+from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from django_stubs_ext.db.models import TypedModelMeta
 
 from ...models import AbstractModel
-
-# from . import student as _student
 from . import auth_factor as _auth_factor
 from . import otp_bypass_token as _otp_bypass_token
 from . import session as _session
-from . import teacher as _teacher
+from .student import Student
+from .teacher import Teacher
 
 
-class User(AbstractUser, AbstractModel):
+class User(AbstractBaseUser, AbstractModel, PermissionsMixin):
     """A user within the CFL system."""
 
-    objects = UserManager.from_queryset(  # type: ignore[misc]
+    USERNAME_FIELD = "email"
+
+    class Manager(BaseUserManager["User"]):
+        """
+        https://docs.djangoproject.com/en/3.2/topics/auth/customizing/#writing-a-manager-for-a-custom-user-model
+
+        Custom user manager for custom user model.
+        """
+
+        def _create_user(
+            self,
+            password: str,
+            email: t.Optional[str] = None,
+            **fields,
+        ):
+            if email:
+                email = self.normalize_email(email)
+
+            user = User(
+                **fields,
+                password=make_password(password),
+                email=email,
+            )
+            user.save(using=self._db)
+            return user
+
+        def create_user(
+            self,
+            password: str,
+            email: t.Optional[str] = None,
+            **fields,
+        ):
+            """Create a user.
+
+            https://github.com/django/django/blob/19bc11f636ca2b5b80c3d9ad5b489e43abad52bb/django/contrib/auth/models.py#L149C9-L149C20
+
+            Args:
+                password: The user's non-hashed password.
+                email: The user's email address.
+
+            Returns:
+                A user instance.
+            """
+
+            fields.setdefault("is_staff", False)
+            fields.setdefault("is_superuser", False)
+            return self._create_user(password, email, **fields)
+
+        def create_superuser(
+            self,
+            password: str,
+            email: t.Optional[str] = None,
+            **fields,
+        ):
+            """Create a super user.
+
+            https://github.com/django/django/blob/19bc11f636ca2b5b80c3d9ad5b489e43abad52bb/django/contrib/auth/models.py#L154C9-L154C25
+
+            Args:
+                password: The user's non-hashed password.
+                email: The user's email address.
+
+            Raises:
+                ValueError: If is_staff is not True.
+                ValueError: If is_superuser is not True.
+
+            Returns:
+                A user instance.
+            """
+
+            fields.setdefault("is_staff", True)
+            fields.setdefault("is_superuser", True)
+
+            if fields.get("is_staff") is not True:
+                raise ValueError("Superuser must have is_staff=True.")
+            if fields.get("is_superuser") is not True:
+                raise ValueError("Superuser must have is_superuser=True.")
+
+            return self._create_user(password, email, **fields)
+
+    objects: Manager = Manager.from_queryset(  # type: ignore[misc]
         AbstractModel.QuerySet
     )()  # type: ignore[assignment]
 
     session: "_session.Session"
     auth_factors: QuerySet["_auth_factor.AuthFactor"]
     otp_bypass_tokens: QuerySet["_otp_bypass_token.OtpBypassToken"]
+
+    first_name = models.CharField(
+        _("first name"),
+        max_length=150,
+        blank=True,
+    )
+
+    # QUES: is last name required for teachers?
+    last_name = models.CharField(
+        _("last name"),
+        max_length=150,
+        null=True,
+        blank=True,
+    )
+
+    email = models.EmailField(
+        _("email address"),
+        null=True,
+        blank=True,
+    )
+
+    is_staff = models.BooleanField(
+        _("staff status"),
+        default=False,
+        help_text=_(
+            "Designates whether the user can log into this admin site."
+        ),
+    )
+
+    is_active = models.BooleanField(
+        _("active"),
+        default=False,
+        help_text=_(
+            "Designates whether this user should be treated as active."
+            " Unselect this instead of deleting accounts."
+        ),
+    )
+
+    date_joined = models.DateTimeField(
+        _("date joined"),
+        default=timezone.now,
+    )
 
     otp_secret = models.CharField(
         _("OTP secret"),
@@ -50,31 +179,52 @@ class User(AbstractUser, AbstractModel):
         ),
     )
 
-    # pylint: disable-next=unsubscriptable-object
-    teacher: models.OneToOneField["_teacher.Teacher"] = models.OneToOneField(
-        "user.Teacher",
+    teacher = models.OneToOneField(
+        Teacher,
         null=True,
         editable=False,
         on_delete=models.CASCADE,
     )
 
-    # student: "_student.Student" = models.OneToOneField(
-    #     "user.Student",
-    #     null=True,
-    #     editable=False,
-    #     on_delete=models.CASCADE,
-    # )
+    student = models.OneToOneField(
+        Student,
+        null=True,
+        editable=False,
+        on_delete=models.CASCADE,
+    )
 
-    # class Meta(TypedModelMeta):  # pylint: disable=missing-class-docstring
-    #     constraints = [
-    #         models.CheckConstraint(
-    #             check=(
-    #                 Q(teacher__isnull=True, student__isnull=False)
-    #                 | Q(teacher__isnull=False, student__isnull=True)
-    #             ),
-    #             name="user__teacher_is_null_or_student_is_null",
-    #         ),
-    #     ]
+    class Meta(TypedModelMeta):
+        verbose_name = _("user")
+        verbose_name_plural = _("users")
+        constraints = [
+            models.CheckConstraint(
+                check=(
+                    Q(teacher__isnull=True, student__isnull=False)
+                    | Q(teacher__isnull=False, student__isnull=True)
+                ),
+                name="user__teacher_or_student",
+            ),
+            models.CheckConstraint(
+                check=(
+                    # pylint: disable-next=unsupported-binary-operation
+                    Q(
+                        teacher__isnull=False,
+                        email__isnull=False,
+                    )
+                    | Q(
+                        student__isnull=False,
+                        student__school__isnull=False,
+                        email__isnull=True,
+                    )
+                    | Q(
+                        student__isnull=False,
+                        student__school__isnull=True,
+                        email__isnull=False,
+                    )
+                ),
+                name="user__email",
+            ),
+        ]
 
     @property
     def is_authenticated(self):

@@ -8,6 +8,7 @@ Base models.
 import typing as t
 from datetime import timedelta
 
+from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
@@ -54,6 +55,7 @@ class AbstractModel(models.Model):
     # Type hints for Django's runtime-generated fields.
     id: int
     pk: int
+    DoesNotExist: t.Type[ObjectDoesNotExist]
 
     # Default for how long to wait before a model is deleted.
     delete_wait = timedelta(days=3)
@@ -81,7 +83,6 @@ class AbstractModel(models.Model):
         ),
     )
 
-    # pylint: disable-next=missing-class-docstring
     class Meta(TypedModelMeta):
         abstract = True
 
