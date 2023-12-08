@@ -15,6 +15,7 @@ from django_stubs_ext.db.models import TypedModelMeta
 from ...models import AbstractModel
 from . import klass as _class
 from . import school as _school
+from . import student as _student
 from . import user as _user
 
 
@@ -61,8 +62,18 @@ class Teacher(AbstractModel):
         help_text=_("Designates if the teacher has admin privileges."),
     )
 
-    # TODO: add direct reference to students
-
     class Meta(TypedModelMeta):
         verbose_name = _("teacher")
         verbose_name_plural = _("teachers")
+
+    @property
+    def students(self):
+        """All students in this teacher's classes.
+
+        Returns:
+            A queryset
+        """
+
+        return _student.Student.objects.filter(
+            klass_id__in=list(self.classes.values_list("id", flat=True)),
+        )

@@ -147,8 +147,6 @@ class Student(AbstractModel):
         validators=[MinLengthValidator(64)],
     )
 
-    # TODO: add direct reference to teacher
-
     class Meta(TypedModelMeta):
         verbose_name = _("student")
         verbose_name_plural = _("students")
@@ -168,3 +166,14 @@ class Student(AbstractModel):
                 name="student__auto_gen_password",
             ),
         ]
+
+    @property
+    def teacher(self):
+        """The student's teacher (if they have one).
+
+        Returns:
+            The student's class-teacher.
+        """
+
+        if self.klass:
+            return self.klass.teacher

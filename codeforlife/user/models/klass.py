@@ -42,13 +42,13 @@ class Class(AbstractModel):
         ],
     )
 
-    teacher: "_teacher.Teacher" = models.ForeignKey(
+    teacher: "_teacher.Teacher" = models.ForeignKey(  # type: ignore[assignment]
         "user.Teacher",
         related_name="classes",
         on_delete=models.CASCADE,
     )
 
-    school: "_school.School" = models.ForeignKey(
+    school: "_school.School" = models.ForeignKey(  # type: ignore[assignment]
         "user.School",
         related_name="classes",
         on_delete=models.CASCADE,
