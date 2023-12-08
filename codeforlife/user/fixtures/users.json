@@ -22,5 +22,36 @@
       "password": "password",
       "teacher": 2
     }
+  },
+  {
+    "model": "user.User",
+    "pk": 3,
+    "fields": {
+      "last_saved_at": "2023-01-01 00:00:00.0+00:00",
+      "first_name": "SpongeBob",
+      "password": "password",
+      "student": 1
+    }
+  },
+  {
+    "model": "user.User",
+    "pk": 4,
+    "fields": {
+      "last_saved_at": "2023-01-01 00:00:00.0+00:00",
+      "first_name": "Patrick",
+      "password": "password",
+      "student": 2
+    }
+  },
+  {
+    "model": "user.User",
+    "pk": 5,
+    "fields": {
+      "last_saved_at": "2023-01-01 00:00:00.0+00:00",
+      "first_name": "Indiana",
+      "last_name": "Jones",
+      "email": "indiana.jones@codeforlife.com",
+      "password": "password"
+    }
   }
 ]

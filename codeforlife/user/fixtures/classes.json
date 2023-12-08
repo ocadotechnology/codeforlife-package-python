@@ -1,19 +1,19 @@
 [
   {
-    "model": "user.Teacher",
-    "pk": 1,
+    "model": "user.Class",
+    "pk": "AB123",
     "fields": {
       "last_saved_at": "2023-01-01 00:00:00.0+00:00",
-      "is_admin": true,
+      "teacher": 1,
       "school": 1
     }
   },
   {
-    "model": "user.Teacher",
-    "pk": 2,
+    "model": "user.Class",
+    "pk": "AB456",
     "fields": {
       "last_saved_at": "2023-01-01 00:00:00.0+00:00",
-      "is_admin": false,
+      "teacher": 2,
       "school": 1
     }
   }

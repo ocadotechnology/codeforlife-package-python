@@ -8,7 +8,7 @@ from unittest.mock import patch
 from django.test import TestCase
 from django.utils import timezone
 
-from ...models import User
+from ...models import Class, User
 
 
 class TestAbstract(TestCase):
@@ -18,9 +18,13 @@ class TestAbstract(TestCase):
     Abstract model path: codeforlife.models
     """
 
+    # TODO: group fixtures by scenarios, not model classes.
     fixtures = [
         "users",
         "teachers",
+        "schools",
+        "classes",
+        "students",
     ]
 
     def setUp(self):

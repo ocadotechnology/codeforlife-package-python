@@ -122,6 +122,7 @@ class User(AbstractBaseUser, AbstractModel, PermissionsMixin):
     )
 
     # TODO: is last name required for teachers?
+    # TODO: are students allowed to have a last name?
     last_name = models.CharField(
         _("last name"),
         max_length=150,
