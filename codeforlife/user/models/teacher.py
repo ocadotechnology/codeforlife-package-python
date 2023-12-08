@@ -13,10 +13,8 @@ from django.utils.translation import gettext_lazy as _
 from django_stubs_ext.db.models import TypedModelMeta
 
 from ...models import AbstractModel
-
-# from . import klass as _class
-# from . import school as _school
-# from . import school_teacher_invitation as _school_teacher_invitation
+from . import klass as _class
+from . import school as _school
 from . import user as _user
 
 
@@ -45,18 +43,17 @@ class Teacher(AbstractModel):
     )()  # type: ignore[assignment]
 
     user: "_user.User"
-    # classes: QuerySet["_class.Class"]
-    # school_invitations: QuerySet[
-    #     "_school_teacher_invitation.SchoolTeacherInvitation"
-    # ]
+    classes: QuerySet["_class.Class"]
 
-    # school: "_school.School" = models.ForeignKey(
-    #     "user.School",
-    #     related_name="teachers",
-    #     null=True,
-    #     editable=False,
-    #     on_delete=models.SET_NULL,
-    # )
+    school: t.Optional[
+        "_school.School"
+    ] = models.ForeignKey(  # type: ignore[assignment]
+        "user.School",
+        related_name="teachers",
+        null=True,
+        editable=False,
+        on_delete=models.SET_NULL,
+    )
 
     is_admin = models.BooleanField(
         _("is administrator"),

@@ -3,7 +3,7 @@ from unittest.mock import patch
 from django.test import TestCase
 from django.utils import timezone
 
-from ...models import User
+from ...models import Teacher, User
 
 
 class TestUser(TestCase):
@@ -48,13 +48,42 @@ class TestUser(TestCase):
             assert self.jane_doe.last_saved_at == now
 
     def test_objects__create(self):
+        teacher = Teacher.objects.create()
+
         now = timezone.now()
         with patch.object(timezone, "now", return_value=now) as timezone_now:
             user = User.objects.create(
                 first_name="first_name",
                 last_name="last_name",
                 email="example@email.com",
+                teacher=teacher,
             )
 
             assert timezone_now.call_count == 1
             assert user.last_saved_at == now
+
+    def test_objects__bulk_create(self):
+        teacher_1 = Teacher.objects.create()
+        teacher_2 = Teacher.objects.create()
+
+        now = timezone.now()
+        with patch.object(timezone, "now", return_value=now) as timezone_now:
+            users = User.objects.bulk_create(
+                [
+                    User(
+                        first_name="first_name_1",
+                        last_name="last_name_1",
+                        email="example_1@email.com",
+                        teacher=teacher_1,
+                    ),
+                    User(
+                        first_name="first_name_2",
+                        last_name="last_name_2",
+                        email="example_2@email.com",
+                        teacher=teacher_2,
+                    ),
+                ]
+            )
+
+            assert timezone_now.call_count == 2
+            assert all(user.last_saved_at == now for user in users)

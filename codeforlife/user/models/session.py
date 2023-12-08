@@ -10,11 +10,13 @@ import typing as t
 from django.contrib.auth import SESSION_KEY
 from django.contrib.sessions.backends.db import SessionStore as DBStore
 from django.contrib.sessions.base_session import AbstractBaseSession
+from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
 from django.db.models.query import QuerySet
 from django.utils import timezone
 
-from . import session_auth_factor, user
+from . import session_auth_factor as _session_auth_factor
+from . import user as _user
 
 
 class Session(AbstractBaseSession):
@@ -23,9 +25,13 @@ class Session(AbstractBaseSession):
     https://docs.djangoproject.com/en/3.2/topics/http/sessions/#example
     """
 
-    session_auth_factors: QuerySet["session_auth_factor.SessionAuthFactor"]
+    DoesNotExist: t.Type[ObjectDoesNotExist]
 
-    user: "user.User" = models.OneToOneField(
+    session_auth_factors: QuerySet["_session_auth_factor.SessionAuthFactor"]
+
+    user: t.Optional[
+        "_user.User"
+    ] = models.OneToOneField(  # type: ignore[assignment]
         "user.User",
         null=True,
         blank=True,
@@ -34,10 +40,22 @@ class Session(AbstractBaseSession):
 
     @property
     def is_expired(self):
+        """Checks if the expiry date is in the past.
+
+        Returns:
+            A flag designating if the session expired.
+        """
+
         return self.expire_date < timezone.now()
 
     @property
     def store(self):
+        """Creates a store for this session.
+
+        Returns:
+            A session store instance.
+        """
+
         return self.get_session_store_class()(self.session_key)
 
     @classmethod
@@ -71,10 +89,10 @@ class SessionStore(DBStore):
             except Session.DoesNotExist:
                 # Associate session to user.
                 session = Session.objects.get(session_key=self.session_key)
-                session.user = user.User.objects.get(id=user_id)
-                session_auth_factor.SessionAuthFactor.objects.bulk_create(
+                session.user = _user.User.objects.get(id=user_id)
+                _session_auth_factor.SessionAuthFactor.objects.bulk_create(
                     [
-                        session_auth_factor.SessionAuthFactor(
+                        _session_auth_factor.SessionAuthFactor(
                             session=session,
                             auth_factor=auth_factor,
                         )

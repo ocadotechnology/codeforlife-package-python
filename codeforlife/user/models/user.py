@@ -24,8 +24,8 @@ from ...models import AbstractModel
 from . import auth_factor as _auth_factor
 from . import otp_bypass_token as _otp_bypass_token
 from . import session as _session
-from .student import Student
-from .teacher import Teacher
+from . import student as _student
+from . import teacher as _teacher
 
 
 class User(AbstractBaseUser, AbstractModel, PermissionsMixin):
@@ -135,6 +135,7 @@ class User(AbstractBaseUser, AbstractModel, PermissionsMixin):
 
     email = models.EmailField(
         _("email address"),
+        unique=True,
         null=True,
         blank=True,
     )
@@ -179,15 +180,19 @@ class User(AbstractBaseUser, AbstractModel, PermissionsMixin):
         ),
     )
 
-    teacher = models.OneToOneField(
-        Teacher,
+    teacher: t.Optional[
+        "_teacher.Teacher"
+    ] = models.OneToOneField(  # type: ignore[assignment]
+        "user.Teacher",
         null=True,
         editable=False,
         on_delete=models.CASCADE,
     )
 
-    student = models.OneToOneField(
-        Student,
+    student: t.Optional[
+        "_student.Student"
+    ] = models.OneToOneField(  # type: ignore[assignment]
+        "user.Student",
         null=True,
         editable=False,
         on_delete=models.CASCADE,

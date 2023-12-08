@@ -9,11 +9,11 @@ from django.db import models
 from django.db.models import Q
 from django.db.models.query import QuerySet
 from django.utils.translation import gettext_lazy as _
+from django_stubs_ext.db.models import TypedModelMeta
 
 from ...models import AbstractModel
 from ...models.fields import Country, UkCounty
 from . import klass as _class
-from . import school_teacher_invitation as _school_teacher_invitation
 from . import student as _student
 from . import teacher as _teacher
 
@@ -21,11 +21,16 @@ from . import teacher as _teacher
 class School(AbstractModel):
     """A collection of teachers and students."""
 
+    # pylint: disable-next=missing-class-docstring
+    class Manager(models.Manager["School"]):
+        pass
+
+    objects: Manager = Manager.from_queryset(  # type: ignore[misc]
+        AbstractModel.QuerySet
+    )()  # type: ignore[assignment]
+
     teachers: QuerySet["_teacher.Teacher"]
     students: QuerySet["_student.Student"]
-    teacher_invitations: QuerySet[
-        "_school_teacher_invitation.SchoolTeacherInvitation"
-    ]
     classes: QuerySet["_class.Class"]
 
     name = models.CharField(
@@ -54,12 +59,12 @@ class School(AbstractModel):
         ),
     )
 
-    # created_at = models.DateTimeField(auto_now_add=True)  # ?
-
-    class Meta:
+    class Meta(TypedModelMeta):
+        verbose_name = _("school")
+        verbose_name_plural = _("schools")
         constraints = [
             models.CheckConstraint(
                 check=Q(uk_county__isnull=True) | Q(country="UK"),
-                name="school__uk_county_is_null_or_country_equals_uk",
+                name="school__no_uk_county_if_country_not_uk",
             ),
         ]

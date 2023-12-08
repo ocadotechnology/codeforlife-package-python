@@ -11,12 +11,10 @@ from django.contrib.auth.hashers import make_password
 from django.core.validators import MinLengthValidator
 from django.db import models
 from django.db.models import Q
-from django.db.models.query import QuerySet
 from django.utils.translation import gettext_lazy as _
 from django_stubs_ext.db.models import TypedModelMeta
 
 from ...models import AbstractModel
-from . import class_student_join_request as _class_student_join_request
 from . import klass as _class
 from . import school as _school
 from . import user as _user
@@ -116,26 +114,26 @@ class Student(AbstractModel):
     )()  # type: ignore[assignment]
 
     user: "_user.User"
-    # class_join_requests: QuerySet[
-    #     "_class_student_join_request.ClassStudentJoinRequest"
-    # ]
 
-    # Is this needed or can it be inferred from klass.
-    # school: "_school.School" = models.ForeignKey(
-    #     "user.School",
-    #     related_name="students",
-    #     null=True,
-    #     editable=False,
-    #     on_delete=models.CASCADE,
-    # )
+    school: t.Optional[
+        "_school.School"
+    ] = models.ForeignKey(  # type: ignore[assignment]
+        "user.School",
+        related_name="students",
+        null=True,
+        editable=False,
+        on_delete=models.CASCADE,
+    )
 
-    # klass: "_class.Class" = models.ForeignKey(
-    #     "user.Class",
-    #     related_name="students",
-    #     null=True,
-    #     editable=False,
-    #     on_delete=models.CASCADE,
-    # )
+    klass: t.Optional[
+        "_class.Class"
+    ] = models.ForeignKey(  # type: ignore[assignment]
+        "user.Class",
+        related_name="students",
+        null=True,
+        editable=False,
+        on_delete=models.CASCADE,
+    )
 
     auto_gen_password = models.CharField(
         _("automatically generated password"),

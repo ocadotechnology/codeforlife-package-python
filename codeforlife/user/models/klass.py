@@ -12,9 +12,9 @@ from django.db import models
 from django.db.models import F, Q
 from django.db.models.query import QuerySet
 from django.utils.translation import gettext_lazy as _
+from django_stubs_ext.db.models import TypedModelMeta
 
 from ...models import AbstractModel
-from . import class_student_join_request as _class_student_join_request
 from . import school as _school
 from . import student as _student
 from . import teacher as _teacher
@@ -23,13 +23,10 @@ from . import teacher as _teacher
 class Class(AbstractModel):
     """A collection of students owned by a teacher."""
 
-    pk: str  # type: ignore
+    pk: str  # type: ignore[assignment]
     students: QuerySet["_student.Student"]
-    student_join_requests: QuerySet[
-        "_class_student_join_request.ClassStudentJoinRequest"
-    ]
 
-    id = models.CharField(
+    id = models.CharField(  # type: ignore[assignment]
         _("identifier"),
         primary_key=True,
         editable=False,
@@ -77,7 +74,9 @@ class Class(AbstractModel):
         ),
     )
 
-    class Meta:
+    class Meta(TypedModelMeta):
+        verbose_name = _("class")
+        verbose_name_plural = _("classes")
         constraints = [
             models.CheckConstraint(
                 check=Q(teacher__school=F("school")),

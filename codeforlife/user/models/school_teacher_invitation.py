@@ -1,54 +1,54 @@
-"""
-© Ocado Group
-Created on 05/12/2023 at 17:44:14(+00:00).
+# """
+# © Ocado Group
+# Created on 05/12/2023 at 17:44:14(+00:00).
 
-School teacher invitation model.
-"""
+# School teacher invitation model.
+# """
 
-from datetime import timedelta
+# from datetime import timedelta
 
-from django.db import models
-from django.utils import timezone
-from django.utils.translation import gettext_lazy as _
+# from django.db import models
+# from django.utils import timezone
+# from django.utils.translation import gettext_lazy as _
 
-from ...models import AbstractModel
-from . import school as _school
-from . import teacher as _teacher
-
-
-def _set_expires_at():
-    return lambda: timezone.now() + timedelta(days=7)
+# from ...models import AbstractModel
+# from . import school as _school
+# from . import teacher as _teacher
 
 
-# TODO: move to portal
-class SchoolTeacherInvitation(AbstractModel):
-    """An invitation for a teacher to join a school."""
+# def _set_expires_at():
+#     return lambda: timezone.now() + timedelta(days=7)
 
-    school: "_school.School" = models.ForeignKey(
-        "user.School",
-        related_name="teacher_invitations",
-        on_delete=models.CASCADE,
-    )
 
-    teacher: "_teacher.Teacher" = models.ForeignKey(
-        "user.Teacher",
-        related_name="school_invitations",
-        on_delete=models.CASCADE,
-    )
+# # TODO: move to portal
+# class SchoolTeacherInvitation(AbstractModel):
+#     """An invitation for a teacher to join a school."""
 
-    expires_at = models.DateTimeField(
-        _("is expired"),
-        default=_set_expires_at,
-        help_text=_("When the teacher was invited to the school."),
-    )
+#     school: "_school.School" = models.ForeignKey(
+#         "user.School",
+#         related_name="teacher_invitations",
+#         on_delete=models.CASCADE,
+#     )
 
-    class Meta:
-        unique_together = ["school", "teacher"]
+#     teacher: "_teacher.Teacher" = models.ForeignKey(
+#         "user.Teacher",
+#         related_name="school_invitations",
+#         on_delete=models.CASCADE,
+#     )
 
-    @property
-    def is_expired(self):
-        return self.expires_at < timezone.now()
+#     expires_at = models.DateTimeField(
+#         _("is expired"),
+#         default=_set_expires_at,
+#         help_text=_("When the teacher was invited to the school."),
+#     )
 
-    def refresh(self):
-        self.expires_at = _set_expires_at()
-        self.save()
+#     class Meta:
+#         unique_together = ["school", "teacher"]
+
+#     @property
+#     def is_expired(self):
+#         return self.expires_at < timezone.now()
+
+#     def refresh(self):
+#         self.expires_at = _set_expires_at()
+#         self.save()
