@@ -6,8 +6,8 @@
       "last_saved_at": "2023-01-01 00:00:00.0+00:00",
       "first_name": "John",
       "last_name": "Doe",
-      "username": "john.doe",
       "email": "john.doe@codeforlife.com",
+      "password": "password",
       "teacher": 1
     }
   },
@@ -18,8 +18,8 @@
       "last_saved_at": "2023-01-01 00:00:00.0+00:00",
       "first_name": "Jane",
       "last_name": "Doe",
-      "username": "jane.doe",
       "email": "jane.doe@codeforlife.com",
+      "password": "password",
       "teacher": 2
     }
   }

@@ -10,7 +10,6 @@ import typing as t
 from django.contrib.auth.hashers import make_password
 from django.core.validators import MinLengthValidator
 from django.db import models
-from django.db.models import Q
 from django.utils.translation import gettext_lazy as _
 from django_stubs_ext.db.models import TypedModelMeta
 
@@ -27,7 +26,7 @@ class Student(AbstractModel):
     class Manager(models.Manager["Student"]):
         def create(  # type: ignore[override]
             self,
-            auto_gen_password: t.Optional[str] = None,
+            auto_gen_password: str,
             **fields,
         ):
             """Create a student.
@@ -39,10 +38,10 @@ class Student(AbstractModel):
                 A student instance.
             """
 
-            if auto_gen_password:
-                auto_gen_password = make_password(auto_gen_password)
-
-            return super().create(**fields, auto_gen_password=auto_gen_password)
+            return super().create(
+                **fields,
+                auto_gen_password=make_password(auto_gen_password),
+            )
 
         def bulk_create(  # type: ignore[override]
             self,
@@ -60,10 +59,9 @@ class Student(AbstractModel):
             """
 
             for student in students:
-                if student.auto_gen_password:
-                    student.auto_gen_password = make_password(
-                        student.auto_gen_password
-                    )
+                student.auto_gen_password = make_password(
+                    student.auto_gen_password
+                )
 
             return super().bulk_create(students, *args, **kwargs)
 
@@ -115,23 +113,16 @@ class Student(AbstractModel):
 
     user: "_user.User"
 
-    school: t.Optional[
-        "_school.School"
-    ] = models.ForeignKey(  # type: ignore[assignment]
+    school: "_school.School" = models.ForeignKey(  # type: ignore[assignment]
         "user.School",
         related_name="students",
-        null=True,
         editable=False,
         on_delete=models.CASCADE,
     )
 
-    klass: t.Optional[
-        "_class.Class"
-    ] = models.ForeignKey(  # type: ignore[assignment]
+    klass: "_class.Class" = models.ForeignKey(  # type: ignore[assignment]
         "user.Class",
         related_name="students",
-        null=True,
-        editable=False,
         on_delete=models.CASCADE,
     )
 
@@ -139,7 +130,6 @@ class Student(AbstractModel):
         _("automatically generated password"),
         max_length=64,
         editable=False,
-        null=True,
         help_text=_(
             "An auto-generated password that allows student to log directly"
             " into their account."
@@ -150,22 +140,6 @@ class Student(AbstractModel):
     class Meta(TypedModelMeta):
         verbose_name = _("student")
         verbose_name_plural = _("students")
-        constraints = [
-            models.CheckConstraint(
-                check=(
-                    Q(school__isnull=True, klass__isnull=True)
-                    | Q(school__isnull=False, klass__isnull=False)
-                ),
-                name="student__school_and_klass",
-            ),
-            models.CheckConstraint(
-                check=(
-                    Q(school__isnull=False, auto_gen_password__isnull=False)
-                    | Q(school__isnull=True, auto_gen_password__isnull=True)
-                ),
-                name="student__auto_gen_password",
-            ),
-        ]
 
     @property
     def teacher(self):

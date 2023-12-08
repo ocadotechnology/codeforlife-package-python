@@ -204,13 +204,6 @@ class User(AbstractBaseUser, AbstractModel, PermissionsMixin):
         constraints = [
             models.CheckConstraint(
                 check=(
-                    Q(teacher__isnull=True, student__isnull=False)
-                    | Q(teacher__isnull=False, student__isnull=True)
-                ),
-                name="user__teacher_or_student",
-            ),
-            models.CheckConstraint(
-                check=(
                     # pylint: disable-next=unsupported-binary-operation
                     Q(
                         teacher__isnull=False,
@@ -218,12 +211,11 @@ class User(AbstractBaseUser, AbstractModel, PermissionsMixin):
                     )
                     | Q(
                         student__isnull=False,
-                        student__school__isnull=False,
                         email__isnull=True,
                     )
                     | Q(
-                        student__isnull=False,
-                        student__school__isnull=True,
+                        teacher__isnull=True,
+                        student__isnull=True,
                         email__isnull=False,
                     )
                 ),

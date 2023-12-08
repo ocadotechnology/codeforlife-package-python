@@ -9,7 +9,6 @@ NOTE: This module has been named "klass" as "class" is a reserved keyword.
 
 from django.core.validators import MinLengthValidator, RegexValidator
 from django.db import models
-from django.db.models import F, Q
 from django.db.models.query import QuerySet
 from django.utils.translation import gettext_lazy as _
 from django_stubs_ext.db.models import TypedModelMeta
@@ -77,9 +76,3 @@ class Class(AbstractModel):
     class Meta(TypedModelMeta):
         verbose_name = _("class")
         verbose_name_plural = _("classes")
-        constraints = [
-            models.CheckConstraint(
-                check=Q(teacher__school=F("school")),
-                name="class__teacher_in_school",
-            ),
-        ]

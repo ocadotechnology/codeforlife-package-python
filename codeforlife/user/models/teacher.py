@@ -67,7 +67,7 @@ class Teacher(AbstractModel):
         verbose_name_plural = _("teachers")
 
     @property
-    def students(self):
+    def students(self) -> QuerySet["_student.Student"]:
         """All students in this teacher's classes.
 
         Returns:
