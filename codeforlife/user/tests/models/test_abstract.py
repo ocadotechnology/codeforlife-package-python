@@ -82,7 +82,7 @@ class TestAbstract(ModelTestCase[User]):
         Delete many models now.
         """
 
-        User.objects2.filter(
+        User.objects.filter(
             pk__in=[
                 self.john_doe.pk,
                 self.jane_doe.pk,
