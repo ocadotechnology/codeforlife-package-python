@@ -13,13 +13,13 @@ from django.db.models.query import QuerySet
 from django.utils.translation import gettext_lazy as _
 from django_stubs_ext.db.models import TypedModelMeta
 
-from ...models import AbstractModel
+from ...models import WarehouseModel
 from . import school as _school
 from . import student as _student
 from . import teacher as _teacher
 
 
-class Class(AbstractModel):
+class Class(WarehouseModel):
     """A collection of students owned by a teacher."""
 
     pk: str  # type: ignore[assignment]

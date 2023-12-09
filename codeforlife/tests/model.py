@@ -7,11 +7,10 @@ Test helpers for Django models.
 
 import typing as t
 
-from django.db.models import Model
 from django.db.utils import IntegrityError
 from django.test import TestCase
 
-AnyModel = t.TypeVar("AnyModel", bound=Model)
+from ..models import AnyModel, Model
 
 
 class ModelTestCase(TestCase, t.Generic[AnyModel]):
@@ -38,3 +37,18 @@ class ModelTestCase(TestCase, t.Generic[AnyModel]):
         """
 
         return self.assertRaises(IntegrityError, *args, **kwargs)
+
+    def assert_does_not_exist(self, model_or_pk: t.Union[AnyModel, t.Any]):
+        """Asserts the model does not exist.
+
+        Args:
+            model_or_pk: The model itself or its primary key.
+        """
+
+        if isinstance(model_or_pk, Model):
+            with self.assertRaises(model_or_pk.DoesNotExist):
+                model_or_pk.refresh_from_db()
+        else:
+            model_class = self.get_model_class()
+            with self.assertRaises(model_class.DoesNotExist):
+                model_class.objects.get(pk=model_or_pk)

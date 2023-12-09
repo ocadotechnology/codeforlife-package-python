@@ -11,14 +11,14 @@ from django.db.models.query import QuerySet
 from django.utils.translation import gettext_lazy as _
 from django_stubs_ext.db.models import TypedModelMeta
 
-from ...models import AbstractModel
+from ...models import WarehouseModel
 from ...models.fields import Country, UkCounty
 from . import klass as _class
 from . import student as _student
 from . import teacher as _teacher
 
 
-class School(AbstractModel):
+class School(WarehouseModel):
     """A collection of teachers and students."""
 
     # pylint: disable-next=missing-class-docstring
@@ -26,7 +26,7 @@ class School(AbstractModel):
         pass
 
     objects: Manager = Manager.from_queryset(  # type: ignore[misc]
-        AbstractModel.QuerySet
+        WarehouseModel.QuerySet
     )()  # type: ignore[assignment]
 
     teachers: QuerySet["_teacher.Teacher"]

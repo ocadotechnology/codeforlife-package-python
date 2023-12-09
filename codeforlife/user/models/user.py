@@ -21,7 +21,7 @@ from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from django_stubs_ext.db.models import TypedModelMeta
 
-from ...models import AbstractModel
+from ...models import WarehouseModel
 from . import auth_factor as _auth_factor
 from . import otp_bypass_token as _otp_bypass_token
 from . import session as _session
@@ -29,7 +29,7 @@ from . import student as _student
 from . import teacher as _teacher
 
 
-class User(AbstractBaseUser, AbstractModel, PermissionsMixin):
+class User(AbstractBaseUser, WarehouseModel, PermissionsMixin):
     """A user within the CFL system."""
 
     USERNAME_FIELD = "email"
@@ -108,7 +108,7 @@ class User(AbstractBaseUser, AbstractModel, PermissionsMixin):
             return self._create_user(password, first_name=first_name, **fields)
 
     objects: Manager = Manager.from_queryset(  # type: ignore[misc]
-        AbstractModel.QuerySet
+        WarehouseModel.QuerySet
     )()  # type: ignore[assignment]
 
     session: "_session.Session"

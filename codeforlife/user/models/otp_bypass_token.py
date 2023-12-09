@@ -15,11 +15,11 @@ from django.db import models
 from django.utils.translation import gettext_lazy as _
 from django_stubs_ext.db.models import TypedModelMeta
 
-from ...models import AbstractModel
+from ...models import WarehouseModel
 from . import user as _user
 
 
-class OtpBypassToken(AbstractModel):
+class OtpBypassToken(WarehouseModel):
     """
     A one-time-use token that a user can use to bypass their OTP auth factor.
     Each user has a limited number of OTP-bypass tokens.
@@ -80,7 +80,7 @@ class OtpBypassToken(AbstractModel):
             return super().bulk_create(otp_bypass_tokens, *args, **kwargs)
 
     objects: Manager = Manager.from_queryset(  # type: ignore[misc]
-        AbstractModel.QuerySet
+        WarehouseModel.QuerySet
     )()  # type: ignore[assignment]
 
     user: "_user.User" = models.ForeignKey(  # type: ignore[assignment]

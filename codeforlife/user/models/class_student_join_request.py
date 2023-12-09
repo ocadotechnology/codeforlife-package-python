@@ -7,13 +7,13 @@
 
 # from django.db import models
 
-# from ...models import AbstractModel
+# from ...models import WarehouseModel
 # from . import klass as _class
 # from . import student as _student
 
 
 # # TODO: move to portal
-# class ClassStudentJoinRequest(AbstractModel):
+# class ClassStudentJoinRequest(WarehouseModel):
 #     """A request from a student to join a class."""
 
 #     klass: "_class.Class" = models.ForeignKey(

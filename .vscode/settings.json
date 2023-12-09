@@ -1,7 +1,17 @@
 {
+    "black-formatter.path": [
+        ".venv/bin/python",
+        "-m",
+        "black"
+    ],
     "black-formatter.args": [
         "--config",
         "pyproject.toml"
+    ],
+    "mypy-type-checker.path": [
+        ".venv/bin/python",
+        "-m",
+        "mypy"
     ],
     "pylint.path": [
         ".venv/bin/python",

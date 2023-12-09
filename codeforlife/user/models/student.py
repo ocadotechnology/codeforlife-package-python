@@ -13,13 +13,13 @@ from django.db import models
 from django.utils.translation import gettext_lazy as _
 from django_stubs_ext.db.models import TypedModelMeta
 
-from ...models import AbstractModel
+from ...models import WarehouseModel
 from . import klass as _class
 from . import school as _school
 from . import user as _user
 
 
-class Student(AbstractModel):
+class Student(WarehouseModel):
     """A user's student profile."""
 
     # pylint: disable-next=missing-class-docstring
@@ -108,7 +108,7 @@ class Student(AbstractModel):
             return _user.User.objects.bulk_create(users, *args, **kwargs)
 
     objects: Manager = Manager.from_queryset(  # type: ignore[misc]
-        AbstractModel.QuerySet
+        WarehouseModel.QuerySet
     )()  # type: ignore[assignment]
 
     user: "_user.User"

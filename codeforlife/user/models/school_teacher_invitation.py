@@ -11,7 +11,7 @@
 # from django.utils import timezone
 # from django.utils.translation import gettext_lazy as _
 
-# from ...models import AbstractModel
+# from ...models import WarehouseModel
 # from . import school as _school
 # from . import teacher as _teacher
 
@@ -21,7 +21,7 @@
 
 
 # # TODO: move to portal
-# class SchoolTeacherInvitation(AbstractModel):
+# class SchoolTeacherInvitation(WarehouseModel):
 #     """An invitation for a teacher to join a school."""
 
 #     school: "_school.School" = models.ForeignKey(

@@ -1,6 +1,12 @@
-from pathlib import Path
+"""
+© Ocado Group
+Created on 09/12/2023 at 11:02:54(+00:00).
 
-import django_stubs_ext
+Entry point to the Code for Life package.
+"""
+
+import typing as t
+from pathlib import Path
 
 from .version import __version__
 
@@ -11,7 +17,10 @@ from .version import __version__
 BASE_DIR = Path(__file__).resolve().parent
 DATA_DIR = BASE_DIR.joinpath("data")
 
-django_stubs_ext.monkeypatch()
+if t.TYPE_CHECKING:
+    import django_stubs_ext
+
+    django_stubs_ext.monkeypatch()
 
 # ------------------------------------------------------------------------------
 

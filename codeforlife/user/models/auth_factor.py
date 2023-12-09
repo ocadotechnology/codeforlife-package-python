@@ -9,11 +9,11 @@ from django.db import models
 from django.utils.translation import gettext_lazy as _
 from django_stubs_ext.db.models import TypedModelMeta
 
-from ...models import AbstractModel
+from ...models import WarehouseModel
 from . import user as _user
 
 
-class AuthFactor(AbstractModel):
+class AuthFactor(WarehouseModel):
     """A user's enabled authentication factors."""
 
     class Type(models.TextChoices):
