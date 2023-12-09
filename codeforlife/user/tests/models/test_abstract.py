@@ -3,15 +3,16 @@
 Created on 08/12/2023 at 15:48:38(+00:00).
 """
 
+from datetime import timedelta
 from unittest.mock import patch
 
-from django.test import TestCase
 from django.utils import timezone
 
-from ...models import Class, User
+from ....tests import ModelTestCase
+from ...models import User
 
 
-class TestAbstract(TestCase):
+class TestAbstract(ModelTestCase[User]):
     """
     Tests the abstract model inherited by other models.
 
@@ -31,9 +32,9 @@ class TestAbstract(TestCase):
         self.john_doe = User.objects.get(pk=1)
         self.jane_doe = User.objects.get(pk=2)
 
-    def test_delete(self):
+    def test_delete__wait(self):
         """
-        Deleting a model instance sets its deletion schedule.
+        Set a model's deletion schedule.
         """
 
         now = timezone.now()
@@ -44,9 +45,17 @@ class TestAbstract(TestCase):
             assert self.john_doe.delete_after == now + User.delete_wait
             assert self.john_doe.last_saved_at == now
 
-    def test_objects__delete(self):
+    def test_delete__now(self):
         """
-        Deleting a set of models in a query sets their deletion schedule.
+        Delete a model now.
+        """
+
+        self.john_doe.delete(wait=timedelta())
+        self.assert_does_not_exist(self.john_doe)
+
+    def test_objects__delete__wait(self):
+        """
+        Set many models deletion schedules.
         """
 
         now = timezone.now()
@@ -67,6 +76,21 @@ class TestAbstract(TestCase):
             self.jane_doe.refresh_from_db()
             assert self.jane_doe.delete_after == now + User.delete_wait
             assert self.jane_doe.last_saved_at == now
+
+    def test_objects__delete__now(self):
+        """
+        Delete many models now.
+        """
+
+        User.objects2.filter(
+            pk__in=[
+                self.john_doe.pk,
+                self.jane_doe.pk,
+            ]
+        ).delete(wait=timedelta())
+
+        self.assert_does_not_exist(self.john_doe)
+        self.assert_does_not_exist(self.jane_doe)
 
     def test_objects__create(self):
         """
