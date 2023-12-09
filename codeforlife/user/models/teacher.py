@@ -23,7 +23,7 @@ class Teacher(WarehouseModel):
     """A user's teacher profile."""
 
     # pylint: disable-next=missing-class-docstring
-    class Manager(models.Manager["Teacher"]):
+    class Manager(WarehouseModel.Manager["Teacher"]):
         def create_user(self, teacher: t.Dict[str, t.Any], **fields):
             """Create a user with a teacher profile.
 
@@ -39,9 +39,7 @@ class Teacher(WarehouseModel):
                 teacher=self.create(**teacher),
             )
 
-    objects: Manager = Manager.from_queryset(  # type: ignore[misc]
-        WarehouseModel.QuerySet
-    )()  # type: ignore[assignment]
+    objects: Manager = Manager()
 
     user: "_user.User"
     classes: QuerySet["_class.Class"]

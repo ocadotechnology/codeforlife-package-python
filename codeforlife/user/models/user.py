@@ -34,7 +34,7 @@ class User(AbstractBaseUser, WarehouseModel, PermissionsMixin):
 
     USERNAME_FIELD = "email"
 
-    class Manager(BaseUserManager["User"]):
+    class Manager(BaseUserManager["User"], WarehouseModel.Manager["User"]):
         """
         https://docs.djangoproject.com/en/3.2/topics/auth/customizing/#writing-a-manager-for-a-custom-user-model
 
@@ -107,9 +107,7 @@ class User(AbstractBaseUser, WarehouseModel, PermissionsMixin):
 
             return self._create_user(password, first_name=first_name, **fields)
 
-    objects: Manager = Manager.from_queryset(  # type: ignore[misc]
-        WarehouseModel.QuerySet
-    )()  # type: ignore[assignment]
+    objects: Manager = Manager()
 
     session: "_session.Session"
     auth_factors: QuerySet["_auth_factor.AuthFactor"]

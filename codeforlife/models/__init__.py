@@ -71,7 +71,47 @@ class WarehouseModel(Model):
             else:
                 self.update(delete_after=timezone.now() + wait)
 
-    objects = models.Manager.from_queryset(QuerySet)()
+    class Manager(models.Manager[AnyModel], t.Generic[AnyModel]):
+        """Custom Manager for all warehouse model managers to inherit."""
+
+        def get_queryset(self):
+            """Get custom query set.
+
+            Returns:
+                A warehouse query set.
+            """
+
+            return WarehouseModel.QuerySet(
+                model=self.model,
+                using=self._db,
+                hints=self._hints,  # type: ignore[attr-defined]
+            )
+
+        def filter(self, *args, **kwargs):
+            """A stub that return our custom queryset."""
+
+            return t.cast(
+                WarehouseModel.QuerySet,
+                super().filter(*args, **kwargs),
+            )
+
+        def exclude(self, *args, **kwargs):
+            """A stub that return our custom queryset."""
+
+            return t.cast(
+                WarehouseModel.QuerySet,
+                super().exclude(*args, **kwargs),
+            )
+
+        def all(self):
+            """A stub that return our custom queryset."""
+
+            return t.cast(
+                WarehouseModel.QuerySet,
+                super().all(),
+            )
+
+    objects: Manager = Manager()
 
     # Default for how long to wait before a model is deleted.
     delete_wait = timedelta(days=3)

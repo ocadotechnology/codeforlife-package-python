@@ -22,6 +22,12 @@ from . import teacher as _teacher
 class Class(WarehouseModel):
     """A collection of students owned by a teacher."""
 
+    # pylint: disable-next=missing-class-docstring
+    class Manager(WarehouseModel.Manager["Class"]):
+        pass
+
+    objects: Manager = Manager()
+
     pk: str  # type: ignore[assignment]
     students: QuerySet["_student.Student"]
 

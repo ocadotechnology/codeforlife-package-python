@@ -22,12 +22,10 @@ class School(WarehouseModel):
     """A collection of teachers and students."""
 
     # pylint: disable-next=missing-class-docstring
-    class Manager(models.Manager["School"]):
+    class Manager(WarehouseModel.Manager["School"]):
         pass
 
-    objects: Manager = Manager.from_queryset(  # type: ignore[misc]
-        WarehouseModel.QuerySet
-    )()  # type: ignore[assignment]
+    objects: Manager = Manager()
 
     teachers: QuerySet["_teacher.Teacher"]
     students: QuerySet["_student.Student"]

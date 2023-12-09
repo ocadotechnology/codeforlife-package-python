@@ -23,7 +23,7 @@ class Student(WarehouseModel):
     """A user's student profile."""
 
     # pylint: disable-next=missing-class-docstring
-    class Manager(models.Manager["Student"]):
+    class Manager(WarehouseModel.Manager["Student"]):
         def create(  # type: ignore[override]
             self,
             auto_gen_password: str,
@@ -107,9 +107,7 @@ class Student(WarehouseModel):
 
             return _user.User.objects.bulk_create(users, *args, **kwargs)
 
-    objects: Manager = Manager.from_queryset(  # type: ignore[misc]
-        WarehouseModel.QuerySet
-    )()  # type: ignore[assignment]
+    objects: Manager = Manager()
 
     user: "_user.User"
 

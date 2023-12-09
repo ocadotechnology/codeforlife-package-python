@@ -31,7 +31,7 @@ class OtpBypassToken(WarehouseModel):
     )
 
     # pylint: disable-next=missing-class-docstring
-    class Manager(models.Manager["OtpBypassToken"]):
+    class Manager(WarehouseModel.Manager["OtpBypassToken"]):
         def create(self, token: str, **kwargs):  # type: ignore[override]
             """Create an OTP-bypass token.
 
@@ -79,9 +79,7 @@ class OtpBypassToken(WarehouseModel):
 
             return super().bulk_create(otp_bypass_tokens, *args, **kwargs)
 
-    objects: Manager = Manager.from_queryset(  # type: ignore[misc]
-        WarehouseModel.QuerySet
-    )()  # type: ignore[assignment]
+    objects: Manager = Manager()
 
     user: "_user.User" = models.ForeignKey(  # type: ignore[assignment]
         "user.User",

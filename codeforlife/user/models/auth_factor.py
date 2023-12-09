@@ -16,6 +16,12 @@ from . import user as _user
 class AuthFactor(WarehouseModel):
     """A user's enabled authentication factors."""
 
+    # pylint: disable-next=missing-class-docstring
+    class Manager(WarehouseModel.Manager["AuthFactor"]):
+        pass
+
+    objects: Manager = Manager()
+
     class Type(models.TextChoices):
         """The type of authentication factor."""
 
