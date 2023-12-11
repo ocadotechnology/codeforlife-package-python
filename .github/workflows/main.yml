@@ -54,7 +54,7 @@ jobs:
       - name: 🛫 Checkout
         uses: actions/checkout@v3
         with:
-          token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+          token: ${{ secrets.CFL_BOT_GITHUB_TOKEN }}
           fetch-depth: 0
 
       - name: 🐍 Set up Python
@@ -74,5 +74,5 @@ jobs:
 
       - name: 🚀 Publish Semantic Release
         env:
-          GH_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+          GH_TOKEN: ${{ secrets.CFL_BOT_GITHUB_TOKEN }}
         run: semantic-release publish --verbosity=INFO
