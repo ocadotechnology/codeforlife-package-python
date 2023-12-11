@@ -77,7 +77,6 @@ class Class(WarehouseModel):
     receive_requests_until = models.DateTimeField(
         _("accept student join requests until"),
         null=True,
-        blank=True,
         help_text=_(
             "A point in the future until which the class can receive requests"
             " from students to join. Set to null if it's not accepting"

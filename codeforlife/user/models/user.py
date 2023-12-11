@@ -60,7 +60,7 @@ class User(AbstractBaseUser, WarehouseModel, PermissionsMixin):
                 password=make_password(password),
                 email=email,
             )
-            user.save(using=self._db)
+            user.save(using=self._db, _from_manager=True)
             return user
 
         def create_user(self, password: str, first_name: str, **fields):
@@ -261,3 +261,21 @@ class User(AbstractBaseUser, WarehouseModel, PermissionsMixin):
             return not self.session.session_auth_factors.exists()
         except _session.Session.DoesNotExist:
             return False
+
+    def save(self, *args, **kwargs):
+        if self.id is None and not kwargs.pop("_from_manager", False):
+            raise IntegrityError("Must call create_user instead.")
+
+        if (
+            self.student
+            # pylint: disable-next=no-member
+            and self.student.klass.students.filter(
+                user__first_name=self.first_name
+            ).exists()
+        ):
+            raise IntegrityError(
+                "Another student in the class already has first name"
+                f' "{self.first_name}".'
+            )
+
+        super().save(*args, **kwargs)

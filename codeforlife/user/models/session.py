@@ -34,7 +34,6 @@ class Session(AbstractBaseSession):
     ] = models.OneToOneField(  # type: ignore[assignment]
         "user.User",
         null=True,
-        blank=True,
         on_delete=models.CASCADE,
     )
 

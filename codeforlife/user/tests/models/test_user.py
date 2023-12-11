@@ -21,8 +21,40 @@ class TestUser(ModelTestCase[User]):
     def setUp(self):
         self.klass__AB123 = Class.objects.get(pk="AB123")
         self.school__1 = School.objects.get(pk=1)
+        self.student__1 = Student.objects.get(pk=1)
 
     # TODO: test docstrings.
+
+    def test_save__create(self):
+        """
+        Cannot create a user calling save.
+        """
+
+        with self.assert_raises_integrity_error():
+            User(
+                first_name="first_name",
+                last_name="last_name",
+                email="example@codeforlife.com",
+                password="password",
+            ).save()
+
+    def test_save__first_name__student(self):
+        """
+        Students must have a unique name per class.
+        """
+
+        student = Student.objects.create(
+            auto_gen_password="password",
+            klass=self.student__1.klass,
+            school=self.student__1.school,
+        )
+
+        with self.assert_raises_integrity_error():
+            User.objects.create_user(
+                first_name=self.student__1.user.first_name,
+                password="password",
+                student=student,
+            )
 
     def test_constraints__profile(self):
         """
