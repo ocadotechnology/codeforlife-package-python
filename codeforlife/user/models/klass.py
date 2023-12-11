@@ -59,6 +59,11 @@ class Class(WarehouseModel):
         on_delete=models.CASCADE,
     )
 
+    name = models.CharField(
+        _("name"),
+        max_length=200,
+    )
+
     read_classmates_data = models.BooleanField(
         _("read classmates data"),
         default=False,

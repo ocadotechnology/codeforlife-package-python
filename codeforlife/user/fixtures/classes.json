@@ -4,6 +4,7 @@
     "pk": "AB123",
     "fields": {
       "last_saved_at": "2023-01-01 00:00:00.0+00:00",
+      "name": "Example Class 1",
       "teacher": 1,
       "school": 1
     }
@@ -13,6 +14,7 @@
     "pk": "AB456",
     "fields": {
       "last_saved_at": "2023-01-01 00:00:00.0+00:00",
+      "name": "Example Class 2",
       "teacher": 2,
       "school": 1
     }

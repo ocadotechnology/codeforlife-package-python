@@ -29,8 +29,8 @@ class TestAbstract(ModelTestCase[User]):
     ]
 
     def setUp(self):
-        self.john_doe = User.objects.get(pk=1)
-        self.jane_doe = User.objects.get(pk=2)
+        self.user__1 = User.objects.get(pk=1)
+        self.user__2 = User.objects.get(pk=2)
 
     def test_delete__wait(self):
         """
@@ -39,19 +39,19 @@ class TestAbstract(ModelTestCase[User]):
 
         now = timezone.now()
         with patch.object(timezone, "now", return_value=now) as timezone_now:
-            self.john_doe.delete()
+            self.user__1.delete()
 
             assert timezone_now.call_count == 2
-            assert self.john_doe.delete_after == now + User.delete_wait
-            assert self.john_doe.last_saved_at == now
+            assert self.user__1.delete_after == now + User.delete_wait
+            assert self.user__1.last_saved_at == now
 
     def test_delete__now(self):
         """
         Delete a model now.
         """
 
-        self.john_doe.delete(wait=timedelta())
-        self.assert_does_not_exist(self.john_doe)
+        self.user__1.delete(wait=timedelta())
+        self.assert_does_not_exist(self.user__1)
 
     def test_objects__delete__wait(self):
         """
@@ -62,20 +62,20 @@ class TestAbstract(ModelTestCase[User]):
         with patch.object(timezone, "now", return_value=now) as timezone_now:
             User.objects.filter(
                 pk__in=[
-                    self.john_doe.pk,
-                    self.jane_doe.pk,
+                    self.user__1.pk,
+                    self.user__2.pk,
                 ]
             ).delete()
 
             assert timezone_now.call_count == 2
 
-            self.john_doe.refresh_from_db()
-            assert self.john_doe.delete_after == now + User.delete_wait
-            assert self.john_doe.last_saved_at == now
+            self.user__1.refresh_from_db()
+            assert self.user__1.delete_after == now + User.delete_wait
+            assert self.user__1.last_saved_at == now
 
-            self.jane_doe.refresh_from_db()
-            assert self.jane_doe.delete_after == now + User.delete_wait
-            assert self.jane_doe.last_saved_at == now
+            self.user__2.refresh_from_db()
+            assert self.user__2.delete_after == now + User.delete_wait
+            assert self.user__2.last_saved_at == now
 
     def test_objects__delete__now(self):
         """
@@ -84,13 +84,13 @@ class TestAbstract(ModelTestCase[User]):
 
         User.objects.filter(
             pk__in=[
-                self.john_doe.pk,
-                self.jane_doe.pk,
+                self.user__1.pk,
+                self.user__2.pk,
             ]
         ).delete(wait=timedelta())
 
-        self.assert_does_not_exist(self.john_doe)
-        self.assert_does_not_exist(self.jane_doe)
+        self.assert_does_not_exist(self.user__1)
+        self.assert_does_not_exist(self.user__2)
 
     def test_objects__create(self):
         """
