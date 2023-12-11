@@ -15,4 +15,9 @@ class TestSchool(ModelTestCase[School]):
         Cannot have set a UK county if the country is not set to UK.
         """
 
-        raise NotImplementedError()  # TODO
+        with self.assert_raises_integrity_error():
+            School.objects.create(
+                name="name",
+                country=School.Country.US,
+                uk_county=School.UkCounty.ABERDEEN_CITY,
+            )

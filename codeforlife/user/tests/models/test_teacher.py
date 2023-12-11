@@ -4,11 +4,23 @@ Created on 08/12/2023 at 17:43:11(+00:00).
 """
 
 from ....tests import ModelTestCase
-from ...models import Teacher
+from ...models import Student, Teacher
 
 
 class TestTeacher(ModelTestCase[Teacher]):
     """Tests the Teacher model."""
+
+    fixtures = [
+        "users",
+        "teachers",
+        "schools",
+        "classes",
+        "students",
+    ]
+
+    def setUp(self):
+        self.teacher__1 = Teacher.objects.get(pk=1)
+        self.student__1 = Student.objects.get(pk=1)
 
     def test_objects__create_user(self):
         """
@@ -38,4 +50,4 @@ class TestTeacher(ModelTestCase[Teacher]):
         Get all students from all classes.
         """
 
-        raise NotImplementedError()  # TODO
+        assert list(self.teacher__1.students) == [self.student__1]

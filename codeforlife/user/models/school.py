@@ -31,6 +31,10 @@ class School(WarehouseModel):
     students: QuerySet["_student.Student"]
     classes: QuerySet["_class.Class"]
 
+    # Shortcuts for convenience.
+    Country = Country
+    UkCounty = UkCounty
+
     name = models.CharField(
         _("name"),
         max_length=200,
