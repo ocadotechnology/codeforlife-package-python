@@ -147,5 +147,4 @@ class Student(WarehouseModel):
             The student's class-teacher.
         """
 
-        if self.klass:
-            return self.klass.teacher
+        return self.klass.teacher

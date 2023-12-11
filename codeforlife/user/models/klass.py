@@ -64,6 +64,7 @@ class Class(WarehouseModel):
         max_length=200,
     )
 
+    # TODO: phase out and use django's permission system.
     read_classmates_data = models.BooleanField(
         _("read classmates data"),
         default=False,
@@ -87,3 +88,4 @@ class Class(WarehouseModel):
     class Meta(TypedModelMeta):
         verbose_name = _("class")
         verbose_name_plural = _("classes")
+        unique_together = ["name", "school"]

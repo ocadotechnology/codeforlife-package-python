@@ -119,8 +119,6 @@ class User(AbstractBaseUser, WarehouseModel, PermissionsMixin):
         blank=True,
     )
 
-    # TODO: is last name required for teachers?
-    # TODO: are students allowed to have a last name?
     last_name = models.CharField(
         _("last name"),
         max_length=150,
@@ -198,9 +196,9 @@ class User(AbstractBaseUser, WarehouseModel, PermissionsMixin):
         verbose_name = _("user")
         verbose_name_plural = _("users")
         constraints = [
+            # pylint: disable=unsupported-binary-operation
             models.CheckConstraint(
                 check=(
-                    # pylint: disable-next=unsupported-binary-operation
                     Q(
                         teacher__isnull=True,
                         student__isnull=False,
@@ -218,7 +216,6 @@ class User(AbstractBaseUser, WarehouseModel, PermissionsMixin):
             ),
             models.CheckConstraint(
                 check=(
-                    # pylint: disable-next=unsupported-binary-operation
                     Q(
                         teacher__isnull=False,
                         email__isnull=False,
@@ -235,6 +232,25 @@ class User(AbstractBaseUser, WarehouseModel, PermissionsMixin):
                 ),
                 name="user__email",
             ),
+            models.CheckConstraint(
+                check=(
+                    Q(
+                        teacher__isnull=False,
+                        last_name__isnull=False,
+                    )
+                    | Q(
+                        student__isnull=False,
+                        last_name__isnull=True,
+                    )
+                    | Q(
+                        teacher__isnull=True,
+                        student__isnull=True,
+                        last_name__isnull=False,
+                    )
+                ),
+                name="user__last_name",
+            ),
+            # pylint: enable=unsupported-binary-operation
         ]
 
     @property

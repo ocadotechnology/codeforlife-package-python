@@ -32,6 +32,7 @@ class TestTeacher(ModelTestCase[Teacher]):
         teacher_fields = {"is_admin": True}
         user_fields = {
             "first_name": "first_name",
+            "last_name": "last_name",
             "email": "example@codeforlife.com",
             "password": "password",
         }
@@ -42,6 +43,7 @@ class TestTeacher(ModelTestCase[Teacher]):
         )
 
         assert user.first_name == user_fields["first_name"]
+        assert user.last_name == user_fields["last_name"]
         assert user.email == user_fields["email"]
         assert user.password != user_fields["password"]
         assert user.check_password(user_fields["password"])

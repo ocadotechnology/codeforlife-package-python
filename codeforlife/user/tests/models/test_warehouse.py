@@ -12,7 +12,7 @@ from ....tests import ModelTestCase
 from ...models import User
 
 
-class TestAbstract(ModelTestCase[User]):
+class TestWarehouse(ModelTestCase[User]):
     """
     Tests the abstract model inherited by other models.
 

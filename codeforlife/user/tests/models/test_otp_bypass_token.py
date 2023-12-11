@@ -11,6 +11,7 @@ class TestOtpBypassToken(TestCase):
         self.user = User.objects.get(id=2)
 
     # TODO: test docstrings.
+    # TODO: fix unit tests.
 
     def test_bulk_create(self):
         token = get_random_string(8)

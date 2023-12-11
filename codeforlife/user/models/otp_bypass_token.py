@@ -15,11 +15,10 @@ from django.db import models
 from django.utils.translation import gettext_lazy as _
 from django_stubs_ext.db.models import TypedModelMeta
 
-from ...models import WarehouseModel
 from . import user as _user
 
 
-class OtpBypassToken(WarehouseModel):
+class OtpBypassToken(models.Model):
     """
     A one-time-use token that a user can use to bypass their OTP auth factor.
     Each user has a limited number of OTP-bypass tokens.
@@ -31,7 +30,7 @@ class OtpBypassToken(WarehouseModel):
     )
 
     # pylint: disable-next=missing-class-docstring
-    class Manager(WarehouseModel.Manager["OtpBypassToken"]):
+    class Manager(models.Manager["OtpBypassToken"]):
         def create(self, token: str, **kwargs):  # type: ignore[override]
             """Create an OTP-bypass token.
 

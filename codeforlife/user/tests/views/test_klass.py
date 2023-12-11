@@ -63,3 +63,4 @@ class TestClassViewSet(APITestCase):
         self._retrieve_class(user.student.class_field)
 
     # TODO: other retrieve and list tests
+    # TODO: fix unit tests.

@@ -50,10 +50,10 @@ class Teacher(WarehouseModel):
         "user.School",
         related_name="teachers",
         null=True,
-        editable=False,
         on_delete=models.SET_NULL,
     )
 
+    # TODO: phase out and use django's permission system.
     is_admin = models.BooleanField(
         _("is administrator"),
         default=False,

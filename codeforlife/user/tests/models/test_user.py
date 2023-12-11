@@ -40,6 +40,7 @@ class TestUser(ModelTestCase[User]):
             User.objects.create_user(
                 password="password",
                 first_name="student_and_teacher",
+                last_name="last_name",
                 student=student,
                 teacher=teacher,
             )
@@ -55,6 +56,7 @@ class TestUser(ModelTestCase[User]):
             User.objects.create_user(
                 password="password",
                 first_name="teacher",
+                last_name="last_name",
                 teacher=teacher,
             )
 
@@ -86,6 +88,53 @@ class TestUser(ModelTestCase[User]):
             User.objects.create_user(
                 password="password",
                 first_name="first_name",
+                last_name="last_name",
+            )
+
+    def test_constraints__last_name__teacher(self):
+        """
+        Teachers must have a last name.
+        """
+
+        teacher = Teacher.objects.create()
+
+        with self.assert_raises_integrity_error():
+            User.objects.create_user(
+                password="password",
+                first_name="teacher",
+                email="teacher@codeforlife.com",
+                teacher=teacher,
+            )
+
+    def test_constraints__last_name__students(self):
+        """
+        Students can't have a last name.
+        """
+
+        student = Student.objects.create(
+            auto_gen_password="password",
+            klass=self.klass__AB123,
+            school=self.school__1,
+        )
+
+        with self.assert_raises_integrity_error():
+            User.objects.create_user(
+                password="password",
+                first_name="student",
+                last_name="last_name",
+                student=student,
+            )
+
+    def test_constraints__last_name__indy(self):
+        """
+        Independents must have a last name.
+        """
+
+        with self.assert_raises_integrity_error():
+            User.objects.create_user(
+                password="password",
+                first_name="teacher",
+                email="independent@codeforlife.com",
             )
 
     def test_objects__create(self):
@@ -103,6 +152,7 @@ class TestUser(ModelTestCase[User]):
 
         user_fields = {
             "first_name": "first_name",
+            "last_name": "last_name",
             "email": "example@codeforlife.com",
             "password": "password",
             "teacher": Teacher.objects.create(),
@@ -110,6 +160,7 @@ class TestUser(ModelTestCase[User]):
 
         user = User.objects.create_user(**user_fields)  # type: ignore[arg-type]
         assert user.first_name == user_fields["first_name"]
+        assert user.last_name == user_fields["last_name"]
         assert user.email == user_fields["email"]
         assert user.password != user_fields["password"]
         assert user.check_password(user_fields["password"])
@@ -143,12 +194,14 @@ class TestUser(ModelTestCase[User]):
 
         user_fields = {
             "first_name": "first_name",
+            "last_name": "last_name",
             "email": "example@codeforlife.com",
             "password": "password",
         }
 
         user = User.objects.create_user(**user_fields)
         assert user.first_name == user_fields["first_name"]
+        assert user.last_name == user_fields["last_name"]
         assert user.email == user_fields["email"]
         assert user.password != user_fields["password"]
         assert user.check_password(user_fields["password"])
@@ -160,15 +213,17 @@ class TestUser(ModelTestCase[User]):
 
         user_fields = {
             "first_name": "first_name",
+            "last_name": "last_name",
             "email": "example@codeforlife.com",
             "password": "password",
             "teacher": Teacher.objects.create(),
         }
 
         user = User.objects.create_superuser(
-            **user_fields
-        )  # type: ignore[arg-type]
+            **user_fields  # type: ignore[arg-type]
+        )
         assert user.first_name == user_fields["first_name"]
+        assert user.last_name == user_fields["last_name"]
         assert user.email == user_fields["email"]
         assert user.password != user_fields["password"]
         assert user.check_password(user_fields["password"])
@@ -192,8 +247,8 @@ class TestUser(ModelTestCase[User]):
         }
 
         user = User.objects.create_superuser(
-            **user_fields
-        )  # type: ignore[arg-type]
+            **user_fields  # type: ignore[arg-type]
+        )
         assert user.first_name == user_fields["first_name"]
         assert user.password != user_fields["password"]
         assert user.check_password(user_fields["password"])
@@ -208,12 +263,14 @@ class TestUser(ModelTestCase[User]):
 
         user_fields = {
             "first_name": "first_name",
+            "last_name": "last_name",
             "email": "example@codeforlife.com",
             "password": "password",
         }
 
         user = User.objects.create_superuser(**user_fields)
         assert user.first_name == user_fields["first_name"]
+        assert user.last_name == user_fields["last_name"]
         assert user.email == user_fields["email"]
         assert user.password != user_fields["password"]
         assert user.check_password(user_fields["password"])
