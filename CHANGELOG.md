@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.9.3 (2023-12-11)
+
+### Fix
+
+* Remove requirements sync ([#27](https://github.com/ocadotechnology/codeforlife-package-python/issues/27)) ([`fdc642f`](https://github.com/ocadotechnology/codeforlife-package-python/commit/fdc642f811dfe17a08607bf6030dfb38dabaa44f))
+
 ## v0.9.2 (2023-12-01)
 
 ### Fix
