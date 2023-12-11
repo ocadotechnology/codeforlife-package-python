@@ -264,7 +264,7 @@ class User(AbstractBaseUser, WarehouseModel, PermissionsMixin):
 
     def save(self, *args, **kwargs):
         if self.id is None and not kwargs.pop("_from_manager", False):
-            raise IntegrityError("Must call create_user instead.")
+            raise IntegrityError("Must call create_user from manager instead.")
 
         if (
             self.student
