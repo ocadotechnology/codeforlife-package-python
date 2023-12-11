@@ -10,6 +10,8 @@ from ...models import Class
 class TestClass(ModelTestCase[Class]):
     """Tests the Class model."""
 
+    # TODO: test docstrings.
+
     def test_id__validators__regex(self):
         """
         Check the regex validation of a class' ID.

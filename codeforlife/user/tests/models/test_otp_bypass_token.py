@@ -10,6 +10,8 @@ class TestOtpBypassToken(TestCase):
     def setUp(self):
         self.user = User.objects.get(id=2)
 
+    # TODO: test docstrings.
+
     def test_bulk_create(self):
         token = get_random_string(8)
         otp_bypass_tokens = OtpBypassToken.objects.bulk_create(

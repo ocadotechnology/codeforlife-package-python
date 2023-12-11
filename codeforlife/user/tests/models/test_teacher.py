@@ -22,6 +22,8 @@ class TestTeacher(ModelTestCase[Teacher]):
         self.teacher__1 = Teacher.objects.get(pk=1)
         self.student__1 = Student.objects.get(pk=1)
 
+    # TODO: test docstrings.
+
     def test_objects__create_user(self):
         """
         Create a user with a teacher profile.

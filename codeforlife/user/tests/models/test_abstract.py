@@ -32,6 +32,8 @@ class TestAbstract(ModelTestCase[User]):
         self.user__1 = User.objects.get(pk=1)
         self.user__2 = User.objects.get(pk=2)
 
+    # TODO: test docstrings.
+
     def test_delete__wait(self):
         """
         Set a model's deletion schedule.

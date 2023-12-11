@@ -10,6 +10,8 @@ from ...models import School
 class TestSchool(ModelTestCase[School]):
     """Tests the School model."""
 
+    # TODO: test docstrings.
+
     def test_constraints__no_uk_county_if_country_not_uk(self):
         """
         Cannot have set a UK county if the country is not set to UK.

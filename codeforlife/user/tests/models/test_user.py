@@ -22,6 +22,8 @@ class TestUser(ModelTestCase[User]):
         self.klass__AB123 = Class.objects.get(pk="AB123")
         self.school__1 = School.objects.get(pk=1)
 
+    # TODO: test docstrings.
+
     def test_constraints__profile(self):
         """
         Cannot be a student and a teacher.
