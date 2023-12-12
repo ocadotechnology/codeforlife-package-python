@@ -44,6 +44,7 @@ class Teacher(WarehouseModel):
     user: "_user.User"
     classes: QuerySet["_class.Class"]
 
+    school_id: t.Optional[int]
     school: t.Optional[
         "_school.School"
     ] = models.ForeignKey(  # type: ignore[assignment]

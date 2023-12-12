@@ -80,6 +80,7 @@ class OtpBypassToken(models.Model):
 
     objects: Manager = Manager()
 
+    user_id: int
     user: "_user.User" = models.ForeignKey(  # type: ignore[assignment]
         "user.User",
         related_name="otp_bypass_tokens",

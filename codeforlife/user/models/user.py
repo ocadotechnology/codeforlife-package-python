@@ -174,6 +174,7 @@ class User(AbstractBaseUser, WarehouseModel, PermissionsMixin):
         ),
     )
 
+    teacher_id: t.Optional[int]
     teacher: t.Optional[
         "_teacher.Teacher"
     ] = models.OneToOneField(  # type: ignore[assignment]
@@ -183,6 +184,7 @@ class User(AbstractBaseUser, WarehouseModel, PermissionsMixin):
         on_delete=models.CASCADE,
     )
 
+    student_id: t.Optional[int]
     student: t.Optional[
         "_student.Student"
     ] = models.OneToOneField(  # type: ignore[assignment]
