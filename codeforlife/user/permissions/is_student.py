@@ -19,8 +19,8 @@ class IsStudent(BasePermission):
         """Initialize permission.
 
         Args:
-            student_id: A student's ID. If passed, the user must be this
-                student.
+            student_id: A student's ID. If None, check if the user is any
+                student. Else, check if the user is the specific student.
         """
 
         super().__init__()
