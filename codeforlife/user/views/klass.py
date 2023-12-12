@@ -2,7 +2,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.viewsets import ModelViewSet
 
 from ..models import Class, User
-from ..permissions import IsSchoolMember
+from ..permissions import InSchool
 from ..serializers import ClassSerializer
 
 
@@ -10,7 +10,7 @@ class ClassViewSet(ModelViewSet):
     http_method_names = ["get"]
     lookup_field = "access_code"
     serializer_class = ClassSerializer
-    permission_classes = [IsAuthenticated, IsSchoolMember]
+    permission_classes = [IsAuthenticated, InSchool]
 
     def get_queryset(self):
         user: User = self.request.user
