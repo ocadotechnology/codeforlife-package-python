@@ -4,7 +4,7 @@ from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 
 from ....tests import APIClient, APITestCase
-from ...models import Class, School, Student, Teacher, User, UserProfile
+from ...models import Class, School, Student, Teacher, User
 from ...serializers import UserSerializer
 from ...views import UserViewSet
 
@@ -17,49 +17,14 @@ class TestUserViewSet(APITestCase):
     action: The view set action.
         https://www.django-rest-framework.org/api-guide/viewsets/#viewset-actions
     """
-
-    # TODO: replace this setup with data fixtures.
-    def setUp(self):
-        school = School.objects.create(
-            name="ExampleSchool",
-            country="UK",
-        )
-
-        user = User.objects.create(
-            first_name="Example",
-            last_name="Teacher",
-            email="example.teacher@codeforlife.com",
-            username="example.teacher@codeforlife.com",
-        )
-
-        user_profile = UserProfile.objects.create(user=user)
-
-        teacher = Teacher.objects.create(
-            user=user_profile,
-            new_user=user,
-            school=school,
-        )
-
-        klass = Class.objects.create(
-            name="ExampleClass",
-            teacher=teacher,
-            created_by=teacher,
-        )
-
-        user = User.objects.create(
-            first_name="Example",
-            last_name="Student",
-            email="example.student@codeforlife.com",
-            username="example.student@codeforlife.com",
-        )
-
-        user_profile = UserProfile.objects.create(user=user)
-
-        Student.objects.create(
-            class_field=klass,
-            user=user_profile,
-            new_user=user,
-        )
+  
+    fixtures = [
+        "users",
+        "teachers",
+        "schools",
+        "classes",
+        "students",
+    ]
 
     def _login_teacher(self):
         return self.client.login_teacher(
