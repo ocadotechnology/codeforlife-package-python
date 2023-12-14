@@ -45,6 +45,7 @@ class TestSchoolViewSet(APITestCase):
             password="Password1",
         )
 
+    # pylint: disable-next=pointless-string-statement
     """
     Retrieve naming convention:
         test_retrieve__{user_type}__{same_school}
@@ -137,6 +138,7 @@ class TestSchoolViewSet(APITestCase):
             status_code_assertion=status.HTTP_404_NOT_FOUND,
         )
 
+    # pylint: disable-next=pointless-string-statement
     """
     List naming convention:
         test_list__{user_type}
@@ -189,6 +191,7 @@ class TestSchoolViewSet(APITestCase):
 
         self._list_schools([user.student.class_field.teacher.school])
 
+    # pylint: disable-next=pointless-string-statement
     """
     General tests that apply to all actions.
     """
