@@ -6,6 +6,7 @@ from ..permissions import InSchool
 from ..serializers import ClassSerializer
 
 
+# pylint: disable-next=missing-class-docstring,too-many-ancestors
 class ClassViewSet(ModelViewSet):
     http_method_names = ["get"]
     lookup_field = "access_code"

@@ -38,8 +38,9 @@ class APIClient(_APIClient):
         status_code_assertion: StatusCodeAssertion = None,
         **extra,
     ):
-        wsgi_response = super().generic(
-            method, path, data, content_type, secure, **extra
+        response = t.cast(
+            Response,
+            super().generic(method, path, data, content_type, secure, **extra),
         )
 
         # Use a custom kwarg to handle the common case of checking the
@@ -49,13 +50,18 @@ class APIClient(_APIClient):
         elif isinstance(status_code_assertion, int):
             expected_status_code = status_code_assertion
             status_code_assertion = (
-                lambda status_code: status_code == expected_status_code
+                # pylint: disable-next=unnecessary-lambda-assignment
+                lambda status_code: status_code
+                == expected_status_code
             )
-        assert status_code_assertion(
-            wsgi_response.status_code
-        ), f"Unexpected status code: {wsgi_response.status_code}."
 
-        return wsgi_response
+        # pylint: disable=no-member
+        assert status_code_assertion(
+            response.status_code
+        ), f"Unexpected status code: {response.status_code}."
+        # pylint: enable=no-member
+
+        return response
 
     def login(self, **credentials):
         assert super().login(

@@ -6,6 +6,7 @@ from ..permissions import InSchool
 from ..serializers import SchoolSerializer
 
 
+# pylint: disable-next=missing-class-docstring,too-many-ancestors
 class SchoolViewSet(ModelViewSet):
     http_method_names = ["get"]
     serializer_class = SchoolSerializer

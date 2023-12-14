@@ -28,15 +28,15 @@ class TestUserViewSet(APITestCase):
 
     def _login_teacher(self):
         return self.client.login_teacher(
-            email="maxplanck@codeforlife.com",
-            password="Password1",
+            email="jane.doe@codeforlife.com",
+            password="password",
             is_admin=False,
         )
 
     def _login_admin_teacher(self):
         return self.client.login_teacher(
-            email="alberteinstein@codeforlife.com",
-            password="Password1",
+            email="john.doe@codeforlife.com",
+            password="password",
             is_admin=True,
         )
 

@@ -120,7 +120,7 @@ class OtpBypassToken(models.Model):
             A boolean designating if the token is matches.
         """
 
-        if not self.delete_after and check_password(token, self.token):
+        if check_password(token, self.token):
             self.delete()
             return True
         return False

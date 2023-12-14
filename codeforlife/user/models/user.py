@@ -260,7 +260,10 @@ class User(AbstractBaseUser, WarehouseModel, PermissionsMixin):
         """Check if the user has any pending auth factors."""
 
         try:
-            return not self.session.session_auth_factors.exists()
+            return (
+                self.is_active
+                and not self.session.session_auth_factors.exists()
+            )
         except _session.Session.DoesNotExist:
             return False
 

@@ -88,7 +88,7 @@ class WarehouseModel(Model):
             )
 
         def filter(self, *args, **kwargs):
-            """A stub that return our custom queryset."""
+            """A stub that returns our custom queryset."""
 
             return t.cast(
                 WarehouseModel.QuerySet,
@@ -96,7 +96,7 @@ class WarehouseModel(Model):
             )
 
         def exclude(self, *args, **kwargs):
-            """A stub that return our custom queryset."""
+            """A stub that returns our custom queryset."""
 
             return t.cast(
                 WarehouseModel.QuerySet,
@@ -104,11 +104,19 @@ class WarehouseModel(Model):
             )
 
         def all(self):
-            """A stub that return our custom queryset."""
+            """A stub that returns our custom queryset."""
 
             return t.cast(
                 WarehouseModel.QuerySet,
                 super().all(),
+            )
+
+        def none(self):
+            """A stub that returns our custom queryset."""
+
+            return t.cast(
+                WarehouseModel.QuerySet,
+                super().none(),
             )
 
     objects: Manager = Manager()
