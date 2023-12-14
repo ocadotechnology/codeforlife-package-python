@@ -1,10 +1,15 @@
+"""
+© Ocado Group
+Created on 14/12/2023 at 14:05:48(+00:00).
+"""
+
 import typing as t
 
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 
 from ....tests import APIClient, APITestCase
-from ...models import Class, School, Student, Teacher, User
+from ...models import User
 from ...serializers import UserSerializer
 from ...views import UserViewSet
 
@@ -17,7 +22,7 @@ class TestUserViewSet(APITestCase):
     action: The view set action.
         https://www.django-rest-framework.org/api-guide/viewsets/#viewset-actions
     """
-  
+
     fixtures = [
         "users",
         "teachers",

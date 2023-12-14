@@ -1,3 +1,8 @@
+"""
+© Ocado Group
+Created on 14/12/2023 at 14:06:05(+00:00).
+"""
+
 from rest_framework.viewsets import ModelViewSet
 
 from ..filters import UserFilterSet
