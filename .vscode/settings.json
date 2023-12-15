@@ -23,6 +23,7 @@
         "--load-plugins=pylint_django"
     ],
     "python.testing.pytestArgs": [
+        "-n=auto",
         "-c=pyproject.toml",
         "."
     ],
