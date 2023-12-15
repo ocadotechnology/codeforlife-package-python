@@ -27,7 +27,7 @@ jobs:
 
   docs:
     runs-on: ubuntu-latest
-    # needs: [test]
+    # needs: [test] TODO
     steps:
       - uses: ocadotechnology/codeforlife-workspace/.github/actions/python/docs@actions # TODO: use @main
 
