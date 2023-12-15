@@ -239,6 +239,20 @@ class User(AbstractBaseUser, WarehouseModel, PermissionsMixin):
                 ),
                 name="user__last_name",
             ),
+            models.CheckConstraint(
+                check=~Q(
+                    student__isnull=False,
+                    is_staff=True,
+                ),
+                name="user__is_staff",
+            ),
+            models.CheckConstraint(
+                check=~Q(
+                    student__isnull=False,
+                    is_superuser=True,
+                ),
+                name="user__is_superuser",
+            ),
             # pylint: enable=unsupported-binary-operation
         ]
 
