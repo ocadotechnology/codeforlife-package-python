@@ -14,22 +14,24 @@ env:
   PYTHON_VERSION: 3.8
 
 jobs:
-  # test:
-  #   runs-on: ubuntu-latest
-  #   strategy:
-  #     fail-fast: false
-  #     matrix:
-  #       python-version: [3.8]
-  #   steps:
-  #     - uses: ocadotechnology/codeforlife-workspace/.github/actions/python/test@actions # TODO: use @main
-  #       with:
-  #         python-version: ${{ matrix.python-version }}
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: [3.8]
+    steps:
+      - uses: ocadotechnology/codeforlife-workspace/.github/actions/python/test@main
+        with:
+          python-version: ${{ matrix.python-version }}
 
   docs:
     runs-on: ubuntu-latest
-    # needs: [test] TODO
+    needs: [test]
     steps:
-      - uses: ocadotechnology/codeforlife-workspace/.github/actions/python/docs@actions # TODO: use @main
+      - uses: ocadotechnology/codeforlife-workspace/.github/actions/python/docs@main
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
 
   release:
     concurrency: release
@@ -53,10 +55,7 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install python-semantic-release~=7.33
 
-      - name: ⚙️ Configure Git
-        run: |
-          git config --local user.name cfl-bot
-          git config --local user.email codeforlife-bot@ocado.com
+      - uses: ocadotechnology/codeforlife-workspace/.github/actions/git/setup-bot@main
 
       - name: 🚀 Publish Semantic Release
         env:
