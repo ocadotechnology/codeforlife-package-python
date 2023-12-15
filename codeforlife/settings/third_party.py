@@ -23,3 +23,16 @@ REST_FRAMEWORK = {
     ],
     "DEFAULT_PAGINATION_CLASS": "codeforlife.pagination.LimitOffsetPagination",
 }
+
+# Django Extensions - Graph Models
+# https://django-extensions.readthedocs.io/en/latest/graph_models.html?highlight=graph_models#default-settings
+
+GRAPH_MODELS = {
+    "all_applications": True,
+    "group_models": True,
+    "pygraphviz": True,
+    "output": "docs/entity_relationship_diagram.png",
+    "arrow_shape": "normal",
+    "color_code_deletions": True,
+    "rankdir": "BT",
+}

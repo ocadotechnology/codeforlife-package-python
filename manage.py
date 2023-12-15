@@ -13,6 +13,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "django.contrib.sites",
     "codeforlife.user",
+    "django_extensions",
 ]
 
 MIDDLEWARE = [

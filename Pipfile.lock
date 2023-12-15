@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "860196ab795a6de76b8a385ea76f4b38f982839b4aa23ea3b16248af01b555a7"
+            "sha256": "ce73cbc4b15764c1ed7c7500fa602482a32a541d7619ad6a89cae58d1493f7b2"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -555,11 +555,11 @@
         },
         "isort": {
             "hashes": [
-                "sha256:56a51732c25f94ca96f6721be206dd96a95f42950502eb26c1015d333bc6edb7",
-                "sha256:aaed790b463e8703fb1eddb831dfa8e8616bacde2c083bd557ef73c8189b7263"
+                "sha256:48fdfcb9face5d58a4f6dde2e72a1fb8dcaf8ab26f95ab49fab84c2ddefb0109",
+                "sha256:8ca5e72a8d85860d5a3fa69b8745237f2939afe12dbf656afbcb47fe72d947a6"
             ],
             "markers": "python_full_version >= '3.8.0'",
-            "version": "==5.13.1"
+            "version": "==5.13.2"
         },
         "mccabe": {
             "hashes": [
@@ -649,6 +649,13 @@
             ],
             "index": "pypi",
             "version": "==1.4.2"
+        },
+        "pygraphviz": {
+            "hashes": [
+                "sha256:a97eb5ced266f45053ebb1f2c6c6d29091690503e3a5c14be7f908b37b06f2d4"
+            ],
+            "index": "pypi",
+            "version": "==1.11"
         },
         "pylint": {
             "hashes": [
