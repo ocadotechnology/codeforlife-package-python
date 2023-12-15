@@ -165,8 +165,42 @@ class TestUser(ModelTestCase[User]):
         with self.assert_raises_integrity_error():
             User.objects.create_user(
                 password="password",
-                first_name="teacher",
+                first_name="Indiana",
                 email="independent@codeforlife.com",
+            )
+
+    def test_constraints__is_staff(self):
+        """
+        Students cannot be a staff user.
+        """
+
+        with self.assert_raises_integrity_error():
+            User.objects.create_user(
+                first_name="Indiana",
+                password="password",
+                student=Student.objects.create(
+                    auto_gen_password="password",
+                    klass=self.klass__AB123,
+                    school=self.school__1,
+                ),
+                is_staff=True,
+            )
+
+    def test_constraints__is_superuser(self):
+        """
+        Students cannot be a super user.
+        """
+
+        with self.assert_raises_integrity_error():
+            User.objects.create_user(
+                first_name="Indiana",
+                password="password",
+                student=Student.objects.create(
+                    auto_gen_password="password",
+                    klass=self.klass__AB123,
+                    school=self.school__1,
+                ),
+                is_superuser=True,
             )
 
     def test_objects__create(self):
@@ -260,31 +294,6 @@ class TestUser(ModelTestCase[User]):
         assert user.password != user_fields["password"]
         assert user.check_password(user_fields["password"])
         assert user.teacher == user_fields["teacher"]
-        assert user.is_staff
-        assert user.is_superuser
-
-    def test_objects__create_superuser__student(self):
-        """
-        Create a student super user.
-        """
-
-        user_fields = {
-            "first_name": "first_name",
-            "password": "password",
-            "student": Student.objects.create(
-                auto_gen_password="password",
-                klass=self.klass__AB123,
-                school=self.school__1,
-            ),
-        }
-
-        user = User.objects.create_superuser(
-            **user_fields  # type: ignore[arg-type]
-        )
-        assert user.first_name == user_fields["first_name"]
-        assert user.password != user_fields["password"]
-        assert user.check_password(user_fields["password"])
-        assert user.student == user_fields["student"]
         assert user.is_staff
         assert user.is_superuser
 

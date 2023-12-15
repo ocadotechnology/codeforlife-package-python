@@ -48,7 +48,7 @@ class WarehouseModel(Model):
                 last_saved_at: When these models were last modified.
 
             Returns:
-                The number of models updated.
+                The number of models matched.
             """
 
             kwargs["last_saved_at"] = timezone.now()

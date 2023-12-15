@@ -51,6 +51,7 @@ class Teacher(WarehouseModel):
         "user.School",
         related_name="teachers",
         null=True,
+        blank=True,
         on_delete=models.SET_NULL,
     )
 
@@ -73,6 +74,4 @@ class Teacher(WarehouseModel):
             A queryset
         """
 
-        return _student.Student.objects.filter(
-            klass_id__in=list(self.classes.values_list("id", flat=True)),
-        )
+        return _student.Student.objects.filter(klass__in=self.classes.all())
