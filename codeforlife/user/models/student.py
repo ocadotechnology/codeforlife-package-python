@@ -69,10 +69,10 @@ class Student(WarehouseModel):
             """Create a user with a student profile.
 
             Args:
-                user: The user fields.
+                student: The student fields.
 
             Returns:
-                A student profile.
+                A user with a student profile.
             """
 
             return _user.User.objects.create_user(
@@ -94,7 +94,7 @@ class Student(WarehouseModel):
                     profile belongs to.
 
             Returns:
-                A list of users that have been assigned their student profile.
+                A list of users with a student profile.
             """
 
             students = [student for (student, _) in student_users]
@@ -141,7 +141,7 @@ class Student(WarehouseModel):
 
     @property
     def teacher(self):
-        """The student's teacher (if they have one).
+        """The student's teacher.
 
         Returns:
             The student's class-teacher.

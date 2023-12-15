@@ -65,10 +65,7 @@ class OtpBypassToken(models.Model):
             for user_id, group in groupby(otp_bypass_tokens, key=key):
                 if (
                     len(list(group))
-                    + OtpBypassToken.objects.filter(
-                        user_id=user_id,
-                        delete_after__isnull=True,
-                    ).count()
+                    + OtpBypassToken.objects.filter(user_id=user_id).count()
                     > OtpBypassToken.max_count
                 ):
                     raise OtpBypassToken.max_count_validation_error
@@ -99,10 +96,7 @@ class OtpBypassToken(models.Model):
     def save(self, *args, **kwargs):
         if self.id is None:
             if (
-                OtpBypassToken.objects.filter(
-                    user=self.user,
-                    delete_after__isnull=True,
-                ).count()
+                OtpBypassToken.objects.filter(user=self.user).count()
                 >= OtpBypassToken.max_count
             ):
                 raise OtpBypassToken.max_count_validation_error
@@ -116,10 +110,10 @@ class OtpBypassToken(models.Model):
             token: Token to check.
 
         Returns:
-            A boolean designating if the token is matches.
+            A boolean designating if the token matches.
         """
 
-        if not self.delete_after and check_password(token, self.token):
+        if check_password(token, self.token):
             self.delete()
             return True
         return False

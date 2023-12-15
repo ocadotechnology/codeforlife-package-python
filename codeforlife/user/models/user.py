@@ -32,7 +32,7 @@ from . import teacher as _teacher
 class User(AbstractBaseUser, WarehouseModel, PermissionsMixin):
     """A user within the CFL system."""
 
-    USERNAME_FIELD = "email"
+    USERNAME_FIELD = "id"
 
     class Manager(BaseUserManager["User"], WarehouseModel.Manager["User"]):
         """
@@ -116,7 +116,6 @@ class User(AbstractBaseUser, WarehouseModel, PermissionsMixin):
     first_name = models.CharField(
         _("first name"),
         max_length=150,
-        blank=True,
     )
 
     last_name = models.CharField(
