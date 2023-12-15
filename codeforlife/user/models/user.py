@@ -125,6 +125,13 @@ class User(AbstractBaseUser, WarehouseModel, PermissionsMixin):
         blank=True,
     )
 
+    middle_name = models.CharField(
+        _("middle name"),
+        max_length=150,
+        null=True,
+        blank=True,
+    )
+
     email = models.EmailField(
         _("email address"),
         unique=True,
