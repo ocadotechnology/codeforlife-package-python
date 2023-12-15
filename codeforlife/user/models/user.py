@@ -197,19 +197,9 @@ class User(AbstractBaseUser, WarehouseModel, PermissionsMixin):
         constraints = [
             # pylint: disable=unsupported-binary-operation
             models.CheckConstraint(
-                check=(
-                    Q(
-                        teacher__isnull=True,
-                        student__isnull=False,
-                    )
-                    | Q(
-                        teacher__isnull=False,
-                        student__isnull=True,
-                    )
-                    | Q(
-                        teacher__isnull=True,
-                        student__isnull=True,
-                    )
+                check=~Q(
+                    teacher__isnull=False,
+                    student__isnull=False,
                 ),
                 name="user__profile",
             ),
