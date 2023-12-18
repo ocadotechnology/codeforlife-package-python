@@ -19,6 +19,7 @@ class TestClassViewSet(APITestCase):
             password="Password1",
         )
 
+    # pylint: disable-next=pointless-string-statement
     """
     Retrieve naming convention:
         test_retrieve__{user_type}__{same_school}__{in_class}

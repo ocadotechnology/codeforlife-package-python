@@ -1,7 +1,5 @@
 import typing as t
 
-from common.helpers.generators import get_hashed_login_id
-from common.models import Student
 from django.contrib.auth.backends import BaseBackend
 
 from ....request import WSGIRequest

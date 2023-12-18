@@ -2,14 +2,15 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.viewsets import ModelViewSet
 
 from ..models import School, User
-from ..permissions import IsSchoolMember
+from ..permissions import InSchool
 from ..serializers import SchoolSerializer
 
 
+# pylint: disable-next=missing-class-docstring,too-many-ancestors
 class SchoolViewSet(ModelViewSet):
     http_method_names = ["get"]
     serializer_class = SchoolSerializer
-    permission_classes = [IsAuthenticated, IsSchoolMember]
+    permission_classes = [IsAuthenticated, InSchool]
 
     def get_queryset(self):
         user: User = self.request.user

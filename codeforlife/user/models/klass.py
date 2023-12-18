@@ -47,12 +47,14 @@ class Class(WarehouseModel):
         ],
     )
 
+    teacher_id: int
     teacher: "_teacher.Teacher" = models.ForeignKey(  # type: ignore[assignment]
         "user.Teacher",
         related_name="classes",
         on_delete=models.CASCADE,
     )
 
+    school_id: int
     school: "_school.School" = models.ForeignKey(  # type: ignore[assignment]
         "user.School",
         related_name="classes",

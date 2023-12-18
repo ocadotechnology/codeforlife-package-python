@@ -19,12 +19,14 @@ class SessionAuthFactor(models.Model):
     pending, the user is not authenticated.
     """
 
+    session_id: int
     session: "_session.Session" = models.ForeignKey(  # type: ignore[assignment]
         "user.Session",
         related_name="session_auth_factors",
         on_delete=models.CASCADE,
     )
 
+    auth_factor_id: int
     auth_factor: "_auth_factor.AuthFactor" = (
         models.ForeignKey(  # type: ignore[assignment]
             "user.AuthFactor",

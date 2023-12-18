@@ -111,6 +111,7 @@ class Student(WarehouseModel):
 
     user: "_user.User"
 
+    school_id: int
     school: "_school.School" = models.ForeignKey(  # type: ignore[assignment]
         "user.School",
         related_name="students",
@@ -118,6 +119,7 @@ class Student(WarehouseModel):
         on_delete=models.CASCADE,
     )
 
+    klass_id: str
     klass: "_class.Class" = models.ForeignKey(  # type: ignore[assignment]
         "user.Class",
         related_name="students",

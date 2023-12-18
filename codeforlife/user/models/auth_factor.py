@@ -27,6 +27,7 @@ class AuthFactor(WarehouseModel):
 
         OTP = "otp", _("one-time password")
 
+    user_id: int
     user: "_user.User" = models.ForeignKey(  # type: ignore[assignment]
         "user.User",
         related_name="auth_factors",

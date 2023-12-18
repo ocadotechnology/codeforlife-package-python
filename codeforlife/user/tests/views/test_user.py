@@ -1,10 +1,15 @@
+"""
+© Ocado Group
+Created on 14/12/2023 at 14:05:48(+00:00).
+"""
+
 import typing as t
 
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 
 from ....tests import APIClient, APITestCase
-from ...models import Class, School, Student, Teacher, User, UserProfile
+from ...models import User
 from ...serializers import UserSerializer
 from ...views import UserViewSet
 
@@ -18,60 +23,25 @@ class TestUserViewSet(APITestCase):
         https://www.django-rest-framework.org/api-guide/viewsets/#viewset-actions
     """
 
-    # TODO: replace this setup with data fixtures.
-    def setUp(self):
-        school = School.objects.create(
-            name="ExampleSchool",
-            country="UK",
-        )
-
-        user = User.objects.create(
-            first_name="Example",
-            last_name="Teacher",
-            email="example.teacher@codeforlife.com",
-            username="example.teacher@codeforlife.com",
-        )
-
-        user_profile = UserProfile.objects.create(user=user)
-
-        teacher = Teacher.objects.create(
-            user=user_profile,
-            new_user=user,
-            school=school,
-        )
-
-        klass = Class.objects.create(
-            name="ExampleClass",
-            teacher=teacher,
-            created_by=teacher,
-        )
-
-        user = User.objects.create(
-            first_name="Example",
-            last_name="Student",
-            email="example.student@codeforlife.com",
-            username="example.student@codeforlife.com",
-        )
-
-        user_profile = UserProfile.objects.create(user=user)
-
-        Student.objects.create(
-            class_field=klass,
-            user=user_profile,
-            new_user=user,
-        )
+    fixtures = [
+        "users",
+        "teachers",
+        "schools",
+        "classes",
+        "students",
+    ]
 
     def _login_teacher(self):
         return self.client.login_teacher(
-            email="maxplanck@codeforlife.com",
-            password="Password1",
+            email="jane.doe@codeforlife.com",
+            password="password",
             is_admin=False,
         )
 
     def _login_admin_teacher(self):
         return self.client.login_teacher(
-            email="alberteinstein@codeforlife.com",
-            password="Password1",
+            email="john.doe@codeforlife.com",
+            password="password",
             is_admin=True,
         )
 
@@ -87,6 +57,7 @@ class TestUserViewSet(APITestCase):
             password="Password1",
         )
 
+    # pylint: disable-next=pointless-string-statement
     """
     Retrieve naming convention:
         test_retrieve__{user_type}__{other_user_type}__{same_school}__{same_class}
@@ -466,6 +437,7 @@ class TestUserViewSet(APITestCase):
             status_code_assertion=status.HTTP_404_NOT_FOUND,
         )
 
+    # pylint: disable-next=pointless-string-statement
     """
     List naming convention:
         test_list__{user_type}__{filters}
@@ -540,6 +512,7 @@ class TestUserViewSet(APITestCase):
 
         self._list_users([user])
 
+    # pylint: disable-next=pointless-string-statement
     """
     General tests that apply to all actions.
     """

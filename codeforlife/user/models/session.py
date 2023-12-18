@@ -29,6 +29,7 @@ class Session(AbstractBaseSession):
 
     session_auth_factors: QuerySet["_session_auth_factor.SessionAuthFactor"]
 
+    user_id: t.Optional[int]
     user: t.Optional[
         "_user.User"
     ] = models.OneToOneField(  # type: ignore[assignment]

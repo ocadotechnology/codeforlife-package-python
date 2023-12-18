@@ -1,3 +1,8 @@
+"""
+© Ocado Group
+Created on 14/12/2023 at 14:06:05(+00:00).
+"""
+
 from rest_framework.viewsets import ModelViewSet
 
 from ..filters import UserFilterSet
@@ -5,33 +10,39 @@ from ..models import User
 from ..serializers import UserSerializer
 
 
+# pylint: disable-next=missing-class-docstring,too-many-ancestors
 class UserViewSet(ModelViewSet):
     http_method_names = ["get"]
     serializer_class = UserSerializer
     filterset_class = UserFilterSet
 
     def get_queryset(self):
-        user: User = self.request.user
-        if user.is_student:
-            if user.student.class_field is None:
-                return User.objects.filter(id=user.id)
+        user = self.request.user
+        if not isinstance(user, User):
+            return User.objects.none()
 
-            return User.objects.filter(
-                new_student__class_field=user.student.class_field
-            )
+        if user.student is not None:
+            return User.objects.filter(student__klass_id=user.student.klass_id)
 
-        teachers = User.objects.filter(
-            new_teacher__school=user.teacher.school_id
-        )
-        students = (
-            User.objects.filter(
-                # TODO: add school foreign key to student model.
-                new_student__class_field__teacher__school=user.teacher.school_id,
-            )
-            if user.teacher.is_admin
-            else User.objects.filter(
-                new_student__class_field__teacher=user.teacher
-            )
-        )
+        if user.teacher is not None:
+            teachers = User.objects.none()
+            students = User.objects.none()
 
-        return teachers | students
+            if user.teacher.school_id is not None:
+                teachers = User.objects.filter(
+                    teacher__school_id=user.teacher.school_id
+                )
+
+                students = (
+                    User.objects.filter(
+                        student__school_id=user.teacher.school_id
+                    )
+                    if user.teacher.is_admin
+                    else User.objects.filter(
+                        student__klass__teacher=user.teacher
+                    )
+                )
+
+            return teachers | students
+
+        return User.objects.filter(id=user.id)

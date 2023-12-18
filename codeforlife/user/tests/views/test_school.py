@@ -4,7 +4,7 @@ from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 
 from ....tests import APIClient, APITestCase
-from ...models import Class, School, Student, Teacher, User, UserProfile
+from ...models import Class, School, Student, Teacher, User
 from ...serializers import SchoolSerializer
 from ...views import SchoolViewSet
 
@@ -18,48 +18,13 @@ class TestSchoolViewSet(APITestCase):
         https://www.django-rest-framework.org/api-guide/viewsets/#viewset-actions
     """
 
-    # TODO: replace this setup with data fixtures.
-    def setUp(self):
-        school = School.objects.create(
-            name="ExampleSchool",
-            country="UK",
-        )
-
-        user = User.objects.create(
-            first_name="Example",
-            last_name="Teacher",
-            email="example.teacher@codeforlife.com",
-            username="example.teacher@codeforlife.com",
-        )
-
-        user_profile = UserProfile.objects.create(user=user)
-
-        teacher = Teacher.objects.create(
-            user=user_profile,
-            new_user=user,
-            school=school,
-        )
-
-        klass = Class.objects.create(
-            name="ExampleClass",
-            teacher=teacher,
-            created_by=teacher,
-        )
-
-        user = User.objects.create(
-            first_name="Example",
-            last_name="Student",
-            email="example.student@codeforlife.com",
-            username="example.student@codeforlife.com",
-        )
-
-        user_profile = UserProfile.objects.create(user=user)
-
-        Student.objects.create(
-            class_field=klass,
-            user=user_profile,
-            new_user=user,
-        )
+    fixtures = [
+        "users",
+        "teachers",
+        "schools",
+        "classes",
+        "students",
+    ]
 
     def _login_teacher(self):
         return self.client.login_teacher(
@@ -80,6 +45,7 @@ class TestSchoolViewSet(APITestCase):
             password="Password1",
         )
 
+    # pylint: disable-next=pointless-string-statement
     """
     Retrieve naming convention:
         test_retrieve__{user_type}__{same_school}
@@ -172,6 +138,7 @@ class TestSchoolViewSet(APITestCase):
             status_code_assertion=status.HTTP_404_NOT_FOUND,
         )
 
+    # pylint: disable-next=pointless-string-statement
     """
     List naming convention:
         test_list__{user_type}
@@ -224,6 +191,7 @@ class TestSchoolViewSet(APITestCase):
 
         self._list_schools([user.student.class_field.teacher.school])
 
+    # pylint: disable-next=pointless-string-statement
     """
     General tests that apply to all actions.
     """
