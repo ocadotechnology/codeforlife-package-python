@@ -21,14 +21,14 @@ class UserViewSet(ModelViewSet):
         if not isinstance(user, User):
             return User.objects.none()
 
-        if user.student:
+        if user.student is not None:
             return User.objects.filter(student__klass_id=user.student.klass_id)
 
-        if user.teacher:
+        if user.teacher is not None:
             teachers = User.objects.none()
             students = User.objects.none()
 
-            if user.teacher.school_id:
+            if user.teacher.school_id is not None:
                 teachers = User.objects.filter(
                     teacher__school_id=user.teacher.school_id
                 )
