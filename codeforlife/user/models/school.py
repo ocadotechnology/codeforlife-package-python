@@ -66,7 +66,7 @@ class School(WarehouseModel):
         verbose_name_plural = _("schools")
         constraints = [
             models.CheckConstraint(
-                check=Q(uk_county__isnull=True) | Q(country="UK"),
+                check=Q(uk_county__isnull=True) | Q(country=Country.GB),
                 name="school__no_uk_county_if_country_not_uk",
             ),
         ]
