@@ -12,3 +12,5 @@ jobs:
     uses: ocadotechnology/codeforlife-workspace/.github/workflows/validate-existing-contributors.yaml@validate_existing_contributor # TODO: set to @main
     with:
       prod-branch: ${{ github.ref_name }} # TODO: set to main after we merge new_data_models into main
+    secrets:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
