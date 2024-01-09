@@ -2,7 +2,7 @@
 © Ocado Group
 Created on 11/12/2023 at 10:59:40(+00:00).
 
-Setup the Code for Life package during installation.
+Setup the Code for Life package during installation. 
 """
 
 import json
