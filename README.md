@@ -58,4 +58,5 @@ A new package may only be released if:
 1. (TODO) test/code coverage is acceptable.
 
 TROP LOL
+LOL
 ENCORE PLUS DE LOL
