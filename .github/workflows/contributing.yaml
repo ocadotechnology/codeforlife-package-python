@@ -5,10 +5,7 @@ on:
     branches:
       - main
       - new_data_models # TODO: remove after we merge new_data_models into main
-      - validate_existing_contributor # TODO: remove after testing
 
 jobs:
   validate-existing-contributors:
-    uses: ocadotechnology/codeforlife-workspace/.github/workflows/validate-existing-contributors.yaml@validate_existing_contributor # TODO: set to @main
-    secrets:
-      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    uses: ocadotechnology/codeforlife-workspace/.github/workflows/validate-existing-contributors.yaml@main
