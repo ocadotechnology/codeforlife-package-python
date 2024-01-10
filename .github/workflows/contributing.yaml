@@ -1,0 +1,11 @@
+name: Contributing
+
+on:
+  pull_request:
+    branches:
+      - main
+      - new_data_models # TODO: remove after we merge new_data_models into main
+
+jobs:
+  validate-existing-contributors:
+    uses: ocadotechnology/codeforlife-workspace/.github/workflows/validate-existing-contributors.yaml@main
