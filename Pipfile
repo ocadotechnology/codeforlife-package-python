@@ -13,6 +13,7 @@ django-cors-headers = "==4.1.0"
 pydantic = "==1.10.7"
 flask = "==2.2.3"
 pyotp = "==2.9.0"
+requests = "==2.31.0"
 
 [dev-packages]
 black = "==23.1.0"
