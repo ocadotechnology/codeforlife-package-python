@@ -3,13 +3,11 @@
 Created on 14/12/2023 at 14:26:20(+00:00).
 """
 
-from rest_framework.views import APIView
-
-from ....tests import APITestCase
+from ....tests import PermissionTestCase
 from ...permissions import InSchool
 
 
-class TestInSchool(APITestCase):
+class TestInSchool(PermissionTestCase[InSchool]):
     """
     Naming convention:
         test_{school_id}__{user_type}

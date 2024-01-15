@@ -3,16 +3,39 @@
 Created on 14/12/2023 at 14:26:20(+00:00).
 """
 
-from rest_framework.test import APIRequestFactory
-from rest_framework.views import APIView
-
-from ....tests import APITestCase
+from ....tests import PermissionTestCase
 from ...models import User
 from ...permissions import IsTeacher
 
 
-class TestIsTeacher(APITestCase):
-    # TODO: test that students and independents do not get permission.
+# pylint: disable-next=missing-class-docstring
+class TestIsTeacher(PermissionTestCase[IsTeacher]):
+    fixtures = [
+        "users",
+        "teachers",
+        "schools",
+        "classes",
+        "students",
+    ]
+
+    def setUp(self):
+        super().setUp()
+
+        self.user__1 = User.objects.get(pk=1)
+        self.user__2 = User.objects.get(pk=2)
+
+        assert self.user__1.teacher and self.user__1.teacher.is_admin
+        assert self.user__2.teacher and not self.user__2.teacher.is_admin
+
+        self.user__1__teacher = self.user__1.teacher
+        self.user__2__teacher = self.user__2.teacher
+
+        self.request__1 = self.request_factory.get("/")
+        self.request__1.user = self.user__1
+        self.request__2 = self.request_factory.get("/")
+        self.request__2.user = self.user__2
+
+    # pylint: disable-next=pointless-string-statement
     """
     Naming convention:
         test_{teacher_id}__{is_admin}
@@ -27,111 +50,157 @@ class TestIsTeacher(APITestCase):
         - none: Teacher is an admin or a non-admin.
     """
 
-    fixtures = [
-        "users",
-        "teachers",
-        "schools",
-        "classes",
-        "students",
-    ]
-
-    def setUp(self):
-        self.user__1 = User.objects.get(pk=1)
-        self.user__2 = User.objects.get(pk=2)
-
-        assert self.user__1.teacher and self.user__1.teacher.is_admin
-        assert self.user__2.teacher and not self.user__2.teacher.is_admin
-
-        self.user__1__teacher = self.user__1.teacher
-        self.user__2__teacher = self.user__2.teacher
-
-        request_factory = APIRequestFactory()
-        self.request__1 = request_factory.get("/")
-        self.request__1.user = self.user__1
-        self.request__2 = request_factory.get("/")
-        self.request__2.user = self.user__2
-
     def test_none__none(self):
         """
         Is any teacher.
         """
 
-        assert IsTeacher(
-            teacher_id=None,
-            is_admin=None,
-        ).has_permission(self.request__1, APIView())
+        self.assert_has_permission(
+            self.request__1,
+            init_kwargs={
+                "teacher_id": None,
+                "is_admin": None,
+            },
+        )
 
     def test_none__true(self):
         """
         Is any admin teacher.
         """
 
-        assert IsTeacher(
-            teacher_id=None,
-            is_admin=True,
-        ).has_permission(self.request__1, APIView())
+        self.assert_has_permission(
+            self.request__1,
+            init_kwargs={
+                "teacher_id": None,
+                "is_admin": True,
+            },
+        )
 
-        assert not IsTeacher(
-            teacher_id=None,
-            is_admin=True,
-        ).has_permission(self.request__2, APIView())
+        self.assert_not_has_permission(
+            self.request__2,
+            init_kwargs={
+                "teacher_id": None,
+                "is_admin": True,
+            },
+        )
 
     def test_none__false(self):
         """
         Is any non-admin teacher.
         """
 
-        assert not IsTeacher(
-            teacher_id=None,
-            is_admin=False,
-        ).has_permission(self.request__1, APIView())
+        self.assert_not_has_permission(
+            self.request__1,
+            init_kwargs={
+                "teacher_id": None,
+                "is_admin": False,
+            },
+        )
 
-        assert IsTeacher(
-            teacher_id=None,
-            is_admin=False,
-        ).has_permission(self.request__2, APIView())
+        self.assert_has_permission(
+            self.request__2,
+            init_kwargs={
+                "teacher_id": None,
+                "is_admin": False,
+            },
+        )
 
     def test_id__none(self):
         """
         Is a specific teacher.
         """
 
-        assert IsTeacher(
-            teacher_id=self.user__1__teacher.id,
-            is_admin=None,
-        ).has_permission(self.request__1, APIView())
+        self.assert_has_permission(
+            self.request__1,
+            init_kwargs={
+                "teacher_id": self.user__1__teacher.id,
+                "is_admin": None,
+            },
+        )
 
-        assert not IsTeacher(
-            teacher_id=self.user__2__teacher.id,
-            is_admin=None,
-        ).has_permission(self.request__1, APIView())
+        self.assert_not_has_permission(
+            self.request__1,
+            init_kwargs={
+                "teacher_id": self.user__2__teacher.id,
+                "is_admin": None,
+            },
+        )
 
     def test_id__true(self):
         """
         Is a specific admin teacher.
         """
 
-        assert IsTeacher(
-            teacher_id=self.user__1__teacher.id,
-            is_admin=True,
-        ).has_permission(self.request__1, APIView())
+        self.assert_has_permission(
+            self.request__1,
+            init_kwargs={
+                "teacher_id": self.user__1__teacher.id,
+                "is_admin": True,
+            },
+        )
 
-        assert not IsTeacher(
-            teacher_id=self.user__2__teacher.id,
-            is_admin=True,
-        ).has_permission(self.request__2, APIView())
+        self.assert_not_has_permission(
+            self.request__2,
+            init_kwargs={
+                "teacher_id": self.user__2__teacher.id,
+                "is_admin": True,
+            },
+        )
 
     def test_id__false(self):
         """
         Is a specific non-admin teacher.
         """
 
-        assert not IsTeacher(
-            teacher_id=self.user__1__teacher.id,
-            is_admin=False,
-        ).has_permission(self.request__1, APIView())
+        self.assert_not_has_permission(
+            self.request__1,
+            init_kwargs={
+                "teacher_id": self.user__1__teacher.id,
+                "is_admin": False,
+            },
+        )
 
-        assert IsTeacher(
-            teacher_id=self.user__2__teacher.id,
-            is_admin=False,
-        ).has_permission(self.request__2, APIView())
+        self.assert_has_permission(
+            self.request__2,
+            init_kwargs={
+                "teacher_id": self.user__2__teacher.id,
+                "is_admin": False,
+            },
+        )
+
+    # pylint: disable-next=pointless-string-statement
+    """
+    Naming convention:
+        test_{user_type}
+    
+    user_type: The type of user making the request. Options:
+        - student: A student user.
+        - indy: An independent user.
+    """
+
+    def test_student(self):
+        """
+        Student is not a teacher.
+        """
+
+        user = User.objects.get(pk=3)
+        assert user.student is not None
+
+        request = self.request_factory.get("/")
+        request.user = user
+
+        self.assert_not_has_permission(request)
+
+    def test_indy(self):
+        """
+        Independent is not a teacher.
+        """
+
+        user = User.objects.get(pk=5)
+        assert user.student is None
+        assert user.teacher is None
+
+        request = self.request_factory.get("/")
+        request.user = user
+
+        self.assert_not_has_permission(request)

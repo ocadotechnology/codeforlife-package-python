@@ -3,13 +3,11 @@
 Created on 14/12/2023 at 14:26:20(+00:00).
 """
 
-from rest_framework.views import APIView
-
-from ....tests import APITestCase
+from ....tests import PermissionTestCase
 from ...permissions import IsIndependent
 
 
-class TestIsIndependent(APITestCase):
+class TestIsIndependent(PermissionTestCase[IsIndependent]):
     """
     Naming convention:
         test_{user_type}
