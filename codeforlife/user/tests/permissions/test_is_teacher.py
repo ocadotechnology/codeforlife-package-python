@@ -23,19 +23,23 @@ class TestIsTeacher(PermissionTestCase[IsTeacher]):
     def setUp(self):
         super().setUp()
 
-        self.user__1 = User.objects.get(pk=1)
-        self.user__2 = User.objects.get(pk=2)
+        self.admin_teacher_user = User.objects.get(pk=1)
+        assert (
+            self.admin_teacher_user.teacher
+            and self.admin_teacher_user.teacher.is_admin
+        )
+        self.admin_teacher = self.admin_teacher_user.teacher
+        self.admin_teacher_request = self.request_factory.get("/")
+        self.admin_teacher_request.user = self.admin_teacher_user
 
-        assert self.user__1.teacher and self.user__1.teacher.is_admin
-        assert self.user__2.teacher and not self.user__2.teacher.is_admin
-
-        self.user__1__teacher = self.user__1.teacher
-        self.user__2__teacher = self.user__2.teacher
-
-        self.request__1 = self.request_factory.get("/")
-        self.request__1.user = self.user__1
-        self.request__2 = self.request_factory.get("/")
-        self.request__2.user = self.user__2
+        self.non_admin_teacher_user = User.objects.get(pk=2)
+        assert (
+            self.non_admin_teacher_user.teacher
+            and not self.non_admin_teacher_user.teacher.is_admin
+        )
+        self.non_admin_teacher = self.non_admin_teacher_user.teacher
+        self.non_admin_teacher_request = self.request_factory.get("/")
+        self.non_admin_teacher_request.user = self.non_admin_teacher_user
 
     # pylint: disable-next=pointless-string-statement
     """
@@ -58,7 +62,7 @@ class TestIsTeacher(PermissionTestCase[IsTeacher]):
         """
 
         self.assert_has_permission(
-            self.request__1,
+            self.admin_teacher_request,
             init_kwargs={
                 "teacher_id": None,
                 "is_admin": None,
@@ -71,7 +75,7 @@ class TestIsTeacher(PermissionTestCase[IsTeacher]):
         """
 
         self.assert_has_permission(
-            self.request__1,
+            self.admin_teacher_request,
             init_kwargs={
                 "teacher_id": None,
                 "is_admin": True,
@@ -79,7 +83,7 @@ class TestIsTeacher(PermissionTestCase[IsTeacher]):
         )
 
         self.assert_not_has_permission(
-            self.request__2,
+            self.non_admin_teacher_request,
             init_kwargs={
                 "teacher_id": None,
                 "is_admin": True,
@@ -92,7 +96,7 @@ class TestIsTeacher(PermissionTestCase[IsTeacher]):
         """
 
         self.assert_not_has_permission(
-            self.request__1,
+            self.admin_teacher_request,
             init_kwargs={
                 "teacher_id": None,
                 "is_admin": False,
@@ -100,7 +104,7 @@ class TestIsTeacher(PermissionTestCase[IsTeacher]):
         )
 
         self.assert_has_permission(
-            self.request__2,
+            self.non_admin_teacher_request,
             init_kwargs={
                 "teacher_id": None,
                 "is_admin": False,
@@ -113,17 +117,17 @@ class TestIsTeacher(PermissionTestCase[IsTeacher]):
         """
 
         self.assert_has_permission(
-            self.request__1,
+            self.admin_teacher_request,
             init_kwargs={
-                "teacher_id": self.user__1__teacher.id,
+                "teacher_id": self.admin_teacher.id,
                 "is_admin": None,
             },
         )
 
         self.assert_not_has_permission(
-            self.request__1,
+            self.admin_teacher_request,
             init_kwargs={
-                "teacher_id": self.user__2__teacher.id,
+                "teacher_id": self.non_admin_teacher.id,
                 "is_admin": None,
             },
         )
@@ -134,17 +138,17 @@ class TestIsTeacher(PermissionTestCase[IsTeacher]):
         """
 
         self.assert_has_permission(
-            self.request__1,
+            self.admin_teacher_request,
             init_kwargs={
-                "teacher_id": self.user__1__teacher.id,
+                "teacher_id": self.admin_teacher.id,
                 "is_admin": True,
             },
         )
 
         self.assert_not_has_permission(
-            self.request__2,
+            self.non_admin_teacher_request,
             init_kwargs={
-                "teacher_id": self.user__2__teacher.id,
+                "teacher_id": self.non_admin_teacher.id,
                 "is_admin": True,
             },
         )
@@ -155,17 +159,17 @@ class TestIsTeacher(PermissionTestCase[IsTeacher]):
         """
 
         self.assert_not_has_permission(
-            self.request__1,
+            self.admin_teacher_request,
             init_kwargs={
-                "teacher_id": self.user__1__teacher.id,
+                "teacher_id": self.admin_teacher.id,
                 "is_admin": False,
             },
         )
 
         self.assert_has_permission(
-            self.request__2,
+            self.non_admin_teacher_request,
             init_kwargs={
-                "teacher_id": self.user__2__teacher.id,
+                "teacher_id": self.non_admin_teacher.id,
                 "is_admin": False,
             },
         )

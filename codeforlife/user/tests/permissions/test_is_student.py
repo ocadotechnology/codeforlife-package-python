@@ -6,7 +6,7 @@ Created on 14/12/2023 at 14:26:20(+00:00).
 from django.contrib.auth.models import AnonymousUser
 
 from ....tests import PermissionTestCase
-from ...models import User
+from ...models import Student, User
 from ...permissions import IsStudent
 
 
@@ -23,26 +23,22 @@ class TestIsStudent(PermissionTestCase[IsStudent]):
     def setUp(self):
         super().setUp()
 
-        self.user__1 = User.objects.get(pk=1)
-        self.user__3 = User.objects.get(pk=3)
-        self.user__4 = User.objects.get(pk=4)
-        self.user__5 = User.objects.get(pk=5)
+        self.teacher_user = User.objects.get(pk=1)
+        assert self.teacher_user.teacher
+        self.teacher = self.teacher_user.teacher
+        self.teacher_request = self.request_factory.get("/")
+        self.teacher_request.user = self.teacher_user
 
-        assert self.user__1.teacher
-        assert self.user__3.student
-        assert self.user__4.student
-        assert not self.user__5.student and not self.user__5.teacher
+        self.student_user = User.objects.get(pk=3)
+        assert self.student_user.student
+        self.student = self.student_user.student
+        self.student_request = self.request_factory.get("/")
+        self.student_request.user = self.student_user
 
-        self.user__1__teacher = self.user__1.teacher
-        self.user__3__student = self.user__3.student
-        self.user__4__student = self.user__4.student
-
-        self.request__1 = self.request_factory.get("/")
-        self.request__1.user = self.user__1
-        self.request__3 = self.request_factory.get("/")
-        self.request__3.user = self.user__3
-        self.request__5 = self.request_factory.get("/")
-        self.request__5.user = self.user__5
+        self.indy_user = User.objects.get(pk=5)
+        assert not self.indy_user.student and not self.indy_user.teacher
+        self.indy_request = self.request_factory.get("/")
+        self.indy_request.user = self.indy_user
 
     # pylint: disable-next=pointless-string-statement
     """
@@ -68,7 +64,7 @@ class TestIsStudent(PermissionTestCase[IsStudent]):
         """
 
         self.assert_not_has_permission(
-            self.request__1,
+            self.teacher_request,
             init_kwargs={
                 "student_id": None,
             },
@@ -80,7 +76,7 @@ class TestIsStudent(PermissionTestCase[IsStudent]):
         """
 
         self.assert_not_has_permission(
-            self.request__5,
+            self.indy_request,
             init_kwargs={
                 "student_id": None,
             },
@@ -102,7 +98,7 @@ class TestIsStudent(PermissionTestCase[IsStudent]):
         """
 
         self.assert_has_permission(
-            self.request__3,
+            self.student_request,
             init_kwargs={
                 "student_id": None,
             },
@@ -114,9 +110,9 @@ class TestIsStudent(PermissionTestCase[IsStudent]):
         """
 
         self.assert_has_permission(
-            self.request__3,
+            self.student_request,
             init_kwargs={
-                "student_id": self.user__3__student.id,
+                "student_id": self.student.id,
             },
         )
 
@@ -125,9 +121,12 @@ class TestIsStudent(PermissionTestCase[IsStudent]):
         Student is not a specific student.
         """
 
+        student = Student.objects.exclude(id=self.student.id).first()
+        assert student is not None
+
         self.assert_not_has_permission(
-            self.request__3,
+            self.student_request,
             init_kwargs={
-                "student_id": self.user__4__student.id,
+                "student_id": student.id,
             },
         )
