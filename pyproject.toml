@@ -12,6 +12,9 @@ extend-exclude = "^/codeforlife/user/migrations/"
 [tool.pytest.ini_options]
 env = ["DJANGO_SETTINGS_MODULE=manage"]
 
+[tool.pylint.MASTER]
+ignore-paths = [".*/migrations/.*py"]
+
 [tool.mypy]
 plugins = ["mypy_django_plugin.main", "mypy_drf_plugin.main"]
 check_untyped_defs = true
@@ -28,3 +31,4 @@ max-line-length = 80
 [tool.isort]
 profile = "black"
 line_length = 80
+skip_glob = ["**/migrations/*.py"]
