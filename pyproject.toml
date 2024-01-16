@@ -24,3 +24,7 @@ init-hook = "import os; os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'manage'
 
 [tool.pylint.format]
 max-line-length = 80
+
+[tool.isort]
+profile = "black"
+line_length = 80

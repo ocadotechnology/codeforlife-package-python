@@ -1,4 +1,12 @@
 {
+    "isort.path": [
+        ".venv/bin/python",
+        "-m",
+        "isort"
+    ],
+    "isort.args": [
+        "--settings-file=pyproject.toml"
+    ],
     "black-formatter.path": [
         ".venv/bin/python",
         "-m",
@@ -12,6 +20,9 @@
         ".venv/bin/python",
         "-m",
         "mypy"
+    ],
+    "mypy-type-checker.args": [
+        "--config-file=pyproject.toml"
     ],
     "pylint.path": [
         ".venv/bin/python",
