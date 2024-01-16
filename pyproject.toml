@@ -12,9 +12,6 @@ extend-exclude = ".*/migrations/.*py"
 [tool.pytest.ini_options]
 env = ["DJANGO_SETTINGS_MODULE=manage"]
 
-[tool.pylint.MASTER]
-ignore-paths = [".*/migrations/.*py"]
-
 [tool.mypy]
 plugins = ["mypy_django_plugin.main", "mypy_drf_plugin.main"]
 check_untyped_defs = true
@@ -27,6 +24,10 @@ init-hook = "import os; os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'manage'
 
 [tool.pylint.format]
 max-line-length = 80
+
+[tool.pylint.MASTER]
+ignore-paths = [".*/migrations/.*py"]
+load-plugins = "pylint_django"
 
 [tool.isort]
 profile = "black"

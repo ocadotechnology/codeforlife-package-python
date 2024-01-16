@@ -30,8 +30,7 @@
         "pylint"
     ],
     "pylint.args": [
-        "--rcfile=pyproject.toml",
-        "--load-plugins=pylint_django"
+        "--rcfile=pyproject.toml"
     ],
     "python.testing.pytestArgs": [
         "-n=auto",
