@@ -35,7 +35,7 @@ AnyModel = t.TypeVar("AnyModel", bound=Model)
 class WarehouseModel(Model):
     """To be inherited by all models whose data is to be warehoused."""
 
-    class QuerySet(models.QuerySet):
+    class QuerySet(models.QuerySet[AnyModel], t.Generic[AnyModel]):
         """Custom queryset to support CFL's system's operations."""
 
         model: "WarehouseModel"  # type: ignore[assignment]
@@ -81,7 +81,7 @@ class WarehouseModel(Model):
                 A warehouse query set.
             """
 
-            return WarehouseModel.QuerySet(
+            return WarehouseModel.QuerySet[AnyModel](
                 model=self.model,
                 using=self._db,
                 hints=self._hints,  # type: ignore[attr-defined]
@@ -91,7 +91,7 @@ class WarehouseModel(Model):
             """A stub that returns our custom queryset."""
 
             return t.cast(
-                WarehouseModel.QuerySet,
+                WarehouseModel.QuerySet[AnyModel],
                 super().filter(*args, **kwargs),
             )
 
@@ -99,7 +99,7 @@ class WarehouseModel(Model):
             """A stub that returns our custom queryset."""
 
             return t.cast(
-                WarehouseModel.QuerySet,
+                WarehouseModel.QuerySet[AnyModel],
                 super().exclude(*args, **kwargs),
             )
 
@@ -107,7 +107,7 @@ class WarehouseModel(Model):
             """A stub that returns our custom queryset."""
 
             return t.cast(
-                WarehouseModel.QuerySet,
+                WarehouseModel.QuerySet[AnyModel],
                 super().all(),
             )
 
@@ -115,7 +115,7 @@ class WarehouseModel(Model):
             """A stub that returns our custom queryset."""
 
             return t.cast(
-                WarehouseModel.QuerySet,
+                WarehouseModel.QuerySet[AnyModel],
                 super().none(),
             )
 

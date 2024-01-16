@@ -3,6 +3,8 @@
 Created on 14/12/2023 at 14:26:20(+00:00).
 """
 
+from django.contrib.auth.models import AnonymousUser
+
 from ....tests import PermissionTestCase
 from ...models import User
 from ...permissions import IsTeacher
@@ -176,6 +178,7 @@ class TestIsTeacher(PermissionTestCase[IsTeacher]):
     user_type: The type of user making the request. Options:
         - student: A student user.
         - indy: An independent user.
+        - anon: An anonymous user.
     """
 
     def test_student(self):
@@ -202,5 +205,15 @@ class TestIsTeacher(PermissionTestCase[IsTeacher]):
 
         request = self.request_factory.get("/")
         request.user = user
+
+        self.assert_not_has_permission(request)
+
+    def test_anon(self):
+        """
+        Anonymous user is not a teacher.
+        """
+
+        request = self.request_factory.get("/")
+        request.user = AnonymousUser()
 
         self.assert_not_has_permission(request)

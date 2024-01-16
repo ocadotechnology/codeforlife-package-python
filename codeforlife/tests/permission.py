@@ -35,7 +35,7 @@ class PermissionTestCase(TestCase, t.Generic[AnyPermission]):
     def setUp(self):
         self.request_factory = APIRequestFactory()
 
-    def _assert_has_permission(
+    def _has_permission(
         self,
         request: Request,
         view: t.Optional[APIView],
@@ -67,7 +67,7 @@ class PermissionTestCase(TestCase, t.Generic[AnyPermission]):
                 permission.
         """
 
-        assert self._assert_has_permission(
+        assert self._has_permission(
             request,
             view,
             init_args,
@@ -91,7 +91,7 @@ class PermissionTestCase(TestCase, t.Generic[AnyPermission]):
                 permission.
         """
 
-        assert not self._assert_has_permission(
+        assert not self._has_permission(
             request,
             view,
             init_args,
