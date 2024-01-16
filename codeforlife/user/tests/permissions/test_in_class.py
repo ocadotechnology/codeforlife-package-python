@@ -60,7 +60,8 @@ class TestInClass(PermissionTestCase[InClass]):
         test_{class_id}__{user_type}
 
     class_id: The id of a class. Options:
-        - any_class: Any class.
+        - in_any_class: The user is in any class.
+        - not_in_any_class: The user is not in any class.
         - in_class: A specific class the user is in.
         - not_in_class: A specific class the user is not in.
 
@@ -72,19 +73,7 @@ class TestInClass(PermissionTestCase[InClass]):
         - anon: An anonymous user.
     """
 
-    def test_any_class__non_class_teacher(self):
-        """
-        Teacher without a class is not in any class.
-        """
-
-        self.assert_not_has_permission(
-            self.non_class_teacher_request,
-            init_kwargs={
-                "class_id": None,
-            },
-        )
-
-    def test_any_class__class_teacher(self):
+    def test_in_any_class__class_teacher(self):
         """
         Teacher with a class is in any class.
         """
@@ -96,7 +85,7 @@ class TestInClass(PermissionTestCase[InClass]):
             },
         )
 
-    def test_any_class__student(self):
+    def test_in_any_class__student(self):
         """
         Student is in any class.
         """
@@ -108,7 +97,19 @@ class TestInClass(PermissionTestCase[InClass]):
             },
         )
 
-    def test_any_class__indy(self):
+    def test_not_in_any_class__non_class_teacher(self):
+        """
+        Teacher without a class is not in any class.
+        """
+
+        self.assert_not_has_permission(
+            self.non_class_teacher_request,
+            init_kwargs={
+                "class_id": None,
+            },
+        )
+
+    def test_not_in_any_class__indy(self):
         """
         Independent is not in any class.
         """
@@ -120,7 +121,7 @@ class TestInClass(PermissionTestCase[InClass]):
             },
         )
 
-    def test_any_class__anon(self):
+    def test_not_in_any_class__anon(self):
         """
         Anonymous user is not in any class.
         """
@@ -129,6 +130,33 @@ class TestInClass(PermissionTestCase[InClass]):
             self.anon_request,
             init_kwargs={
                 "class_id": None,
+            },
+        )
+
+    def test_in_class__class_teacher(self):
+        """
+        Teacher with a class is in a specific class.
+        """
+
+        klass = self.class_teacher__classes.first()
+        assert klass is not None
+
+        self.assert_has_permission(
+            self.class_teacher_request,
+            init_kwargs={
+                "class_id": klass.id,
+            },
+        )
+
+    def test_in_class__student(self):
+        """
+        Student is in a specific class.
+        """
+
+        self.assert_has_permission(
+            self.student_request,
+            init_kwargs={
+                "class_id": self.student__class.id,
             },
         )
 
@@ -206,32 +234,5 @@ class TestInClass(PermissionTestCase[InClass]):
             self.anon_request,
             init_kwargs={
                 "class_id": klass.id,
-            },
-        )
-
-    def test_in_class__class_teacher(self):
-        """
-        Teacher with a class is in a specific class.
-        """
-
-        klass = self.class_teacher__classes.first()
-        assert klass is not None
-
-        self.assert_has_permission(
-            self.class_teacher_request,
-            init_kwargs={
-                "class_id": klass.id,
-            },
-        )
-
-    def test_in_class__student(self):
-        """
-        Student is in a specific class.
-        """
-
-        self.assert_has_permission(
-            self.student_request,
-            init_kwargs={
-                "class_id": self.student__class.id,
             },
         )
