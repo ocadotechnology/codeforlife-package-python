@@ -58,5 +58,18 @@
       "email": "indiana.jones@codeforlife.com",
       "password": "pbkdf2_sha256$260000$a2nFLqpwD88sOeZ7wsQskW$WIJACyDluEJWKMPsO/jawrR0sHXHmYebDJoyUihKJxU="
     }
+  },
+  {
+    "model": "user.User",
+    "pk": 6,
+    "fields": {
+      "last_saved_at": "2023-01-01 00:00:00.0+00:00",
+      "is_active": true,
+      "first_name": "Albert",
+      "last_name": "Einstein",
+      "email": "albert.einstein@codeforlife.com",
+      "password": "pbkdf2_sha256$260000$a2nFLqpwD88sOeZ7wsQskW$WIJACyDluEJWKMPsO/jawrR0sHXHmYebDJoyUihKJxU=",
+      "teacher": 3
+    }
   }
 ]

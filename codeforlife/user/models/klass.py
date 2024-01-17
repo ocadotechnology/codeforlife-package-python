@@ -31,7 +31,7 @@ class Class(WarehouseModel):
     pk: str  # type: ignore[assignment]
     students: QuerySet["_student.Student"]
 
-    id = models.CharField(  # type: ignore[assignment]
+    id: str = models.CharField(  # type: ignore[assignment]
         _("identifier"),
         primary_key=True,
         editable=False,

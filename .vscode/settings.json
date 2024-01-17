@@ -1,4 +1,12 @@
 {
+    "isort.path": [
+        ".venv/bin/python",
+        "-m",
+        "isort"
+    ],
+    "isort.args": [
+        "--settings-file=pyproject.toml"
+    ],
     "black-formatter.path": [
         ".venv/bin/python",
         "-m",
@@ -13,14 +21,16 @@
         "-m",
         "mypy"
     ],
+    "mypy-type-checker.args": [
+        "--config-file=pyproject.toml"
+    ],
     "pylint.path": [
         ".venv/bin/python",
         "-m",
         "pylint"
     ],
     "pylint.args": [
-        "--rcfile=pyproject.toml",
-        "--load-plugins=pylint_django"
+        "--rcfile=pyproject.toml"
     ],
     "python.testing.pytestArgs": [
         "-n=auto",

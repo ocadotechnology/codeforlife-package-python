@@ -8,3 +8,4 @@ All test helpers.
 from .api import APIClient, APITestCase
 from .cron import CronTestCase, CronTestClient
 from .model import ModelTestCase
+from .permission import PermissionTestCase

@@ -15,15 +15,7 @@ env:
 
 jobs:
   test:
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        python-version: [3.8]
-    steps:
-      - uses: ocadotechnology/codeforlife-workspace/.github/actions/python/test@main
-        with:
-          python-version: ${{ matrix.python-version }}
+    uses: ocadotechnology/codeforlife-workspace/.github/workflows/test-python-code.yaml@main
 
   docs:
     runs-on: ubuntu-latest

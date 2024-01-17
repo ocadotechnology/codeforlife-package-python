@@ -3,13 +3,44 @@
 Created on 14/12/2023 at 14:26:20(+00:00).
 """
 
-from rest_framework.views import APIView
+from django.contrib.auth.models import AnonymousUser
 
-from ....tests import APITestCase
+from ....tests import PermissionTestCase
+from ...models import Student, User
 from ...permissions import IsStudent
 
 
-class TestIsStudent(APITestCase):
+# pylint: disable-next=missing-class-docstring
+class TestIsStudent(PermissionTestCase[IsStudent]):
+    fixtures = [
+        "users",
+        "teachers",
+        "schools",
+        "classes",
+        "students",
+    ]
+
+    def setUp(self):
+        super().setUp()
+
+        self.teacher_user = User.objects.get(pk=1)
+        assert self.teacher_user.teacher
+        self.teacher = self.teacher_user.teacher
+        self.teacher_request = self.request_factory.get("/")
+        self.teacher_request.user = self.teacher_user
+
+        self.student_user = User.objects.get(pk=3)
+        assert self.student_user.student
+        self.student = self.student_user.student
+        self.student_request = self.request_factory.get("/")
+        self.student_request.user = self.student_user
+
+        self.indy_user = User.objects.get(pk=5)
+        assert not self.indy_user.student and not self.indy_user.teacher
+        self.indy_request = self.request_factory.get("/")
+        self.indy_request.user = self.indy_user
+
+    # pylint: disable-next=pointless-string-statement
     """
     Naming convention:
         test_{user_type}__{student_id}
@@ -18,6 +49,7 @@ class TestIsStudent(APITestCase):
         - teacher: A teacher.
         - student: A student.
         - indy: An independent.
+        - anon: An anonymous user.
 
     student_id: The ID of a student. Options:
         - any_student: User is any student.
@@ -31,46 +63,70 @@ class TestIsStudent(APITestCase):
         Teacher is not any student.
         """
 
-        raise NotImplementedError()  # TODO
-
-    def test_teacher__not_specific_student(self):
-        """
-        Teacher is not a specific student.
-        """
-
-        raise NotImplementedError()  # TODO
+        self.assert_not_has_permission(
+            self.teacher_request,
+            init_kwargs={
+                "student_id": None,
+            },
+        )
 
     def test_indy__not_any_student(self):
         """
         Independent is not any student.
         """
 
-        raise NotImplementedError()  # TODO
+        self.assert_not_has_permission(
+            self.indy_request,
+            init_kwargs={
+                "student_id": None,
+            },
+        )
 
-    def test_indy__not_specific_student(self):
+    def test_anon__not_any_student(self):
         """
-        Independent is not a specific student.
+        Anonymous user is not any student.
         """
 
-        raise NotImplementedError()  # TODO
+        request = self.request_factory.get("/")
+        request.user = AnonymousUser()
+
+        self.assert_not_has_permission(request)
 
     def test_student__any_student(self):
         """
         Student is any student.
         """
 
-        raise NotImplementedError()  # TODO
+        self.assert_has_permission(
+            self.student_request,
+            init_kwargs={
+                "student_id": None,
+            },
+        )
 
     def test_student__specific_student(self):
         """
         Student is a specific student.
         """
 
-        raise NotImplementedError()  # TODO
+        self.assert_has_permission(
+            self.student_request,
+            init_kwargs={
+                "student_id": self.student.id,
+            },
+        )
 
     def test_student__not_specific_student(self):
         """
         Student is not a specific student.
         """
 
-        raise NotImplementedError()  # TODO
+        student = Student.objects.exclude(id=self.student.id).first()
+        assert student is not None
+
+        self.assert_not_has_permission(
+            self.student_request,
+            init_kwargs={
+                "student_id": student.id,
+            },
+        )

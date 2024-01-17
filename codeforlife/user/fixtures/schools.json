@@ -8,5 +8,15 @@
       "country": "GB",
       "uk_county": "Surrey"
     }
+  },
+  {
+    "model": "user.School",
+    "pk": 2,
+    "fields": {
+      "last_saved_at": "2023-01-01 00:00:00.0+00:00",
+      "name": "Another Example School",
+      "country": "GB",
+      "uk_county": "Surrey"
+    }
   }
 ]

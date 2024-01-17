@@ -16,5 +16,13 @@
       "is_admin": false,
       "school": 1
     }
+  },
+  {
+    "model": "user.Teacher",
+    "pk": 3,
+    "fields": {
+      "last_saved_at": "2023-01-01 00:00:00.0+00:00",
+      "is_admin": false
+    }
   }
 ]
