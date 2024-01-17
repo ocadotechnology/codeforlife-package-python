@@ -178,7 +178,7 @@ class TestIsTeacher(PermissionTestCase[IsTeacher]):
     """
     Naming convention:
         test_{user_type}
-    
+
     user_type: The type of user making the request. Options:
         - student: A student user.
         - indy: An independent user.
