@@ -3,7 +3,7 @@ from rest_framework import serializers
 from ..models import School
 
 
-class SchoolSerializer(serializers.ModelSerializer):
+class SchoolSerializer(serializers.ModelSerializer[School]):
     class Meta:
         model = School
         fields = "__all__"

@@ -5,7 +5,7 @@ from .student import StudentSerializer
 from .teacher import TeacherSerializer
 
 
-class UserSerializer(serializers.ModelSerializer):
+class UserSerializer(serializers.ModelSerializer[User]):
     student = StudentSerializer(source="new_student")
     teacher = TeacherSerializer(source="new_teacher")
 
