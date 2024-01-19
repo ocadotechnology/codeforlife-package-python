@@ -1,4 +1,5 @@
 import typing as t
+from datetime import datetime
 from unittest.mock import patch
 
 from django.db.models import Model
@@ -103,8 +104,17 @@ class APIClient(_APIClient):
         model: AnyModel,
         model_serializer_class: t.Type[AnyModelSerializer],
     ):
-        assert (
-            data == model_serializer_class(model).data
+        def parse_data(data):
+            if isinstance(data, list):
+                return [parse_data(value) for value in data]
+            if isinstance(data, dict):
+                return {key: parse_data(value) for key, value in data.items()}
+            if isinstance(data, datetime):
+                return data.strftime("%Y-%m-%dT%H:%M:%S.%fZ")
+            return data
+
+        assert data == parse_data(
+            model_serializer_class(model).data
         ), "Data does not equal serialized model."
 
     def retrieve(
