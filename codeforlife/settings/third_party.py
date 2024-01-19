@@ -22,6 +22,19 @@ REST_FRAMEWORK = {
         "django_filters.rest_framework.DjangoFilterBackend"
     ],
     "DEFAULT_PAGINATION_CLASS": "codeforlife.pagination.LimitOffsetPagination",
+    "DEFAULT_THROTTLE_CLASSES": [
+        "codeforlife.user.throttles.AnonBurstRateThrottle",
+        "codeforlife.user.throttles.BurstRateThrottle",
+        "codeforlife.user.throttles.AnonSustainedRateThrottle",
+        "codeforlife.user.throttles.SustainedRateThrottle",
+        "rest_framework.throttling.ScopedRateThrottle",
+    ],
+    "DEFAULT_THROTTLE_RATES": {
+        "anon_burst": "60/min",
+        "user_burst": "120/min",
+        "anon_sustained": "10000/day",
+        "user_sustained": "50000/day",
+    },
 }
 
 # Django Extensions - Graph Models
