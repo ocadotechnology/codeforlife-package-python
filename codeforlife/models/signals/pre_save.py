@@ -4,8 +4,11 @@ https://docs.djangoproject.com/en/3.2/ref/signals/#pre-save
 
 import typing as t
 
-from .. import AnyModel
+from django.db.models import Model
+
 from . import UpdateFields, _has_update_fields
+
+AnyModel = t.TypeVar("AnyModel", bound=Model)
 
 
 def was_created(instance: AnyModel):
@@ -37,7 +40,7 @@ def has_update_fields(actual: UpdateFields, expected: UpdateFields):
     return _has_update_fields(actual, expected)
 
 
-def has_previous_values(
+def check_previous_values(
     instance: AnyModel,
     predicates: t.Dict[str, t.Callable[[t.Any, t.Any], bool]],
 ):
@@ -61,6 +64,26 @@ def has_previous_values(
     previous_instance = instance.__class__.objects.get(pk=instance.pk)
 
     return all(
-        predicate(previous_instance[field], instance[field])
+        predicate(getattr(previous_instance, field), getattr(instance, field))
         for field, predicate in predicates.items()
+    )
+
+
+def previous_values_are_unequal(instance: AnyModel, fields: t.Set[str]):
+    """Check if all the previous values are not equal to the current values.
+
+    Args:
+        instance: The current instance.
+        fields: The fields that should not be equal.
+
+    Returns:
+        If all the previous values are not equal to the current values.
+    """
+
+    def predicate(v1, v2):
+        return v1 != v2
+
+    return check_previous_values(
+        instance,
+        {field: predicate for field in fields},
     )
