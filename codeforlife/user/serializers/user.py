@@ -3,15 +3,14 @@
 Created on 19/01/2024 at 11:06:00(+00:00).
 """
 
-from rest_framework import serializers
-
+from ...serializers import ModelSerializer
 from ..models import User
 from .student import StudentSerializer
 from .teacher import TeacherSerializer
 
 
 # pylint: disable-next=missing-class-docstring
-class UserSerializer(serializers.ModelSerializer[User]):
+class UserSerializer(ModelSerializer[User]):
     student = StudentSerializer(
         source="new_student",
         read_only=True,

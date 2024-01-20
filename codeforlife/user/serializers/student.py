@@ -1,10 +1,14 @@
-from rest_framework import serializers
+"""
+© Ocado Group
+Created on 20/01/2024 at 11:27:56(+00:00).
+"""
 
+from ...serializers import ModelSerializer
 from ..models import Student
 
 
 # pylint: disable-next=missing-class-docstring
-class StudentSerializer(serializers.ModelSerializer[Student]):
+class StudentSerializer(ModelSerializer[Student]):
     # pylint: disable-next=missing-class-docstring,too-few-public-methods
     class Meta:
         model = Student
