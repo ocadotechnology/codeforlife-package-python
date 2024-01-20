@@ -1,21 +1,6 @@
-"""Helpers for module "django.db.models".
-https://docs.djangoproject.com/en/3.2/ref/models/
+"""
+© Ocado Group
+Created on 19/01/2024 at 15:20:45(+00:00).
 """
 
-import typing as t
-
-from django.db.models import Model as _Model
-
-
-class Model(_Model):
-    """A base class for all Django models.
-
-    Args:
-        _Model (django.db.models.Model): Django's model class.
-    """
-
-    id: int
-    pk: int
-
-
-AnyModel = t.TypeVar("AnyModel", bound=Model)
+from .base import *

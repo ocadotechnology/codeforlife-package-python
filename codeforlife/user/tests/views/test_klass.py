@@ -1,10 +1,17 @@
-from ....tests import APIClient, APITestCase
+"""
+© Ocado Group
+Created on 20/01/2024 at 09:48:30(+00:00).
+"""
+
+from ....tests import ModelViewSetTestCase
 from ...models import Class
 from ...serializers import ClassSerializer
 from ...views import ClassViewSet
 
 
-class TestClassViewSet(APITestCase):
+class TestClassViewSet(
+    ModelViewSetTestCase[ClassViewSet, ClassSerializer, Class]
+):
     """
     Base naming convention:
         test_{action}
@@ -13,12 +20,15 @@ class TestClassViewSet(APITestCase):
         https://www.django-rest-framework.org/api-guide/viewsets/#viewset-actions
     """
 
+    basename = "class"
+
     def _login_student(self):
         return self.client.login_student(
             email="leonardodavinci@codeforlife.com",
             password="Password1",
         )
 
+    # pylint: disable-next=pointless-string-statement
     """
     Retrieve naming convention:
         test_retrieve__{user_type}__{same_school}__{in_class}
@@ -39,19 +49,6 @@ class TestClassViewSet(APITestCase):
         - not_in_class: The user is not in the class.
     """
 
-    def _retrieve_class(
-        self,
-        klass: Class,
-        status_code_assertion: APIClient.StatusCodeAssertion = None,
-    ):
-        return self.client.retrieve(
-            "class",
-            klass,
-            ClassSerializer,
-            status_code_assertion,
-            ClassViewSet,
-        )
-
     def test_retrieve__student__same_school__in_class(self):
         """
         Student can retrieve a class from the same school and a class they are
@@ -60,6 +57,6 @@ class TestClassViewSet(APITestCase):
 
         user = self._login_student()
 
-        self._retrieve_class(user.student.class_field)
+        self.client.retrieve(user.student.class_field)
 
     # TODO: other retrieve and list tests

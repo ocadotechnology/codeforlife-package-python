@@ -1,15 +1,20 @@
-import typing as t
+"""
+© Ocado Group
+Created on 20/01/2024 at 09:47:30(+00:00).
+"""
 
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 
-from ....tests import APIClient, APITestCase
+from ....tests import ModelViewSetTestCase
 from ...models import Class, School, Student, Teacher, User, UserProfile
 from ...serializers import SchoolSerializer
 from ...views import SchoolViewSet
 
 
-class TestSchoolViewSet(APITestCase):
+class TestSchoolViewSet(
+    ModelViewSetTestCase[SchoolViewSet, SchoolSerializer, School]
+):
     """
     Base naming convention:
         test_{action}
@@ -17,6 +22,8 @@ class TestSchoolViewSet(APITestCase):
     action: The view set action.
         https://www.django-rest-framework.org/api-guide/viewsets/#viewset-actions
     """
+
+    basename = "school"
 
     # TODO: replace this setup with data fixtures.
     def setUp(self):
@@ -74,12 +81,13 @@ class TestSchoolViewSet(APITestCase):
             password="Password1",
         )
 
-    def _login_indy_student(self):
-        return self.client.login_indy_student(
+    def _login_indy(self):
+        return self.client.login_indy(
             email="indianajones@codeforlife.com",
             password="Password1",
         )
 
+    # pylint: disable-next=pointless-string-statement
     """
     Retrieve naming convention:
         test_retrieve__{user_type}__{same_school}
@@ -95,32 +103,17 @@ class TestSchoolViewSet(APITestCase):
         - not_same_school: The other user is not from the same school.
     """
 
-    def _retrieve_school(
-        self,
-        school: School,
-        status_code_assertion: APIClient.StatusCodeAssertion = None,
-    ):
-        return self.client.retrieve(
-            "school",
-            school,
-            SchoolSerializer,
-            status_code_assertion,
-        )
-
     def test_retrieve__indy_student(self):
         """
         Independent student cannot retrieve any school.
         """
 
-        self._login_indy_student()
+        self._login_indy()
 
         school = School.objects.first()
         assert school
 
-        self._retrieve_school(
-            school,
-            status_code_assertion=status.HTTP_403_FORBIDDEN,
-        )
+        self.client.retrieve(school, status.HTTP_403_FORBIDDEN)
 
     def test_retrieve__teacher__same_school(self):
         """
@@ -129,7 +122,7 @@ class TestSchoolViewSet(APITestCase):
 
         user = self._login_teacher()
 
-        self._retrieve_school(user.teacher.school)
+        self.client.retrieve(user.teacher.school)
 
     def test_retrieve__student__same_school(self):
         """
@@ -138,7 +131,7 @@ class TestSchoolViewSet(APITestCase):
 
         user = self._login_student()
 
-        self._retrieve_school(user.student.class_field.teacher.school)
+        self.client.retrieve(user.student.class_field.teacher.school)
 
     def test_retrieve__teacher__not_same_school(self):
         """
@@ -150,10 +143,7 @@ class TestSchoolViewSet(APITestCase):
         school = School.objects.exclude(id=user.teacher.school.id).first()
         assert school
 
-        self._retrieve_school(
-            school,
-            status_code_assertion=status.HTTP_404_NOT_FOUND,
-        )
+        self.client.retrieve(school, status.HTTP_404_NOT_FOUND)
 
     def test_retrieve__student__not_same_school(self):
         """
@@ -167,11 +157,9 @@ class TestSchoolViewSet(APITestCase):
         ).first()
         assert school
 
-        self._retrieve_school(
-            school,
-            status_code_assertion=status.HTTP_404_NOT_FOUND,
-        )
+        self.client.retrieve(school, status.HTTP_404_NOT_FOUND)
 
+    # pylint: disable-next=pointless-string-statement
     """
     List naming convention:
         test_list__{user_type}
@@ -182,29 +170,14 @@ class TestSchoolViewSet(APITestCase):
         - indy_student: A non-school student.
     """
 
-    def _list_schools(
-        self,
-        schools: t.Iterable[School],
-        status_code_assertion: APIClient.StatusCodeAssertion = None,
-    ):
-        return self.client.list(
-            "school",
-            schools,
-            SchoolSerializer,
-            status_code_assertion,
-        )
-
     def test_list__indy_student(self):
         """
         Independent student cannot list any schools.
         """
 
-        self._login_indy_student()
+        self._login_indy()
 
-        self._list_schools(
-            [],
-            status_code_assertion=status.HTTP_403_FORBIDDEN,
-        )
+        self.client.list([], status.HTTP_403_FORBIDDEN)
 
     def test_list__teacher(self):
         """
@@ -213,7 +186,7 @@ class TestSchoolViewSet(APITestCase):
 
         user = self._login_teacher()
 
-        self._list_schools([user.teacher.school])
+        self.client.list([user.teacher.school])
 
     def test_list__student(self):
         """
@@ -222,8 +195,9 @@ class TestSchoolViewSet(APITestCase):
 
         user = self._login_student()
 
-        self._list_schools([user.student.class_field.teacher.school])
+        self.client.list([user.student.class_field.teacher.school])
 
+    # pylint: disable-next=pointless-string-statement
     """
     General tests that apply to all actions.
     """

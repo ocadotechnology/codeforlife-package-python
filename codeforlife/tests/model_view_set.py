@@ -10,6 +10,7 @@ from datetime import datetime
 from unittest.mock import patch
 
 from django.db.models import Model
+from django.db.models.query import QuerySet
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.http import urlencode
@@ -326,3 +327,108 @@ class ModelViewSetTestCase(
         """
 
         return cls._get_generic_args()[2]
+
+    def get_other_user(
+        self,
+        user: User,
+        other_users: QuerySet[User],
+        is_teacher: bool,
+    ):
+        """
+        Get a different user.
+        """
+
+        other_user = other_users.first()
+        assert other_user
+        assert user != other_user
+        assert other_user.is_teacher if is_teacher else other_user.is_student
+        return other_user
+
+    def get_other_school_user(
+        self,
+        user: User,
+        other_users: QuerySet[User],
+        is_teacher: bool,
+    ):
+        """
+        Get a different user that is in a school.
+        - the provided user does not have to be in a school.
+        - the other user has to be in a school.
+        """
+
+        other_user = self.get_other_user(user, other_users, is_teacher)
+        assert (
+            other_user.teacher.school
+            if is_teacher
+            else other_user.student.class_field.teacher.school
+        )
+        return other_user
+
+    def get_another_school_user(
+        self,
+        user: User,
+        other_users: QuerySet[User],
+        is_teacher: bool,
+        same_school: bool,
+        same_class: t.Optional[bool] = None,
+    ):
+        """
+        Get a different user that is also in a school.
+         - the provided user has to be in a school.
+         - the other user has to be in a school.
+        """
+
+        other_user = self.get_other_school_user(user, other_users, is_teacher)
+
+        school = (
+            user.teacher.school
+            if user.teacher
+            else user.student.class_field.teacher.school  # type: ignore[union-attr]
+        )
+        assert school
+
+        other_school = (
+            other_user.teacher.school
+            if is_teacher
+            else other_user.student.class_field.teacher.school
+        )
+        assert other_school
+
+        if same_school:
+            assert school == other_school
+
+            # Cannot assert that 2 teachers are in the same class since a class
+            # can only have 1 teacher.
+            if not (user.is_teacher and other_user.is_teacher):
+                # At this point, same_class needs to be set.
+                assert same_class is not None, "same_class must be set."
+
+                # If one of the users is a teacher.
+                if user.is_teacher or is_teacher:
+                    # Get the teacher.
+                    teacher = other_user if is_teacher else user
+
+                    # Get the student's class' teacher.
+                    class_teacher = (
+                        user if is_teacher else other_user
+                    ).student.class_field.teacher.new_user
+
+                    # Assert the teacher is the class' teacher.
+                    assert (
+                        teacher == class_teacher
+                        if same_class
+                        else teacher != class_teacher
+                    )
+                # Else, both users are students.
+                else:
+                    assert (
+                        user.student.class_field  # type: ignore[union-attr]
+                        == other_user.student.class_field
+                        if same_class
+                        else user.student.class_field  # type: ignore[union-attr]
+                        != other_user.student.class_field
+                    )
+        else:
+            assert school != other_school
+
+        return other_user
