@@ -4,7 +4,7 @@ Created on 19/01/2024 at 11:06:00(+00:00).
 """
 
 from ...serializers import ModelSerializer
-from ..models import User
+from ..models import User, Student, Teacher
 from .student import StudentSerializer
 from .teacher import TeacherSerializer
 
@@ -43,6 +43,24 @@ class UserSerializer(ModelSerializer[User]):
         }
 
     def to_representation(self, instance):
+        try:
+            student = (
+                StudentSerializer(instance.new_student).data
+                if instance.new_student and instance.new_student.class_field
+                else None
+            )
+        except Student.DoesNotExist:
+            student = None
+
+        try:
+            teacher = (
+                TeacherSerializer(instance.new_teacher).data
+                if instance.new_teacher
+                else None
+            )
+        except Teacher.DoesNotExist:
+            teacher = None
+
         return {
             "id": instance.id,
             "first_name": instance.first_name,
@@ -50,10 +68,6 @@ class UserSerializer(ModelSerializer[User]):
             "email": instance.email,
             "is_active": instance.is_active,
             "date_joined": instance.date_joined,
-            "student": StudentSerializer(instance.student).data
-            if instance.student and instance.student.class_field
-            else None,
-            "teacher": TeacherSerializer(instance.teacher).data
-            if instance.teacher
-            else None,
+            "student": student,
+            "teacher": teacher,
         }

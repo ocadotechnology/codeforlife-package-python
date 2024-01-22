@@ -16,9 +16,14 @@ class UserViewSet(ModelViewSet):
             if user.student.class_field is None:
                 return User.objects.filter(id=user.id)
 
-            return User.objects.filter(
+            teachers = User.objects.filter(
+                new_teacher=user.student.class_field.teacher
+            )
+            students = User.objects.filter(
                 new_student__class_field=user.student.class_field
             )
+
+            return teachers | students
 
         teachers = User.objects.filter(
             new_teacher__school=user.teacher.school_id

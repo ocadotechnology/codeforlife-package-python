@@ -247,7 +247,7 @@ class TestUserViewSet(ModelViewSetTestCase[UserViewSet, UserSerializer, User]):
 
     def test_retrieve__student__teacher__same_school__same_class(self):
         """
-        Student cannot retrieve a teacher from the same school and class.
+        Student can retrieve a teacher from the same school and class.
         """
 
         user = self._login_student()
@@ -263,7 +263,7 @@ class TestUserViewSet(ModelViewSetTestCase[UserViewSet, UserSerializer, User]):
             same_class=True,
         )
 
-        self.client.retrieve(other_user, status.HTTP_404_NOT_FOUND)
+        self.client.retrieve(other_user)
 
     def test_retrieve__student__teacher__same_school__not_same_class(self):
         """
@@ -482,9 +482,12 @@ class TestUserViewSet(ModelViewSetTestCase[UserViewSet, UserSerializer, User]):
         user = self._login_student()
 
         self.client.list(
-            User.objects.filter(
-                new_student__class_field=user.student.class_field
-            )
+            [
+                user.student.class_field.teacher.new_user,
+                *User.objects.filter(
+                    new_student__class_field=user.student.class_field
+                ),
+            ]
         )
 
     def test_list__indy_student(self):
