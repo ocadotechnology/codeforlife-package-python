@@ -446,7 +446,7 @@ class TestUserViewSet(ModelViewSetTestCase[UserViewSet, UserSerializer, User]):
 
     def test_list__teacher(self):
         """
-        Teacher can list all the users in the same school.
+        Teacher can list all the users in the same class.
         """
 
         user = self._login_teacher()
@@ -476,12 +476,16 @@ class TestUserViewSet(ModelViewSetTestCase[UserViewSet, UserSerializer, User]):
 
     def test_list__student(self):
         """
-        Student can list only themself.
+        Student can list all users in their class.
         """
 
         user = self._login_student()
 
-        self.client.list([user])
+        self.client.list(
+            User.objects.filter(
+                new_student__class_field=user.student.class_field
+            )
+        )
 
     def test_list__indy_student(self):
         """

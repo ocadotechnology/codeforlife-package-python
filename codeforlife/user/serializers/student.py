@@ -15,6 +15,7 @@ class StudentSerializer(ModelSerializer[Student]):
         fields = [
             "id",
             "klass",
+            "school",
         ]
         extra_kwargs = {
             "id": {"read_only": True},
