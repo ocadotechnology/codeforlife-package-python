@@ -11,7 +11,7 @@ from unittest.mock import patch
 
 from django.db.models import Model
 from django.db.models.query import QuerySet
-from django.urls import reverse
+from django.urls import reverse as _reverse
 from django.utils import timezone
 from django.utils.http import urlencode
 from pyotp import TOTP
@@ -36,30 +36,26 @@ class ModelViewSetClient(
     responses.
     """
 
+    Data = t.Dict[str, t.Any]
+
     _test_case: "ModelViewSetTestCase[AnyModelViewSet, AnyModelSerializer, AnyModel]"
 
     @property
-    def basename(self):
-        """Shortcut to get basename."""
-
-        return self._test_case.basename
-
-    @property
-    def model_class(self):
+    def _model_class(self):
         """Shortcut to get model class."""
 
         # pylint: disable-next=no-member
         return self._test_case.get_model_class()
 
     @property
-    def model_serializer_class(self):
+    def _model_serializer_class(self):
         """Shortcut to get model serializer class."""
 
         # pylint: disable-next=no-member
         return self._test_case.get_model_serializer_class()
 
     @property
-    def model_view_set_class(self):
+    def _model_view_set_class(self):
         """Shortcut to get model view set class."""
 
         # pylint: disable-next=no-member
@@ -84,7 +80,7 @@ class ModelViewSetClient(
 
     def assert_data_equals_model(
         self,
-        data: t.Dict[str, t.Any],
+        data: Data,
         model: AnyModel,
         contains_subset: bool = False,
     ):
@@ -112,7 +108,7 @@ class ModelViewSetClient(
                 return data.strftime("%Y-%m-%dT%H:%M:%S.%fZ")
             return data
 
-        actual_data = parse_data(self.model_serializer_class(model).data)
+        actual_data = parse_data(self._model_serializer_class(model).data)
 
         if contains_subset:
             # pylint: disable-next=no-member
@@ -129,16 +125,37 @@ class ModelViewSetClient(
                 "Data does not equal serialized model.",
             )
 
-    def _get_reverse_detail(self, model: AnyModel, **kwargs):
-        return reverse(
+    def reverse(
+        self,
+        action: str,
+        model: t.Optional[AnyModel] = None,
+        **kwargs,
+    ):
+        """Get the reverse URL for the model view set's action.
+
+        Args:
+            action: The name of the action.
+            model: The model to look up.
+
+        Returns:
+            The reversed URL.
+        """
+
+        reverse_kwargs = kwargs.pop("kwargs", {})
+        if model is not None:
+            reverse_kwargs[self._model_view_set_class.lookup_field] = getattr(
+                model,
+                self._model_view_set_class.lookup_field,
+            )
+
+        return _reverse(
+            viewname=kwargs.pop(
+                "viewname",
+                # pylint: disable-next=no-member
+                f"{self._test_case.basename}-{action}",
+            ),
+            kwargs=reverse_kwargs,
             **kwargs,
-            viewname=kwargs.get("viewname", f"{self.basename}-detail"),
-            kwargs={
-                **kwargs.get("kwargs", {}),
-                self.model_view_set_class.lookup_field: getattr(
-                    model, self.model_view_set_class.lookup_field
-                ),
-            },
         )
 
     # pylint: disable-next=too-many-arguments
@@ -184,6 +201,37 @@ class ModelViewSetClient(
 
         return response
 
+    def create(
+        self,
+        data: Data,
+        status_code_assertion: StatusCodeAssertion = None,
+        **kwargs,
+    ):
+        """Create a model.
+
+        Args:
+            data: The values for each field.
+            status_code_assertion: The expected status code.
+
+        Returns:
+            The HTTP response.
+        """
+
+        response: Response = self.post(
+            self.reverse("list"),
+            status_code_assertion=status_code_assertion,
+            **kwargs,
+        )
+
+        if self.status_code_is_ok(response.status_code):
+            # pylint: disable-next=no-member
+            self._test_case.assertDictContainsSubset(
+                data,
+                response.json(),  # type: ignore[attr-defined]
+            )
+
+        return response
+
     def retrieve(
         self,
         model: AnyModel,
@@ -201,7 +249,7 @@ class ModelViewSetClient(
         """
 
         response: Response = self.get(
-            self._get_reverse_detail(model),
+            self.reverse("detail", model),
             status_code_assertion=status_code_assertion,
             **kwargs,
         )
@@ -232,14 +280,14 @@ class ModelViewSetClient(
             The HTTP response.
         """
 
-        assert self.model_class.objects.difference(
-            self.model_class.objects.filter(
+        assert self._model_class.objects.difference(
+            self._model_class.objects.filter(
                 pk__in=[model.pk for model in models]
             )
         ).exists(), "List must exclude some models for a valid test."
 
         response: Response = self.get(
-            f"{reverse(f'{self.basename}-list')}?{urlencode(filters or {})}",
+            f"{self.reverse('list')}?{urlencode(filters or {})}",
             status_code_assertion=status_code_assertion,
             **kwargs,
         )
@@ -253,7 +301,7 @@ class ModelViewSetClient(
     def partial_update(
         self,
         model: AnyModel,
-        data: t.Dict[str, t.Any],
+        data: Data,
         status_code_assertion: StatusCodeAssertion = None,
         **kwargs,
     ):
@@ -261,6 +309,7 @@ class ModelViewSetClient(
 
         Args:
             model: The model to partially update.
+            data: The values for each field.
             status_code_assertion: The expected status code.
 
         Returns:
@@ -268,7 +317,7 @@ class ModelViewSetClient(
         """
 
         response: Response = self.patch(
-            self._get_reverse_detail(model),
+            self.reverse("detail", model),
             data=data,
             status_code_assertion=status_code_assertion,
             **kwargs,
@@ -301,7 +350,7 @@ class ModelViewSetClient(
         """
 
         response: Response = self.delete(
-            self._get_reverse_detail(model),
+            self.reverse("detail", model),
             status_code_assertion=status_code_assertion,
             **kwargs,
         )

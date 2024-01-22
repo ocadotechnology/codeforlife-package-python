@@ -44,33 +44,38 @@ def check_previous_values(
     instance: AnyModel,
     predicates: t.Dict[str, t.Callable[[t.Any, t.Any], bool]],
 ):
-    """Check if the previous values are as expected.
+    """Check if the previous values are as expected. If the model has not been
+    created yet, the previous values are None.
 
     Args:
         instance: The current instance.
         predicates: A predicate for each field. It accepts the arguments
         (previous_value, value) and returns True if the values are as expected.
 
-    Raises:
-        ValueError: If arg 'instance' has not been created yet.
-
     Returns:
         If all the previous values are as expected.
     """
 
-    if not was_created(instance):
-        raise ValueError("Arg 'instance' has not been created yet.")
+    if was_created(instance):
+        previous_instance = instance.__class__.objects.get(pk=instance.pk)
 
-    previous_instance = instance.__class__.objects.get(pk=instance.pk)
+        def get_previous_value(field: str):
+            return getattr(previous_instance, field)
+
+    else:
+        # pylint: disable-next=unused-argument
+        def get_previous_value(field: str):
+            return None
 
     return all(
-        predicate(getattr(previous_instance, field), getattr(instance, field))
+        predicate(get_previous_value(field), getattr(instance, field))
         for field, predicate in predicates.items()
     )
 
 
 def previous_values_are_unequal(instance: AnyModel, fields: t.Set[str]):
-    """Check if all the previous values are not equal to the current values.
+    """Check if all the previous values are not equal to the current values. If
+    the model has not been created yet, the previous values are None.
 
     Args:
         instance: The current instance.
