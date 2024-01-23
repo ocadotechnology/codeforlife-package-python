@@ -19,3 +19,7 @@ class ModelSerializer(_ModelSerializer[AnyModel], t.Generic[AnyModel]):
     # pylint: disable-next=useless-parent-delegation
     def update(self, instance, validated_data: t.Dict[str, t.Any]):
         return super().update(instance, validated_data)
+
+    # pylint: disable-next=useless-parent-delegation
+    def create(self, validated_data: t.Dict[str, t.Any]):
+        return super().create(validated_data)
