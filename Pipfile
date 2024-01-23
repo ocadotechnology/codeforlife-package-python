@@ -26,11 +26,18 @@ phonenumbers = "==8.12.12" # TODO: remove
 [dev-packages]
 black = "==23.1.0"
 pytest = "==7.2.1"
+pytest-env = "==0.8.1"
+pytest-xdist = {version = "==3.5.0", extras = ["psutil"]}
 pytest-django = "==4.5.2"
 django-extensions = "==3.2.1"
 pyparsing = "==3.0.9"
 pydot = "==1.4.2"
-pytest-env = "==0.8.1"
+pylint = "==3.0.2"
+pylint-django = "==2.5.5"
+isort = "==5.13.2"
+mypy = "==1.6.1"
+django-stubs = {version = "==4.2.6", extras = ["compatible-mypy"]}
+djangorestframework-stubs = {version = "==3.14.4", extras = ["compatible-mypy"]}
 
 [requires]
 python_version = "3.8"

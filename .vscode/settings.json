@@ -1,9 +1,39 @@
 {
+    "isort.path": [
+        ".venv/bin/python",
+        "-m",
+        "isort"
+    ],
+    "isort.args": [
+        "--settings-file=pyproject.toml"
+    ],
+    "black-formatter.path": [
+        ".venv/bin/python",
+        "-m",
+        "black"
+    ],
     "black-formatter.args": [
         "--config",
         "pyproject.toml"
     ],
+    "mypy-type-checker.path": [
+        ".venv/bin/python",
+        "-m",
+        "mypy"
+    ],
+    "mypy-type-checker.args": [
+        "--config-file=pyproject.toml"
+    ],
+    "pylint.path": [
+        ".venv/bin/python",
+        "-m",
+        "pylint"
+    ],
+    "pylint.args": [
+        "--rcfile=pyproject.toml"
+    ],
     "python.testing.pytestArgs": [
+        "-n=auto",
         "-c=pyproject.toml",
         "."
     ],

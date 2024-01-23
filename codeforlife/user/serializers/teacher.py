@@ -1,12 +1,22 @@
-from rest_framework import serializers
+"""
+© Ocado Group
+Created on 20/01/2024 at 11:27:43(+00:00).
+"""
 
+from ...serializers import ModelSerializer
 from ..models import Teacher
 
 
-class TeacherSerializer(serializers.ModelSerializer):
+# pylint: disable-next=missing-class-docstring
+class TeacherSerializer(ModelSerializer[Teacher]):
+    # pylint: disable-next=missing-class-docstring,too-few-public-methods
     class Meta:
         model = Teacher
-        fields = "__all__"
+        fields = [
+            "id",
+            "school",
+            "is_admin",
+        ]
         extra_kwargs = {
             "id": {"read_only": True},
         }
