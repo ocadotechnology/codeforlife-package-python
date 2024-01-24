@@ -1,7 +1,10 @@
+"""
+© Ocado Group
+Created on 23/01/2024 at 14:45:07(+00:00).
+"""
+
 from django.conf import settings
 from rest_framework.permissions import BasePermission
-from rest_framework.request import Request
-from rest_framework.views import View
 
 
 class IsCronRequestFromGoogle(BasePermission):
@@ -11,7 +14,7 @@ class IsCronRequestFromGoogle(BasePermission):
     https://cloud.google.com/appengine/docs/flexible/scheduling-jobs-with-cron-yaml#securing_urls_for_cron
     """
 
-    def has_permission(self, request: Request, view: View):
+    def has_permission(self, request, view):
         return (
             settings.DEBUG
             or request.META.get("HTTP_X_APPENGINE_CRON") == "true"

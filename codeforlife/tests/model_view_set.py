@@ -15,9 +15,10 @@ from django.urls import reverse as _reverse
 from django.utils import timezone
 from django.utils.http import urlencode
 from pyotp import TOTP
+from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.serializers import ModelSerializer
-from rest_framework.test import APIClient, APITestCase
+from rest_framework.test import APIClient, APIRequestFactory, APITestCase
 from rest_framework.viewsets import ModelViewSet
 
 from ..user.models import AuthFactor, User
@@ -36,7 +37,12 @@ class ModelViewSetClient(
     responses.
     """
 
-    Data = t.Dict[str, t.Any]
+    def __init__(self, enforce_csrf_checks: bool = False, **defaults):
+        super().__init__(enforce_csrf_checks, **defaults)
+        self.request_factory = APIRequestFactory(
+            enforce_csrf_checks,
+            **defaults,
+        )
 
     _test_case: "ModelViewSetTestCase[AnyModelViewSet, AnyModelSerializer, AnyModel]"
 
@@ -61,6 +67,7 @@ class ModelViewSetClient(
         # pylint: disable-next=no-member
         return self._test_case.get_model_view_set_class()
 
+    Data = t.Dict[str, t.Any]
     StatusCodeAssertion = t.Optional[t.Union[int, t.Callable[[int], bool]]]
     ListFilters = t.Optional[t.Dict[str, str]]
 
@@ -204,7 +211,7 @@ class ModelViewSetClient(
     def create(
         self,
         data: Data,
-        status_code_assertion: StatusCodeAssertion = None,
+        status_code_assertion: StatusCodeAssertion = status.HTTP_201_CREATED,
         **kwargs,
     ):
         """Create a model.
@@ -219,6 +226,7 @@ class ModelViewSetClient(
 
         response: Response = self.post(
             self.reverse("list"),
+            data=data,
             status_code_assertion=status_code_assertion,
             **kwargs,
         )
@@ -235,7 +243,7 @@ class ModelViewSetClient(
     def retrieve(
         self,
         model: AnyModel,
-        status_code_assertion: StatusCodeAssertion = None,
+        status_code_assertion: StatusCodeAssertion = status.HTTP_200_OK,
         **kwargs,
     ):
         """Retrieve a model.
@@ -265,7 +273,7 @@ class ModelViewSetClient(
     def list(
         self,
         models: t.Iterable[AnyModel],
-        status_code_assertion: StatusCodeAssertion = None,
+        status_code_assertion: StatusCodeAssertion = status.HTTP_200_OK,
         filters: ListFilters = None,
         **kwargs,
     ):
@@ -302,7 +310,7 @@ class ModelViewSetClient(
         self,
         model: AnyModel,
         data: Data,
-        status_code_assertion: StatusCodeAssertion = None,
+        status_code_assertion: StatusCodeAssertion = status.HTTP_200_OK,
         **kwargs,
     ):
         """Partially update a model.
@@ -336,7 +344,8 @@ class ModelViewSetClient(
     def destroy(
         self,
         model: AnyModel,
-        status_code_assertion: StatusCodeAssertion = None,
+        status_code_assertion: StatusCodeAssertion = status.HTTP_204_NO_CONTENT,
+        anonymized: bool = False,
         **kwargs,
     ):
         """Destroy a model.
@@ -344,6 +353,7 @@ class ModelViewSetClient(
         Args:
             model: The model to destroy.
             status_code_assertion: The expected status code.
+            anonymized: Whether or not the data is anonymized.
 
         Returns:
             The HTTP response.
@@ -355,7 +365,10 @@ class ModelViewSetClient(
             **kwargs,
         )
 
-        # TODO: add standard post-destroy assertions.
+        if not anonymized and self.status_code_is_ok(response.status_code):
+            # pylint: disable-next=no-member
+            with self._test_case.assertRaises(model.DoesNotExist):
+                model.refresh_from_db()
 
         return response
 
@@ -369,11 +382,15 @@ class ModelViewSetClient(
         if user.session.session_auth_factors.filter(
             auth_factor__type=AuthFactor.Type.OTP
         ).exists():
+            request = self.request_factory.request()
+            request.user = user
+
             now = timezone.now()
             otp = TOTP(user.otp_secret).at(now)
             with patch.object(timezone, "now", return_value=now):
                 assert super().login(
-                    otp=otp
+                    request=request,
+                    otp=otp,
                 ), f'Failed to login with OTP "{otp}" at {now}.'
 
         assert user.is_authenticated, "Failed to authenticate user."
