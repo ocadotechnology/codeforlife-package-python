@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.9.5 (2024-01-24)
+
+### Fix
+
+* New permissions and fix test cases ([#61](https://github.com/ocadotechnology/codeforlife-package-python/issues/61)) ([`d6c6a7e`](https://github.com/ocadotechnology/codeforlife-package-python/commit/d6c6a7efa7fc4e5823cddd181ba4dc962b6cafc1))
+
 ## v0.9.4 (2024-01-23)
 
 ### Fix
