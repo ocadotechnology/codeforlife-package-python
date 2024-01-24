@@ -353,7 +353,7 @@ class ModelViewSetClient(
         Args:
             model: The model to destroy.
             status_code_assertion: The expected status code.
-            anonymized: Whether are not the data is anonymized.
+            anonymized: Whether or not the data is anonymized.
 
         Returns:
             The HTTP response.
