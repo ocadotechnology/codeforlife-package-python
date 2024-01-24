@@ -8,13 +8,10 @@ from rest_framework.permissions import IsAuthenticated
 
 from ....tests import ModelViewSetTestCase
 from ...models import Class, School, Student, Teacher, User, UserProfile
-from ...serializers import SchoolSerializer
 from ...views import SchoolViewSet
 
 
-class TestSchoolViewSet(
-    ModelViewSetTestCase[SchoolViewSet, SchoolSerializer, School]
-):
+class TestSchoolViewSet(ModelViewSetTestCase[School]):
     """
     Base naming convention:
         test_{action}
@@ -24,6 +21,7 @@ class TestSchoolViewSet(
     """
 
     basename = "school"
+    model_view_set_class = SchoolViewSet
 
     # TODO: replace this setup with data fixtures.
     def setUp(self):

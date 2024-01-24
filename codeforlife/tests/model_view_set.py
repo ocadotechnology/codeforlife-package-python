@@ -17,21 +17,16 @@ from django.utils.http import urlencode
 from pyotp import TOTP
 from rest_framework import status
 from rest_framework.response import Response
-from rest_framework.serializers import ModelSerializer
 from rest_framework.test import APIClient, APIRequestFactory, APITestCase
-from rest_framework.viewsets import ModelViewSet
 
+from ..serializers import ModelSerializer
 from ..user.models import AuthFactor, User
+from ..views import ModelViewSet
 
-AnyModelViewSet = t.TypeVar("AnyModelViewSet", bound=ModelViewSet)
-AnyModelSerializer = t.TypeVar("AnyModelSerializer", bound=ModelSerializer)
 AnyModel = t.TypeVar("AnyModel", bound=Model)
 
 
-class ModelViewSetClient(
-    APIClient,
-    t.Generic[AnyModelViewSet, AnyModelSerializer, AnyModel],
-):
+class ModelViewSetClient(APIClient, t.Generic[AnyModel]):
     """
     An API client that helps make requests to a model view set and assert their
     responses.
@@ -44,7 +39,7 @@ class ModelViewSetClient(
             **defaults,
         )
 
-    _test_case: "ModelViewSetTestCase[AnyModelViewSet, AnyModelSerializer, AnyModel]"
+    _test_case: "ModelViewSetTestCase[AnyModel]"
 
     @property
     def _model_class(self):
@@ -54,18 +49,11 @@ class ModelViewSetClient(
         return self._test_case.get_model_class()
 
     @property
-    def _model_serializer_class(self):
-        """Shortcut to get model serializer class."""
-
-        # pylint: disable-next=no-member
-        return self._test_case.get_model_serializer_class()
-
-    @property
     def _model_view_set_class(self):
         """Shortcut to get model view set class."""
 
         # pylint: disable-next=no-member
-        return self._test_case.get_model_view_set_class()
+        return self._test_case.model_view_set_class
 
     Data = t.Dict[str, t.Any]
     StatusCodeAssertion = t.Optional[t.Union[int, t.Callable[[int], bool]]]
@@ -89,6 +77,9 @@ class ModelViewSetClient(
         self,
         data: Data,
         model: AnyModel,
+        model_serializer_class: t.Optional[
+            t.Type[ModelSerializer[AnyModel]]
+        ] = None,
         contains_subset: bool = False,
     ):
         # pylint: disable=line-too-long
@@ -115,7 +106,14 @@ class ModelViewSetClient(
                 return data.strftime("%Y-%m-%dT%H:%M:%S.%fZ")
             return data
 
-        actual_data = parse_data(self._model_serializer_class(model).data)
+        if model_serializer_class is None:
+            model_serializer_class = (
+                # pylint: disable-next=no-member
+                self._test_case.model_serializer_class
+                or self._model_view_set_class().get_serializer_class()
+            )
+
+        actual_data = parse_data(model_serializer_class(model).data)
 
         if contains_subset:
             # pylint: disable-next=no-member
@@ -244,17 +242,23 @@ class ModelViewSetClient(
         self,
         model: AnyModel,
         status_code_assertion: StatusCodeAssertion = status.HTTP_200_OK,
+        model_serializer_class: t.Optional[
+            t.Type[ModelSerializer[AnyModel]]
+        ] = None,
         **kwargs,
     ):
+        # pylint: disable=line-too-long
         """Retrieve a model.
 
         Args:
             model: The model to retrieve.
             status_code_assertion: The expected status code.
+            model_serializer_class: The serializer used to serialize the model's data.
 
         Returns:
             The HTTP response.
         """
+        # pylint: enable=line-too-long
 
         response: Response = self.get(
             self.reverse("detail", model),
@@ -266,6 +270,7 @@ class ModelViewSetClient(
             self.assert_data_equals_model(
                 response.json(),  # type: ignore[attr-defined]
                 model,
+                model_serializer_class,
             )
 
         return response
@@ -274,19 +279,25 @@ class ModelViewSetClient(
         self,
         models: t.Iterable[AnyModel],
         status_code_assertion: StatusCodeAssertion = status.HTTP_200_OK,
+        model_serializer_class: t.Optional[
+            t.Type[ModelSerializer[AnyModel]]
+        ] = None,
         filters: ListFilters = None,
         **kwargs,
     ):
+        # pylint: disable=line-too-long
         """Retrieve a list of models.
 
         Args:
             models: The model list to retrieve.
             status_code_assertion: The expected status code.
+            model_serializer_class: The serializer used to serialize the model's data.
             filters: The filters to apply to the list.
 
         Returns:
             The HTTP response.
         """
+        # pylint: enable=line-too-long
 
         assert self._model_class.objects.difference(
             self._model_class.objects.filter(
@@ -301,8 +312,15 @@ class ModelViewSetClient(
         )
 
         if self.status_code_is_ok(response.status_code):
-            for data, model in zip(response.json()["data"], models):  # type: ignore[attr-defined]
-                self.assert_data_equals_model(data, model)
+            for data, model in zip(
+                response.json()["data"],  # type: ignore[attr-defined]
+                models,
+            ):
+                self.assert_data_equals_model(
+                    data,
+                    model,
+                    model_serializer_class,
+                )
 
         return response
 
@@ -311,18 +329,24 @@ class ModelViewSetClient(
         model: AnyModel,
         data: Data,
         status_code_assertion: StatusCodeAssertion = status.HTTP_200_OK,
+        model_serializer_class: t.Optional[
+            t.Type[ModelSerializer[AnyModel]]
+        ] = None,
         **kwargs,
     ):
+        # pylint: disable=line-too-long
         """Partially update a model.
 
         Args:
             model: The model to partially update.
             data: The values for each field.
             status_code_assertion: The expected status code.
+            model_serializer_class: The serializer used to serialize the model's data.
 
         Returns:
             The HTTP response.
         """
+        # pylint: enable=line-too-long
 
         response: Response = self.patch(
             self.reverse("detail", model),
@@ -336,6 +360,7 @@ class ModelViewSetClient(
             self.assert_data_equals_model(
                 response.json(),  # type: ignore[attr-defined]
                 model,
+                model_serializer_class,
                 contains_subset=True,
             )
 
@@ -367,7 +392,9 @@ class ModelViewSetClient(
 
         if not anonymized and self.status_code_is_ok(response.status_code):
             # pylint: disable-next=no-member
-            with self._test_case.assertRaises(model.DoesNotExist):
+            with self._test_case.assertRaises(
+                model.DoesNotExist  # type: ignore[attr-defined]
+            ):
                 model.refresh_from_db()
 
         return response
@@ -438,55 +465,19 @@ class ModelViewSetClient(
         return user
 
 
-class ModelViewSetTestCase(
-    APITestCase,
-    t.Generic[AnyModelViewSet, AnyModelSerializer, AnyModel],
-):
+class ModelViewSetTestCase(APITestCase, t.Generic[AnyModel]):
     """Base for all model view set test cases."""
 
     basename: str
-    client: ModelViewSetClient[  # type: ignore[assignment]
-        AnyModelViewSet,
-        AnyModelSerializer,
-        AnyModel,
-    ]
+    model_view_set_class: t.Type[ModelViewSet[AnyModel]]
+    model_serializer_class: t.Optional[t.Type[ModelSerializer[AnyModel]]] = None
+    client: ModelViewSetClient[AnyModel]
     client_class = ModelViewSetClient  # type: ignore[assignment]
 
     def _pre_setup(self):
-        super()._pre_setup()
+        super()._pre_setup()  # type: ignore[misc]
         # pylint: disable-next=protected-access
         self.client._test_case = self
-
-    @classmethod
-    def _get_generic_args(
-        cls,
-    ) -> t.Tuple[
-        t.Type[AnyModelViewSet],
-        t.Type[AnyModelSerializer],
-        t.Type[AnyModel],
-    ]:
-        # pylint: disable-next=no-member
-        return t.get_args(cls.__orig_bases__[0])  # type: ignore[attr-defined,return-value]
-
-    @classmethod
-    def get_model_view_set_class(cls):
-        """Get the model view set's class.
-
-        Returns:
-            The model view set's class.
-        """
-
-        return cls._get_generic_args()[0]
-
-    @classmethod
-    def get_model_serializer_class(cls):
-        """Get the model serializer's class.
-
-        Returns:
-            The model serializer's class.
-        """
-
-        return cls._get_generic_args()[1]
 
     @classmethod
     def get_model_class(cls):
@@ -496,7 +487,10 @@ class ModelViewSetTestCase(
             The model view set's class.
         """
 
-        return cls._get_generic_args()[2]
+        # pylint: disable-next=no-member
+        return t.get_args(cls.__orig_bases__[0])[  # type: ignore[attr-defined]
+            0
+        ]
 
     def get_other_user(
         self,

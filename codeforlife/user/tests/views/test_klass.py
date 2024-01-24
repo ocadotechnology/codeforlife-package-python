@@ -5,13 +5,10 @@ Created on 20/01/2024 at 09:48:30(+00:00).
 
 from ....tests import ModelViewSetTestCase
 from ...models import Class
-from ...serializers import ClassSerializer
 from ...views import ClassViewSet
 
 
-class TestClassViewSet(
-    ModelViewSetTestCase[ClassViewSet, ClassSerializer, Class]
-):
+class TestClassViewSet(ModelViewSetTestCase[Class]):
     """
     Base naming convention:
         test_{action}
@@ -21,6 +18,7 @@ class TestClassViewSet(
     """
 
     basename = "class"
+    model_view_set_class = ClassViewSet
 
     def _login_student(self):
         return self.client.login_student(
