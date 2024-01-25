@@ -2,6 +2,13 @@
 
 <!--next-version-placeholder-->
 
+## v0.9.6 (2024-01-25)
+
+### Fix
+
+* Remove broken import ([`9d5eff5`](https://github.com/ocadotechnology/codeforlife-package-python/commit/9d5eff5c1de41cd143e7301a4ef01f30db72fd92))
+* Model view set test case ([#62](https://github.com/ocadotechnology/codeforlife-package-python/issues/62)) ([`8288825`](https://github.com/ocadotechnology/codeforlife-package-python/commit/8288825d624383856a6e80b76ce6380c1f793bfc))
+
 ## v0.9.5 (2024-01-24)
 
 ### Fix
