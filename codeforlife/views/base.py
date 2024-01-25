@@ -8,6 +8,8 @@ import typing as t
 from django.db.models import Model
 from rest_framework.viewsets import ModelViewSet as DrfModelViewSet
 
+from ..serializers import ModelSerializer
+
 AnyModel = t.TypeVar("AnyModel", bound=Model)
 
 
@@ -24,6 +26,8 @@ if t.TYPE_CHECKING:
         t.Generic[AnyModel],
     ):
         """Base model view set for all model view sets."""
+
+        serializer_class: t.Optional[t.Type[ModelSerializer[AnyModel]]]
 
 else:
     # pylint: disable-next=missing-class-docstring,too-many-ancestors
