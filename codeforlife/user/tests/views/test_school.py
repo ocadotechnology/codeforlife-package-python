@@ -4,7 +4,6 @@ Created on 20/01/2024 at 09:47:30(+00:00).
 """
 
 from rest_framework import status
-from rest_framework.permissions import InSc
 
 from ....tests import ModelViewSetTestCase
 from ...models import Class, School, Student, Teacher, User, UserProfile
