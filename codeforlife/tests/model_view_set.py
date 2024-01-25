@@ -424,20 +424,23 @@ class ModelViewSetClient(APIClient, t.Generic[AnyModel]):
 
         return user
 
-    def login_teacher(self, is_admin: bool, **credentials):
+    def login_teacher(self, is_admin: t.Optional[bool] = None, **credentials):
+        # pylint: disable=line-too-long
         """Log in a user and assert they are a teacher.
 
         Args:
-            is_admin: Whether or not the teacher is an admin.
+            is_admin: Whether or not the teacher is an admin. Set none if a teacher can be either or.
 
         Returns:
             The teacher-user.
         """
+        # pylint: enable=line-too-long
 
         user = self.login(**credentials)
         assert user.teacher
         assert user.teacher.school
-        assert is_admin == user.teacher.is_admin
+        if is_admin is not None:
+            assert is_admin == user.teacher.is_admin
         return user
 
     def login_student(self, **credentials):
