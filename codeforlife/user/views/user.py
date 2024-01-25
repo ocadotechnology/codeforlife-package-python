@@ -11,7 +11,7 @@ from ..models import User
 from ..serializers import UserSerializer
 
 
-# pylint: disable-next=missing-class-docstring,too-few-public-methods
+# pylint: disable-next=missing-class-docstring,too-many-ancestors
 class UserViewSet(ModelViewSet[User]):
     http_method_names = ["get"]
     serializer_class = UserSerializer
