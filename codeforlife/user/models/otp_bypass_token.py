@@ -12,7 +12,7 @@ from . import user
 
 class OtpBypassToken(models.Model):
     length = 8
-    allowed_chars = "abcdefghijklmnopqrstuv"
+    allowed_chars = "abcdefghijklmnopqrstuvwxyz"
     max_count = 10
     max_count_validation_error = ValidationError(
         f"Exceeded max count of {max_count}"
