@@ -7,7 +7,29 @@ upload_to_release = true
 
 [tool.black]
 line-length = 80
-extend-exclude = "^/codeforlife/user/migrations/"
+extend-exclude = ".*/migrations/.*py"
 
 [tool.pytest.ini_options]
 env = ["DJANGO_SETTINGS_MODULE=manage"]
+
+[tool.mypy]
+plugins = ["mypy_django_plugin.main", "mypy_drf_plugin.main"]
+check_untyped_defs = true
+
+[tool.django-stubs]
+django_settings_module = "manage"
+
+[tool.pylint.main]
+init-hook = "import os; os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'manage')"
+
+[tool.pylint.format]
+max-line-length = 80
+
+[tool.pylint.MASTER]
+ignore-paths = [".*/migrations/.*py"]
+load-plugins = "pylint_django"
+
+[tool.isort]
+profile = "black"
+line_length = 80
+skip_glob = ["**/migrations/*.py"]

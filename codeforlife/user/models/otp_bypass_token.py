@@ -5,11 +5,14 @@ from django.contrib.auth.hashers import check_password, make_password
 from django.core.exceptions import ValidationError
 from django.core.validators import MinLengthValidator
 from django.db import models
+from django.utils.crypto import get_random_string
 
 from . import user
 
 
 class OtpBypassToken(models.Model):
+    length = 8
+    allowed_chars = "abcdefghijklmnopqrstuvwxyz"
     max_count = 10
     max_count_validation_error = ValidationError(
         f"Exceeded max count of {max_count}"
@@ -51,12 +54,9 @@ class OtpBypassToken(models.Model):
     )
 
     token = models.CharField(
-        max_length=8,
-        validators=[MinLengthValidator(8)],
+        max_length=length,
+        validators=[MinLengthValidator(length)],
     )
-
-    class Meta:
-        unique_together = ["user", "token"]
 
     def save(self, *args, **kwargs):
         if self.id is None:
@@ -69,7 +69,24 @@ class OtpBypassToken(models.Model):
         return super().save(*args, **kwargs)
 
     def check_token(self, token: str):
-        if check_password(token, self.token):
+        if check_password(token.lower(), self.token):
             self.delete()
             return True
         return False
+
+    @classmethod
+    def generate_tokens(cls, count: int = max_count):
+        """Generates a number of tokens.
+
+        Args:
+            count: The number of tokens to generate. Default to max.
+
+        Returns:
+            Raw tokens that are random and unique.
+        """
+
+        tokens: t.Set[str] = set()
+        while len(tokens) < count:
+            tokens.add(get_random_string(cls.length, cls.allowed_chars))
+
+        return tokens

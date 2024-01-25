@@ -8,12 +8,11 @@ from rest_framework.permissions import IsAuthenticated
 
 from ....tests import ModelViewSetTestCase
 from ...models import Class, School, Student, Teacher, User, UserProfile
-from ...serializers import UserSerializer
 from ...views import UserViewSet
 
 
 # pylint: disable-next=too-many-ancestors,too-many-public-methods
-class TestUserViewSet(ModelViewSetTestCase[UserViewSet, UserSerializer, User]):
+class TestUserViewSet(ModelViewSetTestCase[User]):
     """
     Base naming convention:
         test_{action}
@@ -23,6 +22,7 @@ class TestUserViewSet(ModelViewSetTestCase[UserViewSet, UserSerializer, User]):
     """
 
     basename = "user"
+    model_view_set_class = UserViewSet
 
     # TODO: replace this setup with data fixtures.
     def setUp(self):

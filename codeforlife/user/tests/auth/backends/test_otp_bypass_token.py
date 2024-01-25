@@ -2,7 +2,6 @@ from datetime import timedelta
 
 from django.test import RequestFactory, TestCase
 from django.utils import timezone
-from django.utils.crypto import get_random_string
 
 from ....auth.backends import OtpBypassTokenBackend
 from ....models import (
@@ -38,9 +37,7 @@ class TestTokenBackend(TestCase):
             auth_factor=self.auth_factor,
         )
 
-        self.tokens = [
-            get_random_string(8) for _ in range(OtpBypassToken.max_count)
-        ]
+        self.tokens = OtpBypassToken.generate_tokens()
         self.otp_bypass_tokens = OtpBypassToken.objects.bulk_create(
             [
                 OtpBypassToken(user=self.user, token=token)
@@ -52,7 +49,7 @@ class TestTokenBackend(TestCase):
         request = self.request_factory.post("/")
         request.user = self.user
 
-        user = self.backend.authenticate(request, token=self.tokens[0])
+        user = self.backend.authenticate(request, token=next(iter(self.tokens)))
 
         assert user == self.user
         assert self.otp_bypass_tokens[0].id is None

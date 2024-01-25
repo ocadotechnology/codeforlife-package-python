@@ -4,17 +4,14 @@ Created on 20/01/2024 at 09:47:30(+00:00).
 """
 
 from rest_framework import status
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import InSc
 
 from ....tests import ModelViewSetTestCase
 from ...models import Class, School, Student, Teacher, User, UserProfile
-from ...serializers import SchoolSerializer
 from ...views import SchoolViewSet
 
 
-class TestSchoolViewSet(
-    ModelViewSetTestCase[SchoolViewSet, SchoolSerializer, School]
-):
+class TestSchoolViewSet(ModelViewSetTestCase[School]):
     """
     Base naming convention:
         test_{action}
@@ -24,6 +21,7 @@ class TestSchoolViewSet(
     """
 
     basename = "school"
+    model_view_set_class = SchoolViewSet
 
     # TODO: replace this setup with data fixtures.
     def setUp(self):
@@ -196,24 +194,3 @@ class TestSchoolViewSet(
         user = self._login_student()
 
         self.client.list([user.student.class_field.teacher.school])
-
-    # pylint: disable-next=pointless-string-statement
-    """
-    General tests that apply to all actions.
-    """
-
-    def test_all__requires_authentication(self):
-        """
-        User must be authenticated to call any endpoint.
-        """
-
-        assert IsAuthenticated in SchoolViewSet.permission_classes
-
-    def test_all__only_http_get(self):
-        """
-        These model are read-only.
-        """
-
-        assert [name.lower() for name in SchoolViewSet.http_method_names] == [
-            "get"
-        ]

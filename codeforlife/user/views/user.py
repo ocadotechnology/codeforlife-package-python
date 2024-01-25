@@ -1,17 +1,25 @@
-from rest_framework.viewsets import ModelViewSet
+"""
+© Ocado Group
+Created on 24/01/2024 at 13:12:05(+00:00).
+"""
 
+import typing as t
+
+from ...views import ModelViewSet
 from ..filters import UserFilterSet
 from ..models import User
 from ..serializers import UserSerializer
 
 
-class UserViewSet(ModelViewSet):
+# pylint: disable-next=missing-class-docstring,too-many-ancestors
+class UserViewSet(ModelViewSet[User]):
     http_method_names = ["get"]
     serializer_class = UserSerializer
     filterset_class = UserFilterSet
 
+    # pylint: disable-next=missing-function-docstring
     def get_queryset(self):
-        user: User = self.request.user
+        user = t.cast(User, self.request.user)
         if user.is_student:
             if user.student.class_field is None:
                 return User.objects.filter(id=user.id)
