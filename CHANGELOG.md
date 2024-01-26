@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.10.0 (2024-01-26)
+
+### Feature
+
+* Support bulk actions ([#63](https://github.com/ocadotechnology/codeforlife-package-python/issues/63)) ([`4d2e7c4`](https://github.com/ocadotechnology/codeforlife-package-python/commit/4d2e7c407037714bc2041aa8a9fb4a8c6b1d2b76))
+
 ## v0.9.6 (2024-01-25)
 
 ### Fix
