@@ -11,9 +11,15 @@ from ..models import Student
 
 # pylint: disable-next=missing-class-docstring
 class StudentSerializer(ModelSerializer[Student]):
-    klass = serializers.CharField(source="class_field.access_code")
+    klass = serializers.CharField(
+        source="class_field.access_code",
+        read_only=True,
+    )
 
-    school = serializers.IntegerField(source="class_field.teacher.school.id")
+    school = serializers.IntegerField(
+        source="class_field.teacher.school.id",
+        read_only=True,
+    )
 
     # pylint: disable-next=missing-class-docstring,too-few-public-methods
     class Meta:
@@ -25,6 +31,4 @@ class StudentSerializer(ModelSerializer[Student]):
         ]
         extra_kwargs = {
             "id": {"read_only": True},
-            "klass": {"read_only": True},
-            "school": {"read_only": True},
         }

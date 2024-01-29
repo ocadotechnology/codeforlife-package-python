@@ -11,9 +11,15 @@ from .teacher import TeacherSerializer
 
 # pylint: disable-next=missing-class-docstring
 class UserSerializer(ModelSerializer[User]):
-    student = StudentSerializer(source="new_student")
+    student = StudentSerializer(
+        source="new_student",
+        read_only=True,
+    )
 
-    teacher = TeacherSerializer(source="new_teacher")
+    teacher = TeacherSerializer(
+        source="new_teacher",
+        read_only=True,
+    )
 
     # pylint: disable-next=missing-class-docstring,too-few-public-methods
     class Meta:
@@ -29,8 +35,6 @@ class UserSerializer(ModelSerializer[User]):
             "date_joined",
         ]
         extra_kwargs = {
-            "student": {"read_only": True},
-            "teacher": {"read_only": True},
             "id": {"read_only": True},
             "first_name": {"read_only": True},
             "last_name": {"read_only": True},
