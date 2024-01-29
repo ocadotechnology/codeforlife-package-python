@@ -1,0 +1,3 @@
+from .dependent_student import DependentStudentPasswordValidator
+from .independent_student import IndependentStudentPasswordValidator
+from .teacher import TeacherPasswordValidator
