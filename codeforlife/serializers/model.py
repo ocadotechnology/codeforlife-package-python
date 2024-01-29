@@ -58,6 +58,7 @@ class ModelListSerializer(
             list_serializer_class = UserListSerializer
     """
 
+    instance: t.List[AnyModel]
     batch_size: t.Optional[int] = None
 
     @classmethod
@@ -91,7 +92,11 @@ class ModelListSerializer(
             batch_size=self.batch_size,
         )
 
-    def update(self, instance, validated_data: t.List[t.Dict[str, t.Any]]):
+    def update(
+        self,
+        instance: t.List[AnyModel],
+        validated_data: t.List[t.Dict[str, t.Any]],
+    ):
         """Bulk update many instances of a model.
 
         https://www.django-rest-framework.org/api-guide/serializers/#customizing-multiple-update
@@ -132,3 +137,7 @@ class ModelListSerializer(
                 raise _ValidationError("Some models do not exist.")
 
         return attrs
+
+    # pylint: disable-next=useless-parent-delegation,arguments-renamed
+    def to_representation(self, instance: t.List[AnyModel]):
+        return super().to_representation(instance)
