@@ -101,6 +101,14 @@ class ModelViewSetClient(APIClient, t.Generic[AnyModel]):
 
         self._assert_response(response, _make_assertions)
 
+    def _assert_data_contains_subset(self, request: Data, response: Data):
+        for key, value in request.items():
+            response_value = response[key]
+            if isinstance(value, dict):
+                self._assert_data_contains_subset(value, response_value)
+            else:
+                assert value == response_value
+
     @staticmethod
     def status_code_is_ok(status_code: int):
         """Check if the status code is greater than or equal to 200 and less
@@ -252,17 +260,21 @@ class ModelViewSetClient(APIClient, t.Generic[AnyModel]):
         self,
         data: Data,
         status_code_assertion: StatusCodeAssertion = status.HTTP_201_CREATED,
+        assert_data_contains_subset: bool = True,
         **kwargs,
     ):
+        # pylint: disable=line-too-long
         """Create a model.
 
         Args:
             data: The values for each field.
             status_code_assertion: The expected status code.
+            assert_data_contains_subset: Assert if the request model is a subset of the response model.
 
         Returns:
             The HTTP response.
         """
+        # pylint: enable=line-too-long
 
         response: Response = self.post(
             self.reverse("list"),
@@ -272,13 +284,13 @@ class ModelViewSetClient(APIClient, t.Generic[AnyModel]):
             **kwargs,
         )
 
-        self._assert_response_json(
-            response,
-            make_assertions=lambda actual_data: (
-                # pylint: disable-next=no-member
-                self._test_case.assertDictContainsSubset(data, actual_data)
-            ),
-        )
+        if assert_data_contains_subset:
+            self._assert_response_json(
+                response,
+                make_assertions=lambda actual_data: (
+                    self._assert_data_contains_subset(data, actual_data)
+                ),
+            )
 
         return response
 
@@ -286,17 +298,21 @@ class ModelViewSetClient(APIClient, t.Generic[AnyModel]):
         self,
         data: t.List[Data],
         status_code_assertion: StatusCodeAssertion = status.HTTP_201_CREATED,
+        assert_data_contains_subset: bool = True,
         **kwargs,
     ):
+        # pylint: disable=line-too-long
         """Bulk create many instances of a model.
 
         Args:
             data: The values for each field, for each model.
             status_code_assertion: The expected status code.
+            assert_data_contains_subset: Assert if the request models are a subset of the response models.
 
         Returns:
             The HTTP response.
         """
+        # pylint: enable=line-too-long
 
         response: Response = self.post(
             self.reverse("bulk"),
@@ -306,12 +322,13 @@ class ModelViewSetClient(APIClient, t.Generic[AnyModel]):
             **kwargs,
         )
 
-        def make_assertions(actual_data: t.List[self.Data]):
-            for model, actual_model in zip(data, actual_data):
-                # pylint: disable-next=no-member
-                self._test_case.assertDictContainsSubset(model, actual_model)
+        if assert_data_contains_subset:
 
-        self._assert_response_json_bulk(response, make_assertions, data)
+            def make_assertions(actual_data: t.List[ModelViewSetClient.Data]):
+                for model, actual_model in zip(data, actual_data):
+                    self._assert_data_contains_subset(model, actual_model)
+
+            self._assert_response_json_bulk(response, make_assertions, data)
 
         return response
 
@@ -390,7 +407,7 @@ class ModelViewSetClient(APIClient, t.Generic[AnyModel]):
             **kwargs,
         )
 
-        def _make_assertions(actual_data: self.Data):
+        def _make_assertions(actual_data: ModelViewSetClient.Data):
             for data, model in zip(actual_data["data"], models):
                 self.assert_data_equals_model(
                     data,
@@ -434,7 +451,7 @@ class ModelViewSetClient(APIClient, t.Generic[AnyModel]):
             **kwargs,
         )
 
-        def _make_assertions(actual_data: self.Data):
+        def _make_assertions(actual_data: ModelViewSetClient.Data):
             model.refresh_from_db()
             self.assert_data_equals_model(
                 actual_data,
@@ -479,7 +496,7 @@ class ModelViewSetClient(APIClient, t.Generic[AnyModel]):
             **kwargs,
         )
 
-        def make_assertions(actual_data: t.List[self.Data]):
+        def make_assertions(actual_data: t.List[ModelViewSetClient.Data]):
             models.sort(key=lambda model: getattr(model, self._lookup_field))
 
             for data, model in zip(actual_data, models):
