@@ -12,10 +12,16 @@ from rest_framework.serializers import ListSerializer as _ListSerializer
 from rest_framework.serializers import ModelSerializer as _ModelSerializer
 from rest_framework.serializers import ValidationError as _ValidationError
 
+from .base import BaseSerializer
+
 AnyModel = t.TypeVar("AnyModel", bound=Model)
 
 
-class ModelSerializer(_ModelSerializer[AnyModel], t.Generic[AnyModel]):
+class ModelSerializer(
+    BaseSerializer,
+    _ModelSerializer[AnyModel],
+    t.Generic[AnyModel],
+):
     """Base model serializer for all model serializers."""
 
     # pylint: disable-next=useless-parent-delegation
@@ -31,6 +37,7 @@ class ModelSerializer(_ModelSerializer[AnyModel], t.Generic[AnyModel]):
 
 
 class ModelListSerializer(
+    BaseSerializer,
     t.Generic[AnyModel],
     _ListSerializer[t.List[AnyModel]],
 ):
