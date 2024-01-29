@@ -3,12 +3,39 @@
 Created on 20/01/2024 at 11:28:29(+00:00).
 """
 
+from rest_framework import serializers
+
 from ...serializers import ModelSerializer
 from ..models import Class
 
 
 # pylint: disable-next=missing-class-docstring
 class ClassSerializer(ModelSerializer[Class]):
+    id = serializers.CharField(
+        source="access_code",
+        read_only=True,
+    )
+
+    read_classmates_data = serializers.BooleanField(
+        source="classmates_data_viewable",
+        read_only=True,
+    )
+
+    receive_requests_until = serializers.DateTimeField(
+        source="accept_requests_until",
+        read_only=True,
+    )
+
+    teacher = serializers.IntegerField(
+        source="teacher.id",
+        read_only=True,
+    )
+
+    school = serializers.IntegerField(
+        source="teacher.school.id",
+        read_only=True,
+    )
+
     # pylint: disable-next=missing-class-docstring,too-few-public-methods
     class Meta:
         model = Class
@@ -21,15 +48,5 @@ class ClassSerializer(ModelSerializer[Class]):
             "receive_requests_until",
         ]
         extra_kwargs = {
-            "id": {"read_only": True},
-        }
-
-    def to_representation(self, instance):
-        return {
-            "id": instance.access_code,
-            "name": instance.name,
-            "read_classmates_data": instance.classmates_data_viewable,
-            "receive_requests_until": instance.accept_requests_until,
-            "teacher": instance.teacher.pk,
-            "school": instance.teacher.school.pk,
+            "name": {"read_only": True},
         }
