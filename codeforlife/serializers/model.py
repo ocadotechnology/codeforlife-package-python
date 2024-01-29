@@ -26,6 +26,9 @@ class ModelSerializer(_ModelSerializer[AnyModel], t.Generic[AnyModel]):
     def create(self, validated_data: t.Dict[str, t.Any]):
         return super().create(validated_data)
 
+    def validate(self, attrs: t.Dict[str, t.Any]):
+        return attrs
+
 
 class ModelListSerializer(
     t.Generic[AnyModel],
