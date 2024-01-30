@@ -1,11 +1,15 @@
-import pytest
+"""
+© Ocado Group
+Created on 30/01/2024 at 12:36:00(+00:00).
+"""
+
 from django.core.exceptions import ValidationError
 from django.test import TestCase
 
 from ....auth.password_validators import (
     TeacherPasswordValidator,
-    IndependentStudentPasswordValidator,
-    DependentStudentPasswordValidator,
+    IndependentPasswordValidator,
+    StudentPasswordValidator,
 )
 
 
@@ -28,7 +32,7 @@ class TestPasswordValidators(TestCase):
 
         validator = TeacherPasswordValidator()
 
-        with pytest.raises(ValidationError):
+        with self.assertRaises(ValidationError):
             [
                 validator.validate(bad_password)
                 for bad_password in self.bad_passwords
@@ -42,9 +46,9 @@ class TestPasswordValidators(TestCase):
 
         password_too_short = "fxwSn4}"
 
-        validator = IndependentStudentPasswordValidator()
+        validator = IndependentPasswordValidator()
 
-        with pytest.raises(ValidationError):
+        with self.assertRaises(ValidationError):
             [
                 validator.validate(bad_password)
                 for bad_password in self.bad_passwords
@@ -56,9 +60,9 @@ class TestPasswordValidators(TestCase):
     def test_dependent_student_password_validator(self):
         password_too_short = "fxwSn"
 
-        validator = DependentStudentPasswordValidator()
+        validator = StudentPasswordValidator()
 
-        with pytest.raises(ValidationError):
+        with self.assertRaises(ValidationError):
             validator.validate(password_too_short)
 
         validator.validate(self.password_valid)

@@ -1,3 +1,8 @@
+"""
+© Ocado Group
+Created on 30/01/2024 at 12:32:00(+00:00).
+"""
+
 import re
 
 from django.core.exceptions import ValidationError
