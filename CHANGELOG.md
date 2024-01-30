@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.10.1 (2024-01-30)
+
+### Fix
+
+* Various fixes for bulk logic and type hints ([#65](https://github.com/ocadotechnology/codeforlife-package-python/issues/65)) ([`00716d7`](https://github.com/ocadotechnology/codeforlife-package-python/commit/00716d79a30f840bc57ad34743fcea4cdf13fcb2))
+
 ## v0.10.0 (2024-01-26)
 
 ### Feature
