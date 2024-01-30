@@ -28,19 +28,19 @@ class TeacherPasswordValidator(BasePasswordValidator):
 
             if not re.search(r"[A-Z]", password):
                 raise ValidationError(
-                    _(f"Your password must have at least 1 uppercase letter."),
+                    _("Your password must have at least 1 uppercase letter."),
                     code="password_no_uppercase",
                 )
 
             if not re.search(r"[a-z]", password):
                 raise ValidationError(
-                    _(f"Your password must have at least 1 lowercase letter."),
+                    _("Your password must have at least 1 lowercase letter."),
                     code="password_no_lowercase",
                 )
 
             if not re.search(r"[0-9]", password):
                 raise ValidationError(
-                    _(f"Your password must have at least 1 digit."),
+                    _("Your password must have at least 1 digit."),
                     code="password_no_digit",
                 )
 
@@ -48,7 +48,6 @@ class TeacherPasswordValidator(BasePasswordValidator):
                 r"[!@#$%^&*()_+\-=\[\]{};':\"\\|,.<>\/?]", password
             ):
                 raise ValidationError(
-                    _(f"Your password must have at least 1 special "
-                      f"character."),
+                    _("Your password must have at least 1 special character."),
                     code="password_no_special_character",
                 )
