@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.11.0 (2024-01-30)
+
+### Feature
+
+* ModelSerializerTestCase ([#66](https://github.com/ocadotechnology/codeforlife-package-python/issues/66)) ([`b04f702`](https://github.com/ocadotechnology/codeforlife-package-python/commit/b04f702f2ed7dfb0f15fe2b90a92c65b836d5073))
+
 ## v0.10.1 (2024-01-30)
 
 ### Fix
