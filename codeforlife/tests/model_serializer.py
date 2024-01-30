@@ -47,7 +47,7 @@ class ModelSerializerTestCase(TestCase, t.Generic[AnyModel]):
         context = self.assertRaises(ValidationError, *args, **kwargs)
 
         class ContextWrapper:
-            """Wrap context to assert code exit."""
+            """Wrap context to assert code on exit."""
 
             def __init__(self, context):
                 self.context = context
