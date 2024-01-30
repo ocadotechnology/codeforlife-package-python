@@ -4,7 +4,7 @@ Created on 19/01/2024 at 11:06:00(+00:00).
 """
 
 from ...serializers import ModelSerializer
-from ..models import User, Student, Teacher
+from ..models import Student, Teacher, User
 from .student import StudentSerializer
 from .teacher import TeacherSerializer
 
@@ -28,7 +28,6 @@ class UserSerializer(ModelSerializer[User]):
             "student",
             "teacher",
             "id",
-            "password",
             "first_name",
             "last_name",
             "email",
@@ -37,7 +36,9 @@ class UserSerializer(ModelSerializer[User]):
         ]
         extra_kwargs = {
             "id": {"read_only": True},
-            "password": {"write_only": True},
+            "first_name": {"read_only": True},
+            "last_name": {"read_only": True},
+            "email": {"read_only": True},
             "is_active": {"read_only": True},
             "date_joined": {"read_only": True},
         }

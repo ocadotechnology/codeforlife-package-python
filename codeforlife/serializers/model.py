@@ -12,10 +12,16 @@ from rest_framework.serializers import ListSerializer as _ListSerializer
 from rest_framework.serializers import ModelSerializer as _ModelSerializer
 from rest_framework.serializers import ValidationError as _ValidationError
 
+from .base import BaseSerializer
+
 AnyModel = t.TypeVar("AnyModel", bound=Model)
 
 
-class ModelSerializer(_ModelSerializer[AnyModel], t.Generic[AnyModel]):
+class ModelSerializer(
+    BaseSerializer,
+    _ModelSerializer[AnyModel],
+    t.Generic[AnyModel],
+):
     """Base model serializer for all model serializers."""
 
     # pylint: disable-next=useless-parent-delegation
@@ -26,8 +32,12 @@ class ModelSerializer(_ModelSerializer[AnyModel], t.Generic[AnyModel]):
     def create(self, validated_data: t.Dict[str, t.Any]):
         return super().create(validated_data)
 
+    def validate(self, attrs: t.Dict[str, t.Any]):
+        return attrs
+
 
 class ModelListSerializer(
+    BaseSerializer,
     t.Generic[AnyModel],
     _ListSerializer[t.List[AnyModel]],
 ):
@@ -48,6 +58,7 @@ class ModelListSerializer(
             list_serializer_class = UserListSerializer
     """
 
+    instance: t.List[AnyModel]
     batch_size: t.Optional[int] = None
 
     @classmethod
@@ -81,7 +92,11 @@ class ModelListSerializer(
             batch_size=self.batch_size,
         )
 
-    def update(self, instance, validated_data: t.List[t.Dict[str, t.Any]]):
+    def update(
+        self,
+        instance: t.List[AnyModel],
+        validated_data: t.List[t.Dict[str, t.Any]],
+    ):
         """Bulk update many instances of a model.
 
         https://www.django-rest-framework.org/api-guide/serializers/#customizing-multiple-update
@@ -122,3 +137,7 @@ class ModelListSerializer(
                 raise _ValidationError("Some models do not exist.")
 
         return attrs
+
+    # pylint: disable-next=useless-parent-delegation,arguments-renamed
+    def to_representation(self, instance: t.List[AnyModel]):
+        return super().to_representation(instance)
