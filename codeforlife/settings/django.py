@@ -103,7 +103,7 @@ WSGI_APPLICATION = "service.wsgi.application"
 # Password validation
 # https://docs.djangoproject.com/en/3.2/ref/settings/#auth-password-validators
 
-# TODO: replace with custom validators:
+# TODO: compare Django's default common password validator with our own and decide which to keep
 # codeforlife.user.auth.password_validators.CommonPasswordValidator
 AUTH_PASSWORD_VALIDATORS = [
     {

@@ -6,22 +6,40 @@ Created on 30/01/2024 at 12:30:00(+00:00).
 import re
 
 from django.core.exceptions import ValidationError
+from django.utils.translation import gettext as _
+
+from .base import BasePasswordValidator
 
 
-class IndependentPasswordValidator:
+class IndependentPasswordValidator(BasePasswordValidator):
     def __init__(self):
         self.min_length = 8
-        self.help_text = (f"Your password must contain at least {self.min_length} characters, 1 uppercase character, "
-                          f"1 lowercase character and 1 digit.")
 
     def validate(self, password, user=None):
-        if not (
-            len(password) >= self.min_length
-            and re.search(r"[A-Z]", password)
-            and re.search(r"[a-z]", password)
-            and re.search(r"[0-9]", password)
-        ):
-            raise ValidationError(self.help_text, code="password_not_valid")
+        if user.teacher is None and user.student is None:
+            if len(password) < self.min_length:
+                raise ValidationError(
+                    _(
+                        f"Your password must be at least {self.min_length} "
+                        f"characters long."
+                    ),
+                    code="password_too_short",
+                )
 
-    def get_help_text(self):
-        return self.help_text
+            if not re.search(r"[A-Z]", password):
+                raise ValidationError(
+                    _(f"Your password must have at least 1 uppercase letter."),
+                    code="password_no_uppercase",
+                )
+
+            if not re.search(r"[a-z]", password):
+                raise ValidationError(
+                    _(f"Your password must have at least 1 lowercase letter."),
+                    code="password_no_lowercase",
+                )
+
+            if not re.search(r"[0-9]", password):
+                raise ValidationError(
+                    _(f"Your password must have at least 1 digit."),
+                    code="password_no_digit",
+                )
