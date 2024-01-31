@@ -11,8 +11,8 @@ from django.utils.translation import gettext as _
 from .base import PasswordValidator
 
 
+# pylint: disable-next=missing-class-docstring
 class IndependentPasswordValidator(PasswordValidator):
-
     def validate(self, password, user=None):
         if user.teacher is None and user.student is None:
             min_length = 8
