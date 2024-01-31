@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.11.2 (2024-01-31)
+
+### Fix
+
+* Type hint ([`64e8043`](https://github.com/ocadotechnology/codeforlife-package-python/commit/64e804355f198ce8595e1ac940f022f9e7c35749))
+
 ## v0.11.1 (2024-01-31)
 
 ### Fix
