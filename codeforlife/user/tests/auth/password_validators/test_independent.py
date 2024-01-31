@@ -9,10 +9,13 @@ from ....models.user import User
 
 
 class TestIndependentPasswordValidator(PasswordValidatorTestCase):
-    user = User.objects.filter(
-        new_teacher__isnull=True, new_student__isnull=True
-    ).first()
-    validator = IndependentPasswordValidator()
+    @classmethod
+    def setUpClass(cls):
+        cls.user = User.objects.filter(
+            new_teacher__isnull=True, new_student__isnull=True
+        ).first()
+        cls.validator = IndependentPasswordValidator()
+        super(TestIndependentPasswordValidator, cls).setUpClass()
 
     def test_validate__password_too_short(self):
         password = "fxwSn4}"
