@@ -116,10 +116,10 @@ AUTH_PASSWORD_VALIDATORS = [
         "NAME": "codeforlife.user.auth.password_validators.TeacherPasswordValidator",
     },
     {
-        "NAME": "codeforlife.user.auth.password_validators.DependentStudentPasswordValidator",
+        "NAME": "codeforlife.user.auth.password_validators.StudentPasswordValidator",
     },
     {
-        "NAME": "codeforlife.user.auth.password_validators.IndependentStudentPasswordValidator",
+        "NAME": "codeforlife.user.auth.password_validators.IndependentPasswordValidator",
     },
 ]
 
