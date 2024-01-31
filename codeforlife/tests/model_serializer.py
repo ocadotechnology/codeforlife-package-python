@@ -13,7 +13,7 @@ from rest_framework.serializers import ValidationError
 from rest_framework.test import APIRequestFactory
 
 from ..serializers import ModelSerializer
-from ..types import KwArgs
+from ..types import JsonDict, KwArgs
 from ..user.models import User
 
 AnyModel = t.TypeVar("AnyModel", bound=Model)
@@ -109,7 +109,7 @@ class ModelSerializerTestCase(TestCase, t.Generic[AnyModel]):
 
     def assert_validate(
         self,
-        attrs: t.Dict[str, t.Any],
+        attrs: t.Union[JsonDict, t.List[JsonDict]],
         error_code: str,
         user: t.Optional[User] = None,
         request_kwargs: t.Optional[KwArgs] = None,
