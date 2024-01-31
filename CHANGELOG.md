@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.11.1 (2024-01-31)
+
+### Fix
+
+* Add assertions ([#67](https://github.com/ocadotechnology/codeforlife-package-python/issues/67)) ([`ae3abdf`](https://github.com/ocadotechnology/codeforlife-package-python/commit/ae3abdfced0722ea1d20fcce6227a541a9acc9d6))
+
 ## v0.11.0 (2024-01-30)
 
 ### Feature
