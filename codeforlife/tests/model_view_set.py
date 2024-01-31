@@ -682,6 +682,13 @@ class ModelViewSetTestCase(APITestCase, t.Generic[AnyModel]):
             0
         ]
 
+    @classmethod
+    def setUpClass(cls):
+        attr_name = "model_view_set_class"
+        assert hasattr(cls, attr_name), f'Attribute "{attr_name}" must be set.'
+
+        return super().setUpClass()
+
     def get_other_user(
         self,
         user: User,
