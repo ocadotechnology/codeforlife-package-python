@@ -5,6 +5,7 @@ Created on 19/01/2024 at 17:06:45(+00:00).
 Base test case for all model view sets.
 """
 
+import json
 import typing as t
 from datetime import datetime
 from unittest.mock import patch
@@ -55,9 +56,58 @@ class ModelViewSetClient(APIClient, t.Generic[AnyModel]):
         # pylint: disable-next=no-member
         return self._test_case.model_view_set_class
 
+    @property
+    def _lookup_field(self):
+        """Resolves the field to lookup the model."""
+
+        lookup_field = self._model_view_set_class.lookup_field
+        return (
+            self._model_class._meta.pk.attname
+            if lookup_field == "pk"
+            else lookup_field
+        )
+
     Data = t.Dict[str, t.Any]
     StatusCodeAssertion = t.Optional[t.Union[int, t.Callable[[int], bool]]]
     ListFilters = t.Optional[t.Dict[str, str]]
+
+    def _assert_response(self, response: Response, make_assertions: t.Callable):
+        if self.status_code_is_ok(response.status_code):
+            make_assertions()
+
+    def _assert_response_json(
+        self,
+        response: Response,
+        make_assertions: t.Callable[[Data], None],
+    ):
+        self._assert_response(
+            response,
+            make_assertions=lambda: make_assertions(
+                response.json(),  # type: ignore[attr-defined]
+            ),
+        )
+
+    def _assert_response_json_bulk(
+        self,
+        response: Response,
+        make_assertions: t.Callable[[t.List[Data]], None],
+        data: t.List[Data],
+    ):
+        def _make_assertions():
+            response_json = response.json()  # type: ignore[attr-defined]
+            assert isinstance(response_json, list)
+            assert len(response_json) == len(data)
+            make_assertions(response_json)
+
+        self._assert_response(response, _make_assertions)
+
+    def _assert_data_contains_subset(self, request: Data, response: Data):
+        for key, value in request.items():
+            response_value = response[key]
+            if isinstance(value, dict):
+                self._assert_data_contains_subset(value, response_value)
+            else:
+                assert value == response_value
 
     @staticmethod
     def status_code_is_ok(status_code: int):
@@ -210,31 +260,75 @@ class ModelViewSetClient(APIClient, t.Generic[AnyModel]):
         self,
         data: Data,
         status_code_assertion: StatusCodeAssertion = status.HTTP_201_CREATED,
+        assert_data_contains_subset: bool = True,
         **kwargs,
     ):
+        # pylint: disable=line-too-long
         """Create a model.
 
         Args:
             data: The values for each field.
             status_code_assertion: The expected status code.
+            assert_data_contains_subset: Assert if the request model is a subset of the response model.
 
         Returns:
             The HTTP response.
         """
+        # pylint: enable=line-too-long
 
         response: Response = self.post(
             self.reverse("list"),
-            data=data,
+            data=json.dumps(data),
+            content_type="application/json",
             status_code_assertion=status_code_assertion,
             **kwargs,
         )
 
-        if self.status_code_is_ok(response.status_code):
-            # pylint: disable-next=no-member
-            self._test_case.assertDictContainsSubset(
-                data,
-                response.json(),  # type: ignore[attr-defined]
+        if assert_data_contains_subset:
+            self._assert_response_json(
+                response,
+                make_assertions=lambda actual_data: (
+                    self._assert_data_contains_subset(data, actual_data)
+                ),
             )
+
+        return response
+
+    def bulk_create(
+        self,
+        data: t.List[Data],
+        status_code_assertion: StatusCodeAssertion = status.HTTP_201_CREATED,
+        assert_data_contains_subset: bool = True,
+        **kwargs,
+    ):
+        # pylint: disable=line-too-long
+        """Bulk create many instances of a model.
+
+        Args:
+            data: The values for each field, for each model.
+            status_code_assertion: The expected status code.
+            assert_data_contains_subset: Assert if the request models are a subset of the response models.
+
+        Returns:
+            The HTTP response.
+        """
+        # pylint: enable=line-too-long
+
+        response: Response = self.post(
+            self.reverse("bulk"),
+            data=json.dumps(data),
+            content_type="application/json",
+            status_code_assertion=status_code_assertion,
+            **kwargs,
+        )
+
+        if assert_data_contains_subset:
+
+            def make_assertions(actual_data: t.List[ModelViewSetClient.Data]):
+                for model, actual_model in zip(data, actual_data):
+                    self._assert_data_contains_subset(model, actual_model)
+
+            self._assert_response_json_bulk(response, make_assertions, data)
 
         return response
 
@@ -266,12 +360,14 @@ class ModelViewSetClient(APIClient, t.Generic[AnyModel]):
             **kwargs,
         )
 
-        if self.status_code_is_ok(response.status_code):
-            self.assert_data_equals_model(
-                response.json(),  # type: ignore[attr-defined]
+        self._assert_response_json(
+            response,
+            make_assertions=lambda actual_data: self.assert_data_equals_model(
+                actual_data,
                 model,
                 model_serializer_class,
-            )
+            ),
+        )
 
         return response
 
@@ -311,16 +407,15 @@ class ModelViewSetClient(APIClient, t.Generic[AnyModel]):
             **kwargs,
         )
 
-        if self.status_code_is_ok(response.status_code):
-            for data, model in zip(
-                response.json()["data"],  # type: ignore[attr-defined]
-                models,
-            ):
+        def _make_assertions(actual_data: ModelViewSetClient.Data):
+            for data, model in zip(actual_data["data"], models):
                 self.assert_data_equals_model(
                     data,
                     model,
                     model_serializer_class,
                 )
+
+        self._assert_response_json(response, _make_assertions)
 
         return response
 
@@ -350,19 +445,70 @@ class ModelViewSetClient(APIClient, t.Generic[AnyModel]):
 
         response: Response = self.patch(
             self.reverse("detail", model),
-            data=data,
+            data=json.dumps(data),
+            content_type="application/json",
             status_code_assertion=status_code_assertion,
             **kwargs,
         )
 
-        if self.status_code_is_ok(response.status_code):
+        def _make_assertions(actual_data: ModelViewSetClient.Data):
             model.refresh_from_db()
             self.assert_data_equals_model(
-                response.json(),  # type: ignore[attr-defined]
+                actual_data,
                 model,
                 model_serializer_class,
                 contains_subset=True,
             )
+
+        self._assert_response_json(response, _make_assertions)
+
+        return response
+
+    def bulk_partial_update(
+        self,
+        models: t.List[AnyModel],
+        data: t.List[Data],
+        status_code_assertion: StatusCodeAssertion = status.HTTP_200_OK,
+        model_serializer_class: t.Optional[
+            t.Type[ModelSerializer[AnyModel]]
+        ] = None,
+        **kwargs,
+    ):
+        # pylint: disable=line-too-long
+        """Bulk partially update many instances of a model.
+
+        Args:
+            models: The models to partially update.
+            data: The values for each field, for each model.
+            status_code_assertion: The expected status code.
+            model_serializer_class: The serializer used to serialize the model's data.
+
+        Returns:
+            The HTTP response.
+        """
+        # pylint: enable=line-too-long
+
+        response: Response = self.patch(
+            self.reverse("bulk"),
+            data=json.dumps(data),
+            content_type="application/json",
+            status_code_assertion=status_code_assertion,
+            **kwargs,
+        )
+
+        def make_assertions(actual_data: t.List[ModelViewSetClient.Data]):
+            models.sort(key=lambda model: getattr(model, self._lookup_field))
+
+            for data, model in zip(actual_data, models):
+                model.refresh_from_db()
+                self.assert_data_equals_model(
+                    data,
+                    model,
+                    model_serializer_class,
+                    contains_subset=True,
+                )
+
+        self._assert_response_json_bulk(response, make_assertions, data)
 
         return response
 
@@ -390,12 +536,53 @@ class ModelViewSetClient(APIClient, t.Generic[AnyModel]):
             **kwargs,
         )
 
-        if not anonymized and self.status_code_is_ok(response.status_code):
-            # pylint: disable-next=no-member
-            with self._test_case.assertRaises(
-                model.DoesNotExist  # type: ignore[attr-defined]
-            ):
-                model.refresh_from_db()
+        if not anonymized:
+
+            def _make_assertions():
+                # pylint: disable-next=no-member
+                with self._test_case.assertRaises(
+                    model.DoesNotExist  # type: ignore[attr-defined]
+                ):
+                    model.refresh_from_db()
+
+            self._assert_response(response, _make_assertions)
+
+        return response
+
+    def bulk_destroy(
+        self,
+        lookup_values: t.List[t.Any],
+        status_code_assertion: StatusCodeAssertion = status.HTTP_204_NO_CONTENT,
+        anonymized: bool = False,
+        **kwargs,
+    ):
+        """Bulk destroy many instances of a model.
+
+        Args:
+            lookup_values: The models to lookup and destroy.
+            status_code_assertion: The expected status code.
+            anonymized: Whether or not the data is anonymized.
+
+        Returns:
+            The HTTP response.
+        """
+
+        response: Response = self.delete(
+            self.reverse("bulk"),
+            data=json.dumps(lookup_values),
+            content_type="application/json",
+            status_code_assertion=status_code_assertion,
+            **kwargs,
+        )
+
+        if not anonymized:
+
+            def _make_assertions():
+                assert not self._model_class.objects.filter(
+                    **{f"{self._lookup_field}__in": lookup_values}
+                ).exists()
+
+            self._assert_response(response, _make_assertions)
 
         return response
 
@@ -483,7 +670,7 @@ class ModelViewSetTestCase(APITestCase, t.Generic[AnyModel]):
         self.client._test_case = self
 
     @classmethod
-    def get_model_class(cls):
+    def get_model_class(cls) -> t.Type[AnyModel]:
         """Get the model view set's class.
 
         Returns:
@@ -494,6 +681,13 @@ class ModelViewSetTestCase(APITestCase, t.Generic[AnyModel]):
         return t.get_args(cls.__orig_bases__[0])[  # type: ignore[attr-defined]
             0
         ]
+
+    @classmethod
+    def setUpClass(cls):
+        attr_name = "model_view_set_class"
+        assert hasattr(cls, attr_name), f'Attribute "{attr_name}" must be set.'
+
+        return super().setUpClass()
 
     def get_other_user(
         self,

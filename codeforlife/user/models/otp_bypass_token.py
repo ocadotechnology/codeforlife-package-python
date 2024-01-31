@@ -1,3 +1,9 @@
+"""
+© Ocado Group
+Created on 29/01/2024 at 16:46:24(+00:00).
+"""
+
+import string
 import typing as t
 from itertools import groupby
 
@@ -12,7 +18,7 @@ from . import user
 
 class OtpBypassToken(models.Model):
     length = 8
-    allowed_chars = "abcdefghijklmnopqrstuvwxyz"
+    allowed_chars = string.ascii_lowercase
     max_count = 10
     max_count_validation_error = ValidationError(
         f"Exceeded max count of {max_count}"

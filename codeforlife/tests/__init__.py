@@ -6,4 +6,5 @@ Custom test cases.
 """
 
 from .cron import CronTestCase
+from .model_serializer import ModelSerializerTestCase
 from .model_view_set import ModelViewSetTestCase

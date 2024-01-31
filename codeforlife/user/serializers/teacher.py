@@ -19,4 +19,6 @@ class TeacherSerializer(ModelSerializer[Teacher]):
         ]
         extra_kwargs = {
             "id": {"read_only": True},
+            "school": {"read_only": True},
+            "is_admin": {"read_only": True},
         }

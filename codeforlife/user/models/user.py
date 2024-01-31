@@ -50,6 +50,8 @@ from .teacher import Teacher
 
 
 class User(_User):
+    _password: t.Optional[str]
+
     id: int
     auth_factors: QuerySet["auth_factor.AuthFactor"]
     otp_bypass_tokens: QuerySet["otp_bypass_token.OtpBypassToken"]

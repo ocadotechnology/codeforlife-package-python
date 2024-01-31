@@ -2,6 +2,24 @@
 
 <!--next-version-placeholder-->
 
+## v0.11.0 (2024-01-30)
+
+### Feature
+
+* ModelSerializerTestCase ([#66](https://github.com/ocadotechnology/codeforlife-package-python/issues/66)) ([`b04f702`](https://github.com/ocadotechnology/codeforlife-package-python/commit/b04f702f2ed7dfb0f15fe2b90a92c65b836d5073))
+
+## v0.10.1 (2024-01-30)
+
+### Fix
+
+* Various fixes for bulk logic and type hints ([#65](https://github.com/ocadotechnology/codeforlife-package-python/issues/65)) ([`00716d7`](https://github.com/ocadotechnology/codeforlife-package-python/commit/00716d79a30f840bc57ad34743fcea4cdf13fcb2))
+
+## v0.10.0 (2024-01-26)
+
+### Feature
+
+* Support bulk actions ([#63](https://github.com/ocadotechnology/codeforlife-package-python/issues/63)) ([`4d2e7c4`](https://github.com/ocadotechnology/codeforlife-package-python/commit/4d2e7c407037714bc2041aa8a9fb4a8c6b1d2b76))
+
 ## v0.9.6 (2024-01-25)
 
 ### Fix
