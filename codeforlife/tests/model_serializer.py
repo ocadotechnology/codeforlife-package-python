@@ -86,7 +86,6 @@ class ModelSerializerTestCase(TestCase, t.Generic[AnyModel]):
         ],
         **kwargs,
     ):
-        kwargs = kwargs or {}
         kwargs.setdefault("context", {})
         context: t.Dict[str, t.Any] = kwargs["context"]
 
