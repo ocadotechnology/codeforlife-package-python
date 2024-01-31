@@ -8,6 +8,7 @@ import typing as t
 from ...models.user import User
 
 
-class BasePasswordValidator:
+class PasswordValidator:
+    """Base class for all password validators"""
     def validate(self, password: str, user: t.Optional[User] = None):
         raise NotImplementedError()

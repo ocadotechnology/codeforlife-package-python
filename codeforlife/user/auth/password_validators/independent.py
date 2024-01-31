@@ -8,19 +8,19 @@ import re
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext as _
 
-from .base import BasePasswordValidator
+from .base import PasswordValidator
 
 
-class IndependentPasswordValidator(BasePasswordValidator):
-    def __init__(self):
-        self.min_length = 8
+class IndependentPasswordValidator(PasswordValidator):
 
     def validate(self, password, user=None):
         if user.teacher is None and user.student is None:
-            if len(password) < self.min_length:
+            min_length = 8
+
+            if len(password) < min_length:
                 raise ValidationError(
                     _(
-                        f"Your password must be at least {self.min_length} "
+                        f"Your password must be at least {min_length} "
                         f"characters long."
                     ),
                     code="password_too_short",

@@ -35,7 +35,6 @@ class PasswordValidatorTestCase(TestCase):
 
             def __exit__(self, *args, **kwargs):
                 value = self.context.__exit__(*args, **kwargs)
-                print(self.context)
                 assert self.context.exception.code == code
                 return value
 

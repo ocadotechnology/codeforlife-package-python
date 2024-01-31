@@ -3,7 +3,7 @@
 Created on 30/01/2024 at 12:36:00(+00:00).
 """
 
-from .password_validator import PasswordValidatorTestCase
+from .base import PasswordValidatorTestCase
 from ....auth.password_validators import TeacherPasswordValidator
 from ....models.user import User
 
@@ -11,35 +11,43 @@ from ....models.user import User
 class TestTeacherPasswordValidator(PasswordValidatorTestCase):
     @classmethod
     def setUpClass(cls):
-        cls.user = User.objects.first()
+        cls.user = User.objects.filter(new_teacher__isnull=False).first()
+        assert cls.user is not None
+
         cls.validator = TeacherPasswordValidator()
         super(TestTeacherPasswordValidator, cls).setUpClass()
 
     def test_validate__password_too_short(self):
+        """Check password validator rejects too short password"""
         password = "fxwSn4}PW"
 
         with self.assert_raises_validation_error("password_too_short"):
             self.validator.validate(password, self.user)
 
     def test_validate__password_no_uppercase(self):
+        """Check password validator rejects password without uppercase"""
         password = ">28v*@a)-{"
 
         with self.assert_raises_validation_error("password_no_uppercase"):
             self.validator.validate(password, self.user)
 
     def test_validate__password_no_lowercase(self):
+        """Check password validator rejects password without lowercase"""
         password = "F:6]LH!_5>"
 
         with self.assert_raises_validation_error("password_no_lowercase"):
             self.validator.validate(password, self.user)
 
     def test_validate__password_no_digit(self):
+        """Check password validator rejects password without digit"""
         password = "{$#FJdxGvs"
 
         with self.assert_raises_validation_error("password_no_digit"):
             self.validator.validate(password, self.user)
 
     def test_validate__password_no_special_character(self):
+        """Check password validator rejects password without special
+        character"""
         password = "kR48SsAwrE"
 
         with self.assert_raises_validation_error(
