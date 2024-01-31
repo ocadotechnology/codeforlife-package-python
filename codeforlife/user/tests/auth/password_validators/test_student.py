@@ -9,11 +9,8 @@ from ....models.user import User
 
 
 class TestStudentPasswordValidator(PasswordValidatorTestCase):
-    @classmethod
-    def setUpClass(cls):
-        cls.user = User.objects.filter(new_student__isnull=False).first()
-        cls.validator = StudentPasswordValidator()
-        super(TestStudentPasswordValidator, cls).setUpClass()
+    user = User.objects.filter(new_student__isnull=False).first()
+    validator = StudentPasswordValidator()
 
     def test_validate__password_too_short(self):
         password = "fxwSn"
