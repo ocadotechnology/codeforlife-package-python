@@ -24,12 +24,26 @@ class ModelSerializer(
 ):
     """Base model serializer for all model serializers."""
 
+    instance: AnyModel
+
+    @property
+    def view(self):
+        # NOTE: import outside top-level to avoid circular imports.
+        # pylint: disable-next=import-outside-toplevel
+        from ..views import ModelViewSet
+
+        return t.cast(ModelViewSet[AnyModel], super().view)
+
     # pylint: disable-next=useless-parent-delegation
-    def update(self, instance, validated_data: t.Dict[str, t.Any]):
+    def update(
+        self,
+        instance: AnyModel,
+        validated_data: t.Dict[str, t.Any],
+    ) -> AnyModel:
         return super().update(instance, validated_data)
 
     # pylint: disable-next=useless-parent-delegation
-    def create(self, validated_data: t.Dict[str, t.Any]):
+    def create(self, validated_data: t.Dict[str, t.Any]) -> AnyModel:
         return super().create(validated_data)
 
     def validate(self, attrs: t.Dict[str, t.Any]):
@@ -61,6 +75,14 @@ class ModelListSerializer(
     instance: t.List[AnyModel]
     batch_size: t.Optional[int] = None
 
+    @property
+    def view(self):
+        # NOTE: import outside top-level to avoid circular imports.
+        # pylint: disable-next=import-outside-toplevel
+        from ..views import ModelViewSet
+
+        return t.cast(ModelViewSet[AnyModel], super().view)
+
     @classmethod
     def get_model_class(cls) -> t.Type[AnyModel]:
         """Get the model view set's class.
@@ -74,7 +96,10 @@ class ModelListSerializer(
             0
         ]
 
-    def create(self, validated_data: t.List[t.Dict[str, t.Any]]):
+    def create(
+        self,
+        validated_data: t.List[t.Dict[str, t.Any]],
+    ) -> t.List[AnyModel]:
         """Bulk create many instances of a model.
 
         https://www.django-rest-framework.org/api-guide/serializers/#customizing-multiple-create
@@ -96,7 +121,7 @@ class ModelListSerializer(
         self,
         instance: t.List[AnyModel],
         validated_data: t.List[t.Dict[str, t.Any]],
-    ):
+    ) -> t.List[AnyModel]:
         """Bulk update many instances of a model.
 
         https://www.django-rest-framework.org/api-guide/serializers/#customizing-multiple-update
