@@ -12,6 +12,6 @@ from ...models.user import User
 class PasswordValidator:
     """Base class for all password validators"""
 
-    # pylint: disable-next=missing-class-docstring
+    # pylint: disable-next=missing-function-docstring
     def validate(self, password: str, user: t.Optional[User] = None):
         raise NotImplementedError()

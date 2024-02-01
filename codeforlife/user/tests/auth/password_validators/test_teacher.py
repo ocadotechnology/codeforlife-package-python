@@ -18,36 +18,35 @@ class TestTeacherPasswordValidator(PasswordValidatorTestCase):
         super(TestTeacherPasswordValidator, cls).setUpClass()
 
     def test_validate__password_too_short(self):
-        """Check password validator rejects too short password"""
+        """Password cannot be too short"""
         password = "fxwSn4}PW"
 
         with self.assert_raises_validation_error("password_too_short"):
             self.validator.validate(password, self.user)
 
     def test_validate__password_no_uppercase(self):
-        """Check password validator rejects password without uppercase"""
+        """Password must contain an uppercase char"""
         password = ">28v*@a)-{"
 
         with self.assert_raises_validation_error("password_no_uppercase"):
             self.validator.validate(password, self.user)
 
     def test_validate__password_no_lowercase(self):
-        """Check password validator rejects password without lowercase"""
+        """Password must contain a lowercase char"""
         password = "F:6]LH!_5>"
 
         with self.assert_raises_validation_error("password_no_lowercase"):
             self.validator.validate(password, self.user)
 
     def test_validate__password_no_digit(self):
-        """Check password validator rejects password without digit"""
+        """Password must contain a digit"""
         password = "{$#FJdxGvs"
 
         with self.assert_raises_validation_error("password_no_digit"):
             self.validator.validate(password, self.user)
 
     def test_validate__password_no_special_character(self):
-        """Check password validator rejects password without special
-        character"""
+        """Password must contain a special char"""
         password = "kR48SsAwrE"
 
         with self.assert_raises_validation_error(

@@ -18,7 +18,7 @@ class TestStudentPasswordValidator(PasswordValidatorTestCase):
         super(TestStudentPasswordValidator, cls).setUpClass()
 
     def test_validate__password_too_short(self):
-        """Check password validator rejects too short password"""
+        """Password cannot be too short"""
         password = "fxwSn"
 
         with self.assert_raises_validation_error("password_too_short"):
