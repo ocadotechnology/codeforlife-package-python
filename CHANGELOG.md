@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.12.0 (2024-02-01)
+
+### Feature
+
+* Create base password validator per user type ([#64](https://github.com/ocadotechnology/codeforlife-package-python/issues/64)) ([`fb47ef5`](https://github.com/ocadotechnology/codeforlife-package-python/commit/fb47ef53bf1a47def1a40ea0e1c5d26efc7cbfad))
+
 ## v0.11.2 (2024-01-31)
 
 ### Fix
