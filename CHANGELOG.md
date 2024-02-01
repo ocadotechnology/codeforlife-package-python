@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.12.1 (2024-02-01)
+
+### Fix
+
+* View property, type hints, linting, email case insensitive search ([#68](https://github.com/ocadotechnology/codeforlife-package-python/issues/68)) ([`4928d67`](https://github.com/ocadotechnology/codeforlife-package-python/commit/4928d676275426a897c56ba16e40754ffa08bb87))
+
 ## v0.12.0 (2024-02-01)
 
 ### Feature
