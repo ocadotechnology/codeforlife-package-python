@@ -103,23 +103,23 @@ WSGI_APPLICATION = "service.wsgi.application"
 # Password validation
 # https://docs.djangoproject.com/en/3.2/ref/settings/#auth-password-validators
 
-# TODO: replace with custom validators:
-# 1. codeforlife.user.auth.password_validators.TeacherPasswordValidator
-# 2. codeforlife.user.auth.password_validators.DependentStudentPasswordValidator
-# 3. codeforlife.user.auth.password_validators.IndependentStudentPasswordValidator
-# 4. codeforlife.user.auth.password_validators.CommonPasswordValidator
+# TODO: compare Django's default common password validator with our own and decide which to keep
+# codeforlife.user.auth.password_validators.CommonPasswordValidator
 AUTH_PASSWORD_VALIDATORS = [
     {
         "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
     },
     {
-        "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
-    },
-    {
         "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",
     },
     {
-        "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
+        "NAME": "codeforlife.user.auth.password_validators.TeacherPasswordValidator",
+    },
+    {
+        "NAME": "codeforlife.user.auth.password_validators.StudentPasswordValidator",
+    },
+    {
+        "NAME": "codeforlife.user.auth.password_validators.IndependentPasswordValidator",
     },
 ]
 

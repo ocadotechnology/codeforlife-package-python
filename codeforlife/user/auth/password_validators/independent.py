@@ -1,6 +1,6 @@
 """
 © Ocado Group
-Created on 30/01/2024 at 12:32:00(+00:00).
+Created on 30/01/2024 at 12:30:00(+00:00).
 """
 
 import re
@@ -12,15 +12,15 @@ from .base import PasswordValidator
 
 
 # pylint: disable-next=missing-class-docstring
-class TeacherPasswordValidator(PasswordValidator):
+class IndependentPasswordValidator(PasswordValidator):
     def validate(self, password, user=None):
-        if user.teacher is not None:
-            min_length = 10
+        if user.teacher is None and user.student is None:
+            min_length = 8
 
             if len(password) < min_length:
                 raise ValidationError(
                     _(
-                        f"Your password needs to be at least {min_length} "
+                        f"Your password must be at least {min_length} "
                         f"characters long."
                     ),
                     code="password_too_short",
@@ -42,12 +42,4 @@ class TeacherPasswordValidator(PasswordValidator):
                 raise ValidationError(
                     _("Your password must have at least 1 digit."),
                     code="password_no_digit",
-                )
-
-            if not re.search(
-                r"[!@#$%^&*()_+\-=\[\]{};':\"\\|,.<>\/?]", password
-            ):
-                raise ValidationError(
-                    _("Your password must have at least 1 special character."),
-                    code="password_no_special_character",
                 )
