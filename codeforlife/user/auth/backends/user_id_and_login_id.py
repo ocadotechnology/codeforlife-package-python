@@ -1,23 +1,30 @@
+"""
+© Ocado Group
+Created on 01/02/2024 at 14:44:16(+00:00).
+"""
+
 import typing as t
 
 from common.helpers.generators import get_hashed_login_id
 from common.models import Student
 from django.contrib.auth.backends import BaseBackend
 
-from ....request import WSGIRequest
+from ....request import HttpRequest
 from ...models import User
 
 
 class UserIdAndLoginIdBackend(BaseBackend):
-    def authenticate(
+    """Authenticate a student using their ID and auto-generated password."""
+
+    def authenticate(  # type: ignore[override]
         self,
-        request: WSGIRequest,
+        request: t.Optional[HttpRequest],
         user_id: t.Optional[int] = None,
         login_id: t.Optional[str] = None,
         **kwargs
     ):
         if user_id is None or login_id is None:
-            return
+            return None
 
         user = self.get_user(user_id)
         if user:
@@ -30,8 +37,10 @@ class UserIdAndLoginIdBackend(BaseBackend):
             ):
                 return user
 
+        return None
+
     def get_user(self, user_id: int):
         try:
             return User.objects.get(id=user_id)
         except User.DoesNotExist:
-            return
+            return None

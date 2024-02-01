@@ -8,6 +8,7 @@ Base serializer.
 import typing as t
 
 from django.contrib.auth.models import AnonymousUser
+from django.views import View
 from rest_framework.serializers import BaseSerializer as _BaseSerializer
 
 from ..request import Request
@@ -39,3 +40,9 @@ class BaseSerializer(_BaseSerializer):
         """
 
         return t.cast(AnonymousUser, self.request.user)
+
+    @property
+    def view(self):
+        """The view that instantiated this serializer."""
+
+        return t.cast(View, self.context["view"])
