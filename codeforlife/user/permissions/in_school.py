@@ -26,6 +26,12 @@ class InSchool(IsAuthenticated):
         super().__init__()
         self.school_id = school_id
 
+    def __eq__(self, other):
+        return (
+            isinstance(other, self.__class__)
+            and self.school_id == other.school_id
+        )
+
     def has_permission(self, request: Request, view: APIView):
         def in_school(school_id: int):
             return self.school_id is None or self.school_id == school_id

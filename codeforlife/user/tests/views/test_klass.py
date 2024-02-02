@@ -58,3 +58,4 @@ class TestClassViewSet(ModelViewSetTestCase[Class]):
         self.client.retrieve(user.student.class_field)
 
     # TODO: other retrieve and list tests
+    # TODO: replace above tests with get_queryset() tests

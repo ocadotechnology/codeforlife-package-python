@@ -519,3 +519,5 @@ class TestUserViewSet(ModelViewSetTestCase[User]):
         assert [name.lower() for name in UserViewSet.http_method_names] == [
             "get"
         ]
+
+    # TODO: replace above tests with get_queryset() tests

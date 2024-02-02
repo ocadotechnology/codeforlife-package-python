@@ -26,6 +26,12 @@ class IsStudent(IsAuthenticated):
         super().__init__()
         self.student_id = student_id
 
+    def __eq__(self, other):
+        return (
+            isinstance(other, self.__class__)
+            and self.student_id == other.student_id
+        )
+
     def has_permission(self, request: Request, view: APIView):
         user = request.user
         return (

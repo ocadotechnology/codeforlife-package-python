@@ -14,6 +14,9 @@ class IsCronRequestFromGoogle(BasePermission):
     https://cloud.google.com/appengine/docs/flexible/scheduling-jobs-with-cron-yaml#securing_urls_for_cron
     """
 
+    def __eq__(self, other):
+        return isinstance(other, self.__class__)
+
     def has_permission(self, request, view):
         return (
             settings.DEBUG

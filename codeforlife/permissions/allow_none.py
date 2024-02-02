@@ -14,5 +14,8 @@ class AllowNone(BasePermission):
     https://www.django-rest-framework.org/api-guide/permissions/#allowany
     """
 
+    def __eq__(self, other):
+        return isinstance(other, self.__class__)
+
     def has_permission(self, request, view):
         return False

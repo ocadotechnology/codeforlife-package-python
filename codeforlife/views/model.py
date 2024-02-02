@@ -14,6 +14,7 @@ from rest_framework.response import Response
 from rest_framework.serializers import ListSerializer
 from rest_framework.viewsets import ModelViewSet as DrfModelViewSet
 
+from ..permissions import Permission
 from ..serializers import ModelListSerializer, ModelSerializer
 
 AnyModel = t.TypeVar("AnyModel", bound=Model)
@@ -48,6 +49,9 @@ class ModelViewSet(_ModelViewSet[AnyModel], t.Generic[AnyModel]):
         return t.get_args(cls.__orig_bases__[0])[  # type: ignore[attr-defined]
             0
         ]
+
+    def get_permissions(self):
+        return t.cast(t.List[Permission], super().get_permissions())
 
     def get_serializer(self, *args, **kwargs):
         serializer = super().get_serializer(*args, **kwargs)

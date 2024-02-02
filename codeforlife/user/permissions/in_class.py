@@ -26,6 +26,12 @@ class InClass(IsAuthenticated):
         super().__init__()
         self.class_id = class_id
 
+    def __eq__(self, other):
+        return (
+            isinstance(other, self.__class__)
+            and self.class_id == other.class_id
+        )
+
     def has_permission(self, request: Request, view: APIView):
         user = request.user
         if super().has_permission(request, view) and isinstance(user, User):
