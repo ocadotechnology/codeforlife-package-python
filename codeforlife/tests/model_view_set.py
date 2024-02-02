@@ -17,6 +17,7 @@ from django.utils import timezone
 from django.utils.http import urlencode
 from pyotp import TOTP
 from rest_framework import status
+from rest_framework.permissions import BasePermission
 from rest_framework.response import Response
 from rest_framework.test import APIClient, APIRequestFactory, APITestCase
 
@@ -688,6 +689,22 @@ class ModelViewSetTestCase(APITestCase, t.Generic[AnyModel]):
         assert hasattr(cls, attr_name), f'Attribute "{attr_name}" must be set.'
 
         return super().setUpClass()
+
+    def assert_get_permissions(
+        self,
+        permissions: t.List[BasePermission],
+        *args,
+        **kwargs,
+    ):
+        """Assert that we get the expected permissions.
+
+        Args:
+            permissions: The expected permissions.
+        """
+
+        model_view_set = self.model_view_set_class(*args, **kwargs)
+        actual_permissions = model_view_set.get_permissions()
+        self.assertListEqual(permissions, actual_permissions)
 
     def get_other_user(
         self,

@@ -9,6 +9,7 @@ from django.db.models import Model
 from django.db.models.query import QuerySet
 from rest_framework import status
 from rest_framework.decorators import action
+from rest_framework.permissions import BasePermission
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.serializers import ListSerializer
@@ -48,6 +49,9 @@ class ModelViewSet(_ModelViewSet[AnyModel], t.Generic[AnyModel]):
         return t.get_args(cls.__orig_bases__[0])[  # type: ignore[attr-defined]
             0
         ]
+
+    def get_permissions(self):
+        return t.cast(t.List[BasePermission], super().get_permissions())
 
     def get_serializer(self, *args, **kwargs):
         serializer = super().get_serializer(*args, **kwargs)

@@ -13,6 +13,9 @@ from ..models import User
 class IsIndependent(IsAuthenticated):
     """Request's user must be independent."""
 
+    def __eq__(self, other):
+        return isinstance(other, self.__class__)
+
     def has_permission(self, request: Request, view: APIView):
         user = request.user
         return (

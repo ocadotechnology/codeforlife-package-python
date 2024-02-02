@@ -34,6 +34,13 @@ class IsTeacher(IsAuthenticated):
         self.teacher_id = teacher_id
         self.is_admin = is_admin
 
+    def __eq__(self, other):
+        return (
+            isinstance(other, self.__class__)
+            and self.teacher_id == other.teacher_id
+            and self.is_admin == other.is_admin
+        )
+
     def has_permission(self, request: Request, view: APIView):
         user = request.user
         return (
