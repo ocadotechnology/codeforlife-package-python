@@ -17,10 +17,10 @@ from django.utils import timezone
 from django.utils.http import urlencode
 from pyotp import TOTP
 from rest_framework import status
-from rest_framework.permissions import BasePermission
 from rest_framework.response import Response
 from rest_framework.test import APIClient, APIRequestFactory, APITestCase
 
+from ..permissions import Permission
 from ..serializers import ModelSerializer
 from ..user.models import AuthFactor, User
 from ..views import ModelViewSet
@@ -692,7 +692,7 @@ class ModelViewSetTestCase(APITestCase, t.Generic[AnyModel]):
 
     def assert_get_permissions(
         self,
-        permissions: t.List[BasePermission],
+        permissions: t.List[Permission],
         *args,
         **kwargs,
     ):

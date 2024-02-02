@@ -9,12 +9,12 @@ from django.db.models import Model
 from django.db.models.query import QuerySet
 from rest_framework import status
 from rest_framework.decorators import action
-from rest_framework.permissions import BasePermission
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.serializers import ListSerializer
 from rest_framework.viewsets import ModelViewSet as DrfModelViewSet
 
+from ..permissions import Permission
 from ..serializers import ModelListSerializer, ModelSerializer
 
 AnyModel = t.TypeVar("AnyModel", bound=Model)
@@ -51,7 +51,7 @@ class ModelViewSet(_ModelViewSet[AnyModel], t.Generic[AnyModel]):
         ]
 
     def get_permissions(self):
-        return t.cast(t.List[BasePermission], super().get_permissions())
+        return t.cast(t.List[Permission], super().get_permissions())
 
     def get_serializer(self, *args, **kwargs):
         serializer = super().get_serializer(*args, **kwargs)
