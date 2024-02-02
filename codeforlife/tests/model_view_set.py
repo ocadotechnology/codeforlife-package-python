@@ -696,7 +696,7 @@ class ModelViewSetTestCase(APITestCase, t.Generic[AnyModel]):
         *args,
         **kwargs,
     ):
-        """Assert that we get the expected permissions.
+        """Assert that the expected permissions are returned.
 
         Args:
             permissions: The expected permissions.
@@ -705,6 +705,25 @@ class ModelViewSetTestCase(APITestCase, t.Generic[AnyModel]):
         model_view_set = self.model_view_set_class(*args, **kwargs)
         actual_permissions = model_view_set.get_permissions()
         self.assertListEqual(permissions, actual_permissions)
+
+    def assert_get_queryset(
+        self,
+        values: t.Collection[AnyModel],
+        *args,
+        ordered: bool = True,
+        **kwargs,
+    ):
+        """Assert that the expected queryset is returned.
+
+        Args:
+            values: The values we expect the queryset to contain.
+            ordered: Whether the queryset provides an implicit ordering.
+        """
+
+        model_view_set = self.model_view_set_class(*args, **kwargs)
+        queryset = model_view_set.get_queryset()
+        # pylint: disable-next=no-member
+        self.assertQuerySetEqual(queryset, values, ordered=ordered)
 
     def get_other_user(
         self,
