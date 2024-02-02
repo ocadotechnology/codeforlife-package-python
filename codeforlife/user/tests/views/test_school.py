@@ -193,3 +193,5 @@ class TestSchoolViewSet(ModelViewSetTestCase[School]):
         user = self._login_student()
 
         self.client.list([user.student.class_field.teacher.school])
+
+    # TODO: replace above tests with get_queryset() tests
