@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.12.3 (2024-02-05)
+
+### Fix
+
+* Release new version ([#71](https://github.com/ocadotechnology/codeforlife-package-python/issues/71)) ([`dfa1306`](https://github.com/ocadotechnology/codeforlife-package-python/commit/dfa1306a7fbae7b627db0b071856898020a4d3db))
+
 ## v0.12.2 (2024-02-02)
 
 ### Fix
