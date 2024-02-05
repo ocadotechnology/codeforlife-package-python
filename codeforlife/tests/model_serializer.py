@@ -8,6 +8,7 @@ Base test case for all model serializers.
 import typing as t
 
 from django.db.models import Model
+from django.forms.models import model_to_dict
 from django.test import TestCase
 from rest_framework.serializers import ValidationError
 from rest_framework.test import APIRequestFactory
@@ -25,6 +26,8 @@ class ModelSerializerTestCase(TestCase, t.Generic[AnyModel]):
     model_serializer_class: t.Type[ModelSerializer[AnyModel]]
 
     request_factory = APIRequestFactory()
+
+    Data = t.Dict[str, t.Any]
 
     @classmethod
     def setUpClass(cls):
@@ -166,3 +169,59 @@ class ModelSerializerTestCase(TestCase, t.Generic[AnyModel]):
             get_validate,
             **kwargs,
         )
+
+    def _assert_data_is_subset_of_model(self, data: Data, model):
+        assert isinstance(model, Model)
+
+        for field, value in data.copy().items():
+            # NOTE: A data value of type dict == a foreign object on the model.
+            if isinstance(value, dict):
+                self._assert_data_is_subset_of_model(
+                    value,
+                    getattr(model, field),
+                )
+                data.pop(field)
+
+        self.assertDictContainsSubset(data, model_to_dict(model))
+
+    def assert_create(
+        self,
+        validated_data: Data,
+        *args,
+        new_data: t.Optional[Data] = None,
+        **kwargs,
+    ):
+        """Assert that the data used to create the model is a subset of the
+        model's data.
+
+        Args:
+            validated_data: The data used to create the model.
+            new_data: Any new data that the model may have after creating.
+        """
+
+        serializer = self.model_serializer_class(*args, **kwargs)
+        model = serializer.create(validated_data)
+        data = {**validated_data, **(new_data or {})}
+        self._assert_data_is_subset_of_model(data, model)
+
+    def assert_update(
+        self,
+        instance: AnyModel,
+        validated_data: Data,
+        *args,
+        new_data: t.Optional[Data] = None,
+        **kwargs,
+    ):
+        """Assert that the data used to update the model is a subset of the
+        model's data.
+
+        Args:
+            instance: The model instance to update.
+            validated_data: The data used to update the model.
+            new_data: Any new data that the model may have after updating.
+        """
+
+        serializer = self.model_serializer_class(*args, **kwargs)
+        model = serializer.update(instance, validated_data)
+        data = {**validated_data, **(new_data or {})}
+        self._assert_data_is_subset_of_model(data, model)
