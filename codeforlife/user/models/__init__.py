@@ -1,3 +1,8 @@
+"""
+© Ocado Group
+Created on 05/02/2024 at 13:48:55(+00:00).
+"""
+
 # from .other import *
 # from .session import UserSession
 # from .teacher_invitation import SchoolTeacherInvitation
