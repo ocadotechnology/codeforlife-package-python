@@ -12,7 +12,7 @@ from unittest.mock import patch
 
 from django.db.models import Model
 from django.db.models.query import QuerySet
-from django.urls import reverse as _reverse
+from django.urls import reverse
 from django.utils import timezone
 from django.utils.http import urlencode
 from pyotp import TOTP
@@ -22,7 +22,14 @@ from rest_framework.test import APIClient, APIRequestFactory, APITestCase
 
 from ..permissions import Permission
 from ..serializers import ModelSerializer
-from ..user.models import AuthFactor, User
+from ..user.models import (
+    AuthFactor,
+    NonSchoolTeacherUser,
+    SchoolTeacherUser,
+    StudentUser,
+    TeacherUser,
+    User,
+)
 from ..views import ModelViewSet
 
 AnyModel = t.TypeVar("AnyModel", bound=Model)
@@ -181,39 +188,6 @@ class ModelViewSetClient(APIClient, t.Generic[AnyModel]):
                 "Data does not equal serialized model.",
             )
 
-    def reverse(
-        self,
-        action: str,
-        model: t.Optional[AnyModel] = None,
-        **kwargs,
-    ):
-        """Get the reverse URL for the model view set's action.
-
-        Args:
-            action: The name of the action.
-            model: The model to look up.
-
-        Returns:
-            The reversed URL.
-        """
-
-        reverse_kwargs = kwargs.pop("kwargs", {})
-        if model is not None:
-            reverse_kwargs[self._model_view_set_class.lookup_field] = getattr(
-                model,
-                self._model_view_set_class.lookup_field,
-            )
-
-        return _reverse(
-            viewname=kwargs.pop(
-                "viewname",
-                # pylint: disable-next=no-member
-                f"{self._test_case.basename}-{action}",
-            ),
-            kwargs=reverse_kwargs,
-            **kwargs,
-        )
-
     # pylint: disable-next=too-many-arguments
     def generic(
         self,
@@ -278,7 +252,8 @@ class ModelViewSetClient(APIClient, t.Generic[AnyModel]):
         # pylint: enable=line-too-long
 
         response: Response = self.post(
-            self.reverse("list"),
+            # pylint: disable-next=no-member
+            self._test_case.reverse_action("list"),
             data=json.dumps(data),
             content_type="application/json",
             status_code_assertion=status_code_assertion,
@@ -316,7 +291,8 @@ class ModelViewSetClient(APIClient, t.Generic[AnyModel]):
         # pylint: enable=line-too-long
 
         response: Response = self.post(
-            self.reverse("bulk"),
+            # pylint: disable-next=no-member
+            self._test_case.reverse_action("bulk"),
             data=json.dumps(data),
             content_type="application/json",
             status_code_assertion=status_code_assertion,
@@ -356,7 +332,8 @@ class ModelViewSetClient(APIClient, t.Generic[AnyModel]):
         # pylint: enable=line-too-long
 
         response: Response = self.get(
-            self.reverse("detail", model),
+            # pylint: disable-next=no-member
+            self._test_case.reverse_action("detail", model),
             status_code_assertion=status_code_assertion,
             **kwargs,
         )
@@ -403,7 +380,11 @@ class ModelViewSetClient(APIClient, t.Generic[AnyModel]):
         ).exists(), "List must exclude some models for a valid test."
 
         response: Response = self.get(
-            f"{self.reverse('list')}?{urlencode(filters or {})}",
+            (
+                # pylint: disable-next=no-member
+                self._test_case.reverse_action("list")
+                + f"?{urlencode(filters or {})}"
+            ),
             status_code_assertion=status_code_assertion,
             **kwargs,
         )
@@ -445,7 +426,8 @@ class ModelViewSetClient(APIClient, t.Generic[AnyModel]):
         # pylint: enable=line-too-long
 
         response: Response = self.patch(
-            self.reverse("detail", model),
+            # pylint: disable-next=no-member
+            self._test_case.reverse_action("detail", model),
             data=json.dumps(data),
             content_type="application/json",
             status_code_assertion=status_code_assertion,
@@ -490,7 +472,8 @@ class ModelViewSetClient(APIClient, t.Generic[AnyModel]):
         # pylint: enable=line-too-long
 
         response: Response = self.patch(
-            self.reverse("bulk"),
+            # pylint: disable-next=no-member
+            self._test_case.reverse_action("bulk"),
             data=json.dumps(data),
             content_type="application/json",
             status_code_assertion=status_code_assertion,
@@ -532,7 +515,8 @@ class ModelViewSetClient(APIClient, t.Generic[AnyModel]):
         """
 
         response: Response = self.delete(
-            self.reverse("detail", model),
+            # pylint: disable-next=no-member
+            self._test_case.reverse_action("detail", model),
             status_code_assertion=status_code_assertion,
             **kwargs,
         )
@@ -569,7 +553,8 @@ class ModelViewSetClient(APIClient, t.Generic[AnyModel]):
         """
 
         response: Response = self.delete(
-            self.reverse("bulk"),
+            # pylint: disable-next=no-member
+            self._test_case.reverse_action("bulk"),
             data=json.dumps(lookup_values),
             content_type="application/json",
             status_code_assertion=status_code_assertion,
@@ -612,12 +597,16 @@ class ModelViewSetClient(APIClient, t.Generic[AnyModel]):
 
         return user
 
-    def login_teacher(self, is_admin: t.Optional[bool] = None, **credentials):
+    def login_teacher(
+        self,
+        is_admin: t.Optional[bool] = None,
+        **credentials,
+    ) -> TeacherUser:
         # pylint: disable=line-too-long
         """Log in a user and assert they are a teacher.
 
         Args:
-            is_admin: Whether or not the teacher is an admin. Set none if a teacher can be either or.
+            is_admin: Whether or not the teacher is an admin. Set to None if the teacher can be either or.
 
         Returns:
             The teacher-user.
@@ -626,12 +615,43 @@ class ModelViewSetClient(APIClient, t.Generic[AnyModel]):
 
         user = self.login(**credentials)
         assert user.teacher
-        assert user.teacher.school
         if is_admin is not None:
             assert is_admin == user.teacher.is_admin
+
         return user
 
-    def login_student(self, **credentials):
+    def login_school_teacher(
+        self,
+        is_admin: t.Optional[bool] = None,
+        **credentials,
+    ):
+        # pylint: disable=line-too-long
+        """Log in a user and assert they are a school-teacher.
+
+        Args:
+            is_admin: Whether or not the teacher is an admin. Set to None if the teacher can be either or.
+
+        Returns:
+            The school-teacher-user.
+        """
+        # pylint: enable=line-too-long
+
+        user = self.login_teacher(is_admin, **credentials)
+        assert user.teacher.school
+        return t.cast(SchoolTeacherUser, user)
+
+    def login_non_school_teacher(self, **credentials):
+        """Log in a user and assert they are a non-school-teacher.
+
+        Returns:
+            The non-school-teacher-user.
+        """
+
+        user = self.login_teacher(is_admin=None, **credentials)
+        assert not user.teacher.school
+        return t.cast(NonSchoolTeacherUser, user)
+
+    def login_student(self, **credentials) -> StudentUser:
         """Log in a user and assert they are a student.
 
         Returns:
@@ -643,7 +663,8 @@ class ModelViewSetClient(APIClient, t.Generic[AnyModel]):
         assert user.student.class_field.teacher.school
         return user
 
-    def login_indy(self, **credentials):
+    # TODO: set return type to IndependentUser when we use the new data models.
+    def login_indy(self, **credentials) -> StudentUser:
         """Log in an independent and assert they are a student.
 
         Returns:
@@ -689,6 +710,33 @@ class ModelViewSetTestCase(APITestCase, t.Generic[AnyModel]):
         assert hasattr(cls, attr_name), f'Attribute "{attr_name}" must be set.'
 
         return super().setUpClass()
+
+    def reverse_action(
+        self,
+        name: str,
+        model: t.Optional[AnyModel] = None,
+        **kwargs,
+    ):
+        """Get the reverse URL for the model view set's action.
+
+        Args:
+            name: The name of the action.
+            model: The model to look up.
+
+        Returns:
+            The reversed URL for the model view set's action.
+        """
+
+        reverse_kwargs = kwargs.pop("kwargs", {})
+        if model is not None:
+            lookup_field = self.model_view_set_class.lookup_field
+            reverse_kwargs[lookup_field] = getattr(model, lookup_field)
+
+        return reverse(
+            viewname=kwargs.pop("viewname", f"{self.basename}-{name}"),
+            kwargs=reverse_kwargs,
+            **kwargs,
+        )
 
     def assert_get_permissions(
         self,
