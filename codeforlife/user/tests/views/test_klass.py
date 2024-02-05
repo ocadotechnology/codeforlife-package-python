@@ -5,6 +5,7 @@ Created on 20/01/2024 at 09:48:30(+00:00).
 
 from ....tests import ModelViewSetTestCase
 from ...models import Class
+from ...permissions import InSchool, IsTeacher
 from ...views import ClassViewSet
 
 
@@ -59,3 +60,23 @@ class TestClassViewSet(ModelViewSetTestCase[Class]):
 
     # TODO: other retrieve and list tests
     # TODO: replace above tests with get_queryset() tests
+
+    def test_get_permissions__list(self):
+        """
+        Only school-teachers can list classes.
+        """
+
+        self.assert_get_permissions(
+            permissions=[IsTeacher(), InSchool()],
+            action="list",
+        )
+
+    def test_get_permissions__retrieve(self):
+        """
+        Anyone in a school can retrieve a class.
+        """
+
+        self.assert_get_permissions(
+            permissions=[InSchool()],
+            action="retrieve",
+        )

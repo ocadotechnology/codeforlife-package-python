@@ -19,8 +19,8 @@ class UserViewSet(ModelViewSet[User]):
 
     # pylint: disable-next=missing-function-docstring
     def get_queryset(self):
-        user = t.cast(User, self.request.user)
-        if user.is_student:
+        user = self.request_user
+        if user.student:
             if user.student.class_field is None:
                 return User.objects.filter(id=user.id)
 
@@ -33,18 +33,22 @@ class UserViewSet(ModelViewSet[User]):
 
             return teachers | students
 
-        teachers = User.objects.filter(
-            new_teacher__school=user.teacher.school_id
-        )
-        students = (
-            User.objects.filter(
-                # TODO: add school foreign key to student model.
-                new_student__class_field__teacher__school=user.teacher.school_id,
+        user = self.request_teacher_user
+        if user.teacher.school:
+            teachers = User.objects.filter(
+                new_teacher__school=user.teacher.school_id
             )
-            if user.teacher.is_admin
-            else User.objects.filter(
-                new_student__class_field__teacher=user.teacher
+            students = (
+                User.objects.filter(
+                    # TODO: add school foreign key to student model.
+                    new_student__class_field__teacher__school=user.teacher.school_id,
+                )
+                if user.teacher.is_admin
+                else User.objects.filter(
+                    new_student__class_field__teacher=user.teacher
+                )
             )
-        )
 
-        return teachers | students
+            return teachers | students
+
+        return User.objects.filter(pk=user.pk)

@@ -786,7 +786,7 @@ class ModelViewSetTestCase(APITestCase, t.Generic[AnyModel]):
         other_user = other_users.first()
         assert other_user
         assert user != other_user
-        assert other_user.is_teacher if is_teacher else other_user.is_student
+        assert other_user.teacher if is_teacher else other_user.student
         return other_user
 
     def get_other_school_user(
@@ -844,12 +844,12 @@ class ModelViewSetTestCase(APITestCase, t.Generic[AnyModel]):
 
             # Cannot assert that 2 teachers are in the same class since a class
             # can only have 1 teacher.
-            if not (user.is_teacher and other_user.is_teacher):
+            if not (user.teacher and other_user.teacher):
                 # At this point, same_class needs to be set.
                 assert same_class is not None, "same_class must be set."
 
                 # If one of the users is a teacher.
-                if user.is_teacher or is_teacher:
+                if user.teacher or is_teacher:
                     # Get the teacher.
                     teacher = other_user if is_teacher else user
 

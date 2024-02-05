@@ -5,8 +5,10 @@ Created on 20/01/2024 at 09:47:30(+00:00).
 
 from rest_framework import status
 
+from ....permissions import AllowNone
 from ....tests import ModelViewSetTestCase
 from ...models import Class, School, Student, Teacher, User, UserProfile
+from ...permissions import InSchool
 from ...views import SchoolViewSet
 
 
@@ -176,22 +178,24 @@ class TestSchoolViewSet(ModelViewSetTestCase[School]):
 
         self.client.list([], status.HTTP_403_FORBIDDEN)
 
-    def test_list__teacher(self):
-        """
-        Teacher can list only the school they are in.
-        """
-
-        user = self._login_teacher()
-
-        self.client.list([user.teacher.school])
-
-    def test_list__student(self):
-        """
-        Student can list only the school they are in.
-        """
-
-        user = self._login_student()
-
-        self.client.list([user.student.class_field.teacher.school])
-
     # TODO: replace above tests with get_queryset() tests
+
+    def test_get_permissions__list(self):
+        """
+        No one is allowed to list schools.
+        """
+
+        self.assert_get_permissions(
+            permissions=[AllowNone()],
+            action="list",
+        )
+
+    def test_get_permissions__retrieve(self):
+        """
+        Only a user in a school can retrieve a school.
+        """
+
+        self.assert_get_permissions(
+            permissions=[InSchool()],
+            action="retrieve",
+        )

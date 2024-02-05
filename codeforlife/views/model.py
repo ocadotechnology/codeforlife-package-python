@@ -16,6 +16,7 @@ from rest_framework.viewsets import ModelViewSet as DrfModelViewSet
 
 from ..permissions import Permission
 from ..serializers import ModelListSerializer, ModelSerializer
+from .api import APIView
 
 AnyModel = t.TypeVar("AnyModel", bound=Model)
 
@@ -32,7 +33,7 @@ else:
 
 
 # pylint: disable-next=too-many-ancestors
-class ModelViewSet(_ModelViewSet[AnyModel], t.Generic[AnyModel]):
+class ModelViewSet(APIView, _ModelViewSet[AnyModel], t.Generic[AnyModel]):
     """Base model view set for all model view sets."""
 
     serializer_class: t.Optional[t.Type[ModelSerializer[AnyModel]]]
