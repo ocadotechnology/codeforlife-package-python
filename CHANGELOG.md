@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.12.4 (2024-02-05)
+
+### Fix
+
+* Release new version of old system ([#72](https://github.com/ocadotechnology/codeforlife-package-python/issues/72)) ([`99da7f7`](https://github.com/ocadotechnology/codeforlife-package-python/commit/99da7f7dbe101bcf64f588728491760bcb2189e6))
+
 ## v0.12.3 (2024-02-05)
 
 ### Fix
