@@ -199,7 +199,7 @@ class ModelViewSetClient(APIClient, t.Generic[AnyModel]):
 
     def _assert_create(self, json_model: JsonDict):
         model = self._model_class.objects.get(
-            **{self._lookup_field: json_model[self._lookup_field]}
+            **{self._lookup_field: json_model["id"]}
         )
         self._assert_serialized_model_equals_json_model(model, json_model)
 
