@@ -6,6 +6,7 @@ Base test case for all model serializers.
 """
 
 import typing as t
+from unittest.case import _AssertRaisesContext
 
 from django.db.models import Model
 from django.forms.models import model_to_dict
@@ -59,23 +60,26 @@ class ModelSerializerTestCase(TestCase, t.Generic[AnyModel]):
             The assert-raises context which will auto-assert the code.
         """
 
-        context = self.assertRaises(ValidationError, *args, **kwargs)
-
-        class ContextWrapper:
+        class Wrapper:
             """Wrap context to assert code on exit."""
 
-            def __init__(self, context):
-                self.context = context
+            def __init__(self, ctx: "_AssertRaisesContext[ValidationError]"):
+                self.ctx = ctx
 
             def __enter__(self, *args, **kwargs):
-                return self.context.__enter__(*args, **kwargs)
+                return self.ctx.__enter__(*args, **kwargs)
 
             def __exit__(self, *args, **kwargs):
-                value = self.context.__exit__(*args, **kwargs)
-                assert self.context.exception.detail[0].code == code
+                value = self.ctx.__exit__(*args, **kwargs)
+                assert (
+                    code
+                    == self.ctx.exception.detail[  # type: ignore[union-attr]
+                        0  # type: ignore[index]
+                    ].code
+                )
                 return value
 
-        return ContextWrapper(context)
+        return Wrapper(self.assertRaises(ValidationError, *args, **kwargs))
 
     # pylint: disable-next=too-many-arguments
     def _assert_validate(
