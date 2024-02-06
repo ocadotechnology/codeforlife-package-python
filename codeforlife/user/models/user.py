@@ -58,14 +58,6 @@ class User(_User):
             return None
 
     @property
-    def is_student(self):
-        return self.student is not None
-
-    @property
-    def is_teacher(self):
-        return self.teacher is not None
-
-    @property
     def otp_secret(self):
         return self.userprofile.otp_secret
 

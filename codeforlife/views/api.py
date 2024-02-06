@@ -1,18 +1,14 @@
 """
 © Ocado Group
-Created on 29/01/2024 at 14:27:09(+00:00).
-
-Base serializer.
+Created on 05/02/2024 at 16:33:52(+00:00).
 """
 
 import typing as t
 
 from django.contrib.auth.models import AnonymousUser
-from django.views import View
-from rest_framework.serializers import BaseSerializer as _BaseSerializer
+from rest_framework.views import APIView as _APIView
 
-from ..request import Request
-from ..user.models import (  # TODO: add IndependentUser
+from ..user.models import (
     NonSchoolTeacherUser,
     SchoolTeacherUser,
     StudentUser,
@@ -21,16 +17,8 @@ from ..user.models import (  # TODO: add IndependentUser
 )
 
 
-# pylint: disable-next=abstract-method
-class BaseSerializer(_BaseSerializer):
-    """Base serializer to be inherited by all other serializers."""
-
-    @property
-    def request(self):
-        """The HTTP request that triggered the view."""
-
-        return t.cast(Request, self.context["request"])
-
+# pylint: disable-next=missing-class-docstring
+class APIView(_APIView):
     @property
     def request_user(self):
         """
@@ -94,9 +82,3 @@ class BaseSerializer(_BaseSerializer):
         """
 
         return t.cast(AnonymousUser, self.request.user)
-
-    @property
-    def view(self):
-        """The view that instantiated this serializer."""
-
-        return t.cast(View, self.context["view"])
