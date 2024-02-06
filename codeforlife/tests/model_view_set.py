@@ -254,7 +254,7 @@ class ModelViewSetClient(APIClient, t.Generic[AnyModel]):
         response: Response = self.post(
             # pylint: disable-next=no-member
             self._test_case.reverse_action("list"),
-            data=json.dumps(data),
+            data=json.dumps(data, default=str),
             content_type="application/json",
             status_code_assertion=status_code_assertion,
             **kwargs,
@@ -293,7 +293,7 @@ class ModelViewSetClient(APIClient, t.Generic[AnyModel]):
         response: Response = self.post(
             # pylint: disable-next=no-member
             self._test_case.reverse_action("bulk"),
-            data=json.dumps(data),
+            data=json.dumps(data, default=str),
             content_type="application/json",
             status_code_assertion=status_code_assertion,
             **kwargs,
@@ -428,7 +428,7 @@ class ModelViewSetClient(APIClient, t.Generic[AnyModel]):
         response: Response = self.patch(
             # pylint: disable-next=no-member
             self._test_case.reverse_action("detail", model),
-            data=json.dumps(data),
+            data=json.dumps(data, default=str),
             content_type="application/json",
             status_code_assertion=status_code_assertion,
             **kwargs,
@@ -474,7 +474,7 @@ class ModelViewSetClient(APIClient, t.Generic[AnyModel]):
         response: Response = self.patch(
             # pylint: disable-next=no-member
             self._test_case.reverse_action("bulk"),
-            data=json.dumps(data),
+            data=json.dumps(data, default=str),
             content_type="application/json",
             status_code_assertion=status_code_assertion,
             **kwargs,
@@ -555,7 +555,7 @@ class ModelViewSetClient(APIClient, t.Generic[AnyModel]):
         response: Response = self.delete(
             # pylint: disable-next=no-member
             self._test_case.reverse_action("bulk"),
-            data=json.dumps(lookup_values),
+            data=json.dumps(lookup_values, default=str),
             content_type="application/json",
             status_code_assertion=status_code_assertion,
             **kwargs,
