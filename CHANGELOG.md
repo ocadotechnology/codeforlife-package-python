@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.12.8 (2024-02-07)
+
+### Fix
+
+* Create class 2 ([#76](https://github.com/ocadotechnology/codeforlife-package-python/issues/76)) ([`5cb0a3e`](https://github.com/ocadotechnology/codeforlife-package-python/commit/5cb0a3ea74d64d00c19e925ab55138048473c893))
+
 ## v0.12.7 (2024-02-07)
 
 ### Fix
