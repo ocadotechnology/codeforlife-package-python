@@ -12,6 +12,7 @@ from rest_framework.serializers import ListSerializer as _ListSerializer
 from rest_framework.serializers import ModelSerializer as _ModelSerializer
 from rest_framework.serializers import ValidationError as _ValidationError
 
+from ..types import DataDict
 from .base import BaseSerializer
 
 AnyModel = t.TypeVar("AnyModel", bound=Model)
@@ -24,7 +25,7 @@ class ModelSerializer(
 ):
     """Base model serializer for all model serializers."""
 
-    instance: AnyModel
+    instance: t.Optional[AnyModel]
 
     @property
     def view(self):
@@ -35,18 +36,14 @@ class ModelSerializer(
         return t.cast(ModelViewSet[AnyModel], super().view)
 
     # pylint: disable-next=useless-parent-delegation
-    def update(
-        self,
-        instance: AnyModel,
-        validated_data: t.Dict[str, t.Any],
-    ) -> AnyModel:
+    def update(self, instance: AnyModel, validated_data: DataDict) -> AnyModel:
         return super().update(instance, validated_data)
 
     # pylint: disable-next=useless-parent-delegation
-    def create(self, validated_data: t.Dict[str, t.Any]) -> AnyModel:
+    def create(self, validated_data: DataDict) -> AnyModel:
         return super().create(validated_data)
 
-    def validate(self, attrs: t.Dict[str, t.Any]):
+    def validate(self, attrs: DataDict):
         return attrs
 
 
@@ -72,7 +69,7 @@ class ModelListSerializer(
             list_serializer_class = UserListSerializer
     """
 
-    instance: t.List[AnyModel]
+    instance: t.Optional[t.List[AnyModel]]
     batch_size: t.Optional[int] = None
 
     @property
@@ -96,10 +93,7 @@ class ModelListSerializer(
             0
         ]
 
-    def create(
-        self,
-        validated_data: t.List[t.Dict[str, t.Any]],
-    ) -> t.List[AnyModel]:
+    def create(self, validated_data: t.List[DataDict]) -> t.List[AnyModel]:
         """Bulk create many instances of a model.
 
         https://www.django-rest-framework.org/api-guide/serializers/#customizing-multiple-create
@@ -120,7 +114,7 @@ class ModelListSerializer(
     def update(
         self,
         instance: t.List[AnyModel],
-        validated_data: t.List[t.Dict[str, t.Any]],
+        validated_data: t.List[DataDict],
     ) -> t.List[AnyModel]:
         """Bulk update many instances of a model.
 
@@ -148,7 +142,7 @@ class ModelListSerializer(
 
         return instance
 
-    def validate(self, attrs: t.List[t.Dict[str, t.Any]]):
+    def validate(self, attrs: t.List[DataDict]):
         # If performing a bulk create.
         if self.instance is None:
             if len(attrs) == 0:

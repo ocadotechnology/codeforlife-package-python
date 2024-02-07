@@ -15,7 +15,7 @@ from rest_framework.serializers import ValidationError
 from rest_framework.test import APIRequestFactory
 
 from ..serializers import ModelSerializer
-from ..types import JsonDict, KwArgs
+from ..types import DataDict
 from ..user.models import User
 
 AnyModel = t.TypeVar("AnyModel", bound=Model)
@@ -27,8 +27,6 @@ class ModelSerializerTestCase(TestCase, t.Generic[AnyModel]):
     model_serializer_class: t.Type[ModelSerializer[AnyModel]]
 
     request_factory = APIRequestFactory()
-
-    Data = t.Dict[str, t.Any]
 
     @classmethod
     def setUpClass(cls):
@@ -81,45 +79,39 @@ class ModelSerializerTestCase(TestCase, t.Generic[AnyModel]):
 
         return Wrapper(self.assertRaises(ValidationError, *args, **kwargs))
 
-    # pylint: disable-next=too-many-arguments
-    def _assert_validate(
+    def init_request(
         self,
-        value,
-        error_code: str,
-        user: t.Optional[User],
-        request_kwargs: t.Optional[KwArgs],
-        get_validate: t.Callable[
-            [ModelSerializer[AnyModel]], t.Callable[[t.Any], t.Any]
-        ],
+        method: str,
+        user: t.Optional[User] = None,
         **kwargs,
     ):
-        kwargs.setdefault("context", {})
-        context: t.Dict[str, t.Any] = kwargs["context"]
+        """Initialize a generic HTTP request.
 
-        if "request" not in context:
-            request_kwargs = request_kwargs or {}
-            request_kwargs.setdefault("method", "POST")
-            request_kwargs.setdefault("path", "/")
-            request_kwargs.setdefault("data", "")
-            request_kwargs.setdefault("content_type", "application/json")
+        Create an instance of DRF's Request object. Note this does not send the
+        HTTP request.
 
-            request = self.request_factory.generic(**request_kwargs)
-            if user is not None:
-                request.user = user
+        Args:
+            method: The HTTP method.
+            user: The user making the request.
 
-            context["request"] = request
+        Returns:
+            An instance of DRF's Request object.
+        """
 
-        serializer = self.model_serializer_class(**kwargs)
+        kwargs.setdefault("path", "/")
+        kwargs.setdefault("content_type", "application/json")
 
-        with self.assert_raises_validation_error(error_code):
-            get_validate(serializer)(value)
+        request = self.request_factory.generic(method.upper(), **kwargs)
+        if user:
+            request.user = user
+
+        return request
 
     def assert_validate(
         self,
-        attrs: t.Union[JsonDict, t.List[JsonDict]],
+        attrs: t.Union[DataDict, t.List[DataDict]],
         error_code: str,
-        user: t.Optional[User] = None,
-        request_kwargs: t.Optional[KwArgs] = None,
+        *args,
         **kwargs,
     ):
         """Asserts that calling validate() raises the expected error code.
@@ -127,18 +119,11 @@ class ModelSerializerTestCase(TestCase, t.Generic[AnyModel]):
         Args:
             attrs: The attributes to pass to validate().
             error_code: The expected error code to be raised.
-            user: The requesting user.
-            request_kwargs: The kwargs used to initialize the request.
         """
 
-        self._assert_validate(
-            attrs,
-            error_code,
-            user,
-            request_kwargs,
-            get_validate=lambda serializer: serializer.validate,
-            **kwargs,
-        )
+        serializer = self.model_serializer_class(*args, **kwargs)
+        with self.assert_raises_validation_error(error_code):
+            serializer.validate(attrs)  # type: ignore[arg-type]
 
     # pylint: disable-next=too-many-arguments
     def assert_validate_field(
@@ -146,8 +131,7 @@ class ModelSerializerTestCase(TestCase, t.Generic[AnyModel]):
         name: str,
         value,
         error_code: str,
-        user: t.Optional[User] = None,
-        request_kwargs: t.Optional[KwArgs] = None,
+        *args,
         **kwargs,
     ):
         """Asserts that calling validate_field() raises the expected error code.
@@ -156,25 +140,15 @@ class ModelSerializerTestCase(TestCase, t.Generic[AnyModel]):
             name: The name of the field.
             value: The value to pass to validate_field().
             error_code: The expected error code to be raised.
-            user: The requesting user.
-            request_kwargs: The kwargs used to initialize the request.
         """
 
-        def get_validate(serializer: ModelSerializer[AnyModel]):
-            validate_field = getattr(serializer, f"validate_{name}")
-            assert callable(validate_field)
-            return validate_field
+        serializer = self.model_serializer_class(*args, **kwargs)
+        validate_field = getattr(serializer, f"validate_{name}")
+        assert callable(validate_field)
+        with self.assert_raises_validation_error(error_code):
+            validate_field(value)
 
-        self._assert_validate(
-            value,
-            error_code,
-            user,
-            request_kwargs,
-            get_validate,
-            **kwargs,
-        )
-
-    def _assert_data_is_subset_of_model(self, data: Data, model):
+    def _assert_data_is_subset_of_model(self, data: DataDict, model):
         assert isinstance(model, Model)
 
         for field, value in data.copy().items():
@@ -190,9 +164,9 @@ class ModelSerializerTestCase(TestCase, t.Generic[AnyModel]):
 
     def assert_create(
         self,
-        validated_data: Data,
+        validated_data: DataDict,
         *args,
-        new_data: t.Optional[Data] = None,
+        new_data: t.Optional[DataDict] = None,
         **kwargs,
     ):
         """Assert that the data used to create the model is a subset of the
@@ -211,9 +185,9 @@ class ModelSerializerTestCase(TestCase, t.Generic[AnyModel]):
     def assert_update(
         self,
         instance: AnyModel,
-        validated_data: Data,
+        validated_data: DataDict,
         *args,
-        new_data: t.Optional[Data] = None,
+        new_data: t.Optional[DataDict] = None,
         **kwargs,
     ):
         """Assert that the data used to update the model is a subset of the

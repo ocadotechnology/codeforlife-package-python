@@ -16,6 +16,7 @@ from rest_framework.viewsets import ModelViewSet as DrfModelViewSet
 
 from ..permissions import Permission
 from ..serializers import ModelListSerializer, ModelSerializer
+from ..types import DataDict
 from .api import APIView
 
 AnyModel = t.TypeVar("AnyModel", bound=Model)
@@ -142,7 +143,7 @@ class ModelViewSet(APIView, _ModelViewSet[AnyModel], t.Generic[AnyModel]):
             else self.lookup_field
         )
 
-        data = t.cast(t.List[t.Dict[str, t.Any]], request.data)
+        data = t.cast(t.List[DataDict], request.data)
         data.sort(key=lambda model: model[lookup_field])
 
         queryset = model_class.objects.filter(  # type: ignore[attr-defined]
