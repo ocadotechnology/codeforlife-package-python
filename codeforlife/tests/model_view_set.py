@@ -193,7 +193,17 @@ class ModelViewSetClient(APIClient, t.Generic[AnyModel]):
         status_code = response.status_code
         assert status_code_assertion(
             status_code
-        ), f"Unexpected status code: {status_code}."
+        ), f"Unexpected status code: {status_code}." + (
+            "\nResponse JSON: "
+            + json.dumps(
+                # pylint: disable-next=no-member
+                response.json(),  # type: ignore[attr-defined]
+                indent=2,
+                default=str,
+            )
+            if status_code == status.HTTP_400_BAD_REQUEST
+            else ""
+        )
 
         return response
 
