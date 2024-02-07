@@ -23,7 +23,7 @@ from rest_framework.test import APIClient, APIRequestFactory, APITestCase
 
 from ..permissions import Permission
 from ..serializers import ModelSerializer
-from ..types import JsonDict
+from ..types import DataDict, JsonDict
 from ..user.models import (
     AuthFactor,
     NonSchoolTeacherUser,
@@ -77,7 +77,6 @@ class ModelViewSetClient(APIClient, t.Generic[AnyModel]):
             else lookup_field
         )
 
-    Data = t.Dict[str, t.Any]
     StatusCodeAssertion = t.Optional[t.Union[int, t.Callable[[int], bool]]]
     ListFilters = t.Optional[t.Dict[str, str]]
 
@@ -101,7 +100,7 @@ class ModelViewSetClient(APIClient, t.Generic[AnyModel]):
         self,
         response: Response,
         make_assertions: t.Callable[[t.List[JsonDict]], None],
-        data: t.List[Data],
+        data: t.List[DataDict],
     ):
         def _make_assertions():
             response_json = response.json()  # type: ignore[attr-defined]
@@ -137,7 +136,7 @@ class ModelViewSetClient(APIClient, t.Generic[AnyModel]):
 
         datetime_to_representation = DateTimeField().to_representation
 
-        def datetime_values_to_representation(data: ModelViewSetClient.Data):
+        def datetime_values_to_representation(data: DataDict):
             for key, value in data.copy().items():
                 if isinstance(value, dict):
                     datetime_values_to_representation(value)
@@ -215,7 +214,7 @@ class ModelViewSetClient(APIClient, t.Generic[AnyModel]):
 
     def create(
         self,
-        data: Data,
+        data: DataDict,
         status_code_assertion: StatusCodeAssertion = status.HTTP_201_CREATED,
         make_assertions: bool = True,
         **kwargs,
@@ -249,7 +248,7 @@ class ModelViewSetClient(APIClient, t.Generic[AnyModel]):
 
     def bulk_create(
         self,
-        data: t.List[Data],
+        data: t.List[DataDict],
         status_code_assertion: StatusCodeAssertion = status.HTTP_201_CREATED,
         make_assertions: bool = True,
         **kwargs,
@@ -385,7 +384,7 @@ class ModelViewSetClient(APIClient, t.Generic[AnyModel]):
     def partial_update(
         self,
         model: AnyModel,
-        data: Data,
+        data: DataDict,
         status_code_assertion: StatusCodeAssertion = status.HTTP_200_OK,
         make_assertions: bool = True,
         **kwargs,
@@ -426,7 +425,7 @@ class ModelViewSetClient(APIClient, t.Generic[AnyModel]):
     def bulk_partial_update(
         self,
         models: t.List[AnyModel],
-        data: t.List[Data],
+        data: t.List[DataDict],
         status_code_assertion: StatusCodeAssertion = status.HTTP_200_OK,
         make_assertions: bool = True,
         **kwargs,
