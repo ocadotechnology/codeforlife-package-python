@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.12.6 (2024-02-07)
+
+### Fix
+
+* Default action assertions ([#74](https://github.com/ocadotechnology/codeforlife-package-python/issues/74)) ([`453a6ba`](https://github.com/ocadotechnology/codeforlife-package-python/commit/453a6ba8aaf5d3ac7acddf70e882ffa3044e0eee))
+
 ## v0.12.5 (2024-02-06)
 
 ### Fix
