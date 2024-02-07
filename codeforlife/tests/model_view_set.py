@@ -194,7 +194,7 @@ class ModelViewSetClient(APIClient, t.Generic[AnyModel]):
         assert status_code_assertion(
             status_code
         ), f"Unexpected status code: {status_code}." + (
-            "\nResponse JSON: "
+            "\nValidation errors:: "
             + json.dumps(
                 # pylint: disable-next=no-member
                 response.json(),  # type: ignore[attr-defined]
