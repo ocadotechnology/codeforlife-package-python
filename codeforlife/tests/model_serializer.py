@@ -101,7 +101,7 @@ class ModelSerializerTestCase(TestCase, t.Generic[AnyModel]):
         kwargs.setdefault("path", "/")
         kwargs.setdefault("content_type", "application/json")
 
-        request = self.request_factory.generic(method, **kwargs)
+        request = self.request_factory.generic(method.upper(), **kwargs)
         if user:
             request.user = user
 
