@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.12.7 (2024-02-07)
+
+### Fix
+
+* Assertion error ([`6c505d1`](https://github.com/ocadotechnology/codeforlife-package-python/commit/6c505d1000d2d748181259a3d074e1866f27a6e0))
+
 ## v0.12.6 (2024-02-07)
 
 ### Fix
