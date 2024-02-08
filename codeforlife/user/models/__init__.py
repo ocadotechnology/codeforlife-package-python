@@ -15,6 +15,7 @@ from .session_auth_factor import SessionAuthFactor
 from .student import Student
 from .teacher import NonSchoolTeacher, SchoolTeacher, Teacher
 from .user import (  # TODO: remove UserProfile
+    IndependentUser,
     NonSchoolTeacherUser,
     SchoolTeacherUser,
     StudentUser,

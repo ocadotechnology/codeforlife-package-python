@@ -9,6 +9,7 @@ from common.models import UserProfile
 
 # pylint: disable-next=imported-auth-user
 from django.contrib.auth.models import User as _User
+from django.contrib.auth.models import UserManager
 from django.db.models.query import QuerySet
 from django.utils.translation import gettext_lazy as _
 from django_stubs_ext.db.models import TypedModelMeta
@@ -74,6 +75,17 @@ class User(_User):
         return self.userprofile.aimmo_badges
 
 
+# pylint: disable-next=missing-class-docstring
+class TeacherUserManager(UserManager):
+    # pylint: disable-next=missing-function-docstring
+    def get_queryset(self):
+        return (
+            super()
+            .get_queryset()
+            .filter(teacher__isnull=False, student__isnull=True)
+        )
+
+
 class TeacherUser(User):
     """A user that is a teacher."""
 
@@ -82,6 +94,15 @@ class TeacherUser(User):
 
     class Meta(TypedModelMeta):
         proxy = True
+
+    objects: TeacherUserManager = TeacherUserManager()  # type: ignore[misc]
+
+
+# pylint: disable-next=missing-class-docstring
+class SchoolTeacherUserManager(TeacherUserManager):
+    # pylint: disable-next=missing-function-docstring
+    def get_queryset(self):
+        return super().get_queryset().filter(teacher__school__isnull=False)
 
 
 class SchoolTeacherUser(User):
@@ -93,6 +114,15 @@ class SchoolTeacherUser(User):
     class Meta(TypedModelMeta):
         proxy = True
 
+    objects: SchoolTeacherUserManager = SchoolTeacherUserManager()  # type: ignore[misc]
+
+
+# pylint: disable-next=missing-class-docstring
+class NonSchoolTeacherUserManager(TeacherUserManager):
+    # pylint: disable-next=missing-function-docstring
+    def get_queryset(self):
+        return super().get_queryset().filter(teacher__school__isnull=True)
+
 
 class NonSchoolTeacherUser(User):
     """A user that is a teacher not in a school."""
@@ -102,6 +132,24 @@ class NonSchoolTeacherUser(User):
 
     class Meta(TypedModelMeta):
         proxy = True
+
+    objects: NonSchoolTeacherUserManager = NonSchoolTeacherUserManager()  # type: ignore[misc]
+
+
+# pylint: disable-next=missing-class-docstring
+class StudentUserManager(UserManager):
+    # pylint: disable-next=missing-function-docstring
+    def get_queryset(self):
+        return (
+            super()
+            .get_queryset()
+            .filter(
+                teacher__isnull=True,
+                student__isnull=False,
+                # TODO: remove in new model
+                student__class_field__isnull=False,
+            )
+        )
 
 
 class StudentUser(User):
@@ -113,11 +161,32 @@ class StudentUser(User):
     class Meta(TypedModelMeta):
         proxy = True
 
+    objects: StudentUserManager = StudentUserManager()  # type: ignore[misc]
 
-# TODO: uncomment this when using new models.
-# class IndependentUser(User):
-#     teacher: None
-#     student: None
 
-#     class Meta(TypedModelMeta):
-#         proxy = True
+# pylint: disable-next=missing-class-docstring
+class IndependentUserManager(UserManager):
+    # pylint: disable-next=missing-function-docstring
+    def get_queryset(self):
+        # TODO: student__isnull=True in new model
+        return (
+            super()
+            .get_queryset()
+            .filter(
+                teacher__isnull=True,
+                student__isnull=False,
+                student__class_field__isnull=True,
+            )
+        )
+
+
+class IndependentUser(User):
+    """A user that is an independent learner."""
+
+    teacher: None
+    student: Student  # TODO: set to None in new model
+
+    class Meta(TypedModelMeta):
+        proxy = True
+
+    objects: IndependentUserManager = IndependentUserManager()  # type: ignore[misc]
