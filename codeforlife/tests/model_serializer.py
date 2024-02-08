@@ -12,11 +12,10 @@ from django.db.models import Model
 from django.forms.models import model_to_dict
 from django.test import TestCase
 from rest_framework.serializers import ValidationError
-from rest_framework.test import APIRequestFactory
 
 from ..serializers import ModelSerializer
 from ..types import DataDict
-from ..user.models import User
+from .api_request_factory import APIRequestFactory
 
 AnyModel = t.TypeVar("AnyModel", bound=Model)
 
@@ -78,34 +77,6 @@ class ModelSerializerTestCase(TestCase, t.Generic[AnyModel]):
                 return value
 
         return Wrapper(self.assertRaises(ValidationError, *args, **kwargs))
-
-    def init_request(
-        self,
-        method: str,
-        user: t.Optional[User] = None,
-        **kwargs,
-    ):
-        """Initialize a generic HTTP request.
-
-        Create an instance of DRF's Request object. Note this does not send the
-        HTTP request.
-
-        Args:
-            method: The HTTP method.
-            user: The user making the request.
-
-        Returns:
-            An instance of DRF's Request object.
-        """
-
-        kwargs.setdefault("path", "/")
-        kwargs.setdefault("content_type", "application/json")
-
-        request = self.request_factory.generic(method.upper(), **kwargs)
-        if user:
-            request.user = user
-
-        return request
 
     def assert_validate(
         self,
