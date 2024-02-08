@@ -82,7 +82,7 @@ class TeacherUserManager(UserManager):
         return (
             super()
             .get_queryset()
-            .filter(teacher__isnull=False, student__isnull=True)
+            .filter(new_teacher__isnull=False, new_student__isnull=True)
         )
 
 
@@ -102,7 +102,7 @@ class TeacherUser(User):
 class SchoolTeacherUserManager(TeacherUserManager):
     # pylint: disable-next=missing-function-docstring
     def get_queryset(self):
-        return super().get_queryset().filter(teacher__school__isnull=False)
+        return super().get_queryset().filter(new_teacher__school__isnull=False)
 
 
 class SchoolTeacherUser(User):
@@ -121,7 +121,7 @@ class SchoolTeacherUser(User):
 class NonSchoolTeacherUserManager(TeacherUserManager):
     # pylint: disable-next=missing-function-docstring
     def get_queryset(self):
-        return super().get_queryset().filter(teacher__school__isnull=True)
+        return super().get_queryset().filter(new_teacher__school__isnull=True)
 
 
 class NonSchoolTeacherUser(User):
@@ -144,10 +144,10 @@ class StudentUserManager(UserManager):
             super()
             .get_queryset()
             .filter(
-                teacher__isnull=True,
-                student__isnull=False,
+                new_teacher__isnull=True,
+                new_student__isnull=False,
                 # TODO: remove in new model
-                student__class_field__isnull=False,
+                new_student__class_field__isnull=False,
             )
         )
 
@@ -173,9 +173,9 @@ class IndependentUserManager(UserManager):
             super()
             .get_queryset()
             .filter(
-                teacher__isnull=True,
-                student__isnull=False,
-                student__class_field__isnull=True,
+                new_teacher__isnull=True,
+                new_student__isnull=False,
+                new_student__class_field__isnull=True,
             )
         )
 
