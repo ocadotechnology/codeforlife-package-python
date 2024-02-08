@@ -75,8 +75,11 @@ class User(_User):
         return self.userprofile.aimmo_badges
 
 
-# pylint: disable-next=missing-class-docstring
-class TeacherUserManager(UserManager):
+AnyUser = t.TypeVar("AnyUser", bound=User)
+
+
+# pylint: disable-next=missing-class-docstring,too-few-public-methods
+class TeacherUserManager(UserManager[AnyUser], t.Generic[AnyUser]):
     # pylint: disable-next=missing-function-docstring
     def get_queryset(self):
         return (
@@ -95,11 +98,13 @@ class TeacherUser(User):
     class Meta(TypedModelMeta):
         proxy = True
 
-    objects: TeacherUserManager = TeacherUserManager()  # type: ignore[misc]
+    objects: TeacherUserManager[  # type: ignore[misc]
+        "TeacherUser"
+    ] = TeacherUserManager()  # type: ignore[assignment]
 
 
-# pylint: disable-next=missing-class-docstring
-class SchoolTeacherUserManager(TeacherUserManager):
+# pylint: disable-next=missing-class-docstring,too-few-public-methods
+class SchoolTeacherUserManager(TeacherUserManager["SchoolTeacherUser"]):
     # pylint: disable-next=missing-function-docstring
     def get_queryset(self):
         return super().get_queryset().filter(new_teacher__school__isnull=False)
@@ -114,11 +119,13 @@ class SchoolTeacherUser(User):
     class Meta(TypedModelMeta):
         proxy = True
 
-    objects: SchoolTeacherUserManager = SchoolTeacherUserManager()  # type: ignore[misc]
+    objects: SchoolTeacherUserManager = (  # type: ignore[misc]
+        SchoolTeacherUserManager()  # type: ignore[assignment]
+    )
 
 
-# pylint: disable-next=missing-class-docstring
-class NonSchoolTeacherUserManager(TeacherUserManager):
+# pylint: disable-next=missing-class-docstring,too-few-public-methods
+class NonSchoolTeacherUserManager(TeacherUserManager["NonSchoolTeacherUser"]):
     # pylint: disable-next=missing-function-docstring
     def get_queryset(self):
         return super().get_queryset().filter(new_teacher__school__isnull=True)
@@ -133,11 +140,13 @@ class NonSchoolTeacherUser(User):
     class Meta(TypedModelMeta):
         proxy = True
 
-    objects: NonSchoolTeacherUserManager = NonSchoolTeacherUserManager()  # type: ignore[misc]
+    objects: NonSchoolTeacherUserManager = (  # type: ignore[misc]
+        NonSchoolTeacherUserManager()  # type: ignore[assignment]
+    )
 
 
-# pylint: disable-next=missing-class-docstring
-class StudentUserManager(UserManager):
+# pylint: disable-next=missing-class-docstring,too-few-public-methods
+class StudentUserManager(UserManager["StudentUser"]):
     # pylint: disable-next=missing-function-docstring
     def get_queryset(self):
         return (
@@ -161,11 +170,13 @@ class StudentUser(User):
     class Meta(TypedModelMeta):
         proxy = True
 
-    objects: StudentUserManager = StudentUserManager()  # type: ignore[misc]
+    objects: StudentUserManager = (  # type: ignore[misc]
+        StudentUserManager()  # type: ignore[assignment]
+    )
 
 
-# pylint: disable-next=missing-class-docstring
-class IndependentUserManager(UserManager):
+# pylint: disable-next=missing-class-docstring,too-few-public-methods
+class IndependentUserManager(UserManager["IndependentUser"]):
     # pylint: disable-next=missing-function-docstring
     def get_queryset(self):
         # TODO: student__isnull=True in new model
@@ -189,4 +200,6 @@ class IndependentUser(User):
     class Meta(TypedModelMeta):
         proxy = True
 
-    objects: IndependentUserManager = IndependentUserManager()  # type: ignore[misc]
+    objects: IndependentUserManager = (  # type: ignore[misc]
+        IndependentUserManager()  # type: ignore[assignment]
+    )
