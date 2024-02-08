@@ -4,6 +4,7 @@ Created on 05/02/2024 at 09:49:56(+00:00).
 """
 
 from common.models import Teacher, TeacherModelManager
+from django.db import models
 from django_stubs_ext.db.models import TypedModelMeta
 
 from .school import School
@@ -22,7 +23,7 @@ class SchoolTeacher(Teacher):
         def get_queryset(self):
             return super().get_queryset().filter(school__isnull=False)
 
-    objects: Manager = Manager()
+    objects: models.Manager["SchoolTeacher"] = Manager()
 
 
 class NonSchoolTeacher(Teacher):
@@ -38,4 +39,4 @@ class NonSchoolTeacher(Teacher):
         def get_queryset(self):
             return super().get_queryset().filter(school__isnull=True)
 
-    objects: Manager = Manager()
+    objects: models.Manager["NonSchoolTeacher"] = Manager()
