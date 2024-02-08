@@ -13,9 +13,17 @@ from .school import School
 from .session import Session
 from .session_auth_factor import SessionAuthFactor
 from .student import Student
-from .teacher import NonSchoolTeacher, SchoolTeacher, Teacher
+from .teacher import (
+    AdminSchoolTeacher,
+    NonAdminSchoolTeacher,
+    NonSchoolTeacher,
+    SchoolTeacher,
+    Teacher,
+)
 from .user import (  # TODO: remove UserProfile
+    AdminSchoolTeacherUser,
     IndependentUser,
+    NonAdminSchoolTeacherUser,
     NonSchoolTeacherUser,
     SchoolTeacherUser,
     StudentUser,

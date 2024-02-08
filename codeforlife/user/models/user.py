@@ -16,7 +16,13 @@ from django_stubs_ext.db.models import TypedModelMeta
 
 from . import auth_factor, otp_bypass_token, session
 from .student import Student
-from .teacher import NonSchoolTeacher, SchoolTeacher, Teacher
+from .teacher import (
+    AdminSchoolTeacher,
+    NonAdminSchoolTeacher,
+    NonSchoolTeacher,
+    SchoolTeacher,
+    Teacher,
+)
 
 
 class User(_User):
@@ -104,7 +110,7 @@ class TeacherUser(User):
 
 
 # pylint: disable-next=missing-class-docstring,too-few-public-methods
-class SchoolTeacherUserManager(TeacherUserManager["SchoolTeacherUser"]):
+class SchoolTeacherUserManager(TeacherUserManager[AnyUser], t.Generic[AnyUser]):
     # pylint: disable-next=missing-function-docstring
     def get_queryset(self):
         return super().get_queryset().filter(new_teacher__school__isnull=False)
@@ -119,8 +125,54 @@ class SchoolTeacherUser(User):
     class Meta(TypedModelMeta):
         proxy = True
 
-    objects: SchoolTeacherUserManager = (  # type: ignore[misc]
-        SchoolTeacherUserManager()  # type: ignore[assignment]
+    objects: SchoolTeacherUserManager[  # type: ignore[misc]
+        "SchoolTeacherUser"
+    ] = SchoolTeacherUserManager()  # type: ignore[assignment]
+
+
+# pylint: disable-next=missing-class-docstring,too-few-public-methods
+class AdminSchoolTeacherUserManager(
+    SchoolTeacherUserManager["AdminSchoolTeacherUser"]
+):
+    # pylint: disable-next=missing-function-docstring
+    def get_queryset(self):
+        return super().get_queryset().filter(new_teacher__is_admin=True)
+
+
+class AdminSchoolTeacherUser(User):
+    """A user that is an  admin-teacher in a school."""
+
+    teacher: AdminSchoolTeacher
+    student: None
+
+    class Meta(TypedModelMeta):
+        proxy = True
+
+    objects: AdminSchoolTeacherUserManager = (  # type: ignore[misc]
+        AdminSchoolTeacherUserManager()  # type: ignore[assignment]
+    )
+
+
+# pylint: disable-next=missing-class-docstring,too-few-public-methods
+class NonAdminSchoolTeacherUserManager(
+    SchoolTeacherUserManager["NonAdminSchoolTeacherUser"]
+):
+    # pylint: disable-next=missing-function-docstring
+    def get_queryset(self):
+        return super().get_queryset().filter(new_teacher__is_admin=False)
+
+
+class NonAdminSchoolTeacherUser(User):
+    """A user that is a non-admin-teacher in a school."""
+
+    teacher: NonAdminSchoolTeacher
+    student: None
+
+    class Meta(TypedModelMeta):
+        proxy = True
+
+    objects: NonAdminSchoolTeacherUserManager = (  # type: ignore[misc]
+        NonAdminSchoolTeacherUserManager()  # type: ignore[assignment]
     )
 
 
