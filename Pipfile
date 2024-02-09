@@ -4,7 +4,7 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-django = "==3.2.23"
+django = "==3.2.24"
 djangorestframework = "==3.13.1"
 django-filter = "==23.2"
 django-countries = "==7.3.1"
@@ -17,10 +17,10 @@ importlib-metadata = "==4.13.0" # TODO: remove. needed by old portal
 django-formtools = "==2.2" # TODO: remove. needed by old portal
 django-otp = "==1.0.2" # TODO: remove. needed by old portal
 # https://pypi.org/user/codeforlife/
-cfl-common = "==6.40.0" # TODO: remove
-codeforlife-portal = "==6.40.0" # TODO: remove
-aimmo = "==2.11.0" # TODO: remove
-rapid-router = "==5.16.12" # TODO: remove
+cfl-common = "==6.40.1" # TODO: remove
+codeforlife-portal = "==6.40.1" # TODO: remove
+aimmo = "==2.11.1" # TODO: remove
+rapid-router = "==5.16.13" # TODO: remove
 phonenumbers = "==8.12.12" # TODO: remove
 
 [dev-packages]
