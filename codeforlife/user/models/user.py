@@ -140,7 +140,7 @@ class AdminSchoolTeacherUserManager(
 
 
 class AdminSchoolTeacherUser(User):
-    """A user that is an  admin-teacher in a school."""
+    """A user that is an admin-teacher in a school."""
 
     teacher: AdminSchoolTeacher
     student: None
