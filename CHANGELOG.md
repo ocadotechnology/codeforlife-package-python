@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.13.0 (2024-02-09)
+
+### Feature
+
+* Update teacher ([#78](https://github.com/ocadotechnology/codeforlife-package-python/issues/78)) ([`af01c73`](https://github.com/ocadotechnology/codeforlife-package-python/commit/af01c733122ccc3985191a5d7f19d7aac31062c7))
+
 ## v0.12.9 (2024-02-09)
 
 ### Fix
