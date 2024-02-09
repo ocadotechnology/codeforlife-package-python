@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.12.9 (2024-02-09)
+
+### Fix
+
+* Upgrade Django and other packages ([#77](https://github.com/ocadotechnology/codeforlife-package-python/issues/77)) ([`3f5b4ca`](https://github.com/ocadotechnology/codeforlife-package-python/commit/3f5b4ca49603547a1981e49048ec9c81d61c247a))
+
 ## v0.12.8 (2024-02-07)
 
 ### Fix
