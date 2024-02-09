@@ -9,13 +9,20 @@ from common.models import UserProfile
 
 # pylint: disable-next=imported-auth-user
 from django.contrib.auth.models import User as _User
+from django.contrib.auth.models import UserManager
 from django.db.models.query import QuerySet
 from django.utils.translation import gettext_lazy as _
 from django_stubs_ext.db.models import TypedModelMeta
 
 from . import auth_factor, otp_bypass_token, session
 from .student import Student
-from .teacher import NonSchoolTeacher, SchoolTeacher, Teacher
+from .teacher import (
+    AdminSchoolTeacher,
+    NonAdminSchoolTeacher,
+    NonSchoolTeacher,
+    SchoolTeacher,
+    Teacher,
+)
 
 
 class User(_User):
@@ -74,6 +81,20 @@ class User(_User):
         return self.userprofile.aimmo_badges
 
 
+AnyUser = t.TypeVar("AnyUser", bound=User)
+
+
+# pylint: disable-next=missing-class-docstring,too-few-public-methods
+class TeacherUserManager(UserManager[AnyUser], t.Generic[AnyUser]):
+    # pylint: disable-next=missing-function-docstring
+    def get_queryset(self):
+        return (
+            super()
+            .get_queryset()
+            .filter(new_teacher__isnull=False, new_student__isnull=True)
+        )
+
+
 class TeacherUser(User):
     """A user that is a teacher."""
 
@@ -82,6 +103,17 @@ class TeacherUser(User):
 
     class Meta(TypedModelMeta):
         proxy = True
+
+    objects: TeacherUserManager[  # type: ignore[misc]
+        "TeacherUser"
+    ] = TeacherUserManager()  # type: ignore[assignment]
+
+
+# pylint: disable-next=missing-class-docstring,too-few-public-methods
+class SchoolTeacherUserManager(TeacherUserManager[AnyUser], t.Generic[AnyUser]):
+    # pylint: disable-next=missing-function-docstring
+    def get_queryset(self):
+        return super().get_queryset().filter(new_teacher__school__isnull=False)
 
 
 class SchoolTeacherUser(User):
@@ -93,6 +125,63 @@ class SchoolTeacherUser(User):
     class Meta(TypedModelMeta):
         proxy = True
 
+    objects: SchoolTeacherUserManager[  # type: ignore[misc]
+        "SchoolTeacherUser"
+    ] = SchoolTeacherUserManager()  # type: ignore[assignment]
+
+
+# pylint: disable-next=missing-class-docstring,too-few-public-methods
+class AdminSchoolTeacherUserManager(
+    SchoolTeacherUserManager["AdminSchoolTeacherUser"]
+):
+    # pylint: disable-next=missing-function-docstring
+    def get_queryset(self):
+        return super().get_queryset().filter(new_teacher__is_admin=True)
+
+
+class AdminSchoolTeacherUser(User):
+    """A user that is an admin-teacher in a school."""
+
+    teacher: AdminSchoolTeacher
+    student: None
+
+    class Meta(TypedModelMeta):
+        proxy = True
+
+    objects: AdminSchoolTeacherUserManager = (  # type: ignore[misc]
+        AdminSchoolTeacherUserManager()  # type: ignore[assignment]
+    )
+
+
+# pylint: disable-next=missing-class-docstring,too-few-public-methods
+class NonAdminSchoolTeacherUserManager(
+    SchoolTeacherUserManager["NonAdminSchoolTeacherUser"]
+):
+    # pylint: disable-next=missing-function-docstring
+    def get_queryset(self):
+        return super().get_queryset().filter(new_teacher__is_admin=False)
+
+
+class NonAdminSchoolTeacherUser(User):
+    """A user that is a non-admin-teacher in a school."""
+
+    teacher: NonAdminSchoolTeacher
+    student: None
+
+    class Meta(TypedModelMeta):
+        proxy = True
+
+    objects: NonAdminSchoolTeacherUserManager = (  # type: ignore[misc]
+        NonAdminSchoolTeacherUserManager()  # type: ignore[assignment]
+    )
+
+
+# pylint: disable-next=missing-class-docstring,too-few-public-methods
+class NonSchoolTeacherUserManager(TeacherUserManager["NonSchoolTeacherUser"]):
+    # pylint: disable-next=missing-function-docstring
+    def get_queryset(self):
+        return super().get_queryset().filter(new_teacher__school__isnull=True)
+
 
 class NonSchoolTeacherUser(User):
     """A user that is a teacher not in a school."""
@@ -102,6 +191,26 @@ class NonSchoolTeacherUser(User):
 
     class Meta(TypedModelMeta):
         proxy = True
+
+    objects: NonSchoolTeacherUserManager = (  # type: ignore[misc]
+        NonSchoolTeacherUserManager()  # type: ignore[assignment]
+    )
+
+
+# pylint: disable-next=missing-class-docstring,too-few-public-methods
+class StudentUserManager(UserManager["StudentUser"]):
+    # pylint: disable-next=missing-function-docstring
+    def get_queryset(self):
+        return (
+            super()
+            .get_queryset()
+            .filter(
+                new_teacher__isnull=True,
+                new_student__isnull=False,
+                # TODO: remove in new model
+                new_student__class_field__isnull=False,
+            )
+        )
 
 
 class StudentUser(User):
@@ -113,11 +222,36 @@ class StudentUser(User):
     class Meta(TypedModelMeta):
         proxy = True
 
+    objects: StudentUserManager = (  # type: ignore[misc]
+        StudentUserManager()  # type: ignore[assignment]
+    )
 
-# TODO: uncomment this when using new models.
-# class IndependentUser(User):
-#     teacher: None
-#     student: None
 
-#     class Meta(TypedModelMeta):
-#         proxy = True
+# pylint: disable-next=missing-class-docstring,too-few-public-methods
+class IndependentUserManager(UserManager["IndependentUser"]):
+    # pylint: disable-next=missing-function-docstring
+    def get_queryset(self):
+        # TODO: student__isnull=True in new model
+        return (
+            super()
+            .get_queryset()
+            .filter(
+                new_teacher__isnull=True,
+                new_student__isnull=False,
+                new_student__class_field__isnull=True,
+            )
+        )
+
+
+class IndependentUser(User):
+    """A user that is an independent learner."""
+
+    teacher: None
+    student: Student  # TODO: set to None in new model
+
+    class Meta(TypedModelMeta):
+        proxy = True
+
+    objects: IndependentUserManager = (  # type: ignore[misc]
+        IndependentUserManager()  # type: ignore[assignment]
+    )

@@ -19,7 +19,7 @@ from pyotp import TOTP
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.serializers import DateTimeField
-from rest_framework.test import APIClient, APIRequestFactory, APITestCase
+from rest_framework.test import APIClient, APITestCase
 
 from ..permissions import Permission
 from ..serializers import ModelSerializer
@@ -33,6 +33,7 @@ from ..user.models import (
     User,
 )
 from ..views import ModelViewSet
+from .api_request_factory import APIRequestFactory
 
 AnyModel = t.TypeVar("AnyModel", bound=Model)
 
