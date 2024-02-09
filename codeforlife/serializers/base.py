@@ -13,6 +13,9 @@ from rest_framework.serializers import BaseSerializer as _BaseSerializer
 
 from ..request import Request
 from ..user.models import (  # TODO: add IndependentUser
+    AdminSchoolTeacherUser,
+    IndependentUser,
+    NonAdminSchoolTeacherUser,
     NonSchoolTeacherUser,
     SchoolTeacherUser,
     StudentUser,
@@ -59,6 +62,24 @@ class BaseSerializer(_BaseSerializer):
         return t.cast(SchoolTeacherUser, self.request.user)
 
     @property
+    def request_admin_school_teacher_user(self):
+        """
+        The admin-school-teacher-user that made the request.
+        Assumes the user has authenticated.
+        """
+
+        return t.cast(AdminSchoolTeacherUser, self.request.user)
+
+    @property
+    def request_non_admin_school_teacher_user(self):
+        """
+        The non-admin-school-teacher-user that made the request.
+        Assumes the user has authenticated.
+        """
+
+        return t.cast(NonAdminSchoolTeacherUser, self.request.user)
+
+    @property
     def request_non_school_teacher_user(self):
         """
         The non-school-teacher-user that made the request.
@@ -76,15 +97,14 @@ class BaseSerializer(_BaseSerializer):
 
         return t.cast(StudentUser, self.request.user)
 
-    # TODO: uncomment when moving to new data models.
-    # @property
-    # def request_indy_user(self):
-    #     """
-    #     The independent-user that made the request.
-    #     Assumes the user has authenticated.
-    #     """
+    @property
+    def request_indy_user(self):
+        """
+        The independent-user that made the request.
+        Assumes the user has authenticated.
+        """
 
-    #     return t.cast(IndependentUser, self.request.user)
+        return t.cast(IndependentUser, self.request.user)
 
     @property
     def request_anon_user(self):
