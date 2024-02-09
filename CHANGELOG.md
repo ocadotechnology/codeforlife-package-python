@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.13.1 (2024-02-09)
+
+### Fix
+
+* Missing user props ([#79](https://github.com/ocadotechnology/codeforlife-package-python/issues/79)) ([`3b85dbe`](https://github.com/ocadotechnology/codeforlife-package-python/commit/3b85dbefb3360ad77337b94fc068c78003f3eff8))
+
 ## v0.13.0 (2024-02-09)
 
 ### Feature
