@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.13.2 (2024-02-12)
+
+### Fix
+
+* Support dev extra ([#80](https://github.com/ocadotechnology/codeforlife-package-python/issues/80)) ([`7133a99`](https://github.com/ocadotechnology/codeforlife-package-python/commit/7133a99e0e3d6e0dd079e9eeacd9eeebfecdf607))
+
 ## v0.13.1 (2024-02-09)
 
 ### Fix
