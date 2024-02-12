@@ -23,7 +23,7 @@ from rest_framework.test import APIClient, APITestCase
 
 from ..permissions import Permission
 from ..serializers import ModelSerializer
-from ..types import DataDict, JsonDict
+from ..types import DataDict, JsonDict, KwArgs
 from ..user.models import (
     AuthFactor,
     NonSchoolTeacherUser,
@@ -218,6 +218,7 @@ class ModelViewSetClient(APIClient, t.Generic[AnyModel]):
         data: DataDict,
         status_code_assertion: StatusCodeAssertion = status.HTTP_201_CREATED,
         make_assertions: bool = True,
+        reverse_kwargs: t.Optional[KwArgs] = None,
         **kwargs,
     ):
         # pylint: disable=line-too-long
@@ -227,6 +228,7 @@ class ModelViewSetClient(APIClient, t.Generic[AnyModel]):
             data: The values for each field.
             status_code_assertion: The expected status code.
             make_assertions: A flag designating whether to make the default assertions.
+            reverse_kwargs: The kwargs for the reverse URL.
 
         Returns:
             The HTTP response.
@@ -235,7 +237,7 @@ class ModelViewSetClient(APIClient, t.Generic[AnyModel]):
 
         response: Response = self.post(
             # pylint: disable-next=no-member
-            self._test_case.reverse_action("list"),
+            self._test_case.reverse_action("list", kwargs=reverse_kwargs),
             data=json.dumps(data, default=str),
             content_type="application/json",
             status_code_assertion=status_code_assertion,
@@ -252,6 +254,7 @@ class ModelViewSetClient(APIClient, t.Generic[AnyModel]):
         data: t.List[DataDict],
         status_code_assertion: StatusCodeAssertion = status.HTTP_201_CREATED,
         make_assertions: bool = True,
+        reverse_kwargs: t.Optional[KwArgs] = None,
         **kwargs,
     ):
         # pylint: disable=line-too-long
@@ -261,6 +264,7 @@ class ModelViewSetClient(APIClient, t.Generic[AnyModel]):
             data: The values for each field, for each model.
             status_code_assertion: The expected status code.
             make_assertions: A flag designating whether to make the default assertions.
+            reverse_kwargs: The kwargs for the reverse URL.
 
         Returns:
             The HTTP response.
@@ -269,7 +273,7 @@ class ModelViewSetClient(APIClient, t.Generic[AnyModel]):
 
         response: Response = self.post(
             # pylint: disable-next=no-member
-            self._test_case.reverse_action("bulk"),
+            self._test_case.reverse_action("bulk", kwargs=reverse_kwargs),
             data=json.dumps(data, default=str),
             content_type="application/json",
             status_code_assertion=status_code_assertion,
@@ -291,6 +295,7 @@ class ModelViewSetClient(APIClient, t.Generic[AnyModel]):
         model: AnyModel,
         status_code_assertion: StatusCodeAssertion = status.HTTP_200_OK,
         make_assertions: bool = True,
+        reverse_kwargs: t.Optional[KwArgs] = None,
         **kwargs,
     ):
         # pylint: disable=line-too-long
@@ -300,6 +305,7 @@ class ModelViewSetClient(APIClient, t.Generic[AnyModel]):
             model: The model to retrieve.
             status_code_assertion: The expected status code.
             make_assertions: A flag designating whether to make the default assertions.
+            reverse_kwargs: The kwargs for the reverse URL.
 
         Returns:
             The HTTP response.
@@ -308,7 +314,11 @@ class ModelViewSetClient(APIClient, t.Generic[AnyModel]):
 
         response: Response = self.get(
             # pylint: disable-next=no-member
-            self._test_case.reverse_action("detail", model),
+            self._test_case.reverse_action(
+                "detail",
+                model,
+                kwargs=reverse_kwargs,
+            ),
             status_code_assertion=status_code_assertion,
             **kwargs,
         )
@@ -331,6 +341,7 @@ class ModelViewSetClient(APIClient, t.Generic[AnyModel]):
         status_code_assertion: StatusCodeAssertion = status.HTTP_200_OK,
         make_assertions: bool = True,
         filters: ListFilters = None,
+        reverse_kwargs: t.Optional[KwArgs] = None,
         **kwargs,
     ):
         # pylint: disable=line-too-long
@@ -341,6 +352,7 @@ class ModelViewSetClient(APIClient, t.Generic[AnyModel]):
             status_code_assertion: The expected status code.
             make_assertions: A flag designating whether to make the default assertions.
             filters: The filters to apply to the list.
+            reverse_kwargs: The kwargs for the reverse URL.
 
         Returns:
             The HTTP response.
@@ -356,7 +368,7 @@ class ModelViewSetClient(APIClient, t.Generic[AnyModel]):
         response: Response = self.get(
             (
                 # pylint: disable-next=no-member
-                self._test_case.reverse_action("list")
+                self._test_case.reverse_action("list", kwargs=reverse_kwargs)
                 + f"?{urlencode(filters or {})}"
             ),
             status_code_assertion=status_code_assertion,
@@ -388,6 +400,7 @@ class ModelViewSetClient(APIClient, t.Generic[AnyModel]):
         data: DataDict,
         status_code_assertion: StatusCodeAssertion = status.HTTP_200_OK,
         make_assertions: bool = True,
+        reverse_kwargs: t.Optional[KwArgs] = None,
         **kwargs,
     ):
         # pylint: disable=line-too-long
@@ -398,6 +411,7 @@ class ModelViewSetClient(APIClient, t.Generic[AnyModel]):
             data: The values for each field.
             status_code_assertion: The expected status code.
             make_assertions: A flag designating whether to make the default assertions.
+            reverse_kwargs: The kwargs for the reverse URL.
 
         Returns:
             The HTTP response.
@@ -406,7 +420,11 @@ class ModelViewSetClient(APIClient, t.Generic[AnyModel]):
 
         response: Response = self.patch(
             # pylint: disable-next=no-member
-            self._test_case.reverse_action("detail", model),
+            self._test_case.reverse_action(
+                "detail",
+                model,
+                kwargs=reverse_kwargs,
+            ),
             data=json.dumps(data, default=str),
             content_type="application/json",
             status_code_assertion=status_code_assertion,
@@ -429,6 +447,7 @@ class ModelViewSetClient(APIClient, t.Generic[AnyModel]):
         data: t.List[DataDict],
         status_code_assertion: StatusCodeAssertion = status.HTTP_200_OK,
         make_assertions: bool = True,
+        reverse_kwargs: t.Optional[KwArgs] = None,
         **kwargs,
     ):
         # pylint: disable=line-too-long
@@ -439,6 +458,7 @@ class ModelViewSetClient(APIClient, t.Generic[AnyModel]):
             data: The values for each field, for each model.
             status_code_assertion: The expected status code.
             make_assertions: A flag designating whether to make the default assertions.
+            reverse_kwargs: The kwargs for the reverse URL.
 
         Returns:
             The HTTP response.
@@ -447,7 +467,7 @@ class ModelViewSetClient(APIClient, t.Generic[AnyModel]):
 
         response: Response = self.patch(
             # pylint: disable-next=no-member
-            self._test_case.reverse_action("bulk"),
+            self._test_case.reverse_action("bulk", kwargs=reverse_kwargs),
             data=json.dumps(data, default=str),
             content_type="application/json",
             status_code_assertion=status_code_assertion,
@@ -477,6 +497,7 @@ class ModelViewSetClient(APIClient, t.Generic[AnyModel]):
         model: AnyModel,
         status_code_assertion: StatusCodeAssertion = status.HTTP_204_NO_CONTENT,
         make_assertions: bool = True,
+        reverse_kwargs: t.Optional[KwArgs] = None,
         **kwargs,
     ):
         # pylint: disable=line-too-long
@@ -486,6 +507,7 @@ class ModelViewSetClient(APIClient, t.Generic[AnyModel]):
             model: The model to destroy.
             status_code_assertion: The expected status code.
             make_assertions: A flag designating whether to make the default assertions.
+            reverse_kwargs: The kwargs for the reverse URL.
 
         Returns:
             The HTTP response.
@@ -494,7 +516,11 @@ class ModelViewSetClient(APIClient, t.Generic[AnyModel]):
 
         response: Response = self.delete(
             # pylint: disable-next=no-member
-            self._test_case.reverse_action("detail", model),
+            self._test_case.reverse_action(
+                "detail",
+                model,
+                kwargs=reverse_kwargs,
+            ),
             status_code_assertion=status_code_assertion,
             **kwargs,
         )
@@ -512,6 +538,7 @@ class ModelViewSetClient(APIClient, t.Generic[AnyModel]):
         lookup_values: t.List,
         status_code_assertion: StatusCodeAssertion = status.HTTP_204_NO_CONTENT,
         make_assertions: bool = True,
+        reverse_kwargs: t.Optional[KwArgs] = None,
         **kwargs,
     ):
         # pylint: disable=line-too-long
@@ -521,6 +548,7 @@ class ModelViewSetClient(APIClient, t.Generic[AnyModel]):
             lookup_values: The models to lookup and destroy.
             status_code_assertion: The expected status code.
             make_assertions: A flag designating whether to make the default assertions.
+            reverse_kwargs: The kwargs for the reverse URL.
 
         Returns:
             The HTTP response.
@@ -529,7 +557,7 @@ class ModelViewSetClient(APIClient, t.Generic[AnyModel]):
 
         response: Response = self.delete(
             # pylint: disable-next=no-member
-            self._test_case.reverse_action("bulk"),
+            self._test_case.reverse_action("bulk", kwargs=reverse_kwargs),
             data=json.dumps(lookup_values, default=str),
             content_type="application/json",
             status_code_assertion=status_code_assertion,
@@ -699,7 +727,7 @@ class ModelViewSetTestCase(APITestCase, t.Generic[AnyModel]):
             The reversed URL for the model view set's action.
         """
 
-        reverse_kwargs = kwargs.pop("kwargs", {})
+        reverse_kwargs = t.cast(KwArgs, kwargs.pop("kwargs", {}))
         if model is not None:
             lookup_field = self.model_view_set_class.lookup_field
             reverse_kwargs[lookup_field] = getattr(model, lookup_field)
