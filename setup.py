@@ -9,7 +9,7 @@ import json
 import os
 import typing as t
 
-from setuptools import find_packages, setup
+from setuptools import find_packages, setup  # type: ignore[import-untyped]
 
 from codeforlife import DATA_DIR, __version__
 
@@ -24,12 +24,20 @@ for dir_path, dir_names, file_names in os.walk(DATA_DIR):
         os.path.join(rel_data_dir, file_name) for file_name in file_names
     ]
 
-# Parse Pipfile.lock into strings.
-install_requires: t.List[str] = []
-with open("Pipfile.lock", "r", encoding="utf-8") as pipfile_lock:
-    packages: t.Dict[str, t.Dict[str, t.Any]] = json.load(pipfile_lock)[
-        "default"
-    ]
+
+def parse_requirements(packages: t.Dict[str, t.Dict[str, t.Any]]):
+    """Parse a group of requirements from `Pipfile.lock`.
+
+    https://setuptools.pypa.io/en/latest/userguide/dependency_management.html
+
+    Args:
+        packages: The group name of the requirements.
+
+    Returns:
+        The requirements as a list of strings, required by `setuptools.setup`.
+    """
+
+    requirements: t.List[str] = []
     for name, package in packages.items():
         requirement = name
         if "extras" in package:
@@ -38,8 +46,16 @@ with open("Pipfile.lock", "r", encoding="utf-8") as pipfile_lock:
             requirement += package["version"]
         if "markers" in package:
             requirement += f"; {package['markers']}"
-        install_requires.append(requirement)
+        requirements.append(requirement)
 
+    return requirements
+
+
+# Parse Pipfile.lock into strings.
+with open("Pipfile.lock", "r", encoding="utf-8") as pipfile_lock:
+    lock = json.load(pipfile_lock)
+    install_requires = parse_requirements(lock["default"])
+    dev_requires = parse_requirements(lock["develop"])
 
 setup(
     name="codeforlife",
@@ -56,5 +72,6 @@ setup(
     package_data={"codeforlife": ["py.typed"]},
     python_requires="==3.8.*",
     install_requires=install_requires,
+    extras_require={"dev": dev_requires},
     dependency_links=[],
 )
