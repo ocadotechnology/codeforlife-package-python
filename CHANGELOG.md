@@ -2,6 +2,14 @@
 
 <!--next-version-placeholder-->
 
+## v0.13.3 (2024-02-13)
+
+### Fix
+
+* Reverse_kwargs is None ([`2064b82`](https://github.com/ocadotechnology/codeforlife-package-python/commit/2064b82774a1838c53ca3eee5f4ea75eefeec8b4))
+* Copy validated data dicts ([#82](https://github.com/ocadotechnology/codeforlife-package-python/issues/82)) ([`7d899ad`](https://github.com/ocadotechnology/codeforlife-package-python/commit/7d899ad2eb8fee2f609979ac86d271bca1e3f312))
+* Reverse_kwargs ([#81](https://github.com/ocadotechnology/codeforlife-package-python/issues/81)) ([`04cc55e`](https://github.com/ocadotechnology/codeforlife-package-python/commit/04cc55e7cf82eda80d0863d7227c8f8b2622e8a1))
+
 ## v0.13.2 (2024-02-12)
 
 ### Fix
