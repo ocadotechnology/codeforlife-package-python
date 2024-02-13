@@ -727,7 +727,9 @@ class ModelViewSetTestCase(APITestCase, t.Generic[AnyModel]):
             The reversed URL for the model view set's action.
         """
 
-        reverse_kwargs = t.cast(KwArgs, kwargs.pop("kwargs", {}))
+        reverse_kwargs = t.cast(t.Optional[KwArgs], kwargs.pop("kwargs"))
+        reverse_kwargs = reverse_kwargs or {}
+
         if model is not None:
             lookup_field = self.model_view_set_class.lookup_field
             reverse_kwargs[lookup_field] = getattr(model, lookup_field)
