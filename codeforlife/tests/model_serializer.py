@@ -167,7 +167,7 @@ class ModelSerializerTestCase(TestCase, t.Generic[AnyModel]):
         """
 
         serializer = self._init_model_serializer(parent, *args, **kwargs)
-        model = serializer.create(validated_data)
+        model = serializer.create(validated_data.copy())
         data = {**validated_data, **(new_data or {})}
         self._assert_data_is_subset_of_model(data, model)
 
@@ -191,6 +191,6 @@ class ModelSerializerTestCase(TestCase, t.Generic[AnyModel]):
         """
 
         serializer = self._init_model_serializer(parent, *args, **kwargs)
-        model = serializer.update(instance, validated_data)
+        model = serializer.update(instance, validated_data.copy())
         data = {**validated_data, **(new_data or {})}
         self._assert_data_is_subset_of_model(data, model)
