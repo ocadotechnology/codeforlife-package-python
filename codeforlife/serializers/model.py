@@ -87,7 +87,6 @@ class ModelListSerializer(
         Returns:
             The model view set's class.
         """
-
         # pylint: disable-next=no-member
         return t.get_args(cls.__orig_bases__[0])[  # type: ignore[attr-defined]
             0
@@ -104,7 +103,6 @@ class ModelListSerializer(
         Returns:
             The models.
         """
-
         model_class = self.get_model_class()
         return model_class.objects.bulk_create(  # type: ignore[attr-defined]
             objs=[model_class(**data) for data in validated_data],
@@ -127,6 +125,8 @@ class ModelListSerializer(
         Returns:
             The models.
         """
+        instance.sort(key=lambda model: getattr(model, self.view.lookup_field))
+        validated_data.sort(key=lambda data: data[self.view.lookup_field_name])
 
         # Models and data must have equal length and be ordered the same!
         for model, data in zip(instance, validated_data):
