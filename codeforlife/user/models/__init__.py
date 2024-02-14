@@ -12,7 +12,7 @@ from .otp_bypass_token import OtpBypassToken
 from .school import School
 from .session import Session
 from .session_auth_factor import SessionAuthFactor
-from .student import Student
+from .student import Independent, Student
 from .teacher import (
     AdminSchoolTeacher,
     NonAdminSchoolTeacher,
@@ -22,6 +22,7 @@ from .teacher import (
 )
 from .user import (  # TODO: remove UserProfile
     AdminSchoolTeacherUser,
+    AnyUser,
     IndependentUser,
     NonAdminSchoolTeacherUser,
     NonSchoolTeacherUser,

@@ -15,7 +15,7 @@ from django.utils.translation import gettext_lazy as _
 from django_stubs_ext.db.models import TypedModelMeta
 
 from . import auth_factor, otp_bypass_token, session
-from .student import Student
+from .student import Independent, Student
 from .teacher import (
     AdminSchoolTeacher,
     NonAdminSchoolTeacher,
@@ -247,7 +247,7 @@ class IndependentUser(User):
     """A user that is an independent learner."""
 
     teacher: None
-    student: Student  # TODO: set to None in new model
+    student: Independent  # TODO: set to None in new model
 
     class Meta(TypedModelMeta):
         proxy = True
