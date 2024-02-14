@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.13.4 (2024-02-14)
+
+### Fix
+
+* Pop kwargs or None ([#83](https://github.com/ocadotechnology/codeforlife-package-python/issues/83)) ([`3beb4b0`](https://github.com/ocadotechnology/codeforlife-package-python/commit/3beb4b01276d448c7d6ae44bd085abe6828b9404))
+
 ## v0.13.3 (2024-02-13)
 
 ### Fix
