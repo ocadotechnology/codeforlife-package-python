@@ -615,7 +615,6 @@ class ModelViewSetClient(APIClient, t.Generic[AnyModel]):
         Returns:
             The teacher-user.
         """
-        # TODO: set email=email in new
         return self._login_user_type(
             TeacherUser, email=email, password=password
         )
