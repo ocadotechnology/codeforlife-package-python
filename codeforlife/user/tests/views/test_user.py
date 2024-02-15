@@ -67,30 +67,26 @@ class TestUserViewSet(ModelViewSetTestCase[User]):
             new_user=user,
         )
 
-    def _login_school_teacher(self):
-        return self.client.login_school_teacher(
-            email="maxplanck@codeforlife.com",
-            password="Password1",
-            is_admin=False,
+    def _login_non_admin_school_teacher(self):
+        return self.client.login_non_admin_school_teacher(
+            email="maxplanck@codeforlife.com", password="Password1"
         )
 
     def _login_admin_school_teacher(self):
-        return self.client.login_school_teacher(
-            email="alberteinstein@codeforlife.com",
-            password="Password1",
-            is_admin=True,
+        return self.client.login_admin_school_teacher(
+            email="alberteinstein@codeforlife.com", password="Password1"
         )
 
     def _login_student(self):
         return self.client.login_student(
-            email="leonardodavinci@codeforlife.com",
+            username="leonardodavinci@codeforlife.com",
             password="Password1",
+            class_id="AB123",
         )
 
     def _login_indy(self):
         return self.client.login_indy(
-            email="indianajones@codeforlife.com",
-            password="Password1",
+            email="indianajones@codeforlife.com", password="Password1"
         )
 
     # pylint: disable-next=pointless-string-statement
@@ -123,7 +119,7 @@ class TestUserViewSet(ModelViewSetTestCase[User]):
         Teacher can retrieve their own user data.
         """
 
-        user = self._login_school_teacher()
+        user = self._login_non_admin_school_teacher()
 
         self.client.retrieve(user)
 
@@ -150,7 +146,7 @@ class TestUserViewSet(ModelViewSetTestCase[User]):
         Teacher can retrieve another teacher from the same school.
         """
 
-        user = self._login_school_teacher()
+        user = self._login_non_admin_school_teacher()
 
         other_user = self.get_another_school_user(
             user,
@@ -168,7 +164,7 @@ class TestUserViewSet(ModelViewSetTestCase[User]):
         Teacher can retrieve a student from the same school and class.
         """
 
-        user = self._login_school_teacher()
+        user = self._login_non_admin_school_teacher()
 
         other_user = self.get_another_school_user(
             user,
@@ -189,7 +185,7 @@ class TestUserViewSet(ModelViewSetTestCase[User]):
         class.
         """
 
-        user = self._login_school_teacher()
+        user = self._login_non_admin_school_teacher()
 
         other_user = self.get_another_school_user(
             user,
@@ -332,7 +328,7 @@ class TestUserViewSet(ModelViewSetTestCase[User]):
         Teacher cannot retrieve another teacher from another school.
         """
 
-        user = self._login_school_teacher()
+        user = self._login_non_admin_school_teacher()
 
         other_user = self.get_another_school_user(
             user,
@@ -350,7 +346,7 @@ class TestUserViewSet(ModelViewSetTestCase[User]):
         Teacher cannot retrieve a student from another school.
         """
 
-        user = self._login_school_teacher()
+        user = self._login_non_admin_school_teacher()
 
         other_user = self.get_another_school_user(
             user,
@@ -449,7 +445,7 @@ class TestUserViewSet(ModelViewSetTestCase[User]):
         Teacher can list all the users in the same class.
         """
 
-        user = self._login_school_teacher()
+        user = self._login_non_admin_school_teacher()
 
         self.client.list(
             User.objects.filter(new_teacher__school=user.teacher.school)
@@ -464,7 +460,7 @@ class TestUserViewSet(ModelViewSetTestCase[User]):
         Teacher can list all the users in a class they own.
         """
 
-        user = self._login_school_teacher()
+        user = self._login_non_admin_school_teacher()
 
         klass = user.teacher.class_teacher.first()
         assert klass

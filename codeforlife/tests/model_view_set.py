@@ -609,61 +609,76 @@ class ModelViewSetClient(APIClient, t.Generic[AnyModel]):
         """
         return self._login_user_type(User, **credentials)
 
-    def login_teacher(self, **credentials):
+    def login_teacher(self, email: str, password: str):
         """Log in a user and assert they are a teacher.
 
         Returns:
             The teacher-user.
         """
-        return self._login_user_type(TeacherUser, **credentials)
+        # TODO: set email=email in new
+        return self._login_user_type(
+            TeacherUser, email=email, password=password
+        )
 
-    def login_school_teacher(self, **credentials):
+    def login_school_teacher(self, email: str, password: str):
         """Log in a user and assert they are a school-teacher.
 
         Returns:
             The school-teacher-user.
         """
-        return self._login_user_type(SchoolTeacherUser, **credentials)
+        return self._login_user_type(
+            SchoolTeacherUser, email=email, password=password
+        )
 
-    def login_admin_school_teacher(self, **credentials):
+    def login_admin_school_teacher(self, email: str, password: str):
         """Log in a user and assert they are an admin-school-teacher.
 
         Returns:
             The admin-school-teacher-user.
         """
-        return self._login_user_type(AdminSchoolTeacherUser, **credentials)
+        return self._login_user_type(
+            AdminSchoolTeacherUser, email=email, password=password
+        )
 
-    def login_non_admin_school_teacher(self, **credentials):
+    def login_non_admin_school_teacher(self, email: str, password: str):
         """Log in a user and assert they are a non-admin-school-teacher.
 
         Returns:
             The non-admin-school-teacher-user.
         """
-        return self._login_user_type(NonAdminSchoolTeacherUser, **credentials)
+        return self._login_user_type(
+            NonAdminSchoolTeacherUser, email=email, password=password
+        )
 
-    def login_non_school_teacher(self, **credentials):
+    def login_non_school_teacher(self, email: str, password: str):
         """Log in a user and assert they are a non-school-teacher.
 
         Returns:
             The non-school-teacher-user.
         """
-        return self._login_user_type(NonSchoolTeacherUser, **credentials)
+        return self._login_user_type(
+            NonSchoolTeacherUser, email=email, password=password
+        )
 
-    def login_student(self, **credentials):
+    def login_student(self, username: str, password: str, class_id: str):
         """Log in a user and assert they are a student.
 
         Returns:
             The student-user.
         """
-        return self._login_user_type(StudentUser, **credentials)
+        return self._login_user_type(
+            StudentUser, username=username, password=password, class_id=class_id
+        )
 
-    def login_indy(self, **credentials):
+    def login_indy(self, email: str, password: str):
         """Log in a user and assert they are an independent.
 
         Returns:
             The independent-user.
         """
-        return self._login_user_type(IndependentUser, **credentials)
+        return self._login_user_type(
+            IndependentUser, email=email, password=password
+        )
 
 
 class ModelViewSetTestCase(APITestCase, t.Generic[AnyModel]):
