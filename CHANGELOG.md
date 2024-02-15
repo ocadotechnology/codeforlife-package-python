@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.13.5 (2024-02-15)
+
+### Fix
+
+* Queryset and update logic ([#85](https://github.com/ocadotechnology/codeforlife-package-python/issues/85)) ([`7ddf145`](https://github.com/ocadotechnology/codeforlife-package-python/commit/7ddf145aa047009fafdd0112b1f37b7ab824b073))
+
 ## v0.13.4 (2024-02-14)
 
 ### Fix
