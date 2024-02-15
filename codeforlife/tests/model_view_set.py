@@ -25,7 +25,11 @@ from ..permissions import Permission
 from ..serializers import ModelSerializer
 from ..types import DataDict, JsonDict, KwArgs
 from ..user.models import (
+    AdminSchoolTeacherUser,
+    AnyUser,
     AuthFactor,
+    IndependentUser,
+    NonAdminSchoolTeacherUser,
     NonSchoolTeacherUser,
     SchoolTeacherUser,
     StudentUser,
@@ -572,12 +576,12 @@ class ModelViewSetClient(APIClient, t.Generic[AnyModel]):
 
         return response
 
-    def login(self, **credentials):
+    def _login_user_type(self, user_type: t.Type[AnyUser], **credentials):
         assert super().login(
             **credentials
         ), f"Failed to login with credentials: {credentials}."
 
-        user = User.objects.get(session=self.session.session_key)
+        user = user_type.objects.get(session=self.session.session_key)
 
         if user.session.session_auth_factors.filter(
             auth_factor__type=AuthFactor.Type.OTP
@@ -597,84 +601,83 @@ class ModelViewSetClient(APIClient, t.Generic[AnyModel]):
 
         return user
 
-    def login_teacher(
-        self,
-        is_admin: t.Optional[bool] = None,
-        **credentials,
-    ) -> TeacherUser:
-        # pylint: disable=line-too-long
-        """Log in a user and assert they are a teacher.
+    def login(self, **credentials):
+        """Log in a user.
 
-        Args:
-            is_admin: Whether or not the teacher is an admin. Set to None if the teacher can be either or.
+        Returns:
+            The user.
+        """
+        return self._login_user_type(User, **credentials)
+
+    def login_teacher(self, email: str, password: str):
+        """Log in a user and assert they are a teacher.
 
         Returns:
             The teacher-user.
         """
-        # pylint: enable=line-too-long
+        return self._login_user_type(
+            TeacherUser, email=email, password=password
+        )
 
-        user = self.login(**credentials)
-        assert user.teacher
-        if is_admin is not None:
-            assert is_admin == user.teacher.is_admin
-
-        return user
-
-    def login_school_teacher(
-        self,
-        is_admin: t.Optional[bool] = None,
-        **credentials,
-    ):
-        # pylint: disable=line-too-long
+    def login_school_teacher(self, email: str, password: str):
         """Log in a user and assert they are a school-teacher.
-
-        Args:
-            is_admin: Whether or not the teacher is an admin. Set to None if the teacher can be either or.
 
         Returns:
             The school-teacher-user.
         """
-        # pylint: enable=line-too-long
+        return self._login_user_type(
+            SchoolTeacherUser, email=email, password=password
+        )
 
-        user = self.login_teacher(is_admin, **credentials)
-        assert user.teacher.school
-        return t.cast(SchoolTeacherUser, user)
+    def login_admin_school_teacher(self, email: str, password: str):
+        """Log in a user and assert they are an admin-school-teacher.
 
-    def login_non_school_teacher(self, **credentials):
+        Returns:
+            The admin-school-teacher-user.
+        """
+        return self._login_user_type(
+            AdminSchoolTeacherUser, email=email, password=password
+        )
+
+    def login_non_admin_school_teacher(self, email: str, password: str):
+        """Log in a user and assert they are a non-admin-school-teacher.
+
+        Returns:
+            The non-admin-school-teacher-user.
+        """
+        return self._login_user_type(
+            NonAdminSchoolTeacherUser, email=email, password=password
+        )
+
+    def login_non_school_teacher(self, email: str, password: str):
         """Log in a user and assert they are a non-school-teacher.
 
         Returns:
             The non-school-teacher-user.
         """
+        return self._login_user_type(
+            NonSchoolTeacherUser, email=email, password=password
+        )
 
-        user = self.login_teacher(is_admin=None, **credentials)
-        assert not user.teacher.school
-        return t.cast(NonSchoolTeacherUser, user)
-
-    def login_student(self, **credentials) -> StudentUser:
+    def login_student(self, username: str, password: str, class_id: str):
         """Log in a user and assert they are a student.
 
         Returns:
             The student-user.
         """
+        return self._login_user_type(
+            StudentUser, username=username, password=password, class_id=class_id
+        )
 
-        user = self.login(**credentials)
-        assert user.student
-        assert user.student.class_field.teacher.school
-        return user
-
-    # TODO: set return type to IndependentUser when we use the new data models.
-    def login_indy(self, **credentials) -> StudentUser:
-        """Log in an independent and assert they are a student.
+    def login_indy(self, email: str, password: str):
+        """Log in a user and assert they are an independent.
 
         Returns:
             The independent-user.
         """
-
-        user = self.login(**credentials)
-        assert user.student
-        assert not user.student.class_field
-        return user
+        return self._login_user_type(
+            IndependentUser, email=email, password=password
+        )
 
 
 class ModelViewSetTestCase(APITestCase, t.Generic[AnyModel]):

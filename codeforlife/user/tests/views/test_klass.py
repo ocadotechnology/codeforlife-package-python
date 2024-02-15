@@ -23,8 +23,9 @@ class TestClassViewSet(ModelViewSetTestCase[Class]):
 
     def _login_student(self):
         return self.client.login_student(
-            email="leonardodavinci@codeforlife.com",
+            username="leonardodavinci@codeforlife.com",
             password="Password1",
+            class_id="AB123",
         )
 
     # pylint: disable-next=pointless-string-statement

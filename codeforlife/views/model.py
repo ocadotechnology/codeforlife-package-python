@@ -4,19 +4,19 @@ Created on 24/01/2024 at 13:08:23(+00:00).
 """
 
 import typing as t
+from functools import cached_property
 
 from django.db.models import Model
 from django.db.models.query import QuerySet
 from rest_framework import status
 from rest_framework.decorators import action
-from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.serializers import ListSerializer
 from rest_framework.viewsets import ModelViewSet as DrfModelViewSet
 
 from ..permissions import Permission
+from ..request import Request
 from ..serializers import ModelListSerializer, ModelSerializer
-from ..types import DataDict
 from .api import APIView
 
 AnyModel = t.TypeVar("AnyModel", bound=Model)
@@ -39,6 +39,11 @@ class ModelViewSet(APIView, _ModelViewSet[AnyModel], t.Generic[AnyModel]):
 
     serializer_class: t.Optional[t.Type[ModelSerializer[AnyModel]]]
 
+    def _get_bulk_queryset(self, lookup_values: t.Collection):
+        return self.get_queryset().filter(
+            **{f"{self.lookup_field}__in": lookup_values}
+        )
+
     @classmethod
     def get_model_class(cls) -> t.Type[AnyModel]:
         """Get the model view set's class.
@@ -46,11 +51,19 @@ class ModelViewSet(APIView, _ModelViewSet[AnyModel], t.Generic[AnyModel]):
         Returns:
             The model view set's class.
         """
-
         # pylint: disable-next=no-member
         return t.get_args(cls.__orig_bases__[0])[  # type: ignore[attr-defined]
             0
         ]
+
+    @cached_property
+    def lookup_field_name(self):
+        """The name of the lookup field."""
+        return (
+            self.get_model_class()._meta.pk.attname  # type: ignore[union-attr]
+            if self.lookup_field == "pk"
+            else self.lookup_field
+        )
 
     def get_permissions(self):
         return t.cast(t.List[Permission], super().get_permissions())
@@ -99,7 +112,6 @@ class ModelViewSet(APIView, _ModelViewSet[AnyModel], t.Generic[AnyModel]):
         Returns:
             A HTTP response containing a list of created models.
         """
-
         serializer = t.cast(
             ModelListSerializer[AnyModel],
             self.get_serializer(data=request.data, many=True),
@@ -118,7 +130,6 @@ class ModelViewSet(APIView, _ModelViewSet[AnyModel], t.Generic[AnyModel]):
         Args:
             serializer: A model serializer for the specific model.
         """
-
         serializer.save()
 
     def bulk_partial_update(self, request: Request):
@@ -135,26 +146,14 @@ class ModelViewSet(APIView, _ModelViewSet[AnyModel], t.Generic[AnyModel]):
             A HTTP response containing a list of partially updated models.
         """
         # pylint: enable=line-too-long
-
-        model_class = self.get_model_class()
-        lookup_field = (
-            model_class._meta.pk.attname  # type: ignore[union-attr]
-            if self.lookup_field == "pk"
-            else self.lookup_field
+        queryset = self._get_bulk_queryset(
+            [data[self.lookup_field_name] for data in request.data]
         )
-
-        data = t.cast(t.List[DataDict], request.data)
-        data.sort(key=lambda model: model[lookup_field])
-
-        queryset = model_class.objects.filter(  # type: ignore[attr-defined]
-            **{f"{lookup_field}__in": [model[lookup_field] for model in data]}
-        ).order_by(lookup_field)
-
         serializer = t.cast(
             ModelListSerializer[AnyModel],
             self.get_serializer(
                 list(queryset),
-                data=data,
+                data=request.data,
                 many=True,
                 partial=True,
             ),
@@ -169,7 +168,6 @@ class ModelViewSet(APIView, _ModelViewSet[AnyModel], t.Generic[AnyModel]):
         Args:
             serializer: A model serializer for the specific model.
         """
-
         serializer.save()
 
     def bulk_destroy(self, request: Request):
@@ -184,11 +182,7 @@ class ModelViewSet(APIView, _ModelViewSet[AnyModel], t.Generic[AnyModel]):
         Returns:
             A HTTP response containing a list of destroyed models.
         """
-
-        model_class = self.get_model_class()
-        queryset = model_class.objects.filter(  # type: ignore[attr-defined]
-            **{f"{self.lookup_field}__in": request.data}
-        )
+        queryset = self._get_bulk_queryset(request.data)
         self.perform_bulk_destroy(queryset)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
@@ -198,7 +192,6 @@ class ModelViewSet(APIView, _ModelViewSet[AnyModel], t.Generic[AnyModel]):
         Args:
             queryset: A queryset of the models to delete.
         """
-
         queryset.delete()
 
     @action(detail=False, methods=["post", "patch", "delete"])
@@ -211,7 +204,6 @@ class ModelViewSet(APIView, _ModelViewSet[AnyModel], t.Generic[AnyModel]):
         Returns:
             A HTTP response.
         """
-
         return {
             "POST": self.bulk_create,
             "PATCH": self.bulk_partial_update,

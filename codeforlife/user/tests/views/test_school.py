@@ -67,17 +67,17 @@ class TestSchoolViewSet(ModelViewSetTestCase[School]):
             new_user=user,
         )
 
-    def _login_teacher(self):
-        return self.client.login_teacher(
+    def _login_admin_school_teacher(self):
+        return self.client.login_admin_school_teacher(
             email="alberteinstein@codeforlife.com",
             password="Password1",
-            is_admin=True,
         )
 
     def _login_student(self):
         return self.client.login_student(
-            email="leonardodavinci@codeforlife.com",
+            username="leonardodavinci@codeforlife.com",
             password="Password1",
+            class_id="AB123",
         )
 
     def _login_indy(self):
@@ -119,7 +119,7 @@ class TestSchoolViewSet(ModelViewSetTestCase[School]):
         Teacher can retrieve the same school they are in.
         """
 
-        user = self._login_teacher()
+        user = self._login_admin_school_teacher()
 
         self.client.retrieve(user.teacher.school)
 
@@ -137,7 +137,7 @@ class TestSchoolViewSet(ModelViewSetTestCase[School]):
         Teacher cannot retrieve a school they are not in.
         """
 
-        user = self._login_teacher()
+        user = self._login_admin_school_teacher()
 
         school = School.objects.exclude(id=user.teacher.school.id).first()
         assert school
