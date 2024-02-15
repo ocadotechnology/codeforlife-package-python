@@ -4,7 +4,8 @@ Created on 23/01/2024 at 14:45:07(+00:00).
 """
 
 from django.conf import settings
-from rest_framework.permissions import BasePermission
+
+from .base import BasePermission
 
 
 class IsCronRequestFromGoogle(BasePermission):
@@ -13,9 +14,6 @@ class IsCronRequestFromGoogle(BasePermission):
     from another source.
     https://cloud.google.com/appengine/docs/flexible/scheduling-jobs-with-cron-yaml#securing_urls_for_cron
     """
-
-    def __eq__(self, other):
-        return isinstance(other, self.__class__)
 
     def has_permission(self, request, view):
         return (

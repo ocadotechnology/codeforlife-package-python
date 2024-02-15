@@ -5,8 +5,7 @@ Created on 12/12/2023 at 13:55:22(+00:00).
 
 import typing as t
 
-from rest_framework.permissions import IsAuthenticated
-
+from ...permissions import IsAuthenticated
 from ..models import User
 
 
@@ -26,10 +25,7 @@ class IsTeacher(IsAuthenticated):
         self.is_admin = is_admin
 
     def __eq__(self, other):
-        return (
-            isinstance(other, self.__class__)
-            and self.is_admin == other.is_admin
-        )
+        return super().__eq__(other) and self.is_admin == other.is_admin
 
     def has_permission(self, request, view):
         user = request.user

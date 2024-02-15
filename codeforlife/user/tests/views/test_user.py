@@ -4,8 +4,8 @@ Created on 19/01/2024 at 17:15:56(+00:00).
 """
 
 from rest_framework import status
-from rest_framework.permissions import IsAuthenticated
 
+from ....permissions import IsAuthenticated
 from ....tests import ModelViewSetTestCase
 from ...models import Class, School, Student, Teacher, User, UserProfile
 from ...views import UserViewSet

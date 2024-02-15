@@ -3,16 +3,12 @@
 Created on 12/12/2023 at 15:18:10(+00:00).
 """
 
-from rest_framework.permissions import IsAuthenticated
-
+from ...permissions import IsAuthenticated
 from ..models import User
 
 
 class InClass(IsAuthenticated):
     """Request's user must be in a class."""
-
-    def __eq__(self, other):
-        return isinstance(other, self.__class__)
 
     def has_permission(self, request, view):
         user = request.user
