@@ -776,7 +776,7 @@ class ModelViewSetTestCase(APITestCase, t.Generic[AnyModel]):
         model_view_set = self.model_view_set_class(*args, **kwargs)
         queryset = model_view_set.get_queryset()
         # pylint: disable-next=no-member
-        self.assertQuerySetEqual(queryset, values, ordered=ordered)
+        self.assertQuerysetEqual(queryset, values, ordered=ordered)
 
     def get_other_user(
         self,
