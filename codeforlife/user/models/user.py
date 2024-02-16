@@ -13,6 +13,7 @@ from django.contrib.auth.models import UserManager
 from django.db.models.query import QuerySet
 from django.utils.translation import gettext_lazy as _
 from django_stubs_ext.db.models import TypedModelMeta
+from pyotp import TOTP
 
 from . import auth_factor, otp_bypass_token, session
 from .student import Independent, Student
@@ -79,6 +80,19 @@ class User(_User):
     @property
     def aimmo_badges(self):
         return self.userprofile.aimmo_badges
+
+    @property
+    def totp(self):
+        """Time-based one-time-password for user."""
+        return TOTP(self.otp_secret)
+
+    @property
+    def totp_provisioning_uri(self):
+        """URI provision for the user's time-based one-time-password."""
+        return self.totp.provisioning_uri(
+            name=self.email,
+            issuer_name="Code for Life",
+        )
 
 
 AnyUser = t.TypeVar("AnyUser", bound=User)
