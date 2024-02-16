@@ -6,5 +6,7 @@ Reusable DRF permissions.
 """
 
 from .allow_none import AllowNone
+from .base import BasePermission
+from .is_authenticated import IsAuthenticated
 from .is_cron_request_from_google import IsCronRequestFromGoogle
 from .operators import AND, NOT, OR, Permission

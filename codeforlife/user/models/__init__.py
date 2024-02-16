@@ -22,6 +22,7 @@ from .teacher import (
 )
 from .user import (  # TODO: remove UserProfile
     AdminSchoolTeacherUser,
+    AnyTypedUser,
     AnyUser,
     IndependentUser,
     NonAdminSchoolTeacherUser,
@@ -29,6 +30,7 @@ from .user import (  # TODO: remove UserProfile
     SchoolTeacherUser,
     StudentUser,
     TeacherUser,
+    TypedUser,
     User,
     UserProfile,
 )

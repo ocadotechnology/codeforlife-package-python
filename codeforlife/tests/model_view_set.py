@@ -34,6 +34,7 @@ from ..user.models import (
     SchoolTeacherUser,
     StudentUser,
     TeacherUser,
+    TypedUser,
     User,
 )
 from ..views import ModelViewSet
@@ -609,8 +610,12 @@ class ModelViewSetClient(APIClient, t.Generic[AnyModel]):
         """
         return self._login_user_type(User, **credentials)
 
-    def login_teacher(self, email: str, password: str):
+    def login_teacher(self, email: str, password: str = "password"):
         """Log in a user and assert they are a teacher.
+
+        Args:
+            email: The user's email address.
+            password: The user's password.
 
         Returns:
             The teacher-user.
@@ -619,8 +624,12 @@ class ModelViewSetClient(APIClient, t.Generic[AnyModel]):
             TeacherUser, email=email, password=password
         )
 
-    def login_school_teacher(self, email: str, password: str):
+    def login_school_teacher(self, email: str, password: str = "password"):
         """Log in a user and assert they are a school-teacher.
+
+        Args:
+            email: The user's email address.
+            password: The user's password.
 
         Returns:
             The school-teacher-user.
@@ -629,8 +638,14 @@ class ModelViewSetClient(APIClient, t.Generic[AnyModel]):
             SchoolTeacherUser, email=email, password=password
         )
 
-    def login_admin_school_teacher(self, email: str, password: str):
+    def login_admin_school_teacher(
+        self, email: str, password: str = "password"
+    ):
         """Log in a user and assert they are an admin-school-teacher.
+
+        Args:
+            email: The user's email address.
+            password: The user's password.
 
         Returns:
             The admin-school-teacher-user.
@@ -639,8 +654,14 @@ class ModelViewSetClient(APIClient, t.Generic[AnyModel]):
             AdminSchoolTeacherUser, email=email, password=password
         )
 
-    def login_non_admin_school_teacher(self, email: str, password: str):
+    def login_non_admin_school_teacher(
+        self, email: str, password: str = "password"
+    ):
         """Log in a user and assert they are a non-admin-school-teacher.
+
+        Args:
+            email: The user's email address.
+            password: The user's password.
 
         Returns:
             The non-admin-school-teacher-user.
@@ -649,8 +670,12 @@ class ModelViewSetClient(APIClient, t.Generic[AnyModel]):
             NonAdminSchoolTeacherUser, email=email, password=password
         )
 
-    def login_non_school_teacher(self, email: str, password: str):
+    def login_non_school_teacher(self, email: str, password: str = "password"):
         """Log in a user and assert they are a non-school-teacher.
+
+        Args:
+            email: The user's email address.
+            password: The user's password.
 
         Returns:
             The non-school-teacher-user.
@@ -659,8 +684,15 @@ class ModelViewSetClient(APIClient, t.Generic[AnyModel]):
             NonSchoolTeacherUser, email=email, password=password
         )
 
-    def login_student(self, username: str, password: str, class_id: str):
+    def login_student(
+        self, class_id: str, username: str, password: str = "password"
+    ):
         """Log in a user and assert they are a student.
+
+        Args:
+            class_id: The ID of the class the student belongs to.
+            username: The user's username.
+            password: The user's password.
 
         Returns:
             The student-user.
@@ -669,8 +701,12 @@ class ModelViewSetClient(APIClient, t.Generic[AnyModel]):
             StudentUser, username=username, password=password, class_id=class_id
         )
 
-    def login_indy(self, email: str, password: str):
+    def login_indy(self, email: str, password: str = "password"):
         """Log in a user and assert they are an independent.
+
+        Args:
+            email: The user's email address.
+            password: The user's password.
 
         Returns:
             The independent-user.
@@ -678,6 +714,37 @@ class ModelViewSetClient(APIClient, t.Generic[AnyModel]):
         return self._login_user_type(
             IndependentUser, email=email, password=password
         )
+
+    def login_as(self, user: TypedUser, password: str = "password"):
+        """Log in as a user. The user instance needs to be a user proxy in order
+        to know which credentials are required.
+
+        Args:
+            user: The user to log in as.
+            password: The user's password.
+        """
+        if isinstance(user, TeacherUser):
+            auth_user = self.login_teacher(user.email, password)
+        elif isinstance(user, SchoolTeacherUser):
+            auth_user = self.login_school_teacher(user.email, password)
+        elif isinstance(user, AdminSchoolTeacherUser):
+            auth_user = self.login_admin_school_teacher(user.email, password)
+        elif isinstance(user, NonAdminSchoolTeacherUser):
+            auth_user = self.login_non_admin_school_teacher(
+                user.email, password
+            )
+        elif isinstance(user, NonSchoolTeacherUser):
+            auth_user = self.login_non_school_teacher(user.email, password)
+        elif isinstance(user, StudentUser):
+            auth_user = self.login_student(
+                user.student.class_field.access_code,
+                user.username,
+                password,
+            )
+        elif isinstance(user, IndependentUser):
+            auth_user = self.login_indy(user.email, password)
+
+        assert user == auth_user
 
 
 class ModelViewSetTestCase(APITestCase, t.Generic[AnyModel]):
@@ -775,8 +842,9 @@ class ModelViewSetTestCase(APITestCase, t.Generic[AnyModel]):
 
         model_view_set = self.model_view_set_class(*args, **kwargs)
         queryset = model_view_set.get_queryset()
-        # pylint: disable-next=no-member
-        self.assertQuerySetEqual(queryset, values, ordered=ordered)
+        if ordered and not queryset.ordered:
+            queryset = queryset.order_by("pk")
+        self.assertQuerysetEqual(queryset, values, ordered=ordered)
 
     def get_other_user(
         self,

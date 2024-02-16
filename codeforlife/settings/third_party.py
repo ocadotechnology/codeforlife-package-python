@@ -16,7 +16,7 @@ CORS_ALLOWED_ORIGINS = ["https://www.codeforlife.education"]
 
 REST_FRAMEWORK = {
     "DEFAULT_PERMISSION_CLASSES": [
-        "rest_framework.permissions.IsAuthenticated",
+        "codeforlife.permissions.IsAuthenticated",
     ],
     "DEFAULT_FILTER_BACKENDS": [
         "django_filters.rest_framework.DjangoFilterBackend"

@@ -10,7 +10,8 @@ import typing as t
 from rest_framework.permissions import AND as _AND
 from rest_framework.permissions import NOT as _NOT
 from rest_framework.permissions import OR as _OR
-from rest_framework.permissions import BasePermission
+
+from .base import BasePermission
 
 
 # pylint: disable-next=missing-class-docstring

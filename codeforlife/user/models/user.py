@@ -255,3 +255,16 @@ class IndependentUser(User):
     objects: IndependentUserManager = (  # type: ignore[misc]
         IndependentUserManager()  # type: ignore[assignment]
     )
+
+
+TypedUser = t.Union[
+    TeacherUser,
+    SchoolTeacherUser,
+    AdminSchoolTeacherUser,
+    NonAdminSchoolTeacherUser,
+    NonSchoolTeacherUser,
+    StudentUser,
+    IndependentUser,
+]
+
+AnyTypedUser = t.TypeVar("AnyTypedUser", bound=TypedUser)
