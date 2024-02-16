@@ -130,18 +130,38 @@ class ModelViewSetClient(APIClient, t.Generic[AnyModel]):
 
         return 200 <= status_code < 300
 
+    # pylint: disable-next=too-many-arguments
     def _assert_serialized_model_equals_json_model(
         self,
         model: AnyModel,
         json_model: JsonDict,
+        action: str,
+        request_method: str,
         contains_subset: bool = False,
     ):
-        model_view_set = self._model_view_set_class()
-        model_serializer_class = model_view_set.get_serializer_class()
-        serialized_model = model_serializer_class(model).data
+        # Get the logged-in user.
+        try:
+            user = User.objects.get(session=self.session.session_key)
+        except User.DoesNotExist:
+            user = None  # NOTE: no user has logged in.
 
+        # Create an instance of the model view set and serializer.
+        model_view_set = self._model_view_set_class(
+            action=action,
+            request=self.request_factory.generic(request_method, user=user),
+            format_kwarg=None,  # NOTE: required by get_serializer_context()
+        )
+        model_serializer = model_view_set.get_serializer_class()(
+            model, context=model_view_set.get_serializer_context()
+        )
+
+        # Serialize the model.
+        serialized_model = model_serializer.data
+
+        # Get DRF's function that converts datetimes to strings.
         datetime_to_representation = DateTimeField().to_representation
 
+        # Recursively convert all datetimes to strings.
         def datetime_values_to_representation(data: DataDict):
             for key, value in data.copy().items():
                 if isinstance(value, dict):
@@ -151,6 +171,8 @@ class ModelViewSetClient(APIClient, t.Generic[AnyModel]):
 
         datetime_values_to_representation(serialized_model)
 
+        # Assert the JSON model provided in the response is an exact match or
+        # subset of the serialized model.
         (
             # pylint: disable=no-member
             self._test_case.assertDictContainsSubset
@@ -212,11 +234,13 @@ class ModelViewSetClient(APIClient, t.Generic[AnyModel]):
 
         return response
 
-    def _assert_create(self, json_model: JsonDict):
+    def _assert_create(self, json_model: JsonDict, action: str):
         model = self._model_class.objects.get(
             **{self._lookup_field: json_model["id"]}
         )
-        self._assert_serialized_model_equals_json_model(model, json_model)
+        self._assert_serialized_model_equals_json_model(
+            model, json_model, action, request_method="post"
+        )
 
     def create(
         self,
@@ -250,7 +274,12 @@ class ModelViewSetClient(APIClient, t.Generic[AnyModel]):
         )
 
         if make_assertions:
-            self._assert_response_json(response, self._assert_create)
+            self._assert_response_json(
+                response,
+                lambda json_model: self._assert_create(
+                    json_model, action="create"
+                ),
+            )
 
         return response
 
@@ -289,7 +318,7 @@ class ModelViewSetClient(APIClient, t.Generic[AnyModel]):
 
             def _make_assertions(json_models: t.List[JsonDict]):
                 for json_model in json_models:
-                    self._assert_create(json_model)
+                    self._assert_create(json_model, action="bulk")
 
             self._assert_response_json_bulk(response, _make_assertions, data)
 
@@ -333,13 +362,17 @@ class ModelViewSetClient(APIClient, t.Generic[AnyModel]):
                 response,
                 make_assertions=lambda json_model: (
                     self._assert_serialized_model_equals_json_model(
-                        model, json_model
+                        model,
+                        json_model,
+                        action="retrieve",
+                        request_method="get",
                     )
                 ),
             )
 
         return response
 
+    # pylint: disable-next=too-many-arguments
     def list(
         self,
         models: t.Iterable[AnyModel],
@@ -386,19 +419,26 @@ class ModelViewSetClient(APIClient, t.Generic[AnyModel]):
                 json_models = t.cast(t.List[JsonDict], response_json["data"])
                 for model, json_model in zip(models, json_models):
                     self._assert_serialized_model_equals_json_model(
-                        model, json_model
+                        model, json_model, action="list", request_method="get"
                     )
 
             self._assert_response_json(response, _make_assertions)
 
         return response
 
-    def _assert_partial_update(self, model: AnyModel, json_model: JsonDict):
+    def _assert_partial_update(
+        self, model: AnyModel, json_model: JsonDict, action: str
+    ):
         model.refresh_from_db()
         self._assert_serialized_model_equals_json_model(
-            model, json_model, contains_subset=True
+            model,
+            json_model,
+            action,
+            request_method="patch",
+            contains_subset=True,
         )
 
+    # pylint: disable-next=too-many-arguments
     def partial_update(
         self,
         model: AnyModel,
@@ -439,8 +479,8 @@ class ModelViewSetClient(APIClient, t.Generic[AnyModel]):
         if make_assertions:
             self._assert_response_json(
                 response,
-                make_assertions=lambda json_model: (
-                    self._assert_partial_update(model, json_model)
+                make_assertions=lambda json_model: self._assert_partial_update(
+                    model, json_model, action="partial_update"
                 ),
             )
 
@@ -486,7 +526,9 @@ class ModelViewSetClient(APIClient, t.Generic[AnyModel]):
                     key=lambda model: getattr(model, self._lookup_field)
                 )
                 for model, json_model in zip(models, json_models):
-                    self._assert_partial_update(model, json_model)
+                    self._assert_partial_update(
+                        model, json_model, action="bulk"
+                    )
 
             self._assert_response_json_bulk(response, _make_assertions, data)
 
