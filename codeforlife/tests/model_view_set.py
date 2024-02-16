@@ -723,7 +723,6 @@ class ModelViewSetClient(APIClient, t.Generic[AnyModel]):
             user: The user to log in as.
             password: The user's password.
         """
-
         if isinstance(user, TeacherUser):
             auth_user = self.login_teacher(user.email, password)
         elif isinstance(user, SchoolTeacherUser):

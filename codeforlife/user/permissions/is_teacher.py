@@ -29,7 +29,7 @@ class IsTeacher(IsAuthenticated):
         # pylint: enable=line-too-long
         super().__init__()
 
-        if is_admin is True or in_class is True:
+        if is_admin or in_class:
             in_school = True
 
         self.is_admin = is_admin
