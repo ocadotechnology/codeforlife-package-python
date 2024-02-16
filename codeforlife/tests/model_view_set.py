@@ -633,7 +633,7 @@ class ModelViewSetClient(APIClient, t.Generic[AnyModel]):
             request.user = user
 
             now = timezone.now()
-            otp = TOTP(user.otp_secret).at(now)
+            otp = user.totp.at(now)
             with patch.object(timezone, "now", return_value=now):
                 assert super().login(
                     request=request,
