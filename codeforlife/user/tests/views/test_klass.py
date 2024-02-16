@@ -69,7 +69,9 @@ class TestClassViewSet(ModelViewSetTestCase[Class]):
         """
 
         self.assert_get_permissions(
-            permissions=[IsTeacher(in_school=True)],
+            permissions=[
+                OR(IsTeacher(is_admin=True), IsTeacher(in_class=True))
+            ],
             action="list",
         )
 
@@ -79,6 +81,11 @@ class TestClassViewSet(ModelViewSetTestCase[Class]):
         """
 
         self.assert_get_permissions(
-            permissions=[OR(IsStudent(), IsTeacher(in_school=True))],
+            permissions=[
+                OR(
+                    IsStudent(),
+                    OR(IsTeacher(is_admin=True), IsTeacher(in_class=True)),
+                )
+            ],
             action="retrieve",
         )

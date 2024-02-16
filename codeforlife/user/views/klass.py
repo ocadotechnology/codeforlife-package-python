@@ -19,9 +19,14 @@ class ClassViewSet(ModelViewSet[Class]):
     def get_permissions(self):
         # Only school-teachers can list classes.
         if self.action == "list":
-            return [IsTeacher(in_school=True)]
+            return [OR(IsTeacher(is_admin=True), IsTeacher(in_class=True))]
 
-        return [OR(IsStudent(), IsTeacher(in_school=True))]
+        return [
+            OR(
+                IsStudent(),
+                OR(IsTeacher(is_admin=True), IsTeacher(in_class=True)),
+            )
+        ]
 
     # pylint: disable-next=missing-function-docstring
     def get_queryset(self):
