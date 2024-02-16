@@ -146,6 +146,8 @@ class ModelSerializerTestCase(TestCase, t.Generic[AnyModel]):
                     getattr(model, field),
                 )
                 data.pop(field)
+            elif isinstance(value, Model):
+                data[field] = value.pk
 
         self.assertDictContainsSubset(data, model_to_dict(model))
 
