@@ -5,7 +5,6 @@ Created on 01/02/2024 at 14:41:20(+00:00).
 
 import typing as t
 
-import pyotp
 from django.contrib.auth.backends import BaseBackend
 from django.utils import timezone
 
@@ -36,23 +35,23 @@ class OtpBackend(BaseBackend):
         ):
             return None
 
-        totp = pyotp.TOTP(request.user.userprofile.otp_secret)
+        user = request.user
 
         # Verify the otp is valid for now.
-        if totp.verify(otp, for_time=now):
+        if user.totp.verify(otp, for_time=now):
             # Deny replay attacks by rejecting the otp for last time.
-            last_otp_for_time = request.user.userprofile.last_otp_for_time
-            if last_otp_for_time and totp.verify(otp, last_otp_for_time):
+            last_otp_for_time = user.userprofile.last_otp_for_time
+            if last_otp_for_time and user.totp.verify(otp, last_otp_for_time):
                 return None
-            request.user.userprofile.last_otp_for_time = now
-            request.user.userprofile.save()
+            user.userprofile.last_otp_for_time = now
+            user.userprofile.save()
 
             # Delete OTP auth factor from session.
-            request.user.session.session_auth_factors.filter(
+            user.session.session_auth_factors.filter(
                 auth_factor__type=AuthFactor.Type.OTP
             ).delete()
 
-            return request.user
+            return user
 
         return None
 
