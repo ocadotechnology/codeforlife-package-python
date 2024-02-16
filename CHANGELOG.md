@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.13.7 (2024-02-16)
+
+### Fix
+
+* Otp ([#87](https://github.com/ocadotechnology/codeforlife-package-python/issues/87)) ([`161cffd`](https://github.com/ocadotechnology/codeforlife-package-python/commit/161cffda190ed87ea3a25f4e28f8c6dc036dfea0))
+
 ## v0.13.6 (2024-02-16)
 
 ### Fix
