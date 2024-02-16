@@ -2,6 +2,16 @@
 
 <!--next-version-placeholder-->
 
+## v0.13.6 (2024-02-16)
+
+### Fix
+
+* Base permission __eq__ ([#86](https://github.com/ocadotechnology/codeforlife-package-python/issues/86)) ([`bd9b31d`](https://github.com/ocadotechnology/codeforlife-package-python/commit/bd9b31d5231ae6d83005e536bbcc597b90fe6644))
+
+### Documentation
+
+* Add licence info to Readme ([#84](https://github.com/ocadotechnology/codeforlife-package-python/issues/84)) ([`20cf33e`](https://github.com/ocadotechnology/codeforlife-package-python/commit/20cf33e31738bba743cb2d72c2b20d583bb3e5d2))
+
 ## v0.13.5 (2024-02-15)
 
 ### Fix
