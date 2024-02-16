@@ -41,7 +41,6 @@ class ModelSerializerTestCase(TestCase, t.Generic[AnyModel]):
         Returns:
             The model view set's class.
         """
-
         # pylint: disable-next=no-member
         return t.get_args(cls.__orig_bases__[0])[  # type: ignore[attr-defined]
             0
@@ -79,10 +78,7 @@ class ModelSerializerTestCase(TestCase, t.Generic[AnyModel]):
         return Wrapper(self.assertRaises(ValidationError, *args, **kwargs))
 
     def _init_model_serializer(
-        self,
-        parent: t.Optional[BaseSerializer],
-        *args,
-        **kwargs,
+        self, *args, parent: t.Optional[BaseSerializer] = None, **kwargs
     ):
         serializer = self.model_serializer_class(*args, **kwargs)
         if parent:
@@ -95,7 +91,6 @@ class ModelSerializerTestCase(TestCase, t.Generic[AnyModel]):
         attrs: t.Union[DataDict, t.List[DataDict]],
         error_code: str,
         *args,
-        parent: t.Optional[BaseSerializer] = None,
         **kwargs,
     ):
         """Asserts that calling validate() raises the expected error code.
@@ -103,22 +98,14 @@ class ModelSerializerTestCase(TestCase, t.Generic[AnyModel]):
         Args:
             attrs: The attributes to pass to validate().
             error_code: The expected error code to be raised.
-            parent: The parent serializer that instantiated this serializer.
         """
-
-        serializer = self._init_model_serializer(parent, *args, **kwargs)
+        serializer = self._init_model_serializer(*args, **kwargs)
         with self.assert_raises_validation_error(error_code):
             serializer.validate(attrs)  # type: ignore[arg-type]
 
     # pylint: disable-next=too-many-arguments
     def assert_validate_field(
-        self,
-        name: str,
-        value,
-        error_code: str,
-        *args,
-        parent: t.Optional[BaseSerializer] = None,
-        **kwargs,
+        self, name: str, value, error_code: str, *args, **kwargs
     ):
         """Asserts that calling validate_field() raises the expected error code.
 
@@ -126,10 +113,8 @@ class ModelSerializerTestCase(TestCase, t.Generic[AnyModel]):
             name: The name of the field.
             value: The value to pass to validate_field().
             error_code: The expected error code to be raised.
-            parent: The parent serializer that instantiated this serializer.
         """
-
-        serializer = self._init_model_serializer(parent, *args, **kwargs)
+        serializer = self._init_model_serializer(*args, **kwargs)
         validate_field = getattr(serializer, f"validate_{name}")
         assert callable(validate_field)
         with self.assert_raises_validation_error(error_code):
@@ -156,7 +141,6 @@ class ModelSerializerTestCase(TestCase, t.Generic[AnyModel]):
         validated_data: DataDict,
         *args,
         new_data: t.Optional[DataDict] = None,
-        parent: t.Optional[BaseSerializer] = None,
         **kwargs,
     ):
         """Assert that the data used to create the model is a subset of the
@@ -165,10 +149,8 @@ class ModelSerializerTestCase(TestCase, t.Generic[AnyModel]):
         Args:
             validated_data: The data used to create the model.
             new_data: Any new data that the model may have after creating.
-            parent: The parent serializer that instantiated this serializer.
         """
-
-        serializer = self._init_model_serializer(parent, *args, **kwargs)
+        serializer = self._init_model_serializer(*args, **kwargs)
         model = serializer.create(validated_data.copy())
         data = {**validated_data, **(new_data or {})}
         self._assert_data_is_subset_of_model(data, model)
@@ -179,7 +161,6 @@ class ModelSerializerTestCase(TestCase, t.Generic[AnyModel]):
         validated_data: DataDict,
         *args,
         new_data: t.Optional[DataDict] = None,
-        parent: t.Optional[BaseSerializer] = None,
         **kwargs,
     ):
         """Assert that the data used to update the model is a subset of the
@@ -189,10 +170,27 @@ class ModelSerializerTestCase(TestCase, t.Generic[AnyModel]):
             instance: The model instance to update.
             validated_data: The data used to update the model.
             new_data: Any new data that the model may have after updating.
-            parent: The parent serializer that instantiated this serializer.
         """
-
-        serializer = self._init_model_serializer(parent, *args, **kwargs)
+        serializer = self._init_model_serializer(*args, **kwargs)
         model = serializer.update(instance, validated_data.copy())
         data = {**validated_data, **(new_data or {})}
         self._assert_data_is_subset_of_model(data, model)
+
+    def assert_to_representation(
+        self, instance: AnyModel, new_data: DataDict, *args, **kwargs
+    ):
+        """Assert:
+        1. the new data fields not contained in the model are equal.
+        2. the original data fields contained in the model are equal.
+
+        Args:
+            instance: The model instance to represent.
+            new_data: The field values not contained in the model.
+        """
+        serializer = self._init_model_serializer(*args, **kwargs)
+        data = serializer.to_representation(instance)
+
+        for field, value in new_data.items():
+            assert value == data.pop(field)
+
+        self._assert_data_is_subset_of_model(data, instance)

@@ -46,6 +46,10 @@ class ModelSerializer(
     def validate(self, attrs: DataDict):
         return attrs
 
+    # pylint: disable-next=useless-parent-delegation
+    def to_representation(self, instance: AnyModel) -> DataDict:
+        return super().to_representation(instance)
+
 
 class ModelListSerializer(
     BaseSerializer,
@@ -158,5 +162,5 @@ class ModelListSerializer(
         return attrs
 
     # pylint: disable-next=useless-parent-delegation,arguments-renamed
-    def to_representation(self, instance: t.List[AnyModel]):
+    def to_representation(self, instance: t.List[AnyModel]) -> t.List[DataDict]:
         return super().to_representation(instance)
