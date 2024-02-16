@@ -18,4 +18,5 @@ class IsStudent(IsAuthenticated):
             and user.teacher is None
             and user.student is not None
             and user.student.class_field is not None
+            and user.student.class_field.teacher.school_id is not None
         )

@@ -3,9 +3,10 @@
 Created on 20/01/2024 at 09:48:30(+00:00).
 """
 
+from ....permissions import OR
 from ....tests import ModelViewSetTestCase
 from ...models import Class
-from ...permissions import InSchool, IsTeacher
+from ...permissions import IsStudent, IsTeacher
 from ...views import ClassViewSet
 
 
@@ -68,7 +69,7 @@ class TestClassViewSet(ModelViewSetTestCase[Class]):
         """
 
         self.assert_get_permissions(
-            permissions=[IsTeacher(), InSchool()],
+            permissions=[IsTeacher(in_school=True)],
             action="list",
         )
 
@@ -78,6 +79,6 @@ class TestClassViewSet(ModelViewSetTestCase[Class]):
         """
 
         self.assert_get_permissions(
-            permissions=[InSchool()],
+            permissions=[OR(IsStudent(), IsTeacher(in_school=True))],
             action="retrieve",
         )

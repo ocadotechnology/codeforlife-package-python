@@ -3,9 +3,10 @@
 Created on 24/01/2024 at 13:47:53(+00:00).
 """
 
+from ...permissions import OR
 from ...views import ModelViewSet
 from ..models import Class
-from ..permissions import InSchool, IsTeacher
+from ..permissions import IsStudent, IsTeacher
 from ..serializers import ClassSerializer
 
 
@@ -18,9 +19,9 @@ class ClassViewSet(ModelViewSet[Class]):
     def get_permissions(self):
         # Only school-teachers can list classes.
         if self.action == "list":
-            return [IsTeacher(), InSchool()]
+            return [IsTeacher(in_school=True)]
 
-        return [InSchool()]
+        return [OR(IsStudent(), IsTeacher(in_school=True))]
 
     # pylint: disable-next=missing-function-docstring
     def get_queryset(self):

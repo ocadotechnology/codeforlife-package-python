@@ -12,20 +12,37 @@ from ..models import User
 class IsTeacher(IsAuthenticated):
     """Request's user must be a teacher."""
 
-    def __init__(self, is_admin: t.Optional[bool] = None):
+    def __init__(
+        self,
+        is_admin: t.Optional[bool] = None,
+        in_school: t.Optional[bool] = None,
+        in_class: t.Optional[bool] = None,
+    ):
+        # pylint: disable=line-too-long
         """Initialize permission.
 
         Args:
-            is_admin: If the teacher is an admin. If None, don't check if the
-                teacher is an admin. Else, check if the teacher is (not) an
-                admin.
+            is_admin: Check if the teacher is (not) an admin. If None, don't check. If True, in_school is set to True.
+            in_school: Check if the teacher is (not) in a school. If None, don't check.
+            in_class: Check if the teacher is (not) in a class. If None, don't check. If True, in_school is set to True.
         """
-
+        # pylint: enable=line-too-long
         super().__init__()
+
+        if is_admin is True or in_class is True:
+            in_school = True
+
         self.is_admin = is_admin
+        self.in_school = in_school
+        self.in_class = in_class
 
     def __eq__(self, other):
-        return super().__eq__(other) and self.is_admin == other.is_admin
+        return (
+            isinstance(other, self.__class__)
+            and self.is_admin == other.is_admin
+            and self.in_school == other.in_school
+            and self.in_class == other.in_class
+        )
 
     def has_permission(self, request, view):
         user = request.user
@@ -35,6 +52,19 @@ class IsTeacher(IsAuthenticated):
             and user.student is None
             and user.teacher is not None
             and (
+                self.in_school is None
+                or (self.in_school and user.teacher.school_id is not None)
+                or (not self.in_school and user.teacher.school_id is None)
+            )
+            and (
                 self.is_admin is None or user.teacher.is_admin == self.is_admin
+            )
+            and (
+                self.in_class is None
+                or (self.in_class and user.teacher.class_teacher.exists())
+                or (
+                    not self.in_class
+                    and not user.teacher.class_teacher.exists()
+                )
             )
         )

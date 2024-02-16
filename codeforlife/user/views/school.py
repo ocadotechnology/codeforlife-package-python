@@ -3,10 +3,10 @@
 Created on 24/01/2024 at 13:38:15(+00:00).
 """
 
-from ...permissions import AllowNone
+from ...permissions import OR, AllowNone
 from ...views import ModelViewSet
 from ..models import School
-from ..permissions import InSchool
+from ..permissions import IsStudent, IsTeacher
 from ..serializers import SchoolSerializer
 
 
@@ -20,7 +20,7 @@ class SchoolViewSet(ModelViewSet[School]):
         if self.action == "list":
             return [AllowNone()]
 
-        return [InSchool()]
+        return [OR(IsStudent(), IsTeacher(in_school=True))]
 
     # pylint: disable-next=missing-function-docstring
     def get_queryset(self):
