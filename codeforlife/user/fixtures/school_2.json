@@ -1,0 +1,104 @@
+[
+  {
+    "model": "common.school",
+    "pk": 3,
+    "fields": {
+      "name": "School 2",
+      "country": "GB",
+      "county": "Hertfordshire"
+    }
+  },
+  {
+    "model": "auth.user",
+    "pk": 25,
+    "fields": {
+      "first_name": "John",
+      "last_name": "Doe",
+      "username": "teacher@school2.com",
+      "email": "teacher@school2.com",
+      "password": "pbkdf2_sha256$720000$Jp50WPBA6WZImUIpj3UcVm$OJWB8+UoW5lLaUkHLYo0cKgMkyRI6qnqVOWxYEsi9T0="
+    }
+  },
+  {
+    "model": "common.userprofile",
+    "pk": 25,
+    "fields": {
+      "user": 25,
+      "is_verified": true,
+      "otp_secret": "KI6FA34LPRQU265KQBFYS2MTDYHE2EIG"
+    }
+  },
+  {
+    "model": "user.authfactor",
+    "pk": 1,
+    "fields": {
+      "user": 25,
+      "type": "otp"
+    }
+  },
+  {
+    "model": "common.teacher",
+    "pk": 8,
+    "fields": {
+      "user": 25,
+      "new_user": 25,
+      "school": 3
+    }
+  },
+  {
+    "model": "common.class",
+    "pk": 8,
+    "fields": {
+      "name": "Class 1 @ School 2",
+      "access_code": "XX111",
+      "teacher": 8
+    }
+  },
+  {
+    "model": "auth.user",
+    "pk": 26,
+    "fields": {
+      "first_name": "Jane",
+      "last_name": "Doe",
+      "username": "admin.teacher@school2.com",
+      "email": "admin.teacher@school2.com",
+      "password": "pbkdf2_sha256$720000$Jp50WPBA6WZImUIpj3UcVm$OJWB8+UoW5lLaUkHLYo0cKgMkyRI6qnqVOWxYEsi9T0="
+    }
+  },
+  {
+    "model": "common.userprofile",
+    "pk": 26,
+    "fields": {
+      "user": 26,
+      "is_verified": true,
+      "otp_secret": "KI6FA34LPRQU265KQBFYS2MTDYHE2EIG"
+    }
+  },
+  {
+    "model": "user.authfactor",
+    "pk": 2,
+    "fields": {
+      "user": 26,
+      "type": "otp"
+    }
+  },
+  {
+    "model": "common.teacher",
+    "pk": 9,
+    "fields": {
+      "user": 26,
+      "new_user": 26,
+      "school": 3,
+      "is_admin": true
+    }
+  },
+  {
+    "model": "common.class",
+    "pk": 9,
+    "fields": {
+      "name": "Class 2 @ School 2",
+      "access_code": "XX222",
+      "teacher": 9
+    }
+  }
+]
