@@ -12,37 +12,17 @@ from rest_framework.parsers import (
     JSONParser,
     MultiPartParser,
 )
-from rest_framework.request import Request
 from rest_framework.test import APIRequestFactory as _APIRequestFactory
 
+from ..request import Request
 from ..user.models import User
 
 
 class APIRequestFactory(_APIRequestFactory):
     """Custom API request factory that returns DRF's Request object."""
 
-    # pylint: disable-next=too-many-arguments
-    def generic(
-        self,
-        method: str,
-        path: t.Optional[str] = None,
-        data: t.Optional[str] = None,
-        content_type: t.Optional[str] = None,
-        secure: bool = True,
-        user: t.Optional[User] = None,
-        **extra
-    ):
-        wsgi_request = t.cast(
-            WSGIRequest,
-            super().generic(
-                method,
-                path or "/",
-                data or "",
-                content_type or "application/json",
-                secure,
-                **extra,
-            ),
-        )
+    def request(self, user: t.Optional[User] = None, **kwargs):
+        wsgi_request = t.cast(WSGIRequest, super().request(**kwargs))
 
         request = Request(
             wsgi_request,
@@ -59,6 +39,30 @@ class APIRequestFactory(_APIRequestFactory):
 
         return request
 
+    # pylint: disable-next=too-many-arguments
+    def generic(
+        self,
+        method: str,
+        path: t.Optional[str] = None,
+        data: t.Optional[str] = None,
+        content_type: t.Optional[str] = None,
+        secure: bool = True,
+        user: t.Optional[User] = None,
+        **extra
+    ):
+        return t.cast(
+            Request,
+            super().generic(
+                method,
+                path or "/",
+                data or "",
+                content_type or "application/json",
+                secure,
+                user=user,
+                **extra,
+            ),
+        )
+
     def get(  # type: ignore[override]
         self,
         path: t.Optional[str] = None,
@@ -66,11 +70,14 @@ class APIRequestFactory(_APIRequestFactory):
         user: t.Optional[User] = None,
         **extra
     ):
-        return super().get(
-            path or "/",
-            data,
-            user=user,
-            **extra,
+        return t.cast(
+            Request,
+            super().get(
+                path or "/",
+                data,
+                user=user,
+                **extra,
+            ),
         )
 
     # pylint: disable-next=too-many-arguments
@@ -87,13 +94,16 @@ class APIRequestFactory(_APIRequestFactory):
         if format is None and content_type is None:
             format = "json"
 
-        return super().post(
-            path or "/",
-            data,
-            format,
-            content_type,
-            user=user,
-            **extra,
+        return t.cast(
+            Request,
+            super().post(
+                path or "/",
+                data,
+                format,
+                content_type,
+                user=user,
+                **extra,
+            ),
         )
 
     # pylint: disable-next=too-many-arguments
@@ -110,13 +120,16 @@ class APIRequestFactory(_APIRequestFactory):
         if format is None and content_type is None:
             format = "json"
 
-        return super().put(
-            path or "/",
-            data,
-            format,
-            content_type,
-            user=user,
-            **extra,
+        return t.cast(
+            Request,
+            super().put(
+                path or "/",
+                data,
+                format,
+                content_type,
+                user=user,
+                **extra,
+            ),
         )
 
     # pylint: disable-next=too-many-arguments
@@ -133,13 +146,16 @@ class APIRequestFactory(_APIRequestFactory):
         if format is None and content_type is None:
             format = "json"
 
-        return super().patch(
-            path or "/",
-            data,
-            format,
-            content_type,
-            user=user,
-            **extra,
+        return t.cast(
+            Request,
+            super().patch(
+                path or "/",
+                data,
+                format,
+                content_type,
+                user=user,
+                **extra,
+            ),
         )
 
     # pylint: disable-next=too-many-arguments
@@ -156,13 +172,16 @@ class APIRequestFactory(_APIRequestFactory):
         if format is None and content_type is None:
             format = "json"
 
-        return super().delete(
-            path or "/",
-            data,
-            format,
-            content_type,
-            user=user,
-            **extra,
+        return t.cast(
+            Request,
+            super().delete(
+                path or "/",
+                data,
+                format,
+                content_type,
+                user=user,
+                **extra,
+            ),
         )
 
     # pylint: disable-next=too-many-arguments
@@ -179,11 +198,14 @@ class APIRequestFactory(_APIRequestFactory):
         if format is None and content_type is None:
             format = "json"
 
-        return super().options(
-            path or "/",
-            data or {},
-            format,
-            content_type,
-            user=user,
-            **extra,
+        return t.cast(
+            Request,
+            super().options(
+                path or "/",
+                data or {},
+                format,
+                content_type,
+                user=user,
+                **extra,
+            ),
         )
