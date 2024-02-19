@@ -18,6 +18,7 @@ from django_stubs_ext.db.models import TypedModelMeta
 from pyotp import TOTP
 
 from . import auth_factor, otp_bypass_token, session
+from .klass import Class
 from .student import Independent, Student
 from .teacher import (
     AdminSchoolTeacher,
@@ -218,10 +219,11 @@ class StudentUserManager(UserManager["StudentUser"]):
     def create_user(  # type: ignore[override]
         self,
         first_name: str,
+        klass: Class,
         **extra_fields,
     ):
         """Create a student-user."""
-        username: t.Optional[str] = None
+        username = None
         while username is None or self.filter(username=username).exists():
             username = get_random_string(length=30)
 
@@ -237,6 +239,20 @@ class StudentUserManager(UserManager["StudentUser"]):
 
         # pylint: disable-next=protected-access
         user._password = password
+
+        login_id = None
+        while (
+            login_id is None
+            or Student.objects.filter(login_id=login_id).exists()
+        ):
+            login_id = get_random_string(length=64)
+
+        Student.objects.create(
+            class_field=klass,
+            user=UserProfile.objects.create(user=user),
+            new_user=user,
+            login_id=login_id,
+        )
 
         return user
 
