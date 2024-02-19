@@ -3,6 +3,7 @@
 Created on 05/02/2024 at 09:50:04(+00:00).
 """
 
+import string
 import typing as t
 
 from common.models import UserProfile
@@ -11,6 +12,7 @@ from common.models import UserProfile
 from django.contrib.auth.models import User as _User
 from django.contrib.auth.models import UserManager
 from django.db.models.query import QuerySet
+from django.utils.crypto import get_random_string
 from django.utils.translation import gettext_lazy as _
 from django_stubs_ext.db.models import TypedModelMeta
 from pyotp import TOTP
@@ -213,6 +215,31 @@ class NonSchoolTeacherUser(User):
 
 # pylint: disable-next=missing-class-docstring,too-few-public-methods
 class StudentUserManager(UserManager["StudentUser"]):
+    def create_user(  # type: ignore[override]
+        self,
+        first_name: str,
+        **extra_fields,
+    ):
+        """Create a student-user."""
+        username: t.Optional[str] = None
+        while username is None or self.filter(username=username).exists():
+            username = get_random_string(length=30)
+
+        # pylint: disable-next=protected-access
+        password = StudentUser._get_random_password()
+
+        user = super().create_user(
+            **extra_fields,
+            first_name=first_name,
+            username=username,
+            password=password,
+        )
+
+        # pylint: disable-next=protected-access
+        user._password = password
+
+        return user
+
     # pylint: disable-next=missing-function-docstring
     def get_queryset(self):
         return (
@@ -239,6 +266,14 @@ class StudentUser(User):
     objects: StudentUserManager = (  # type: ignore[misc]
         StudentUserManager()  # type: ignore[assignment]
     )
+
+    @staticmethod
+    def _get_random_password():
+        return get_random_string(length=6, allowed_chars=string.ascii_lowercase)
+
+    # pylint: disable-next=arguments-differ
+    def set_password(self):
+        return super().set_password(self._get_random_password())
 
 
 # pylint: disable-next=missing-class-docstring,too-few-public-methods
