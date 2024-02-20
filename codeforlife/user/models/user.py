@@ -109,6 +109,7 @@ class TeacherUserManager(UserManager[AnyUser], t.Generic[AnyUser]):
             super()
             .get_queryset()
             .filter(new_teacher__isnull=False, new_student__isnull=True)
+            .prefetch_related("new_teacher")
         )
 
 
@@ -261,6 +262,7 @@ class StudentUserManager(UserManager["StudentUser"]):
                 # TODO: remove in new model
                 new_student__class_field__isnull=False,
             )
+            .prefetch_related("new_student")
         )
 
 
