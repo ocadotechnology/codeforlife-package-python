@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.13.9 (2024-02-20)
+
+### Fix
+
+* Client login and models ([#89](https://github.com/ocadotechnology/codeforlife-package-python/issues/89)) ([`5368bc3`](https://github.com/ocadotechnology/codeforlife-package-python/commit/5368bc3fe6f87e76d9972cb8ac8fd7f62c177665))
+
 ## v0.13.8 (2024-02-20)
 
 ### Fix
