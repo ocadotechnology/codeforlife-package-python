@@ -8,7 +8,7 @@ import typing as t
 from django.contrib.auth.backends import BaseBackend
 
 from ....request import HttpRequest
-from ...models import User
+from ...models import StudentUser
 
 
 class UsernameAndPasswordAndClassIdBackend(BaseBackend):
@@ -17,28 +17,28 @@ class UsernameAndPasswordAndClassIdBackend(BaseBackend):
     def authenticate(  # type: ignore[override]
         self,
         request: t.Optional[HttpRequest],
-        username: t.Optional[str] = None,
+        first_name: t.Optional[str] = None,
         password: t.Optional[str] = None,
         class_id: t.Optional[str] = None,
         **kwargs
     ):
-        if username is None or password is None or class_id is None:
+        if first_name is None or password is None or class_id is None:
             return None
 
         try:
-            user = User.objects.get(
-                username=username,
+            user = StudentUser.objects.get(
+                first_name=first_name,
                 new_student__class_field__access_code=class_id,
             )
             if user.check_password(password):
                 return user
-        except User.DoesNotExist:
+        except StudentUser.DoesNotExist:
             return None
 
         return None
 
     def get_user(self, user_id: int):
         try:
-            return User.objects.get(id=user_id)
-        except User.DoesNotExist:
+            return StudentUser.objects.get(id=user_id)
+        except StudentUser.DoesNotExist:
             return None

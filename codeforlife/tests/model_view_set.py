@@ -720,20 +720,23 @@ class ModelViewSetClient(APIClient, t.Generic[AnyModel]):
         )
 
     def login_student(
-        self, class_id: str, username: str, password: str = "password"
+        self, class_id: str, first_name: str, password: str = "password"
     ):
         """Log in a user and assert they are a student.
 
         Args:
             class_id: The ID of the class the student belongs to.
-            username: The user's username.
+            first_name: The user's first name.
             password: The user's password.
 
         Returns:
             The student-user.
         """
         return self._login_user_type(
-            StudentUser, username=username, password=password, class_id=class_id
+            StudentUser,
+            first_name=first_name,
+            password=password,
+            class_id=class_id,
         )
 
     def login_indy(self, email: str, password: str = "password"):
@@ -773,7 +776,7 @@ class ModelViewSetClient(APIClient, t.Generic[AnyModel]):
         elif isinstance(user, StudentUser):
             auth_user = self.login_student(
                 user.student.class_field.access_code,
-                user.username,
+                user.first_name,
                 password,
             )
         elif isinstance(user, IndependentUser):
