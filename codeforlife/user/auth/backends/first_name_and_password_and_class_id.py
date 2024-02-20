@@ -11,8 +11,8 @@ from ....request import HttpRequest
 from ...models import StudentUser
 
 
-class UsernameAndPasswordAndClassIdBackend(BaseBackend):
-    """Authenticate a student using their username, password and class ID."""
+class FirstNameAndPasswordAndClassIdBackend(BaseBackend):
+    """Authenticate a student using their first name, password and class ID."""
 
     def authenticate(  # type: ignore[override]
         self,

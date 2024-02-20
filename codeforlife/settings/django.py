@@ -28,7 +28,7 @@ AUTHENTICATION_BACKENDS = [
     "codeforlife.user.auth.backends.OtpBackend",
     "codeforlife.user.auth.backends.OtpBypassTokenBackend",
     "codeforlife.user.auth.backends.UserIdAndLoginIdBackend",
-    "codeforlife.user.auth.backends.UsernameAndPasswordAndClassIdBackend",
+    "codeforlife.user.auth.backends.FirstNameAndPasswordAndClassIdBackend",
 ]
 
 # Sessions
