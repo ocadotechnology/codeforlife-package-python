@@ -3,6 +3,7 @@
 Created on 05/02/2024 at 09:50:04(+00:00).
 """
 
+import string
 import typing as t
 
 from common.models import UserProfile
@@ -11,11 +12,13 @@ from common.models import UserProfile
 from django.contrib.auth.models import User as _User
 from django.contrib.auth.models import UserManager
 from django.db.models.query import QuerySet
+from django.utils.crypto import get_random_string
 from django.utils.translation import gettext_lazy as _
 from django_stubs_ext.db.models import TypedModelMeta
 from pyotp import TOTP
 
 from . import auth_factor, otp_bypass_token, session
+from .klass import Class
 from .student import Independent, Student
 from .teacher import (
     AdminSchoolTeacher,
@@ -106,6 +109,7 @@ class TeacherUserManager(UserManager[AnyUser], t.Generic[AnyUser]):
             super()
             .get_queryset()
             .filter(new_teacher__isnull=False, new_student__isnull=True)
+            .prefetch_related("new_teacher")
         )
 
 
@@ -213,6 +217,40 @@ class NonSchoolTeacherUser(User):
 
 # pylint: disable-next=missing-class-docstring,too-few-public-methods
 class StudentUserManager(UserManager["StudentUser"]):
+    def create_user(  # type: ignore[override]
+        self,
+        first_name: str,
+        klass: Class,
+        **extra_fields,
+    ):
+        """Create a student-user."""
+        username = None
+        while username is None or self.filter(username=username).exists():
+            username = get_random_string(length=30)
+
+        # pylint: disable-next=protected-access
+        password = StudentUser._get_random_password()
+
+        user = super().create_user(
+            **extra_fields,
+            first_name=first_name,
+            username=username,
+            password=password,
+        )
+
+        # pylint: disable-next=protected-access
+        user._password = password
+
+        Student.objects.create(
+            class_field=klass,
+            user=UserProfile.objects.create(user=user),
+            new_user=user,
+            # pylint: disable-next=protected-access
+            login_id=StudentUser._get_random_login_id(),
+        )
+
+        return user
+
     # pylint: disable-next=missing-function-docstring
     def get_queryset(self):
         return (
@@ -224,6 +262,7 @@ class StudentUserManager(UserManager["StudentUser"]):
                 # TODO: remove in new model
                 new_student__class_field__isnull=False,
             )
+            .prefetch_related("new_student")
         )
 
 
@@ -239,6 +278,27 @@ class StudentUser(User):
     objects: StudentUserManager = (  # type: ignore[misc]
         StudentUserManager()  # type: ignore[assignment]
     )
+
+    @staticmethod
+    def _get_random_password():
+        return get_random_string(length=6, allowed_chars=string.ascii_lowercase)
+
+    # TODO: move this is to Student model in new schema.
+    @staticmethod
+    def _get_random_login_id():
+        login_id = None
+        while (
+            login_id is None
+            or Student.objects.filter(login_id=login_id).exists()
+        ):
+            login_id = get_random_string(length=64)
+
+        return login_id
+
+    # pylint: disable-next=arguments-differ
+    def set_password(self):
+        super().set_password(self._get_random_password())
+        self.student.login_id = self._get_random_login_id()
 
 
 # pylint: disable-next=missing-class-docstring,too-few-public-methods

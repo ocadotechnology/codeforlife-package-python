@@ -72,17 +72,6 @@ class ModelViewSetClient(APIClient, t.Generic[AnyModel]):
         # pylint: disable-next=no-member
         return self._test_case.model_view_set_class
 
-    @property
-    def _lookup_field(self):
-        """Resolves the field to lookup the model."""
-
-        lookup_field = self._model_view_set_class.lookup_field
-        return (
-            self._model_class._meta.pk.attname
-            if lookup_field == "pk"
-            else lookup_field
-        )
-
     StatusCodeAssertion = t.Optional[t.Union[int, t.Callable[[int], bool]]]
     ListFilters = t.Optional[t.Dict[str, str]]
 
@@ -236,7 +225,7 @@ class ModelViewSetClient(APIClient, t.Generic[AnyModel]):
 
     def _assert_create(self, json_model: JsonDict, action: str):
         model = self._model_class.objects.get(
-            **{self._lookup_field: json_model["id"]}
+            **{self._model_view_set_class.lookup_field: json_model["id"]}
         )
         self._assert_serialized_model_equals_json_model(
             model, json_model, action, request_method="post"
@@ -523,7 +512,9 @@ class ModelViewSetClient(APIClient, t.Generic[AnyModel]):
 
             def _make_assertions(json_models: t.List[JsonDict]):
                 models.sort(
-                    key=lambda model: getattr(model, self._lookup_field)
+                    key=lambda model: getattr(
+                        model, self._model_view_set_class.lookup_field
+                    )
                 )
                 for model, json_model in zip(models, json_models):
                     self._assert_partial_update(
@@ -536,7 +527,7 @@ class ModelViewSetClient(APIClient, t.Generic[AnyModel]):
 
     def _assert_destroy(self, lookup_values: t.List):
         assert not self._model_class.objects.filter(
-            **{f"{self._lookup_field}__in": lookup_values}
+            **{f"{self._model_view_set_class.lookup_field}__in": lookup_values}
         ).exists()
 
     def destroy(

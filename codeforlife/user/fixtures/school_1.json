@@ -1,0 +1,112 @@
+[
+  {
+    "model": "common.school",
+    "pk": 2,
+    "fields": {
+      "name": "School 1",
+      "country": "GB",
+      "county": "Hertfordshire"
+    }
+  },
+  {
+    "model": "auth.user",
+    "pk": 23,
+    "fields": {
+      "first_name": "John",
+      "last_name": "Doe",
+      "username": "teacher@school1.com",
+      "email": "teacher@school1.com",
+      "password": "pbkdf2_sha256$720000$Jp50WPBA6WZImUIpj3UcVm$OJWB8+UoW5lLaUkHLYo0cKgMkyRI6qnqVOWxYEsi9T0="
+    }
+  },
+  {
+    "model": "common.userprofile",
+    "pk": 23,
+    "fields": {
+      "user": 23,
+      "is_verified": true
+    }
+  },
+  {
+    "model": "common.teacher",
+    "pk": 6,
+    "fields": {
+      "user": 23,
+      "new_user": 23,
+      "school": 2
+    }
+  },
+  {
+    "model": "common.class",
+    "pk": 6,
+    "fields": {
+      "name": "Class 1 @ School 1",
+      "access_code": "ZZ111",
+      "teacher": 6
+    }
+  },
+  {
+    "model": "auth.user",
+    "pk": 27,
+    "fields": {
+      "first_name": "Student1",
+      "username": "111111111111111111111111111111",
+      "password": "pbkdf2_sha256$720000$Jp50WPBA6WZImUIpj3UcVm$OJWB8+UoW5lLaUkHLYo0cKgMkyRI6qnqVOWxYEsi9T0="
+    }
+  },
+  {
+    "model": "common.userprofile",
+    "pk": 27,
+    "fields": {
+      "user": 27,
+      "is_verified": true
+    }
+  },
+  {
+    "model": "common.student",
+    "pk": 17,
+    "fields": {
+      "user": 27,
+      "new_user": 27,
+      "class_field": 6
+    }
+  },
+  {
+    "model": "auth.user",
+    "pk": 24,
+    "fields": {
+      "first_name": "Jane",
+      "last_name": "Doe",
+      "username": "admin.teacher@school1.com",
+      "email": "admin.teacher@school1.com",
+      "password": "pbkdf2_sha256$720000$Jp50WPBA6WZImUIpj3UcVm$OJWB8+UoW5lLaUkHLYo0cKgMkyRI6qnqVOWxYEsi9T0="
+    }
+  },
+  {
+    "model": "common.userprofile",
+    "pk": 24,
+    "fields": {
+      "user": 24,
+      "is_verified": true
+    }
+  },
+  {
+    "model": "common.teacher",
+    "pk": 7,
+    "fields": {
+      "user": 24,
+      "new_user": 24,
+      "school": 2,
+      "is_admin": true
+    }
+  },
+  {
+    "model": "common.class",
+    "pk": 7,
+    "fields": {
+      "name": "Class 2 @ School 1",
+      "access_code": "ZZ222",
+      "teacher": 7
+    }
+  }
+]

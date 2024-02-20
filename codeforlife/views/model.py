@@ -146,9 +146,7 @@ class ModelViewSet(APIView, _ModelViewSet[AnyModel], t.Generic[AnyModel]):
             A HTTP response containing a list of partially updated models.
         """
         # pylint: enable=line-too-long
-        queryset = self._get_bulk_queryset(
-            [data[self.lookup_field_name] for data in request.data]
-        )
+        queryset = self._get_bulk_queryset(request.data.keys())
         serializer = t.cast(
             ModelListSerializer[AnyModel],
             self.get_serializer(

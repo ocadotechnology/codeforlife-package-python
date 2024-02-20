@@ -1,0 +1,29 @@
+[
+  {
+    "model": "auth.user",
+    "pk": 22,
+    "fields": {
+      "first_name": "John",
+      "last_name": "Doe",
+      "username": "teacher@noschool.com",
+      "email": "teacher@noschool.com",
+      "password": "pbkdf2_sha256$720000$Jp50WPBA6WZImUIpj3UcVm$OJWB8+UoW5lLaUkHLYo0cKgMkyRI6qnqVOWxYEsi9T0="
+    }
+  },
+  {
+    "model": "common.userprofile",
+    "pk": 22,
+    "fields": {
+      "user": 22,
+      "is_verified": true
+    }
+  },
+  {
+    "model": "common.teacher",
+    "pk": 5,
+    "fields": {
+      "user": 22,
+      "new_user": 22
+    }
+  }
+]

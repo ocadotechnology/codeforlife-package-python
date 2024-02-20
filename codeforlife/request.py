@@ -1,3 +1,10 @@
+"""
+© Ocado Group
+Created on 19/02/2024 at 15:28:22(+00:00).
+
+Override default request objects.
+"""
+
 import typing as t
 
 from django.contrib.auth.models import AnonymousUser
@@ -9,16 +16,19 @@ from .user.models import User
 from .user.models.session import SessionStore
 
 
+# pylint: disable-next=missing-class-docstring
 class WSGIRequest(_WSGIRequest):
     session: SessionStore
     user: t.Union[User, AnonymousUser]
 
 
+# pylint: disable-next=missing-class-docstring
 class HttpRequest(_HttpRequest):
     session: SessionStore
     user: t.Union[User, AnonymousUser]
 
 
+# pylint: disable-next=missing-class-docstring,abstract-method
 class Request(_Request):
     session: SessionStore
     user: t.Union[User, AnonymousUser]

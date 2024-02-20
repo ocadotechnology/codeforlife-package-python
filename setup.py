@@ -8,21 +8,43 @@ Setup the Code for Life package during installation.
 import json
 import os
 import typing as t
+from pathlib import Path
 
 from setuptools import find_packages, setup  # type: ignore[import-untyped]
 
 from codeforlife import DATA_DIR, __version__
+from codeforlife.user import FIXTURES_DIR as USER_FIXTURES_DIR
+
+# Get the absolute path of the package.
+PACKAGE_DIR = os.path.dirname(__file__)
 
 with open("README.md", "r", encoding="utf-8") as readme:
     long_description = readme.read()
 
+
 # Walk through data directory and get relative file paths.
-data_files, root_dir = [], os.path.dirname(__file__)
-for dir_path, dir_names, file_names in os.walk(DATA_DIR):
-    rel_data_dir = os.path.relpath(dir_path, root_dir)
-    data_files += [
-        os.path.join(rel_data_dir, file_name) for file_name in file_names
-    ]
+def get_data_files(target_dir: Path):
+    """Get the path of all files in a target directory relative to where they
+    are located in the package. All subdirectories will be walked.
+
+    Args:
+        target_dir: The directory within the package to walk.
+
+    Returns:
+        A tuple where the values are (the absolute path to the target directory,
+        the paths of all files within the target directory relative to their
+        location in the package).
+    """
+    relative_file_paths: t.List[str] = []
+    for dir_path, _, file_names in os.walk(target_dir):
+        # Get the relative directory of the current directory.
+        relative_dir = os.path.relpath(dir_path, PACKAGE_DIR)
+        # Get the relative file path for each file in the current directory.
+        relative_file_paths += [
+            os.path.join(relative_dir, file_name) for file_name in file_names
+        ]
+
+    return str(target_dir), relative_file_paths
 
 
 def parse_requirements(packages: t.Dict[str, t.Dict[str, t.Any]]):
@@ -68,7 +90,7 @@ setup(
     url="https://github.com/ocadotechnology/codeforlife-package-python",
     packages=find_packages(exclude=["tests", "tests.*"]),
     include_package_data=True,
-    data_files=[(str(DATA_DIR), data_files)],
+    data_files=[get_data_files(DATA_DIR), get_data_files(USER_FIXTURES_DIR)],
     package_data={"codeforlife": ["py.typed"]},
     python_requires="==3.8.*",
     install_requires=install_requires,

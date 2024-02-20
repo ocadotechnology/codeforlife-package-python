@@ -12,10 +12,15 @@ from rest_framework.serializers import ListSerializer as _ListSerializer
 from rest_framework.serializers import ModelSerializer as _ModelSerializer
 from rest_framework.serializers import ValidationError as _ValidationError
 
-from ..types import DataDict
+from ..types import DataDict, OrderedDataDict
 from .base import BaseSerializer
 
 AnyModel = t.TypeVar("AnyModel", bound=Model)
+
+
+BulkCreateDataList = t.List[DataDict]
+BulkUpdateDataDict = t.Dict[t.Any, DataDict]
+Data = t.Union[BulkCreateDataList, BulkUpdateDataDict]
 
 
 class ModelSerializer(
@@ -129,9 +134,6 @@ class ModelListSerializer(
         Returns:
             The models.
         """
-        instance.sort(key=lambda model: getattr(model, self.view.lookup_field))
-        validated_data.sort(key=lambda data: data[self.view.lookup_field_name])
-
         # Models and data must have equal length and be ordered the same!
         for model, data in zip(instance, validated_data):
             for field, value in data.items():
@@ -150,16 +152,50 @@ class ModelListSerializer(
         # If performing a bulk create.
         if self.instance is None:
             if len(attrs) == 0:
-                raise _ValidationError("Nothing to create.")
+                raise _ValidationError(
+                    "Nothing to create.",
+                    code="nothing_to_create",
+                )
 
         # Else, performing a bulk update.
         else:
             if len(attrs) == 0:
-                raise _ValidationError("Nothing to update.")
+                raise _ValidationError(
+                    "Nothing to update.",
+                    code="nothing_to_update",
+                )
             if len(attrs) != len(self.instance):
-                raise _ValidationError("Some models do not exist.")
+                raise _ValidationError(
+                    "Some models do not exist.",
+                    code="models_do_not_exist",
+                )
 
         return attrs
+
+    def to_internal_value(self, data: Data):
+        # If performing a bulk create.
+        if self.instance is None:
+            data = t.cast(BulkCreateDataList, data)
+
+            return t.cast(
+                t.List[OrderedDataDict],
+                super().to_internal_value(data),
+            )
+
+        # Else, performing a bulk update.
+        data = t.cast(BulkUpdateDataDict, data)
+        data_items = list(data.items())
+
+        # Models and data are required to be sorted by the lookup field.
+        data_items.sort(key=lambda item: item[0])
+        self.instance.sort(
+            key=lambda model: getattr(model, self.view.lookup_field)
+        )
+
+        return t.cast(
+            t.List[OrderedDataDict],
+            super().to_internal_value([item[1] for item in data_items]),
+        )
 
     # pylint: disable-next=useless-parent-delegation,arguments-renamed
     def to_representation(self, instance: t.List[AnyModel]) -> t.List[DataDict]:
