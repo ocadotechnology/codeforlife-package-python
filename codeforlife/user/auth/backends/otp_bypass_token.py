@@ -26,7 +26,7 @@ class OtpBypassTokenBackend(BaseBackend):
             token is None
             or request is None
             or not isinstance(request.user, User)
-            or not request.user.session.session_auth_factors.filter(
+            or not request.user.session.auth_factors.filter(
                 auth_factor__type=AuthFactor.Type.OTP
             ).exists()
         ):
@@ -35,7 +35,7 @@ class OtpBypassTokenBackend(BaseBackend):
         for otp_bypass_token in request.user.otp_bypass_tokens.all():
             if otp_bypass_token.check_token(token):
                 # Delete OTP auth factor from session.
-                request.user.session.session_auth_factors.filter(
+                request.user.session.auth_factors.filter(
                     auth_factor__type=AuthFactor.Type.OTP
                 ).delete()
 

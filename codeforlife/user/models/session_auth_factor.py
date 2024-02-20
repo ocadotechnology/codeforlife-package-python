@@ -1,18 +1,24 @@
+"""
+© Ocado Group
+Created on 20/02/2024 at 15:36:28(+00:00).
+"""
+
 from django.db import models
 
-from . import auth_factor, session
+from .auth_factor import AuthFactor
+from .session import Session
 
 
 class SessionAuthFactor(models.Model):
-    session: "session.Session" = models.ForeignKey(
-        "user.Session",
-        related_name="session_auth_factors",
+    session = models.ForeignKey(
+        Session,
+        related_name="auth_factors",
         on_delete=models.CASCADE,
     )
 
-    auth_factor: "auth_factor.AuthFactor" = models.ForeignKey(
-        "user.AuthFactor",
-        related_name="session_auth_factors",
+    auth_factor = models.ForeignKey(
+        AuthFactor,
+        related_name="sessions",
         on_delete=models.CASCADE,
     )
 

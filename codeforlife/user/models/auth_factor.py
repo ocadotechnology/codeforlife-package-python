@@ -1,15 +1,28 @@
+"""
+© Ocado Group
+Created on 20/02/2024 at 15:41:36(+00:00).
+"""
+
+import typing as t
+
 from django.db import models
+from django.db.models.query import QuerySet
 from django.utils.translation import gettext_lazy as _
 
-from . import user
+from .user import User
+
+if t.TYPE_CHECKING:
+    from .session_auth_factor import SessionAuthFactor
 
 
 class AuthFactor(models.Model):
+    sessions: QuerySet["SessionAuthFactor"]
+
     class Type(models.TextChoices):
         OTP = "otp", _("one-time password")
 
-    user: "user.User" = models.ForeignKey(
-        "user.User",
+    user = models.ForeignKey(
+        User,
         related_name="auth_factors",
         on_delete=models.CASCADE,
     )

@@ -6,11 +6,10 @@ Created on 01/02/2024 at 14:44:16(+00:00).
 import typing as t
 
 from common.helpers.generators import get_hashed_login_id
-from common.models import Student
 from django.contrib.auth.backends import BaseBackend
 
 from ....request import HttpRequest
-from ...models import User
+from ...models import Student, StudentUser
 
 
 class UserIdAndLoginIdBackend(BaseBackend):
@@ -41,6 +40,6 @@ class UserIdAndLoginIdBackend(BaseBackend):
 
     def get_user(self, user_id: int):
         try:
-            return User.objects.get(id=user_id)
-        except User.DoesNotExist:
+            return StudentUser.objects.get(id=user_id)
+        except StudentUser.DoesNotExist:
             return None
