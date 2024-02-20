@@ -24,12 +24,12 @@ class SchoolViewSet(ModelViewSet[School]):
 
     # pylint: disable-next=missing-function-docstring
     def get_queryset(self):
-        user = self.request_user
+        user = self.request.auth_user
         if user.student:
             return School.objects.filter(
                 # TODO: should be user.student.school_id
                 id=user.student.class_field.teacher.school_id
             )
 
-        user = self.request_school_teacher_user
+        user = self.request.school_teacher_user
         return School.objects.filter(id=user.teacher.school_id)

@@ -101,6 +101,29 @@ class User(_User):
             issuer_name="Code for Life",
         )
 
+    def as_type(self, typed_user_class: t.Type["AnyTypedUser"]):
+        """Convert this generic user to a typed user.
+
+        Args:
+            typed_user_class: The type of user to convert to.
+
+        Returns:
+            An instance of the typed user.
+        """
+        return typed_user_class(
+            pk=self.pk,
+            first_name=self.first_name,
+            last_name=self.last_name,
+            username=self.username,
+            is_active=self.is_active,
+            email=self.email,
+            is_staff=self.is_staff,
+            date_joined=self.date_joined,
+            is_superuser=self.is_superuser,
+            password=self.password,
+            last_login=self.last_login,
+        )
+
 
 AnyUser = t.TypeVar("AnyUser", bound=User)
 
