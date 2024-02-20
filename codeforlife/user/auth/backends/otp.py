@@ -29,7 +29,7 @@ class OtpBackend(BaseBackend):
             or request is None
             or not isinstance(request.user, User)
             or not request.user.userprofile.otp_secret
-            or not request.user.session.session_auth_factors.filter(
+            or not request.user.session.auth_factors.filter(
                 auth_factor__type=AuthFactor.Type.OTP
             ).exists()
         ):
@@ -47,7 +47,7 @@ class OtpBackend(BaseBackend):
             user.userprofile.save()
 
             # Delete OTP auth factor from session.
-            user.session.session_auth_factors.filter(
+            user.session.auth_factors.filter(
                 auth_factor__type=AuthFactor.Type.OTP
             ).delete()
 

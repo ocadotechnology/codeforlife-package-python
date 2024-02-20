@@ -611,13 +611,15 @@ class ModelViewSetClient(APIClient, t.Generic[AnyModel]):
         return response
 
     def _login_user_type(self, user_type: t.Type[AnyUser], **credentials):
+        # Logout current user (if any) before logging in next user.
+        self.logout()
         assert super().login(
             **credentials
         ), f"Failed to login with credentials: {credentials}."
 
         user = user_type.objects.get(session=self.session.session_key)
 
-        if user.session.session_auth_factors.filter(
+        if user.session.auth_factors.filter(
             auth_factor__type=AuthFactor.Type.OTP
         ).exists():
             request = self.request_factory.request()
