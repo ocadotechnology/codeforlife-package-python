@@ -1,14 +1,12 @@
+"""
+© Ocado Group
+Created on 20/02/2024 at 09:28:26(+00:00).
+"""
+
 from pathlib import Path
-
-
-BASE_DIR = Path(__file__).resolve().parent
-DATA_DIR = BASE_DIR.joinpath("data")
-
 
 from .version import __version__
 
-from . import (
-    kurono,
-    service,
-    user,
-)
+BASE_DIR = Path(__file__).resolve().parent
+DATA_DIR = BASE_DIR.joinpath("data")
+USER_DIR = BASE_DIR.joinpath("user")
