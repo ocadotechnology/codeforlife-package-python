@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.13.8 (2024-02-20)
+
+### Fix
+
+* Reset students password ([#88](https://github.com/ocadotechnology/codeforlife-package-python/issues/88)) ([`7ad1dff`](https://github.com/ocadotechnology/codeforlife-package-python/commit/7ad1dff705bd1af23f082e6e9c8a000d92c11d78))
+
 ## v0.13.7 (2024-02-16)
 
 ### Fix
