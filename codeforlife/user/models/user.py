@@ -240,18 +240,12 @@ class StudentUserManager(UserManager["StudentUser"]):
         # pylint: disable-next=protected-access
         user._password = password
 
-        login_id = None
-        while (
-            login_id is None
-            or Student.objects.filter(login_id=login_id).exists()
-        ):
-            login_id = get_random_string(length=64)
-
         Student.objects.create(
             class_field=klass,
             user=UserProfile.objects.create(user=user),
             new_user=user,
-            login_id=login_id,
+            # pylint: disable-next=protected-access
+            login_id=StudentUser._get_random_login_id(),
         )
 
         return user
@@ -287,9 +281,22 @@ class StudentUser(User):
     def _get_random_password():
         return get_random_string(length=6, allowed_chars=string.ascii_lowercase)
 
+    # TODO: move this is to Student model in new schema.
+    @staticmethod
+    def _get_random_login_id():
+        login_id = None
+        while (
+            login_id is None
+            or Student.objects.filter(login_id=login_id).exists()
+        ):
+            login_id = get_random_string(length=64)
+
+        return login_id
+
     # pylint: disable-next=arguments-differ
     def set_password(self):
-        return super().set_password(self._get_random_password())
+        super().set_password(self._get_random_password())
+        self.student.login_id = self._get_random_login_id()
 
 
 # pylint: disable-next=missing-class-docstring,too-few-public-methods
