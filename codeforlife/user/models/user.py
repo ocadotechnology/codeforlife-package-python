@@ -161,7 +161,7 @@ class SchoolTeacherUserManager(TeacherUserManager[AnyUser], t.Generic[AnyUser]):
         return super().get_queryset().filter(new_teacher__school__isnull=False)
 
 
-class SchoolTeacherUser(User):
+class SchoolTeacherUser(TeacherUser):
     """A user that is a teacher in a school."""
 
     teacher: SchoolTeacher
@@ -184,7 +184,8 @@ class AdminSchoolTeacherUserManager(
         return super().get_queryset().filter(new_teacher__is_admin=True)
 
 
-class AdminSchoolTeacherUser(User):
+# pylint: disable-next=too-many-ancestors
+class AdminSchoolTeacherUser(SchoolTeacherUser):
     """A user that is an admin-teacher in a school."""
 
     teacher: AdminSchoolTeacher
@@ -207,7 +208,8 @@ class NonAdminSchoolTeacherUserManager(
         return super().get_queryset().filter(new_teacher__is_admin=False)
 
 
-class NonAdminSchoolTeacherUser(User):
+# pylint: disable-next=too-many-ancestors
+class NonAdminSchoolTeacherUser(SchoolTeacherUser):
     """A user that is a non-admin-teacher in a school."""
 
     teacher: NonAdminSchoolTeacher
@@ -228,7 +230,7 @@ class NonSchoolTeacherUserManager(TeacherUserManager["NonSchoolTeacherUser"]):
         return super().get_queryset().filter(new_teacher__school__isnull=True)
 
 
-class NonSchoolTeacherUser(User):
+class NonSchoolTeacherUser(TeacherUser):
     """A user that is a teacher not in a school."""
 
     teacher: NonSchoolTeacher
