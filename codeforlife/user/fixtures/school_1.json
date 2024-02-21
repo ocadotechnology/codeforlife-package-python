@@ -106,7 +106,18 @@
     "fields": {
       "name": "Class 2 @ School 1",
       "access_code": "ZZ222",
-      "teacher": 7
+      "teacher": 7,
+      "accept_requests_until": "9999-02-09 20:26:08.298402+00:00"
+    }
+  },
+  {
+    "model": "common.class",
+    "pk": 10,
+    "fields": {
+      "name": "Class 3 @ School 1",
+      "access_code": "ZZ333",
+      "teacher": 7,
+      "accept_requests_until": "2023-02-09 20:26:08.298402+00:00"
     }
   }
 ]
