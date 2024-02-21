@@ -100,6 +100,40 @@ class ModelViewSet(APIView, _ModelViewSet[AnyModel], t.Generic[AnyModel]):
 
         return serializer
 
+    # pylint: disable-next=useless-parent-delegation
+    def destroy(  # type: ignore[override]
+        self, request: Request, *args, **kwargs
+    ):
+        return super().destroy(request, *args, **kwargs)
+
+    # pylint: disable-next=useless-parent-delegation
+    def create(  # type: ignore[override]
+        self, request: Request, *args, **kwargs
+    ):
+        return super().create(request, *args, **kwargs)
+
+    # pylint: disable-next=useless-parent-delegation
+    def list(self, request: Request, *args, **kwargs):  # type: ignore[override]
+        return super().list(request, *args, **kwargs)
+
+    # pylint: disable-next=useless-parent-delegation
+    def retrieve(  # type: ignore[override]
+        self, request: Request, *args, **kwargs
+    ):
+        return super().retrieve(request, *args, **kwargs)
+
+    # pylint: disable-next=useless-parent-delegation
+    def update(  # type: ignore[override]
+        self, request: Request, *args, **kwargs
+    ):
+        return super().update(request, *args, **kwargs)
+
+    # pylint: disable-next=useless-parent-delegation
+    def partial_update(  # type: ignore[override]
+        self, request: Request, *args, **kwargs
+    ):
+        return super().partial_update(request, *args, **kwargs)
+
     def bulk_create(self, request: Request):
         """Bulk create many instances of a model.
 

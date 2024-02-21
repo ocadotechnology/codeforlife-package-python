@@ -99,6 +99,29 @@ class User(_User):
             issuer_name="Code for Life",
         )
 
+    def as_type(self, typed_user_class: t.Type["AnyTypedUser"]):
+        """Convert this generic user to a typed user.
+
+        Args:
+            typed_user_class: The type of user to convert to.
+
+        Returns:
+            An instance of the typed user.
+        """
+        return typed_user_class(
+            pk=self.pk,
+            first_name=self.first_name,
+            last_name=self.last_name,
+            username=self.username,
+            is_active=self.is_active,
+            email=self.email,
+            is_staff=self.is_staff,
+            date_joined=self.date_joined,
+            is_superuser=self.is_superuser,
+            password=self.password,
+            last_login=self.last_login,
+        )
+
 
 AnyUser = t.TypeVar("AnyUser", bound=User)
 
@@ -136,7 +159,7 @@ class SchoolTeacherUserManager(TeacherUserManager[AnyUser], t.Generic[AnyUser]):
         return super().get_queryset().filter(new_teacher__school__isnull=False)
 
 
-class SchoolTeacherUser(User):
+class SchoolTeacherUser(TeacherUser):
     """A user that is a teacher in a school."""
 
     teacher: SchoolTeacher
@@ -159,7 +182,8 @@ class AdminSchoolTeacherUserManager(
         return super().get_queryset().filter(new_teacher__is_admin=True)
 
 
-class AdminSchoolTeacherUser(User):
+# pylint: disable-next=too-many-ancestors
+class AdminSchoolTeacherUser(SchoolTeacherUser):
     """A user that is an admin-teacher in a school."""
 
     teacher: AdminSchoolTeacher
@@ -182,7 +206,8 @@ class NonAdminSchoolTeacherUserManager(
         return super().get_queryset().filter(new_teacher__is_admin=False)
 
 
-class NonAdminSchoolTeacherUser(User):
+# pylint: disable-next=too-many-ancestors
+class NonAdminSchoolTeacherUser(SchoolTeacherUser):
     """A user that is a non-admin-teacher in a school."""
 
     teacher: NonAdminSchoolTeacher
@@ -203,7 +228,7 @@ class NonSchoolTeacherUserManager(TeacherUserManager["NonSchoolTeacherUser"]):
         return super().get_queryset().filter(new_teacher__school__isnull=True)
 
 
-class NonSchoolTeacherUser(User):
+class NonSchoolTeacherUser(TeacherUser):
     """A user that is a teacher not in a school."""
 
     teacher: NonSchoolTeacher

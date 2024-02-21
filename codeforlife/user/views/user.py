@@ -19,7 +19,7 @@ class UserViewSet(ModelViewSet[User]):
 
     # pylint: disable-next=missing-function-docstring
     def get_queryset(self):
-        user = self.request_user
+        user = self.request.auth_user
         if user.student:
             if user.student.class_field is None:
                 return User.objects.filter(id=user.id)
@@ -33,7 +33,7 @@ class UserViewSet(ModelViewSet[User]):
 
             return teachers | students
 
-        user = self.request_teacher_user
+        user = self.request.teacher_user
         if user.teacher.school:
             teachers = User.objects.filter(
                 new_teacher__school=user.teacher.school_id

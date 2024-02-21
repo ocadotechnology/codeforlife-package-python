@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.13.10 (2024-02-21)
+
+### Fix
+
+* Anonymize user ([#90](https://github.com/ocadotechnology/codeforlife-package-python/issues/90)) ([`45eba67`](https://github.com/ocadotechnology/codeforlife-package-python/commit/45eba6761e50f5c645edea9f3982eeb5621187cd))
+
 ## v0.13.9 (2024-02-20)
 
 ### Fix
