@@ -13,7 +13,7 @@ from django.core.validators import MinLengthValidator
 from django.db import models
 from django.utils.crypto import get_random_string
 
-from . import user
+from .user import User
 
 
 class OtpBypassToken(models.Model):
@@ -25,10 +25,10 @@ class OtpBypassToken(models.Model):
     )
 
     class Manager(models.Manager["OtpBypassToken"]):
-        def create(self, token: str, **kwargs):
+        def create(self, token: str, **kwargs):  # type: ignore[override]
             return super().create(token=make_password(token), **kwargs)
 
-        def bulk_create(
+        def bulk_create(  # type: ignore[override]
             self,
             otp_bypass_tokens: t.List["OtpBypassToken"],
             *args,
@@ -53,8 +53,8 @@ class OtpBypassToken(models.Model):
 
     objects: Manager = Manager()
 
-    user: "user.User" = models.ForeignKey(
-        "user.User",
+    user = models.ForeignKey(
+        User,
         related_name="otp_bypass_tokens",
         on_delete=models.CASCADE,
     )

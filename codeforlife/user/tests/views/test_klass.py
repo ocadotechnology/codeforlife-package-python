@@ -24,7 +24,7 @@ class TestClassViewSet(ModelViewSetTestCase[Class]):
 
     def _login_student(self):
         return self.client.login_student(
-            username="leonardodavinci@codeforlife.com",
+            first_name="Leonardo",
             password="Password1",
             class_id="AB123",
         )

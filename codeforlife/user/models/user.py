@@ -17,7 +17,6 @@ from django.utils.translation import gettext_lazy as _
 from django_stubs_ext.db.models import TypedModelMeta
 from pyotp import TOTP
 
-from . import auth_factor, otp_bypass_token, session
 from .klass import Class
 from .student import Independent, Student
 from .teacher import (
@@ -28,16 +27,19 @@ from .teacher import (
     Teacher,
 )
 
+if t.TYPE_CHECKING:
+    from .auth_factor import AuthFactor
+    from .otp_bypass_token import OtpBypassToken
+    from .session import Session
+
 
 class User(_User):
     _password: t.Optional[str]
 
     id: int  # type: ignore[assignment]
-    auth_factors: QuerySet["auth_factor.AuthFactor"]  # type: ignore[assignment]
-    otp_bypass_tokens: QuerySet[  # type: ignore[assignment]
-        "otp_bypass_token.OtpBypassToken"
-    ]
-    session: "session.Session"  # type: ignore[assignment]
+    auth_factors: QuerySet["AuthFactor"]  # type: ignore[assignment]
+    otp_bypass_tokens: QuerySet["OtpBypassToken"]  # type: ignore[assignment]
+    session: "Session"  # type: ignore[assignment]
     userprofile: UserProfile
 
     class Meta(TypedModelMeta):
@@ -48,10 +50,12 @@ class User(_User):
         """
         Check if the user has any pending auth factors.
         """
+        # pylint: disable-next=import-outside-toplevel
+        from .session import Session
 
         try:
-            return not self.session.session_auth_factors.exists()
-        except session.Session.DoesNotExist:
+            return not self.session.auth_factors.exists()
+        except Session.DoesNotExist:
             return False
 
     @property

@@ -1,22 +1,7 @@
-# from django.db import models
-# from django.utils import timezone
-
-# from .classroom import Class
-# from .school import School
-# from .user import User
-
-
-# class UserSession(models.Model):
-#     user = models.ForeignKey(User, on_delete=models.CASCADE)
-#     login_time = models.DateTimeField(default=timezone.now)
-#     school = models.ForeignKey(School, null=True, on_delete=models.SET_NULL)
-#     class_field = models.ForeignKey(Class, null=True, on_delete=models.SET_NULL)
-#     login_type = models.CharField(
-#         max_length=100, null=True
-#     )  # for student login
-
-#     def __str__(self):
-#         return f"{self.user} login: {self.login_time} type: {self.login_type}"
+"""
+© Ocado Group
+Created on 20/02/2024 at 15:31:38(+00:00).
+"""
 
 import typing as t
 
@@ -27,7 +12,10 @@ from django.db import models
 from django.db.models.query import QuerySet
 from django.utils import timezone
 
-from . import session_auth_factor, user
+from .user import User
+
+if t.TYPE_CHECKING:
+    from .session_auth_factor import SessionAuthFactor
 
 
 class Session(AbstractBaseSession):
@@ -36,10 +24,10 @@ class Session(AbstractBaseSession):
     https://docs.djangoproject.com/en/3.2/topics/http/sessions/#example
     """
 
-    session_auth_factors: QuerySet["session_auth_factor.SessionAuthFactor"]
+    auth_factors: QuerySet["SessionAuthFactor"]
 
-    user: "user.User" = models.OneToOneField(
-        "user.User",
+    user = models.OneToOneField(
+        User,
         null=True,
         blank=True,
         on_delete=models.CASCADE,
@@ -72,33 +60,33 @@ class SessionStore(DBStore):
         return Session
 
     def create_model_instance(self, data):
-        Session = self.get_model_class()
-        session: Session
-
         try:
             user_id = int(data.get(SESSION_KEY))
-
-            try:
-                session = Session.objects.get(user_id=user_id)
-            except Session.DoesNotExist:
-                # Associate session to user.
-                session = Session.objects.get(session_key=self.session_key)
-                session.user = user.User.objects.get(id=user_id)
-                session_auth_factor.SessionAuthFactor.objects.bulk_create(
-                    [
-                        session_auth_factor.SessionAuthFactor(
-                            session=session,
-                            auth_factor=auth_factor,
-                        )
-                        for auth_factor in session.user.auth_factors.all()
-                    ]
-                )
-
-            session.session_data = self.encode(data)
-
         except (ValueError, TypeError):
             # Create an anon session.
-            session = super().create_model_instance(data)
+            return super().create_model_instance(data)
+
+        model_class = self.get_model_class()
+
+        try:
+            session = model_class.objects.get(user_id=user_id)
+        except model_class.DoesNotExist:
+            from .session_auth_factor import SessionAuthFactor
+
+            # Associate session to user.
+            session = model_class.objects.get(session_key=self.session_key)
+            session.user = User.objects.get(id=user_id)
+            SessionAuthFactor.objects.bulk_create(
+                [
+                    SessionAuthFactor(
+                        session=session,
+                        auth_factor=auth_factor,
+                    )
+                    for auth_factor in session.user.auth_factors.all()
+                ]
+            )
+
+        session.session_data = self.encode(data)
 
         return session
 
