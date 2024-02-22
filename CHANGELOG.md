@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.13.13 (2024-02-22)
+
+### Fix
+
+* Add fixtures for join requests ([#91](https://github.com/ocadotechnology/codeforlife-package-python/issues/91)) ([`a705367`](https://github.com/ocadotechnology/codeforlife-package-python/commit/a705367edfc148973b89ce65ea83ec3ba65ed12c))
+
 ## v0.13.12 (2024-02-22)
 
 ### Fix
