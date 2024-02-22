@@ -50,7 +50,6 @@ class Command(BaseCommand):
 
     def write_pks_per_model(self, fixtures: FixtureDict):
         """Write all the sorted primary keys per model."""
-
         self._write_pks_per_model(
             [
                 fixture
@@ -61,7 +60,6 @@ class Command(BaseCommand):
 
     def write_pks_per_file(self, fixtures: FixtureDict):
         """Write all the sorted primary keys per file, per model."""
-
         self.stdout.write("Primary keys per file:")
 
         for file, file_fixtures in fixtures.items():
