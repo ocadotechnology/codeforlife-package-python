@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.13.14 (2024-02-22)
+
+### Fix
+
+* Lower model name ([`0a4f2b4`](https://github.com/ocadotechnology/codeforlife-package-python/commit/0a4f2b46b219c366a4658d4c45d04b7ff0a17e4e))
+
 ## v0.13.13 (2024-02-22)
 
 ### Fix
