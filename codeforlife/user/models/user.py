@@ -13,7 +13,6 @@ from django.contrib.auth.models import User as _User
 from django.contrib.auth.models import UserManager
 from django.db.models.query import QuerySet
 from django.utils.crypto import get_random_string
-from django.utils.translation import gettext_lazy as _
 from django_stubs_ext.db.models import TypedModelMeta
 from pyotp import TOTP
 

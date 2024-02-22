@@ -106,7 +106,44 @@
     "fields": {
       "name": "Class 2 @ School 1",
       "access_code": "ZZ222",
-      "teacher": 7
+      "teacher": 7,
+      "accept_requests_until": "9999-02-09 20:26:08.298402+00:00"
+    }
+  },
+  {
+    "model": "auth.user",
+    "pk": 29,
+    "fields": {
+      "first_name": "Student2",
+      "username": "222222222222222222222222222222",
+      "password": "pbkdf2_sha256$720000$Jp50WPBA6WZImUIpj3UcVm$OJWB8+UoW5lLaUkHLYo0cKgMkyRI6qnqVOWxYEsi9T0="
+    }
+  },
+  {
+    "model": "common.userprofile",
+    "pk": 29,
+    "fields": {
+      "user": 29,
+      "is_verified": true
+    }
+  },
+  {
+    "model": "common.student",
+    "pk": 19,
+    "fields": {
+      "user": 29,
+      "new_user": 29,
+      "class_field": 7
+    }
+  },
+  {
+    "model": "common.class",
+    "pk": 10,
+    "fields": {
+      "name": "Class 3 @ School 1",
+      "access_code": "ZZ333",
+      "teacher": 7,
+      "accept_requests_until": "2023-02-09 20:26:08.298402+00:00"
     }
   }
 ]
