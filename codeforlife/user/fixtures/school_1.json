@@ -112,7 +112,7 @@
   },
   {
     "model": "auth.user",
-    "pk": 30,
+    "pk": 29,
     "fields": {
       "first_name": "Student2",
       "username": "222222222222222222222222222222",
@@ -121,18 +121,18 @@
   },
   {
     "model": "common.userprofile",
-    "pk": 30,
+    "pk": 29,
     "fields": {
-      "user": 30,
+      "user": 29,
       "is_verified": true
     }
   },
   {
     "model": "common.student",
-    "pk": 20,
+    "pk": 19,
     "fields": {
-      "user": 30,
-      "new_user": 30,
+      "user": 29,
+      "new_user": 29,
       "class_field": 7
     }
   },
