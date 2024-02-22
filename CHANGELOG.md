@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.13.11 (2024-02-22)
+
+### Fix
+
+* Summarize fixtures command ([#92](https://github.com/ocadotechnology/codeforlife-package-python/issues/92)) ([`f907192`](https://github.com/ocadotechnology/codeforlife-package-python/commit/f90719215d03e067a571df23ab1ed0b7d7546208))
+
 ## v0.13.10 (2024-02-21)
 
 ### Fix
