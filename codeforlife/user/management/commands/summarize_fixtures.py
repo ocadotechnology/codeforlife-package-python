@@ -36,7 +36,7 @@ class Command(BaseCommand):
 
     def _write_pks_per_model(self, fixtures: t.List[Fixture], indents: int = 0):
         def get_model(fixture: Fixture):
-            return fixture.model
+            return fixture.model.lower()
 
         fixtures.sort(key=get_model)
 
