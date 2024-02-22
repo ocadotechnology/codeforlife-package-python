@@ -12,7 +12,7 @@ KwArgs = t.Dict[str, t.Any]
 
 JsonList = t.List["JsonValue"]
 JsonDict = t.Dict[str, "JsonValue"]
-JsonValue = t.Union[int, str, bool, JsonList, JsonDict]
+JsonValue = t.Union[None, int, str, bool, JsonList, JsonDict]
 
 DataDict = t.Dict[str, t.Any]
 OrderedDataDict = t.OrderedDict[str, t.Any]

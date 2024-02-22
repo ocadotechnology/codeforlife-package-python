@@ -12,6 +12,8 @@ from django_stubs_ext.db.models import TypedModelMeta
 from .school import School
 from .student import Student
 
+AnyTeacher = t.TypeVar("AnyTeacher", bound=Teacher)
+
 
 class SchoolTeacher(Teacher):
     """A teacher that is in a school."""

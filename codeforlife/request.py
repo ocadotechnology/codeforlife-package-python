@@ -12,6 +12,7 @@ from django.core.handlers.wsgi import WSGIRequest as _WSGIRequest
 from django.http import HttpRequest as _HttpRequest
 from rest_framework.request import Request as _Request
 
+from .types import JsonDict, JsonList
 from .user.models import (
     AdminSchoolTeacherUser,
     IndependentUser,
@@ -41,6 +42,7 @@ class HttpRequest(_HttpRequest):
 class Request(_Request):
     session: SessionStore
     user: t.Union[User, AnonymousUser]
+    data: t.Any
 
     @property
     def anon_user(self):
@@ -88,3 +90,13 @@ class Request(_Request):
     def indy_user(self):
         """The authenticated independent-user that made the request."""
         return self.auth_user.as_type(IndependentUser)
+
+    @property
+    def json_dict(self):
+        """The data as a json dictionary."""
+        return t.cast(JsonDict, self.data)
+
+    @property
+    def json_list(self):
+        """The data as a json list."""
+        return t.cast(JsonList, self.data)
