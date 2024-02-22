@@ -7,6 +7,7 @@ import string
 import typing as t
 
 from common.models import UserProfile
+
 # pylint: disable-next=imported-auth-user
 from django.contrib.auth.models import User as _User
 from django.contrib.auth.models import UserManager
