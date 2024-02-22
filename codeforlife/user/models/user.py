@@ -24,6 +24,7 @@ from .teacher import (
     NonSchoolTeacher,
     SchoolTeacher,
     Teacher,
+    teacher_as_type,
 )
 
 if t.TYPE_CHECKING:
@@ -163,7 +164,6 @@ class SchoolTeacherUserManager(TeacherUserManager[AnyUser], t.Generic[AnyUser]):
 class SchoolTeacherUser(TeacherUser):
     """A user that is a teacher in a school."""
 
-    teacher: SchoolTeacher
     student: None
 
     class Meta(TypedModelMeta):
@@ -172,6 +172,10 @@ class SchoolTeacherUser(TeacherUser):
     objects: SchoolTeacherUserManager[  # type: ignore[misc]
         "SchoolTeacherUser"
     ] = SchoolTeacherUserManager()  # type: ignore[assignment]
+
+    @property
+    def teacher(self):
+        return teacher_as_type(super().teacher, SchoolTeacher)
 
 
 # pylint: disable-next=missing-class-docstring,too-few-public-methods
@@ -187,7 +191,6 @@ class AdminSchoolTeacherUserManager(
 class AdminSchoolTeacherUser(SchoolTeacherUser):
     """A user that is an admin-teacher in a school."""
 
-    teacher: AdminSchoolTeacher
     student: None
 
     class Meta(TypedModelMeta):
@@ -196,6 +199,10 @@ class AdminSchoolTeacherUser(SchoolTeacherUser):
     objects: AdminSchoolTeacherUserManager = (  # type: ignore[misc]
         AdminSchoolTeacherUserManager()  # type: ignore[assignment]
     )
+
+    @property
+    def teacher(self):
+        return teacher_as_type(super().teacher, AdminSchoolTeacher)
 
 
 # pylint: disable-next=missing-class-docstring,too-few-public-methods
@@ -211,7 +218,6 @@ class NonAdminSchoolTeacherUserManager(
 class NonAdminSchoolTeacherUser(SchoolTeacherUser):
     """A user that is a non-admin-teacher in a school."""
 
-    teacher: NonAdminSchoolTeacher
     student: None
 
     class Meta(TypedModelMeta):
@@ -220,6 +226,10 @@ class NonAdminSchoolTeacherUser(SchoolTeacherUser):
     objects: NonAdminSchoolTeacherUserManager = (  # type: ignore[misc]
         NonAdminSchoolTeacherUserManager()  # type: ignore[assignment]
     )
+
+    @property
+    def teacher(self):
+        return teacher_as_type(super().teacher, NonAdminSchoolTeacher)
 
 
 # pylint: disable-next=missing-class-docstring,too-few-public-methods
@@ -232,7 +242,6 @@ class NonSchoolTeacherUserManager(TeacherUserManager["NonSchoolTeacherUser"]):
 class NonSchoolTeacherUser(TeacherUser):
     """A user that is a teacher not in a school."""
 
-    teacher: NonSchoolTeacher
     student: None
 
     class Meta(TypedModelMeta):
@@ -241,6 +250,10 @@ class NonSchoolTeacherUser(TeacherUser):
     objects: NonSchoolTeacherUserManager = (  # type: ignore[misc]
         NonSchoolTeacherUserManager()  # type: ignore[assignment]
     )
+
+    @property
+    def teacher(self):
+        return teacher_as_type(super().teacher, NonSchoolTeacher)
 
 
 # pylint: disable-next=missing-class-docstring,too-few-public-methods
