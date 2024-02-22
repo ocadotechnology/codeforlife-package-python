@@ -32,7 +32,7 @@ class Command(BaseCommand):
     help = "Summarizes all the listed fixtures by default"
 
     def add_arguments(self, parser):
-        parser.add_argument("app_labels", nargs="?", type=str)
+        parser.add_argument("app_labels", nargs="*", type=str)
 
     def _write_pks_per_model(self, fixtures: t.List[Fixture], indents: int = 0):
         def get_model(fixture: Fixture):
@@ -68,7 +68,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         fixtures: FixtureDict = {}
-        for app_label in [*(options["app_labels"] or []), "user"]:
+        for app_label in {*options["app_labels"], "user"}:
             app_config = apps.app_configs[app_label]
             fixtures_path = os.path.join(app_config.path, "fixtures")
 
