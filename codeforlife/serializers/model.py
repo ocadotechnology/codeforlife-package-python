@@ -101,6 +101,13 @@ class ModelListSerializer(
             0
         ]
 
+    def __init__(self, *args, **kwargs):
+        instance = args[0] if args else kwargs.pop("instance")
+        if not isinstance(instance, list):
+            instance = list(instance)
+
+        super().__init__(instance, *args[1:], **kwargs)
+
     def create(self, validated_data: t.List[DataDict]) -> t.List[AnyModel]:
         """Bulk create many instances of a model.
 
