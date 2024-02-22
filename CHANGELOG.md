@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.13.12 (2024-02-22)
+
+### Fix
+
+* Args type ([`973eaf8`](https://github.com/ocadotechnology/codeforlife-package-python/commit/973eaf8fce98cec9ebe222a73581472e11703440))
+
 ## v0.13.11 (2024-02-22)
 
 ### Fix
