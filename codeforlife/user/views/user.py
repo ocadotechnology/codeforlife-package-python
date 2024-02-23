@@ -8,13 +8,13 @@ import typing as t
 from ...views import ModelViewSet
 from ..filters import UserFilterSet
 from ..models import AnyUser, User
-from ..serializers import UserSerializer
+from ..serializers import BaseUserSerializer, UserSerializer
 
 
 # pylint: disable-next=missing-class-docstring,too-many-ancestors
 class UserViewSet(ModelViewSet[User]):
     http_method_names = ["get"]
-    serializer_class = UserSerializer
+    serializer_class: t.Type[BaseUserSerializer] = UserSerializer
     filterset_class = UserFilterSet
 
     def get_queryset(
