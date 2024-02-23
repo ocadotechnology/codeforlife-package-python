@@ -176,6 +176,32 @@ class ModelSerializerTestCase(TestCase, t.Generic[AnyModel]):
         data = {**validated_data, **(new_data or {})}
         self._assert_data_is_subset_of_model(data, model)
 
+    def assert_update_many(
+        self,
+        instance: t.List[AnyModel],
+        validated_data: t.List[DataDict],
+        *args,
+        new_data: t.Optional[t.List[DataDict]] = None,
+        **kwargs,
+    ):
+        """Assert that the data used to update the models is a subset of the
+        models' data.
+
+        Args:
+            instance: The model instances to update.
+            validated_data: The data used to update the models.
+            new_data: Any new data that the models may have after updating.
+        """
+        kwargs.pop("many", None)  # many must be True
+        serializer = self._init_model_serializer(*args, **kwargs, many=True)
+        models = serializer.update(
+            instance, [data.copy() for data in validated_data]
+        )
+        new_data = new_data or [{} for _ in range(len(instance))]
+        for data, _new_data, model in zip(validated_data, new_data, models):
+            data = {**data, **_new_data}
+            self._assert_data_is_subset_of_model(data, model)
+
     def assert_to_representation(
         self, instance: AnyModel, new_data: DataDict, *args, **kwargs
     ):
