@@ -54,3 +54,12 @@ class UserViewSet(ModelViewSet[User]):
             return teachers | students
 
         return user_class.objects.filter(pk=user.pk)
+
+    def get_bulk_queryset(
+        self,
+        lookup_values: t.Collection,
+        user_class: t.Type[AnyUser] = User,  # type: ignore[assignment]
+    ):
+        return self.get_queryset(user_class).filter(
+            **{f"{self.lookup_field}__in": lookup_values}
+        )

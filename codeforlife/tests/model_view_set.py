@@ -5,7 +5,6 @@ Created on 19/01/2024 at 17:06:45(+00:00).
 Base test case for all model view sets.
 """
 
-import json
 import typing as t
 from datetime import datetime
 
@@ -84,8 +83,7 @@ class ModelViewSetClient(APIClient, t.Generic[AnyModel]):
 
         response: Response = self.post(
             self._test_case.reverse_action("list", kwargs=reverse_kwargs),
-            data=json.dumps(data, default=str),
-            content_type="application/json",
+            data=data,
             status_code_assertion=status_code_assertion,
             **kwargs,
         )
@@ -126,8 +124,7 @@ class ModelViewSetClient(APIClient, t.Generic[AnyModel]):
 
         response: Response = self.post(
             self._test_case.reverse_action("bulk", kwargs=reverse_kwargs),
-            data=json.dumps(data, default=str),
-            content_type="application/json",
+            data=data,
             status_code_assertion=status_code_assertion,
             **kwargs,
         )
@@ -299,8 +296,7 @@ class ModelViewSetClient(APIClient, t.Generic[AnyModel]):
                 model,
                 kwargs=reverse_kwargs,
             ),
-            data=json.dumps(data, default=str),
-            content_type="application/json",
+            data=data,
             status_code_assertion=status_code_assertion,
             **kwargs,
         )
@@ -344,8 +340,7 @@ class ModelViewSetClient(APIClient, t.Generic[AnyModel]):
 
         response: Response = self.patch(
             self._test_case.reverse_action("bulk", kwargs=reverse_kwargs),
-            data=json.dumps(data, default=str),
-            content_type="application/json",
+            data=data,
             status_code_assertion=status_code_assertion,
             **kwargs,
         )
@@ -420,7 +415,7 @@ class ModelViewSetClient(APIClient, t.Generic[AnyModel]):
 
     def bulk_destroy(
         self,
-        lookup_values: t.List,
+        data: t.List,
         status_code_assertion: APIClient.StatusCodeAssertion = (
             status.HTTP_204_NO_CONTENT
         ),
@@ -432,7 +427,7 @@ class ModelViewSetClient(APIClient, t.Generic[AnyModel]):
         """Bulk destroy many instances of a model.
 
         Args:
-            lookup_values: The models to lookup and destroy.
+            data: The primary keys of the models to lookup and destroy.
             status_code_assertion: The expected status code.
             make_assertions: A flag designating whether to make the default assertions.
             reverse_kwargs: The kwargs for the reverse URL.
@@ -444,16 +439,14 @@ class ModelViewSetClient(APIClient, t.Generic[AnyModel]):
 
         response: Response = self.delete(
             self._test_case.reverse_action("bulk", kwargs=reverse_kwargs),
-            data=json.dumps(lookup_values, default=str),
-            content_type="application/json",
+            data=data,
             status_code_assertion=status_code_assertion,
             **kwargs,
         )
 
         if make_assertions:
             self._assert_response(
-                response,
-                make_assertions=lambda: self._assert_destroy(lookup_values),
+                response, make_assertions=lambda: self._assert_destroy(data)
             )
 
         return response
@@ -518,6 +511,10 @@ class ModelViewSetTestCase(APITestCase, t.Generic[AnyModel]):
             **kwargs,
         )
 
+    # --------------------------------------------------------------------------
+    # Assertion Helpers
+    # --------------------------------------------------------------------------
+
     # pylint: disable-next=too-many-arguments
     def assert_serialized_model_equals_json_model(
         self,
@@ -527,6 +524,18 @@ class ModelViewSetTestCase(APITestCase, t.Generic[AnyModel]):
         request_method: str,
         contains_subset: bool = False,
     ):
+        """Assert the serialized representation of a model matches its JSON
+        representation.
+
+        Args:
+            model: The model to serialize.
+            json_model: The JSON representation of the model.
+            action: The model view set's action.
+            request_method: The request's HTTP method.
+            contains_subset: Whether the JSON representation is a subset of the
+                serialized representation. If set to False, the representations
+                must be an exact match.
+        """
         # Get the logged-in user.
         try:
             user = User.objects.get(session=self.client.session.session_key)
