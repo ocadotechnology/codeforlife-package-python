@@ -39,7 +39,7 @@ class ModelViewSet(APIView, _ModelViewSet[AnyModel], t.Generic[AnyModel]):
 
     serializer_class: t.Optional[t.Type[ModelSerializer[AnyModel]]]
 
-    def _get_bulk_queryset(self, lookup_values: t.Collection):
+    def get_bulk_queryset(self, lookup_values: t.Collection):
         return self.get_queryset().filter(
             **{f"{self.lookup_field}__in": lookup_values}
         )
@@ -100,6 +100,10 @@ class ModelViewSet(APIView, _ModelViewSet[AnyModel], t.Generic[AnyModel]):
 
         return serializer
 
+    # --------------------------------------------------------------------------
+    # View Set Actions
+    # --------------------------------------------------------------------------
+
     # pylint: disable-next=useless-parent-delegation
     def destroy(  # type: ignore[override]
         self, request: Request, *args, **kwargs
@@ -133,6 +137,10 @@ class ModelViewSet(APIView, _ModelViewSet[AnyModel], t.Generic[AnyModel]):
         self, request: Request, *args, **kwargs
     ):
         return super().partial_update(request, *args, **kwargs)
+
+    # --------------------------------------------------------------------------
+    # Bulk Actions
+    # --------------------------------------------------------------------------
 
     def bulk_create(self, request: Request):
         """Bulk create many instances of a model.
@@ -180,11 +188,11 @@ class ModelViewSet(APIView, _ModelViewSet[AnyModel], t.Generic[AnyModel]):
             A HTTP response containing a list of partially updated models.
         """
         # pylint: enable=line-too-long
-        queryset = self._get_bulk_queryset(request.data.keys())
+        queryset = self.get_bulk_queryset(request.json_dict.keys())
         serializer = t.cast(
             ModelListSerializer[AnyModel],
             self.get_serializer(
-                list(queryset),
+                queryset,
                 data=request.data,
                 many=True,
                 partial=True,
@@ -214,7 +222,7 @@ class ModelViewSet(APIView, _ModelViewSet[AnyModel], t.Generic[AnyModel]):
         Returns:
             A HTTP response containing a list of destroyed models.
         """
-        queryset = self._get_bulk_queryset(request.data)
+        queryset = self.get_bulk_queryset(request.data)
         self.perform_bulk_destroy(queryset)
         return Response(status=status.HTTP_204_NO_CONTENT)
 

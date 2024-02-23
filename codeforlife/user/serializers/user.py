@@ -3,20 +3,22 @@
 Created on 19/01/2024 at 11:06:00(+00:00).
 """
 
+import typing as t
+
 from ...serializers import ModelSerializer
-from ..models import Student, Teacher, User
+from ..models import AnyUser, Student, Teacher, User
 from .student import StudentSerializer
 from .teacher import TeacherSerializer
 
 
 # pylint: disable-next=missing-class-docstring
-class UserSerializer(ModelSerializer[User]):
+class UserSerializer(ModelSerializer[AnyUser], t.Generic[AnyUser]):
     student = StudentSerializer(
         source="new_student",
         read_only=True,
     )
 
-    teacher = TeacherSerializer(
+    teacher = TeacherSerializer[Teacher](
         source="new_teacher",
         read_only=True,
     )
@@ -55,7 +57,7 @@ class UserSerializer(ModelSerializer[User]):
 
         try:
             teacher = (
-                TeacherSerializer(instance.new_teacher).data
+                TeacherSerializer[Teacher](instance.new_teacher).data
                 if instance.new_teacher
                 else None
             )

@@ -5,6 +5,7 @@ Created on 19/01/2024 at 17:17:23(+00:00).
 Custom test cases.
 """
 
+from .api import APIClient, APITestCase
 from .api_request_factory import APIRequestFactory
 from .cron import CronTestCase
 from .model_serializer import ModelSerializerTestCase

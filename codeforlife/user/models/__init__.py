@@ -12,10 +12,13 @@ from .session_auth_factor import SessionAuthFactor
 from .student import Independent, Student
 from .teacher import (
     AdminSchoolTeacher,
+    AnyTeacher,
+    AnyTypedTeacher,
     NonAdminSchoolTeacher,
     NonSchoolTeacher,
     SchoolTeacher,
     Teacher,
+    TypedTeacher,
 )
 from .user import (  # TODO: remove UserProfile
     AdminSchoolTeacherUser,
