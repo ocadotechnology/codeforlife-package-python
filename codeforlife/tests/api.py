@@ -55,6 +55,10 @@ class APIClient(_APIClient):
         """
         return 200 <= status_code < 300
 
+    # --------------------------------------------------------------------------
+    # Assert Response Helpers
+    # --------------------------------------------------------------------------
+
     def _assert_response(self, response: Response, make_assertions: t.Callable):
         if self.status_code_is_ok(response.status_code):
             make_assertions()
@@ -85,60 +89,9 @@ class APIClient(_APIClient):
 
         self._assert_response(response, _make_assertions)
 
-    StatusCodeAssertion = t.Optional[t.Union[int, t.Callable[[int], bool]]]
-
-    # pylint: disable-next=too-many-arguments
-    def generic(
-        self,
-        method,
-        path,
-        data="",
-        content_type="application/octet-stream",
-        secure=False,
-        status_code_assertion: StatusCodeAssertion = None,
-        **extra,
-    ):
-        response = t.cast(
-            Response,
-            super().generic(
-                method,
-                path,
-                data,
-                content_type,
-                secure,
-                **extra,
-            ),
-        )
-
-        # Use a custom kwarg to handle the common case of checking the
-        # response's status code.
-        if status_code_assertion is None:
-            status_code_assertion = self.status_code_is_ok
-        elif isinstance(status_code_assertion, int):
-            expected_status_code = status_code_assertion
-            status_code_assertion = (
-                # pylint: disable-next=unnecessary-lambda-assignment
-                lambda status_code: status_code
-                == expected_status_code
-            )
-
-        # pylint: disable-next=no-member
-        status_code = response.status_code
-        assert status_code_assertion(
-            status_code
-        ), f"Unexpected status code: {status_code}." + (
-            "\nValidation errors:: "
-            + json.dumps(
-                # pylint: disable-next=no-member
-                response.json(),  # type: ignore[attr-defined]
-                indent=2,
-                default=str,
-            )
-            if status_code == status.HTTP_400_BAD_REQUEST
-            else ""
-        )
-
-        return response
+    # --------------------------------------------------------------------------
+    # Login Helpers
+    # --------------------------------------------------------------------------
 
     def _login_user_type(self, user_type: t.Type[AnyUser], **credentials):
         # Logout current user (if any) before logging in next user.
@@ -310,6 +263,199 @@ class APIClient(_APIClient):
             auth_user = self.login_indy(user.email, password)
 
         assert user == auth_user
+
+    # --------------------------------------------------------------------------
+    # Request Helpers
+    # --------------------------------------------------------------------------
+
+    StatusCodeAssertion = t.Optional[t.Union[int, t.Callable[[int], bool]]]
+
+    # pylint: disable=too-many-arguments,redefined-builtin
+
+    def generic(
+        self,
+        method,
+        path,
+        data="",
+        content_type="application/json",
+        secure=False,
+        status_code_assertion: StatusCodeAssertion = None,
+        **extra,
+    ):
+        response = t.cast(
+            Response,
+            super().generic(
+                method,
+                path,
+                data,
+                content_type,
+                secure,
+                **extra,
+            ),
+        )
+
+        # Use a custom kwarg to handle the common case of checking the
+        # response's status code.
+        if status_code_assertion is None:
+            status_code_assertion = self.status_code_is_ok
+        elif isinstance(status_code_assertion, int):
+            expected_status_code = status_code_assertion
+            status_code_assertion = (
+                # pylint: disable-next=unnecessary-lambda-assignment
+                lambda status_code: status_code
+                == expected_status_code
+            )
+
+        # pylint: disable-next=no-member
+        status_code = response.status_code
+        assert status_code_assertion(
+            status_code
+        ), f"Unexpected status code: {status_code}." + (
+            "\nValidation errors:: "
+            + json.dumps(
+                # pylint: disable-next=no-member
+                response.json(),  # type: ignore[attr-defined]
+                indent=2,
+                default=str,
+            )
+            if status_code == status.HTTP_400_BAD_REQUEST
+            else ""
+        )
+
+        return response
+
+    def get(  # type: ignore[override]
+        self,
+        path: str,
+        data: t.Any = None,
+        follow: bool = False,
+        status_code_assertion: StatusCodeAssertion = None,
+        **extra,
+    ):
+        return super().get(
+            path=path,
+            data=data,
+            follow=follow,
+            status_code_assertion=status_code_assertion,
+            **extra,
+        )
+
+    def post(  # type: ignore[override]
+        self,
+        path: str,
+        data: t.Any = None,
+        format: t.Optional[str] = None,
+        content_type: t.Optional[str] = None,
+        follow: bool = False,
+        status_code_assertion: StatusCodeAssertion = None,
+        **extra,
+    ):
+        if format is None and content_type is None:
+            format = "json"
+
+        return super().post(
+            path=path,
+            data=data,
+            format=format,
+            content_type=content_type,
+            follow=follow,
+            status_code_assertion=status_code_assertion,
+            **extra,
+        )
+
+    def put(  # type: ignore[override]
+        self,
+        path: str,
+        data: t.Any = None,
+        format: t.Optional[str] = None,
+        content_type: t.Optional[str] = None,
+        follow: bool = False,
+        status_code_assertion: StatusCodeAssertion = None,
+        **extra,
+    ):
+        if format is None and content_type is None:
+            format = "json"
+
+        return super().put(
+            path=path,
+            data=data,
+            format=format,
+            content_type=content_type,
+            follow=follow,
+            status_code_assertion=status_code_assertion,
+            **extra,
+        )
+
+    def patch(  # type: ignore[override]
+        self,
+        path: str,
+        data: t.Any = None,
+        format: t.Optional[str] = None,
+        content_type: t.Optional[str] = None,
+        follow: bool = False,
+        status_code_assertion: StatusCodeAssertion = None,
+        **extra,
+    ):
+        if format is None and content_type is None:
+            format = "json"
+
+        return super().patch(
+            path=path,
+            data=data,
+            format=format,
+            content_type=content_type,
+            follow=follow,
+            status_code_assertion=status_code_assertion,
+            **extra,
+        )
+
+    def delete(  # type: ignore[override]
+        self,
+        path: str,
+        data: t.Any = None,
+        format: t.Optional[str] = None,
+        content_type: t.Optional[str] = None,
+        follow: bool = False,
+        status_code_assertion: StatusCodeAssertion = None,
+        **extra,
+    ):
+        if format is None and content_type is None:
+            format = "json"
+
+        return super().delete(
+            path=path,
+            data=data,
+            format=format,
+            content_type=content_type,
+            follow=follow,
+            status_code_assertion=status_code_assertion,
+            **extra,
+        )
+
+    def options(  # type: ignore[override]
+        self,
+        path: str,
+        data: t.Any = None,
+        format: t.Optional[str] = None,
+        content_type: t.Optional[str] = None,
+        follow: bool = False,
+        status_code_assertion: StatusCodeAssertion = None,
+        **extra,
+    ):
+        if format is None and content_type is None:
+            format = "json"
+
+        return super().options(
+            path=path,
+            data=data,
+            format=format,
+            content_type=content_type,
+            follow=follow,
+            status_code_assertion=status_code_assertion,
+            **extra,
+        )
+
+    # pylint: enable=too-many-arguments,redefined-builtin
 
 
 class APITestCase(_APITestCase):

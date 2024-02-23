@@ -25,6 +25,8 @@ from .api import APIClient, APITestCase
 
 AnyModel = t.TypeVar("AnyModel", bound=Model)
 
+# pylint: disable=no-member
+
 
 class ModelViewSetClient(APIClient, t.Generic[AnyModel]):
     """
@@ -37,75 +39,22 @@ class ModelViewSetClient(APIClient, t.Generic[AnyModel]):
     @property
     def _model_class(self):
         """Shortcut to get model class."""
-
-        # pylint: disable-next=no-member
         return self._test_case.get_model_class()
 
     @property
     def _model_view_set_class(self):
         """Shortcut to get model view set class."""
-
-        # pylint: disable-next=no-member
         return self._test_case.model_view_set_class
 
-    ListFilters = t.Optional[t.Dict[str, str]]
-
-    # pylint: disable-next=too-many-arguments
-    def _assert_serialized_model_equals_json_model(
-        self,
-        model: AnyModel,
-        json_model: JsonDict,
-        action: str,
-        request_method: str,
-        contains_subset: bool = False,
-    ):
-        # Get the logged-in user.
-        try:
-            user = User.objects.get(session=self.session.session_key)
-        except User.DoesNotExist:
-            user = None  # NOTE: no user has logged in.
-
-        # Create an instance of the model view set and serializer.
-        model_view_set = self._model_view_set_class(
-            action=action,
-            request=self.request_factory.generic(request_method, user=user),
-            format_kwarg=None,  # NOTE: required by get_serializer_context()
-        )
-        model_serializer = model_view_set.get_serializer_class()(
-            model, context=model_view_set.get_serializer_context()
-        )
-
-        # Serialize the model.
-        serialized_model = model_serializer.data
-
-        # Get DRF's function that converts datetimes to strings.
-        datetime_to_representation = DateTimeField().to_representation
-
-        # Recursively convert all datetimes to strings.
-        def datetime_values_to_representation(data: DataDict):
-            for key, value in data.copy().items():
-                if isinstance(value, dict):
-                    datetime_values_to_representation(value)
-                elif isinstance(value, datetime):
-                    data[key] = datetime_to_representation(value)
-
-        datetime_values_to_representation(serialized_model)
-
-        # Assert the JSON model provided in the response is an exact match or
-        # subset of the serialized model.
-        (
-            # pylint: disable=no-member
-            self._test_case.assertDictContainsSubset
-            if contains_subset
-            else self._test_case.assertDictEqual
-            # pylint: enable=no-member
-        )(json_model, serialized_model)
+    # --------------------------------------------------------------------------
+    # Create (HTTP POST)
+    # --------------------------------------------------------------------------
 
     def _assert_create(self, json_model: JsonDict, action: str):
         model = self._model_class.objects.get(
             **{self._model_view_set_class.lookup_field: json_model["id"]}
         )
-        self._assert_serialized_model_equals_json_model(
+        self._test_case.assert_serialized_model_equals_json_model(
             model, json_model, action, request_method="post"
         )
 
@@ -134,7 +83,6 @@ class ModelViewSetClient(APIClient, t.Generic[AnyModel]):
         # pylint: enable=line-too-long
 
         response: Response = self.post(
-            # pylint: disable-next=no-member
             self._test_case.reverse_action("list", kwargs=reverse_kwargs),
             data=json.dumps(data, default=str),
             content_type="application/json",
@@ -177,7 +125,6 @@ class ModelViewSetClient(APIClient, t.Generic[AnyModel]):
         # pylint: enable=line-too-long
 
         response: Response = self.post(
-            # pylint: disable-next=no-member
             self._test_case.reverse_action("bulk", kwargs=reverse_kwargs),
             data=json.dumps(data, default=str),
             content_type="application/json",
@@ -194,6 +141,10 @@ class ModelViewSetClient(APIClient, t.Generic[AnyModel]):
             self._assert_response_json_bulk(response, _make_assertions, data)
 
         return response
+
+    # --------------------------------------------------------------------------
+    # Retrieve (HTTP GET)
+    # --------------------------------------------------------------------------
 
     def retrieve(
         self,
@@ -220,7 +171,6 @@ class ModelViewSetClient(APIClient, t.Generic[AnyModel]):
         # pylint: enable=line-too-long
 
         response: Response = self.get(
-            # pylint: disable-next=no-member
             self._test_case.reverse_action(
                 "detail",
                 model,
@@ -234,7 +184,7 @@ class ModelViewSetClient(APIClient, t.Generic[AnyModel]):
             self._assert_response_json(
                 response,
                 make_assertions=lambda json_model: (
-                    self._assert_serialized_model_equals_json_model(
+                    self._test_case.assert_serialized_model_equals_json_model(
                         model,
                         json_model,
                         action="retrieve",
@@ -253,7 +203,7 @@ class ModelViewSetClient(APIClient, t.Generic[AnyModel]):
             status.HTTP_200_OK
         ),
         make_assertions: bool = True,
-        filters: ListFilters = None,
+        filters: t.Optional[t.Dict[str, str]] = None,
         reverse_kwargs: t.Optional[KwArgs] = None,
         **kwargs,
     ):
@@ -280,7 +230,6 @@ class ModelViewSetClient(APIClient, t.Generic[AnyModel]):
 
         response: Response = self.get(
             (
-                # pylint: disable-next=no-member
                 self._test_case.reverse_action("list", kwargs=reverse_kwargs)
                 + f"?{urlencode(filters or {})}"
             ),
@@ -293,7 +242,7 @@ class ModelViewSetClient(APIClient, t.Generic[AnyModel]):
             def _make_assertions(response_json: JsonDict):
                 json_models = t.cast(t.List[JsonDict], response_json["data"])
                 for model, json_model in zip(models, json_models):
-                    self._assert_serialized_model_equals_json_model(
+                    self._test_case.assert_serialized_model_equals_json_model(
                         model, json_model, action="list", request_method="get"
                     )
 
@@ -301,11 +250,15 @@ class ModelViewSetClient(APIClient, t.Generic[AnyModel]):
 
         return response
 
+    # --------------------------------------------------------------------------
+    # Partial Update (HTTP PATCH)
+    # --------------------------------------------------------------------------
+
     def _assert_partial_update(
         self, model: AnyModel, json_model: JsonDict, action: str
     ):
         model.refresh_from_db()
-        self._assert_serialized_model_equals_json_model(
+        self._test_case.assert_serialized_model_equals_json_model(
             model,
             json_model,
             action,
@@ -341,7 +294,6 @@ class ModelViewSetClient(APIClient, t.Generic[AnyModel]):
         # pylint: enable=line-too-long
 
         response: Response = self.patch(
-            # pylint: disable-next=no-member
             self._test_case.reverse_action(
                 "detail",
                 model,
@@ -363,6 +315,7 @@ class ModelViewSetClient(APIClient, t.Generic[AnyModel]):
 
         return response
 
+    # pylint: disable-next=too-many-arguments
     def bulk_partial_update(
         self,
         models: t.List[AnyModel],
@@ -390,7 +343,6 @@ class ModelViewSetClient(APIClient, t.Generic[AnyModel]):
         # pylint: enable=line-too-long
 
         response: Response = self.patch(
-            # pylint: disable-next=no-member
             self._test_case.reverse_action("bulk", kwargs=reverse_kwargs),
             data=json.dumps(data, default=str),
             content_type="application/json",
@@ -414,6 +366,10 @@ class ModelViewSetClient(APIClient, t.Generic[AnyModel]):
             self._assert_response_json_bulk(response, _make_assertions, data)
 
         return response
+
+    # --------------------------------------------------------------------------
+    # Destroy (HTTP DELETE)
+    # --------------------------------------------------------------------------
 
     def _assert_destroy(self, lookup_values: t.List):
         assert not self._model_class.objects.filter(
@@ -445,7 +401,6 @@ class ModelViewSetClient(APIClient, t.Generic[AnyModel]):
         # pylint: enable=line-too-long
 
         response: Response = self.delete(
-            # pylint: disable-next=no-member
             self._test_case.reverse_action(
                 "detail",
                 model,
@@ -488,7 +443,6 @@ class ModelViewSetClient(APIClient, t.Generic[AnyModel]):
         # pylint: enable=line-too-long
 
         response: Response = self.delete(
-            # pylint: disable-next=no-member
             self._test_case.reverse_action("bulk", kwargs=reverse_kwargs),
             data=json.dumps(lookup_values, default=str),
             content_type="application/json",
@@ -503,6 +457,9 @@ class ModelViewSetClient(APIClient, t.Generic[AnyModel]):
             )
 
         return response
+
+
+# pylint: enable=no-member
 
 
 class ModelViewSetTestCase(APITestCase, t.Generic[AnyModel]):
@@ -520,7 +477,6 @@ class ModelViewSetTestCase(APITestCase, t.Generic[AnyModel]):
         Returns:
             The model view set's class.
         """
-
         # pylint: disable-next=no-member
         return t.get_args(cls.__orig_bases__[0])[  # type: ignore[attr-defined]
             0
@@ -561,6 +517,55 @@ class ModelViewSetTestCase(APITestCase, t.Generic[AnyModel]):
             kwargs=reverse_kwargs,
             **kwargs,
         )
+
+    # pylint: disable-next=too-many-arguments
+    def assert_serialized_model_equals_json_model(
+        self,
+        model: AnyModel,
+        json_model: JsonDict,
+        action: str,
+        request_method: str,
+        contains_subset: bool = False,
+    ):
+        # Get the logged-in user.
+        try:
+            user = User.objects.get(session=self.client.session.session_key)
+        except User.DoesNotExist:
+            user = None  # NOTE: no user has logged in.
+
+        # Create an instance of the model view set and serializer.
+        model_view_set = self.model_view_set_class(
+            action=action,
+            request=self.client.request_factory.generic(
+                request_method, user=user
+            ),
+            format_kwarg=None,  # NOTE: required by get_serializer_context()
+        )
+        model_serializer = model_view_set.get_serializer(model)
+
+        # Serialize the model.
+        serialized_model = model_serializer.data
+
+        # Get DRF's function that converts datetimes to strings.
+        datetime_to_representation = DateTimeField().to_representation
+
+        # Recursively convert all datetimes to strings.
+        def datetime_values_to_representation(data: DataDict):
+            for key, value in data.copy().items():
+                if isinstance(value, dict):
+                    datetime_values_to_representation(value)
+                elif isinstance(value, datetime):
+                    data[key] = datetime_to_representation(value)
+
+        datetime_values_to_representation(serialized_model)
+
+        # Assert the JSON model provided in the response is an exact match or
+        # subset of the serialized model.
+        (
+            self.assertDictContainsSubset
+            if contains_subset
+            else self.assertDictEqual
+        )(json_model, serialized_model)
 
     def assert_get_permissions(
         self,
