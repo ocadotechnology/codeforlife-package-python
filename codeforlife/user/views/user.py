@@ -7,7 +7,7 @@ import typing as t
 
 from ...views import ModelViewSet
 from ..filters import UserFilterSet
-from ..models import User
+from ..models import AnyUser, User
 from ..serializers import UserSerializer
 
 
@@ -17,17 +17,19 @@ class UserViewSet(ModelViewSet[User]):
     serializer_class = UserSerializer
     filterset_class = UserFilterSet
 
-    # pylint: disable-next=missing-function-docstring
-    def get_queryset(self):
+    def get_queryset(
+        self,
+        user_class: t.Type[AnyUser] = User,  # type: ignore[assignment]
+    ):
         user = self.request.auth_user
         if user.student:
             if user.student.class_field is None:
-                return User.objects.filter(id=user.id)
+                return user_class.objects.filter(id=user.id)
 
-            teachers = User.objects.filter(
+            teachers = user_class.objects.filter(
                 new_teacher=user.student.class_field.teacher
             )
-            students = User.objects.filter(
+            students = user_class.objects.filter(
                 new_student__class_field=user.student.class_field
             )
 
@@ -35,20 +37,20 @@ class UserViewSet(ModelViewSet[User]):
 
         user = self.request.teacher_user
         if user.teacher.school:
-            teachers = User.objects.filter(
+            teachers = user_class.objects.filter(
                 new_teacher__school=user.teacher.school_id
             )
             students = (
-                User.objects.filter(
+                user_class.objects.filter(
                     # TODO: add school foreign key to student model.
                     new_student__class_field__teacher__school=user.teacher.school_id,
                 )
                 if user.teacher.is_admin
-                else User.objects.filter(
+                else user_class.objects.filter(
                     new_student__class_field__teacher=user.teacher
                 )
             )
 
             return teachers | students
 
-        return User.objects.filter(pk=user.pk)
+        return user_class.objects.filter(pk=user.pk)

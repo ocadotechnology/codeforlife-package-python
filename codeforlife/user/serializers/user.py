@@ -3,14 +3,16 @@
 Created on 19/01/2024 at 11:06:00(+00:00).
 """
 
+import typing as t
+
 from ...serializers import ModelSerializer
-from ..models import Student, Teacher, User
+from ..models import AnyUser, Student, Teacher, User
 from .student import StudentSerializer
 from .teacher import TeacherSerializer
 
 
 # pylint: disable-next=missing-class-docstring
-class UserSerializer(ModelSerializer[User]):
+class BaseUserSerializer(ModelSerializer[AnyUser], t.Generic[AnyUser]):
     student = StudentSerializer(
         source="new_student",
         read_only=True,
@@ -72,3 +74,8 @@ class UserSerializer(ModelSerializer[User]):
             "student": student,
             "teacher": teacher,
         }
+
+
+# pylint: disable-next=missing-class-docstring,too-many-ancestors
+class UserSerializer(BaseUserSerializer[User]):
+    pass
