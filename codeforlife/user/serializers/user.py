@@ -12,13 +12,13 @@ from .teacher import TeacherSerializer
 
 
 # pylint: disable-next=missing-class-docstring
-class BaseUserSerializer(ModelSerializer[AnyUser], t.Generic[AnyUser]):
+class UserSerializer(ModelSerializer[AnyUser], t.Generic[AnyUser]):
     student = StudentSerializer(
         source="new_student",
         read_only=True,
     )
 
-    teacher = TeacherSerializer(
+    teacher = TeacherSerializer[Teacher](
         source="new_teacher",
         read_only=True,
     )
@@ -57,7 +57,7 @@ class BaseUserSerializer(ModelSerializer[AnyUser], t.Generic[AnyUser]):
 
         try:
             teacher = (
-                TeacherSerializer(instance.new_teacher).data
+                TeacherSerializer[Teacher](instance.new_teacher).data
                 if instance.new_teacher
                 else None
             )
@@ -74,8 +74,3 @@ class BaseUserSerializer(ModelSerializer[AnyUser], t.Generic[AnyUser]):
             "student": student,
             "teacher": teacher,
         }
-
-
-# pylint: disable-next=missing-class-docstring,too-many-ancestors
-class UserSerializer(BaseUserSerializer[User]):
-    pass

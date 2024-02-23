@@ -10,7 +10,7 @@ from ..models import AnyTeacher, Teacher
 
 
 # pylint: disable-next=missing-class-docstring
-class BaseTeacherSerializer(ModelSerializer[AnyTeacher], t.Generic[AnyTeacher]):
+class TeacherSerializer(ModelSerializer[AnyTeacher], t.Generic[AnyTeacher]):
     # pylint: disable-next=missing-class-docstring,too-few-public-methods
     class Meta:
         model = Teacher
@@ -24,8 +24,3 @@ class BaseTeacherSerializer(ModelSerializer[AnyTeacher], t.Generic[AnyTeacher]):
             "school": {"read_only": True},
             "is_admin": {"read_only": True},
         }
-
-
-# pylint: disable-next=missing-class-docstring,too-many-ancestors
-class TeacherSerializer(BaseTeacherSerializer[Teacher]):
-    pass
