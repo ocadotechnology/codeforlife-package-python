@@ -187,6 +187,9 @@ class ModelSerializerTestCase(TestCase, t.Generic[AnyModel]):
         """Assert that the data used to update the models is a subset of the
         models' data.
 
+        Use this assert helper instead of "assert_update" if the update() on a
+        list serializer is being called.
+
         Args:
             instance: The model instances to update.
             validated_data: The data used to update the models.
