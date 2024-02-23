@@ -17,6 +17,7 @@ from rest_framework.response import Response
 from rest_framework.serializers import DateTimeField
 
 from ..permissions import Permission
+from ..serializers import BaseSerializer
 from ..types import DataDict, JsonDict, KwArgs
 from ..user.models import User
 from ..views import ModelViewSet
@@ -576,18 +577,26 @@ class ModelViewSetTestCase(APITestCase, t.Generic[AnyModel]):
             else self.assertDictEqual
         )(json_model, serialized_model)
 
+    def assert_get_serializer_class(
+        self, serializer_class: t.Type[BaseSerializer], *args, **kwargs
+    ):
+        """Assert that the expected serializer class is returned.
+
+        Args:
+            serializer_class: The expected serializer class.
+        """
+        model_view_set = self.model_view_set_class(*args, **kwargs)
+        actual_serializer_class = model_view_set.get_serializer_class()
+        self.assertEqual(serializer_class, actual_serializer_class)
+
     def assert_get_permissions(
-        self,
-        permissions: t.List[Permission],
-        *args,
-        **kwargs,
+        self, permissions: t.List[Permission], *args, **kwargs
     ):
         """Assert that the expected permissions are returned.
 
         Args:
             permissions: The expected permissions.
         """
-
         model_view_set = self.model_view_set_class(*args, **kwargs)
         actual_permissions = model_view_set.get_permissions()
         self.assertListEqual(permissions, actual_permissions)
@@ -605,7 +614,6 @@ class ModelViewSetTestCase(APITestCase, t.Generic[AnyModel]):
             values: The values we expect the queryset to contain.
             ordered: Whether the queryset provides an implicit ordering.
         """
-
         model_view_set = self.model_view_set_class(*args, **kwargs)
         queryset = model_view_set.get_queryset()
         if ordered and not queryset.ordered:
