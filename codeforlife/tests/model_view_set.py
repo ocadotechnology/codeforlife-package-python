@@ -8,37 +8,20 @@ Base test case for all model view sets.
 import json
 import typing as t
 from datetime import datetime
-from unittest.mock import patch
 
 from django.db.models import Model
 from django.db.models.query import QuerySet
 from django.urls import reverse
-from django.utils import timezone
 from django.utils.http import urlencode
-from pyotp import TOTP
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.serializers import DateTimeField
-from rest_framework.test import APIClient, APITestCase
 
 from ..permissions import Permission
-from ..serializers import ModelSerializer
 from ..types import DataDict, JsonDict, KwArgs
-from ..user.models import (
-    AdminSchoolTeacherUser,
-    AnyUser,
-    AuthFactor,
-    IndependentUser,
-    NonAdminSchoolTeacherUser,
-    NonSchoolTeacherUser,
-    SchoolTeacherUser,
-    StudentUser,
-    TeacherUser,
-    TypedUser,
-    User,
-)
+from ..user.models import User
 from ..views import ModelViewSet
-from .api_request_factory import APIRequestFactory
+from .api import APIClient, APITestCase
 
 AnyModel = t.TypeVar("AnyModel", bound=Model)
 
@@ -48,13 +31,6 @@ class ModelViewSetClient(APIClient, t.Generic[AnyModel]):
     An API client that helps make requests to a model view set and assert their
     responses.
     """
-
-    def __init__(self, enforce_csrf_checks: bool = False, **defaults):
-        super().__init__(enforce_csrf_checks, **defaults)
-        self.request_factory = APIRequestFactory(
-            enforce_csrf_checks,
-            **defaults,
-        )
 
     _test_case: "ModelViewSetTestCase[AnyModel]"
 
@@ -72,52 +48,7 @@ class ModelViewSetClient(APIClient, t.Generic[AnyModel]):
         # pylint: disable-next=no-member
         return self._test_case.model_view_set_class
 
-    StatusCodeAssertion = t.Optional[t.Union[int, t.Callable[[int], bool]]]
     ListFilters = t.Optional[t.Dict[str, str]]
-
-    def _assert_response(self, response: Response, make_assertions: t.Callable):
-        if self.status_code_is_ok(response.status_code):
-            make_assertions()
-
-    def _assert_response_json(
-        self,
-        response: Response,
-        make_assertions: t.Callable[[JsonDict], None],
-    ):
-        self._assert_response(
-            response,
-            make_assertions=lambda: make_assertions(
-                response.json(),  # type: ignore[attr-defined]
-            ),
-        )
-
-    def _assert_response_json_bulk(
-        self,
-        response: Response,
-        make_assertions: t.Callable[[t.List[JsonDict]], None],
-        data: t.List[DataDict],
-    ):
-        def _make_assertions():
-            response_json = response.json()  # type: ignore[attr-defined]
-            assert isinstance(response_json, list)
-            assert len(response_json) == len(data)
-            make_assertions(response_json)
-
-        self._assert_response(response, _make_assertions)
-
-    @staticmethod
-    def status_code_is_ok(status_code: int):
-        """Check if the status code is greater than or equal to 200 and less
-        than 300.
-
-        Args:
-            status_code: The status code to check.
-
-        Returns:
-            A flag designating if the status code is OK.
-        """
-
-        return 200 <= status_code < 300
 
     # pylint: disable-next=too-many-arguments
     def _assert_serialized_model_equals_json_model(
@@ -170,59 +101,6 @@ class ModelViewSetClient(APIClient, t.Generic[AnyModel]):
             # pylint: enable=no-member
         )(json_model, serialized_model)
 
-    # pylint: disable-next=too-many-arguments
-    def generic(
-        self,
-        method,
-        path,
-        data="",
-        content_type="application/octet-stream",
-        secure=False,
-        status_code_assertion: StatusCodeAssertion = None,
-        **extra,
-    ):
-        response = t.cast(
-            Response,
-            super().generic(
-                method,
-                path,
-                data,
-                content_type,
-                secure,
-                **extra,
-            ),
-        )
-
-        # Use a custom kwarg to handle the common case of checking the
-        # response's status code.
-        if status_code_assertion is None:
-            status_code_assertion = self.status_code_is_ok
-        elif isinstance(status_code_assertion, int):
-            expected_status_code = status_code_assertion
-            status_code_assertion = (
-                # pylint: disable-next=unnecessary-lambda-assignment
-                lambda status_code: status_code
-                == expected_status_code
-            )
-
-        # pylint: disable-next=no-member
-        status_code = response.status_code
-        assert status_code_assertion(
-            status_code
-        ), f"Unexpected status code: {status_code}." + (
-            "\nValidation errors:: "
-            + json.dumps(
-                # pylint: disable-next=no-member
-                response.json(),  # type: ignore[attr-defined]
-                indent=2,
-                default=str,
-            )
-            if status_code == status.HTTP_400_BAD_REQUEST
-            else ""
-        )
-
-        return response
-
     def _assert_create(self, json_model: JsonDict, action: str):
         model = self._model_class.objects.get(
             **{self._model_view_set_class.lookup_field: json_model["id"]}
@@ -234,7 +112,9 @@ class ModelViewSetClient(APIClient, t.Generic[AnyModel]):
     def create(
         self,
         data: DataDict,
-        status_code_assertion: StatusCodeAssertion = status.HTTP_201_CREATED,
+        status_code_assertion: APIClient.StatusCodeAssertion = (
+            status.HTTP_201_CREATED
+        ),
         make_assertions: bool = True,
         reverse_kwargs: t.Optional[KwArgs] = None,
         **kwargs,
@@ -275,7 +155,9 @@ class ModelViewSetClient(APIClient, t.Generic[AnyModel]):
     def bulk_create(
         self,
         data: t.List[DataDict],
-        status_code_assertion: StatusCodeAssertion = status.HTTP_201_CREATED,
+        status_code_assertion: APIClient.StatusCodeAssertion = (
+            status.HTTP_201_CREATED
+        ),
         make_assertions: bool = True,
         reverse_kwargs: t.Optional[KwArgs] = None,
         **kwargs,
@@ -316,7 +198,9 @@ class ModelViewSetClient(APIClient, t.Generic[AnyModel]):
     def retrieve(
         self,
         model: AnyModel,
-        status_code_assertion: StatusCodeAssertion = status.HTTP_200_OK,
+        status_code_assertion: APIClient.StatusCodeAssertion = (
+            status.HTTP_200_OK
+        ),
         make_assertions: bool = True,
         reverse_kwargs: t.Optional[KwArgs] = None,
         **kwargs,
@@ -365,7 +249,9 @@ class ModelViewSetClient(APIClient, t.Generic[AnyModel]):
     def list(
         self,
         models: t.Iterable[AnyModel],
-        status_code_assertion: StatusCodeAssertion = status.HTTP_200_OK,
+        status_code_assertion: APIClient.StatusCodeAssertion = (
+            status.HTTP_200_OK
+        ),
         make_assertions: bool = True,
         filters: ListFilters = None,
         reverse_kwargs: t.Optional[KwArgs] = None,
@@ -432,7 +318,9 @@ class ModelViewSetClient(APIClient, t.Generic[AnyModel]):
         self,
         model: AnyModel,
         data: DataDict,
-        status_code_assertion: StatusCodeAssertion = status.HTTP_200_OK,
+        status_code_assertion: APIClient.StatusCodeAssertion = (
+            status.HTTP_200_OK
+        ),
         make_assertions: bool = True,
         reverse_kwargs: t.Optional[KwArgs] = None,
         **kwargs,
@@ -479,7 +367,9 @@ class ModelViewSetClient(APIClient, t.Generic[AnyModel]):
         self,
         models: t.List[AnyModel],
         data: t.List[DataDict],
-        status_code_assertion: StatusCodeAssertion = status.HTTP_200_OK,
+        status_code_assertion: APIClient.StatusCodeAssertion = (
+            status.HTTP_200_OK
+        ),
         make_assertions: bool = True,
         reverse_kwargs: t.Optional[KwArgs] = None,
         **kwargs,
@@ -533,7 +423,9 @@ class ModelViewSetClient(APIClient, t.Generic[AnyModel]):
     def destroy(
         self,
         model: AnyModel,
-        status_code_assertion: StatusCodeAssertion = status.HTTP_204_NO_CONTENT,
+        status_code_assertion: APIClient.StatusCodeAssertion = (
+            status.HTTP_204_NO_CONTENT
+        ),
         make_assertions: bool = True,
         reverse_kwargs: t.Optional[KwArgs] = None,
         **kwargs,
@@ -574,7 +466,9 @@ class ModelViewSetClient(APIClient, t.Generic[AnyModel]):
     def bulk_destroy(
         self,
         lookup_values: t.List,
-        status_code_assertion: StatusCodeAssertion = status.HTTP_204_NO_CONTENT,
+        status_code_assertion: APIClient.StatusCodeAssertion = (
+            status.HTTP_204_NO_CONTENT
+        ),
         make_assertions: bool = True,
         reverse_kwargs: t.Optional[KwArgs] = None,
         **kwargs,
@@ -610,194 +504,14 @@ class ModelViewSetClient(APIClient, t.Generic[AnyModel]):
 
         return response
 
-    def _login_user_type(self, user_type: t.Type[AnyUser], **credentials):
-        # Logout current user (if any) before logging in next user.
-        self.logout()
-        assert super().login(
-            **credentials
-        ), f"Failed to login with credentials: {credentials}."
-
-        user = user_type.objects.get(session=self.session.session_key)
-
-        if user.session.auth_factors.filter(
-            auth_factor__type=AuthFactor.Type.OTP
-        ).exists():
-            request = self.request_factory.request()
-            request.user = user
-
-            now = timezone.now()
-            otp = user.totp.at(now)
-            with patch.object(timezone, "now", return_value=now):
-                assert super().login(
-                    request=request,
-                    otp=otp,
-                ), f'Failed to login with OTP "{otp}" at {now}.'
-
-        assert user.is_authenticated, "Failed to authenticate user."
-
-        return user
-
-    def login(self, **credentials):
-        """Log in a user.
-
-        Returns:
-            The user.
-        """
-        return self._login_user_type(User, **credentials)
-
-    def login_teacher(self, email: str, password: str = "password"):
-        """Log in a user and assert they are a teacher.
-
-        Args:
-            email: The user's email address.
-            password: The user's password.
-
-        Returns:
-            The teacher-user.
-        """
-        return self._login_user_type(
-            TeacherUser, email=email, password=password
-        )
-
-    def login_school_teacher(self, email: str, password: str = "password"):
-        """Log in a user and assert they are a school-teacher.
-
-        Args:
-            email: The user's email address.
-            password: The user's password.
-
-        Returns:
-            The school-teacher-user.
-        """
-        return self._login_user_type(
-            SchoolTeacherUser, email=email, password=password
-        )
-
-    def login_admin_school_teacher(
-        self, email: str, password: str = "password"
-    ):
-        """Log in a user and assert they are an admin-school-teacher.
-
-        Args:
-            email: The user's email address.
-            password: The user's password.
-
-        Returns:
-            The admin-school-teacher-user.
-        """
-        return self._login_user_type(
-            AdminSchoolTeacherUser, email=email, password=password
-        )
-
-    def login_non_admin_school_teacher(
-        self, email: str, password: str = "password"
-    ):
-        """Log in a user and assert they are a non-admin-school-teacher.
-
-        Args:
-            email: The user's email address.
-            password: The user's password.
-
-        Returns:
-            The non-admin-school-teacher-user.
-        """
-        return self._login_user_type(
-            NonAdminSchoolTeacherUser, email=email, password=password
-        )
-
-    def login_non_school_teacher(self, email: str, password: str = "password"):
-        """Log in a user and assert they are a non-school-teacher.
-
-        Args:
-            email: The user's email address.
-            password: The user's password.
-
-        Returns:
-            The non-school-teacher-user.
-        """
-        return self._login_user_type(
-            NonSchoolTeacherUser, email=email, password=password
-        )
-
-    def login_student(
-        self, class_id: str, first_name: str, password: str = "password"
-    ):
-        """Log in a user and assert they are a student.
-
-        Args:
-            class_id: The ID of the class the student belongs to.
-            first_name: The user's first name.
-            password: The user's password.
-
-        Returns:
-            The student-user.
-        """
-        return self._login_user_type(
-            StudentUser,
-            first_name=first_name,
-            password=password,
-            class_id=class_id,
-        )
-
-    def login_indy(self, email: str, password: str = "password"):
-        """Log in a user and assert they are an independent.
-
-        Args:
-            email: The user's email address.
-            password: The user's password.
-
-        Returns:
-            The independent-user.
-        """
-        return self._login_user_type(
-            IndependentUser, email=email, password=password
-        )
-
-    def login_as(self, user: TypedUser, password: str = "password"):
-        """Log in as a user. The user instance needs to be a user proxy in order
-        to know which credentials are required.
-
-        Args:
-            user: The user to log in as.
-            password: The user's password.
-        """
-        if isinstance(user, TeacherUser):
-            auth_user = self.login_teacher(user.email, password)
-        elif isinstance(user, SchoolTeacherUser):
-            auth_user = self.login_school_teacher(user.email, password)
-        elif isinstance(user, AdminSchoolTeacherUser):
-            auth_user = self.login_admin_school_teacher(user.email, password)
-        elif isinstance(user, NonAdminSchoolTeacherUser):
-            auth_user = self.login_non_admin_school_teacher(
-                user.email, password
-            )
-        elif isinstance(user, NonSchoolTeacherUser):
-            auth_user = self.login_non_school_teacher(user.email, password)
-        elif isinstance(user, StudentUser):
-            auth_user = self.login_student(
-                user.student.class_field.access_code,
-                user.first_name,
-                password,
-            )
-        elif isinstance(user, IndependentUser):
-            auth_user = self.login_indy(user.email, password)
-
-        assert user == auth_user
-
 
 class ModelViewSetTestCase(APITestCase, t.Generic[AnyModel]):
     """Base for all model view set test cases."""
 
     basename: str
     model_view_set_class: t.Type[ModelViewSet[AnyModel]]
-    model_serializer_class: t.Optional[t.Type[ModelSerializer[AnyModel]]] = None
     client: ModelViewSetClient[AnyModel]
     client_class = ModelViewSetClient  # type: ignore[assignment]
-
-    def _pre_setup(self):
-        super()._pre_setup()  # type: ignore[misc]
-        # pylint: disable-next=protected-access
-        self.client._test_case = self
 
     @classmethod
     def get_model_class(cls) -> t.Type[AnyModel]:
@@ -814,8 +528,8 @@ class ModelViewSetTestCase(APITestCase, t.Generic[AnyModel]):
 
     @classmethod
     def setUpClass(cls):
-        attr_name = "model_view_set_class"
-        assert hasattr(cls, attr_name), f'Attribute "{attr_name}" must be set.'
+        for attr in ["model_view_set_class", "basename"]:
+            assert hasattr(cls, attr), f'Attribute "{attr}" must be set.'
 
         return super().setUpClass()
 
