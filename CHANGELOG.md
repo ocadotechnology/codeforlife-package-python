@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.14.0 (2024-02-23)
+
+### Feature
+
+* Release students ([#93](https://github.com/ocadotechnology/codeforlife-package-python/issues/93)) ([`e031888`](https://github.com/ocadotechnology/codeforlife-package-python/commit/e031888f7448049bfd8a330d2608427c954b26e0))
+
 ## v0.13.14 (2024-02-22)
 
 ### Fix
