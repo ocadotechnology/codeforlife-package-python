@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.14.1 (2024-02-26)
+
+### Fix
+
+* Generate username helper ([#94](https://github.com/ocadotechnology/codeforlife-package-python/issues/94)) ([`7eeb1ff`](https://github.com/ocadotechnology/codeforlife-package-python/commit/7eeb1ff2c5d85985969b360d8d68352da77c9f68))
+
 ## v0.14.0 (2024-02-23)
 
 ### Feature
