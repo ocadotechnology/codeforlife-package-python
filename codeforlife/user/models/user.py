@@ -271,7 +271,7 @@ class StudentUserManager(UserManager["StudentUser"]):
         user = super().create_user(
             **extra_fields,
             first_name=first_name,
-            username=StudentUser.generate_random_username(),
+            username=StudentUser.get_random_username(),
             password=password,
         )
 
@@ -333,7 +333,7 @@ class StudentUser(User):
         return login_id
 
     @staticmethod
-    def generate_random_username():
+    def get_random_username():
         username = None
 
         while (
