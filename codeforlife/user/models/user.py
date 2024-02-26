@@ -265,17 +265,13 @@ class StudentUserManager(UserManager["StudentUser"]):
         **extra_fields,
     ):
         """Create a student-user."""
-        username = None
-        while username is None or self.filter(username=username).exists():
-            username = get_random_string(length=30)
-
         # pylint: disable-next=protected-access
         password = StudentUser._get_random_password()
 
         user = super().create_user(
             **extra_fields,
             first_name=first_name,
-            username=username,
+            username=StudentUser.get_random_username(),
             password=password,
         )
 
@@ -335,6 +331,17 @@ class StudentUser(User):
             login_id = get_random_string(length=64)
 
         return login_id
+
+    @staticmethod
+    def get_random_username():
+        username = None
+
+        while (
+            username is None or User.objects.filter(username=username).exists()
+        ):
+            username = get_random_string(length=30)
+
+        return username
 
     # pylint: disable-next=arguments-differ
     def set_password(self):
