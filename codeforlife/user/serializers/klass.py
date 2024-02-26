@@ -26,11 +26,6 @@ class ClassSerializer(ModelSerializer[Class]):
         read_only=True,
     )
 
-    teacher = serializers.IntegerField(
-        source="teacher.id",
-        read_only=True,
-    )
-
     school = serializers.IntegerField(
         source="teacher.school.id",
         read_only=True,
@@ -49,4 +44,5 @@ class ClassSerializer(ModelSerializer[Class]):
         ]
         extra_kwargs = {
             "name": {"read_only": True},
+            "teacher": {"read_only": True},
         }
