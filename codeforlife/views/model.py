@@ -17,6 +17,7 @@ from rest_framework.viewsets import ModelViewSet as DrfModelViewSet
 from ..permissions import Permission
 from ..request import Request
 from ..serializers import ModelListSerializer, ModelSerializer
+from ..types import KwArgs
 from .api import APIView
 
 AnyModel = t.TypeVar("AnyModel", bound=Model)
@@ -38,11 +39,6 @@ class ModelViewSet(APIView, _ModelViewSet[AnyModel], t.Generic[AnyModel]):
     """Base model view set for all model view sets."""
 
     serializer_class: t.Optional[t.Type[ModelSerializer[AnyModel]]]
-
-    def get_bulk_queryset(self, lookup_values: t.Collection):
-        return self.get_queryset().filter(
-            **{f"{self.lookup_field}__in": lookup_values}
-        )
 
     @classmethod
     def get_model_class(cls) -> t.Type[AnyModel]:
@@ -141,6 +137,19 @@ class ModelViewSet(APIView, _ModelViewSet[AnyModel], t.Generic[AnyModel]):
     # --------------------------------------------------------------------------
     # Bulk Actions
     # --------------------------------------------------------------------------
+
+    def get_bulk_queryset(self, lookup_values: t.Collection):
+        """Get the queryset for a bulk action.
+
+        Args:
+            lookup_values: The values of the model's lookup field.
+
+        Returns:
+            A queryset containing the matching models.
+        """
+        return self.get_queryset().filter(
+            **{f"{self.lookup_field}__in": lookup_values}
+        )
 
     def bulk_create(self, request: Request):
         """Bulk create many instances of a model.
@@ -249,3 +258,39 @@ class ModelViewSet(APIView, _ModelViewSet[AnyModel], t.Generic[AnyModel]):
             "PATCH": self.bulk_partial_update,
             "DELETE": self.bulk_destroy,
         }[t.cast(str, request.method)](request)
+
+    @staticmethod
+    def bulk_update_action(
+        name: str,
+        serializer_kwargs: t.Optional[KwArgs] = None,
+        response_kwargs: t.Optional[KwArgs] = None,
+        **kwargs,
+    ):
+        """Generate a bulk-update action.
+
+        Example usage:
+        ```
+        class UserViewSet(ModelViewSet[User]):
+            rename = ModelViewSet.bulk_update_action(name="rename")
+        ```
+
+        Args:
+            name: The of the action's function name.
+        """
+
+        def bulk_update(self: ModelViewSet[AnyModel], request: Request):
+            queryset = self.get_bulk_queryset(request.json_dict.keys())
+            serializer = self.get_serializer(
+                **(serializer_kwargs or {}),
+                instance=queryset,
+                data=request.data,
+                many=True,
+                context=self.get_serializer_context(),
+            )
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            return Response(**(response_kwargs or {}), data=serializer.data)
+
+        bulk_update.__name__ = name
+
+        return action(**kwargs, detail=False, methods=["put"])(bulk_update)
