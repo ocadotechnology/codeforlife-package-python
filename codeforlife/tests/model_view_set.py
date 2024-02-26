@@ -317,7 +317,7 @@ class ModelViewSetClient(APIClient, t.Generic[AnyModel]):
 
     def bulk_partial_update(
         self,
-        models: t.List[AnyModel],
+        models: t.Union[t.List[AnyModel], QuerySet[AnyModel]],
         data: t.List[DataDict],
         status_code_assertion: APIClient.StatusCodeAssertion = (
             status.HTTP_200_OK
@@ -340,6 +340,8 @@ class ModelViewSetClient(APIClient, t.Generic[AnyModel]):
             The HTTP response.
         """
         # pylint: enable=line-too-long
+        if not isinstance(models, list):
+            models = list(models)
 
         response: Response = self.patch(
             self._test_case.reverse_action("bulk", kwargs=reverse_kwargs),
@@ -375,7 +377,7 @@ class ModelViewSetClient(APIClient, t.Generic[AnyModel]):
 
     def bulk_update(
         self,
-        models: t.List[AnyModel],
+        models: t.Union[t.List[AnyModel], QuerySet[AnyModel]],
         data: t.List[DataDict],
         action: str,
         status_code_assertion: APIClient.StatusCodeAssertion = (
@@ -399,6 +401,9 @@ class ModelViewSetClient(APIClient, t.Generic[AnyModel]):
             The HTTP response.
         """
         # pylint: enable=line-too-long
+        if not isinstance(models, list):
+            models = list(models)
+
         assert len(models) == len(data)
 
         response = self.put(
