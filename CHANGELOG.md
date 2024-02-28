@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.14.2 (2024-02-28)
+
+### Fix
+
+* Assertion helpers ([#98](https://github.com/ocadotechnology/codeforlife-package-python/issues/98)) ([`a347bd3`](https://github.com/ocadotechnology/codeforlife-package-python/commit/a347bd3d74fea6c891855603e5f75f1bdd5b8554))
+
 ## v0.14.1 (2024-02-26)
 
 ### Fix
