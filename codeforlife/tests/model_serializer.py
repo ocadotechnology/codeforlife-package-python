@@ -141,6 +141,7 @@ class ModelSerializerTestCase(TestCase, t.Generic[AnyModel]):
         validated_data: DataDict,
         *args,
         new_data: t.Optional[DataDict] = None,
+        non_model_fields: t.Optional[t.Iterable[str]] = None,
         **kwargs,
     ):
         """Assert that the data used to create the model is a subset of the
@@ -149,10 +150,13 @@ class ModelSerializerTestCase(TestCase, t.Generic[AnyModel]):
         Args:
             validated_data: The data used to create the model.
             new_data: Any new data that the model may have after creating.
+            non_model_fields: Validated data fields that are not in the model.
         """
         serializer = self._init_model_serializer(*args, **kwargs)
         model = serializer.create(validated_data.copy())
         data = {**validated_data, **(new_data or {})}
+        for field in non_model_fields or []:
+            data.pop(field)
         self._assert_data_is_subset_of_model(data, model)
 
     def assert_update(
@@ -161,6 +165,7 @@ class ModelSerializerTestCase(TestCase, t.Generic[AnyModel]):
         validated_data: DataDict,
         *args,
         new_data: t.Optional[DataDict] = None,
+        non_model_fields: t.Optional[t.Iterable[str]] = None,
         **kwargs,
     ):
         """Assert that the data used to update the model is a subset of the
@@ -170,10 +175,13 @@ class ModelSerializerTestCase(TestCase, t.Generic[AnyModel]):
             instance: The model instance to update.
             validated_data: The data used to update the model.
             new_data: Any new data that the model may have after updating.
+            non_model_fields: Validated data fields that are not in the model.
         """
         serializer = self._init_model_serializer(*args, **kwargs)
         model = serializer.update(instance, validated_data.copy())
         data = {**validated_data, **(new_data or {})}
+        for field in non_model_fields or []:
+            data.pop(field)
         self._assert_data_is_subset_of_model(data, model)
 
     def assert_update_many(
@@ -182,6 +190,7 @@ class ModelSerializerTestCase(TestCase, t.Generic[AnyModel]):
         validated_data: t.List[DataDict],
         *args,
         new_data: t.Optional[t.List[DataDict]] = None,
+        non_model_fields: t.Optional[t.Iterable[str]] = None,
         **kwargs,
     ):
         """Assert that the data used to update the models is a subset of the
@@ -194,6 +203,7 @@ class ModelSerializerTestCase(TestCase, t.Generic[AnyModel]):
             instance: The model instances to update.
             validated_data: The data used to update the models.
             new_data: Any new data that the models may have after updating.
+            non_model_fields: Validated data fields that are not in the model.
         """
         kwargs.pop("many", None)  # many must be True
         serializer = self._init_model_serializer(*args, **kwargs, many=True)
@@ -203,6 +213,8 @@ class ModelSerializerTestCase(TestCase, t.Generic[AnyModel]):
         new_data = new_data or [{} for _ in range(len(instance))]
         for data, _new_data, model in zip(validated_data, new_data, models):
             data = {**data, **_new_data}
+            for field in non_model_fields or []:
+                data.pop(field)
             self._assert_data_is_subset_of_model(data, model)
 
     def assert_to_representation(
