@@ -42,7 +42,8 @@
     "fields": {
       "name": "Class 1 @ School 1",
       "access_code": "ZZ111",
-      "teacher": 6
+      "teacher": 6,
+      "accept_requests_until": "9999-02-09 20:26:08.298402+00:00"
     }
   },
   {
@@ -106,8 +107,7 @@
     "fields": {
       "name": "Class 2 @ School 1",
       "access_code": "ZZ222",
-      "teacher": 7,
-      "accept_requests_until": "9999-02-09 20:26:08.298402+00:00"
+      "teacher": 7
     }
   },
   {
@@ -144,6 +144,16 @@
       "access_code": "ZZ333",
       "teacher": 7,
       "accept_requests_until": "2023-02-09 20:26:08.298402+00:00"
+    }
+  },
+  {
+    "model": "common.class",
+    "pk": 11,
+    "fields": {
+      "name": "Class 4 @ School 1",
+      "access_code": "ZZ444",
+      "teacher": 7,
+      "accept_requests_until": "9999-02-09 20:26:08.298402+00:00"
     }
   }
 ]
