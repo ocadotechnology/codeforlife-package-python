@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.14.5 (2024-02-29)
+
+### Fix
+
+* Bulk transfer students ([#96](https://github.com/ocadotechnology/codeforlife-package-python/issues/96)) ([`008eea4`](https://github.com/ocadotechnology/codeforlife-package-python/commit/008eea42a0832cc72662caf663aa5fafe9aa9eb2))
+
 ## v0.14.4 (2024-02-29)
 
 ### Fix
