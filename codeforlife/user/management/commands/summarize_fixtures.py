@@ -29,7 +29,7 @@ FixtureDict = t.Dict[str, t.List[Fixture]]
 
 # pylint: disable-next=missing-class-docstring
 class Command(BaseCommand):
-    help = "Summarizes all the listed fixtures by default"
+    help = "Summarizes all the listed fixtures."
 
     def add_arguments(self, parser):
         parser.add_argument("app_labels", nargs="*", type=str)
