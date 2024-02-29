@@ -4,9 +4,9 @@
     "pk": 28,
     "fields": {
       "first_name": "Indy",
-      "last_name": "Man",
-      "username": "indy@man.com",
-      "email": "indy@man.com",
+      "last_name": "Requester",
+      "username": "indy.requester@email.com",
+      "email": "indy.requester@email.com",
       "password": "pbkdf2_sha256$720000$Jp50WPBA6WZImUIpj3UcVm$OJWB8+UoW5lLaUkHLYo0cKgMkyRI6qnqVOWxYEsi9T0="
     }
   },
@@ -23,7 +23,35 @@
     "pk": 18,
     "fields": {
       "user": 28,
-      "new_user": 28
+      "new_user": 28,
+      "pending_class_request": 6
+    }
+  },
+  {
+    "model": "auth.user",
+    "pk": 30,
+    "fields": {
+      "first_name": "Indy",
+      "last_name": "NoRequest",
+      "username": "indy@email.com",
+      "email": "indy@email.com",
+      "password": "pbkdf2_sha256$720000$Jp50WPBA6WZImUIpj3UcVm$OJWB8+UoW5lLaUkHLYo0cKgMkyRI6qnqVOWxYEsi9T0="
+    }
+  },
+  {
+    "model": "common.userprofile",
+    "pk": 30,
+    "fields": {
+      "user": 30,
+      "is_verified": true
+    }
+  },
+  {
+    "model": "common.student",
+    "pk": 20,
+    "fields": {
+      "user": 30,
+      "new_user": 30
     }
   }
 ]
