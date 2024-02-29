@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.14.4 (2024-02-29)
+
+### Fix
+
+* Transfer class ([#95](https://github.com/ocadotechnology/codeforlife-package-python/issues/95)) ([`a3a11b5`](https://github.com/ocadotechnology/codeforlife-package-python/commit/a3a11b5b40ded1707bc0017e5ce136983e3fed7e))
+
 ## v0.14.3 (2024-02-29)
 
 ### Fix
