@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.14.3 (2024-02-29)
+
+### Fix
+
+* Update class fixtures for class join requests ([#99](https://github.com/ocadotechnology/codeforlife-package-python/issues/99)) ([`76d2635`](https://github.com/ocadotechnology/codeforlife-package-python/commit/76d26359f51189b72bd1965bdc0e42e894d17b38))
+
 ## v0.14.2 (2024-02-28)
 
 ### Fix
