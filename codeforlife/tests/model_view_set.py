@@ -25,7 +25,7 @@ from .api import APIClient, APITestCase
 
 AnyModel = t.TypeVar("AnyModel", bound=Model)
 
-# pylint: disable=no-member
+# pylint: disable=no-member,too-many-arguments
 
 
 class ModelViewSetClient(APIClient, t.Generic[AnyModel]):
@@ -193,7 +193,6 @@ class ModelViewSetClient(APIClient, t.Generic[AnyModel]):
 
         return response
 
-    # pylint: disable-next=too-many-arguments
     def list(
         self,
         models: t.Iterable[AnyModel],
@@ -252,19 +251,19 @@ class ModelViewSetClient(APIClient, t.Generic[AnyModel]):
     # Partial Update (HTTP PATCH)
     # --------------------------------------------------------------------------
 
-    def _assert_partial_update(
-        self, model: AnyModel, json_model: JsonDict, action: str
+    def _assert_update(
+        self,
+        model: AnyModel,
+        json_model: JsonDict,
+        action: str,
+        request_method: str,
+        partial: bool,
     ):
         model.refresh_from_db()
         self._test_case.assert_serialized_model_equals_json_model(
-            model,
-            json_model,
-            action,
-            request_method="patch",
-            contains_subset=True,
+            model, json_model, action, request_method, contains_subset=partial
         )
 
-    # pylint: disable-next=too-many-arguments
     def partial_update(
         self,
         model: AnyModel,
@@ -305,17 +304,20 @@ class ModelViewSetClient(APIClient, t.Generic[AnyModel]):
         if make_assertions:
             self._assert_response_json(
                 response,
-                make_assertions=lambda json_model: self._assert_partial_update(
-                    model, json_model, action="partial_update"
+                make_assertions=lambda json_model: self._assert_update(
+                    model,
+                    json_model,
+                    action="partial_update",
+                    request_method="patch",
+                    partial=True,
                 ),
             )
 
         return response
 
-    # pylint: disable-next=too-many-arguments
     def bulk_partial_update(
         self,
-        models: t.List[AnyModel],
+        models: t.Union[t.List[AnyModel], QuerySet[AnyModel]],
         data: t.List[DataDict],
         status_code_assertion: APIClient.StatusCodeAssertion = (
             status.HTTP_200_OK
@@ -338,6 +340,8 @@ class ModelViewSetClient(APIClient, t.Generic[AnyModel]):
             The HTTP response.
         """
         # pylint: enable=line-too-long
+        if not isinstance(models, list):
+            models = list(models)
 
         response: Response = self.patch(
             self._test_case.reverse_action("bulk", kwargs=reverse_kwargs),
@@ -355,8 +359,78 @@ class ModelViewSetClient(APIClient, t.Generic[AnyModel]):
                     )
                 )
                 for model, json_model in zip(models, json_models):
-                    self._assert_partial_update(
-                        model, json_model, action="bulk"
+                    self._assert_update(
+                        model,
+                        json_model,
+                        action="bulk",
+                        request_method="patch",
+                        partial=True,
+                    )
+
+            self._assert_response_json_bulk(response, _make_assertions, data)
+
+        return response
+
+    # --------------------------------------------------------------------------
+    # Update (HTTP PUT)
+    # --------------------------------------------------------------------------
+
+    def bulk_update(
+        self,
+        models: t.Union[t.List[AnyModel], QuerySet[AnyModel]],
+        data: t.List[DataDict],
+        action: str,
+        status_code_assertion: APIClient.StatusCodeAssertion = (
+            status.HTTP_200_OK
+        ),
+        make_assertions: bool = True,
+        reverse_kwargs: t.Optional[KwArgs] = None,
+        **kwargs,
+    ):
+        # pylint: disable=line-too-long
+        """Bulk update many instances of a model.
+
+        Args:
+            models: The models to update.
+            data: The values for each field, for each model.
+            status_code_assertion: The expected status code.
+            make_assertions: A flag designating whether to make the default assertions.
+            reverse_kwargs: The kwargs for the reverse URL.
+
+        Returns:
+            The HTTP response.
+        """
+        # pylint: enable=line-too-long
+        if not isinstance(models, list):
+            models = list(models)
+
+        assert len(models) == len(data)
+
+        response = self.put(
+            self._test_case.reverse_action(action, kwargs=reverse_kwargs),
+            data={
+                getattr(model, self._model_view_set_class.lookup_field): _data
+                for model, _data in zip(models, data)
+            },
+            status_code_assertion=status_code_assertion,
+            **kwargs,
+        )
+
+        if make_assertions:
+
+            def _make_assertions(json_models: t.List[JsonDict]):
+                models.sort(
+                    key=lambda model: getattr(
+                        model, self._model_view_set_class.lookup_field
+                    )
+                )
+                for model, json_model in zip(models, json_models):
+                    self._assert_update(
+                        model,
+                        json_model,
+                        action,
+                        request_method="put",
+                        partial=False,
                     )
 
             self._assert_response_json_bulk(response, _make_assertions, data)
@@ -516,7 +590,6 @@ class ModelViewSetTestCase(APITestCase, t.Generic[AnyModel]):
     # Assertion Helpers
     # --------------------------------------------------------------------------
 
-    # pylint: disable-next=too-many-arguments
     def assert_serialized_model_equals_json_model(
         self,
         model: AnyModel,
