@@ -2,6 +2,30 @@
 
 <!--next-version-placeholder-->
 
+## v0.14.4 (2024-02-29)
+
+### Fix
+
+* Transfer class ([#95](https://github.com/ocadotechnology/codeforlife-package-python/issues/95)) ([`a3a11b5`](https://github.com/ocadotechnology/codeforlife-package-python/commit/a3a11b5b40ded1707bc0017e5ce136983e3fed7e))
+
+## v0.14.3 (2024-02-29)
+
+### Fix
+
+* Update class fixtures for class join requests ([#99](https://github.com/ocadotechnology/codeforlife-package-python/issues/99)) ([`76d2635`](https://github.com/ocadotechnology/codeforlife-package-python/commit/76d26359f51189b72bd1965bdc0e42e894d17b38))
+
+## v0.14.2 (2024-02-28)
+
+### Fix
+
+* Assertion helpers ([#98](https://github.com/ocadotechnology/codeforlife-package-python/issues/98)) ([`a347bd3`](https://github.com/ocadotechnology/codeforlife-package-python/commit/a347bd3d74fea6c891855603e5f75f1bdd5b8554))
+
+## v0.14.1 (2024-02-26)
+
+### Fix
+
+* Generate username helper ([#94](https://github.com/ocadotechnology/codeforlife-package-python/issues/94)) ([`7eeb1ff`](https://github.com/ocadotechnology/codeforlife-package-python/commit/7eeb1ff2c5d85985969b360d8d68352da77c9f68))
+
 ## v0.14.0 (2024-02-23)
 
 ### Feature
