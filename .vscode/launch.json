@@ -1,17 +1,22 @@
 {
-  // Use IntelliSense to learn about possible attributes.
-  // Hover to view descriptions of existing attributes.
-  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
-  "version": "0.2.0",
   "configurations": [
     {
-      "name": "Pytest",
-      "type": "python",
-      "request": "test",
+      "console": "integratedTerminal",
       "justMyCode": false,
+      "name": "Python: Current File",
+      "program": "${file}",
+      "request": "launch",
+      "type": "debugpy"
+    },
+    {
+      "justMyCode": false,
+      "name": "Pytest",
       "presentation": {
         "hidden": true
-      }
+      },
+      "request": "test",
+      "type": "debugpy"
     }
-  ]
+  ],
+  "version": "0.2.0"
 }
