@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.14.6 (2024-03-07)
+
+### Fix
+
+* Teacher props ([#100](https://github.com/ocadotechnology/codeforlife-package-python/issues/100)) ([`74c906f`](https://github.com/ocadotechnology/codeforlife-package-python/commit/74c906f4ca9e793bcceb9833134ae2665c5342af))
+
 ## v0.14.5 (2024-02-29)
 
 ### Fix
