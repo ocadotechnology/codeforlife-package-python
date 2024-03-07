@@ -16,7 +16,8 @@
         "ms-python.mypy-type-checker",
         "ms-python.black-formatter",
         "qwtel.sqlite-viewer",
-        "njpwerner.autodocstring"
+        "njpwerner.autodocstring",
+        "tamasfe.even-better-toml"
       ]
     }
   },

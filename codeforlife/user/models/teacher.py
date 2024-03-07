@@ -9,6 +9,7 @@ from common.models import Teacher, TeacherModelManager
 from django.db import models
 from django_stubs_ext.db.models import TypedModelMeta
 
+from .klass import Class
 from .school import School
 from .student import Student
 
@@ -53,6 +54,25 @@ class SchoolTeacher(Teacher):
                 if self.is_admin
                 else {"class_field__teacher": self}
             )
+        )
+
+    @property
+    def classes(self):
+        """All classes the teacher can query."""
+        return (
+            Class.objects.filter(teacher__school=self.school)
+            if self.is_admin
+            else self.class_teacher.all()
+        )
+
+    @property
+    def indy_users(self):
+        """All independent-users the teacher can query."""
+        # pylint: disable-next=import-outside-toplevel
+        from .user import IndependentUser
+
+        return IndependentUser.objects.filter(
+            new_student__pending_class_request__in=self.classes
         )
 
 
