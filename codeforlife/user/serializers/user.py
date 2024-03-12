@@ -5,6 +5,8 @@ Created on 19/01/2024 at 11:06:00(+00:00).
 
 import typing as t
 
+from rest_framework import serializers
+
 from ...serializers import ModelSerializer
 from ..models import AnyUser, Student, Teacher, User
 from .student import StudentSerializer
@@ -12,7 +14,35 @@ from .teacher import TeacherSerializer
 
 
 # pylint: disable-next=missing-class-docstring
-class UserSerializer(ModelSerializer[AnyUser], t.Generic[AnyUser]):
+class BaseUserSerializer(ModelSerializer[AnyUser], t.Generic[AnyUser]):
+    requesting_to_join_class = serializers.CharField(
+        source="new_student.pending_class_request",
+        read_only=True,
+    )
+
+    class Meta:
+        model = User
+        fields = [
+            "id",
+            "first_name",
+            "last_name",
+            "email",
+            "is_active",
+            "date_joined",
+            "requesting_to_join_class",
+        ]
+        extra_kwargs = {
+            "id": {"read_only": True},
+            "first_name": {"read_only": True},
+            "last_name": {"read_only": True},
+            "email": {"read_only": True},
+            "is_active": {"read_only": True},
+            "date_joined": {"read_only": True},
+        }
+
+
+# pylint: disable-next=missing-class-docstring,too-many-ancestors
+class UserSerializer(BaseUserSerializer[AnyUser], t.Generic[AnyUser]):
     student = StudentSerializer(
         source="new_student",
         read_only=True,
@@ -23,27 +53,8 @@ class UserSerializer(ModelSerializer[AnyUser], t.Generic[AnyUser]):
         read_only=True,
     )
 
-    # pylint: disable-next=missing-class-docstring,too-few-public-methods
-    class Meta:
-        model = User
-        fields = [
-            "student",
-            "teacher",
-            "id",
-            "first_name",
-            "last_name",
-            "email",
-            "is_active",
-            "date_joined",
-        ]
-        extra_kwargs = {
-            "id": {"read_only": True},
-            "first_name": {"read_only": True},
-            "last_name": {"read_only": True},
-            "email": {"read_only": True},
-            "is_active": {"read_only": True},
-            "date_joined": {"read_only": True},
-        }
+    class Meta(BaseUserSerializer.Meta):
+        fields = [*BaseUserSerializer.Meta.fields, "student", "teacher"]
 
     def to_representation(self, instance):
         try:

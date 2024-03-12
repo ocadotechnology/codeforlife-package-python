@@ -43,7 +43,7 @@ class SchoolTeacher(Teacher):
                 if self.is_admin
                 else {"new_student__class_field__teacher": self}
             )
-        )
+        ).prefetch_related("new_student")
 
     @property
     def students(self):
@@ -54,7 +54,7 @@ class SchoolTeacher(Teacher):
                 if self.is_admin
                 else {"class_field__teacher": self}
             )
-        )
+        ).prefetch_related("new_user")
 
     @property
     def classes(self):

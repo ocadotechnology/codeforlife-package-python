@@ -344,8 +344,8 @@ class StudentUser(User):
         return username
 
     # pylint: disable-next=arguments-differ
-    def set_password(self):
-        super().set_password(self._get_random_password())
+    def set_password(self, raw_password: t.Optional[str] = None):
+        super().set_password(raw_password or self._get_random_password())
         self.student.login_id = self._get_random_login_id()
 
 
@@ -362,6 +362,7 @@ class IndependentUserManager(UserManager["IndependentUser"]):
                 new_student__isnull=False,
                 new_student__class_field__isnull=True,
             )
+            .prefetch_related("new_student")
         )
 
 
