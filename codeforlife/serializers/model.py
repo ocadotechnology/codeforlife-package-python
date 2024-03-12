@@ -40,6 +40,11 @@ class ModelSerializer(
 
         return t.cast(ModelViewSet[AnyModel], super().view)
 
+    @property
+    def non_none_instance(self):
+        """Casts the instance to not None."""
+        return t.cast(AnyModel, self.instance)
+
     # pylint: disable-next=useless-parent-delegation
     def update(self, instance: AnyModel, validated_data: DataDict) -> AnyModel:
         return super().update(instance, validated_data)
@@ -88,6 +93,11 @@ class ModelListSerializer(
         from ..views import ModelViewSet
 
         return t.cast(ModelViewSet[AnyModel], super().view)
+
+    @property
+    def non_none_instance(self):
+        """Casts the instance to not None."""
+        return t.cast(t.List[AnyModel], self.instance)
 
     @classmethod
     def get_model_class(cls) -> t.Type[AnyModel]:

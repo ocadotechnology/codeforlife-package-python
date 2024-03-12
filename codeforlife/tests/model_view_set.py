@@ -404,6 +404,7 @@ class ModelViewSetClient(APIClient, t.Generic[AnyModel]):
         if not isinstance(models, list):
             models = list(models)
 
+        assert models
         assert len(models) == len(data)
 
         response = self.put(

@@ -9,11 +9,10 @@ import typing as t
 from unittest.case import _AssertRaisesContext
 
 from django.db.models import Model
-from django.forms.models import model_to_dict
 from django.test import TestCase
 from rest_framework.serializers import BaseSerializer, ValidationError
 
-from ..serializers import ModelSerializer
+from ..serializers import ModelListSerializer, ModelSerializer
 from ..types import DataDict
 from .api_request_factory import APIRequestFactory
 
@@ -46,6 +45,78 @@ class ModelSerializerTestCase(TestCase, t.Generic[AnyModel]):
             0
         ]
 
+    # --------------------------------------------------------------------------
+    # Private helpers.
+    # --------------------------------------------------------------------------
+
+    def _init_model_serializer(
+        self, *args, parent: t.Optional[BaseSerializer] = None, **kwargs
+    ):
+        serializer = self.model_serializer_class(*args, **kwargs)
+        if parent:
+            serializer.parent = parent
+
+        return serializer
+
+    def _assert_data_is_subset_of_model(self, data: DataDict, model):
+        assert isinstance(model, Model)
+
+        for field, value in data.copy().items():
+            # NOTE: A data value of type dict == a foreign object on the model.
+            if isinstance(value, dict):
+                self._assert_data_is_subset_of_model(
+                    value, getattr(model, field)
+                )
+                data.pop(field)
+            elif isinstance(value, Model):
+                data[f"{field}_id"] = getattr(value, "id")
+                data.pop(field)
+
+        model_dict = {
+            field: value
+            for field, value in model.__dict__.items()
+            if not field.startswith("_")
+        }
+        self.assertDictContainsSubset(data, model_dict)
+
+    def _assert_many(
+        self,
+        validated_data: t.List[DataDict],
+        new_data: t.Optional[t.List[DataDict]],
+        non_model_fields: t.Optional[t.Iterable[str]],
+        get_models: t.Callable[
+            [ModelListSerializer[AnyModel], t.List[DataDict]], t.List[AnyModel]
+        ],
+        *args,
+        **kwargs,
+    ):
+        assert validated_data
+        if new_data is None:
+            new_data = [{} for _ in range(len(validated_data))]
+        else:
+            assert len(new_data) == len(validated_data)
+
+        kwargs.pop("many", None)  # many must be True
+        serializer: ModelListSerializer[AnyModel] = self._init_model_serializer(
+            *args, **kwargs, many=True
+        )
+
+        models = get_models(
+            serializer, [data.copy() for data in validated_data]
+        )
+        assert len(models) == len(validated_data)
+
+        for data, _new_data, model in zip(validated_data, new_data, models):
+            data = {**data, **_new_data}
+            for field in non_model_fields or []:
+                data.pop(field)
+
+            self._assert_data_is_subset_of_model(data, model)
+
+    # --------------------------------------------------------------------------
+    # Public helpers.
+    # --------------------------------------------------------------------------
+
     def assert_raises_validation_error(self, code: str, *args, **kwargs):
         """Assert code block raises a validation error.
 
@@ -76,15 +147,6 @@ class ModelSerializerTestCase(TestCase, t.Generic[AnyModel]):
                 return value
 
         return Wrapper(self.assertRaises(ValidationError, *args, **kwargs))
-
-    def _init_model_serializer(
-        self, *args, parent: t.Optional[BaseSerializer] = None, **kwargs
-    ):
-        serializer = self.model_serializer_class(*args, **kwargs)
-        if parent:
-            serializer.parent = parent
-
-        return serializer
 
     def assert_validate(
         self,
@@ -120,22 +182,6 @@ class ModelSerializerTestCase(TestCase, t.Generic[AnyModel]):
         with self.assert_raises_validation_error(error_code):
             validate_field(value)
 
-    def _assert_data_is_subset_of_model(self, data: DataDict, model):
-        assert isinstance(model, Model)
-
-        for field, value in data.copy().items():
-            # NOTE: A data value of type dict == a foreign object on the model.
-            if isinstance(value, dict):
-                self._assert_data_is_subset_of_model(
-                    value,
-                    getattr(model, field),
-                )
-                data.pop(field)
-            elif isinstance(value, Model):
-                data[field] = value.pk
-
-        self.assertDictContainsSubset(data, model_to_dict(model))
-
     def assert_create(
         self,
         validated_data: DataDict,
@@ -158,6 +204,37 @@ class ModelSerializerTestCase(TestCase, t.Generic[AnyModel]):
         for field in non_model_fields or []:
             data.pop(field)
         self._assert_data_is_subset_of_model(data, model)
+
+    def assert_create_many(
+        self,
+        validated_data: t.List[DataDict],
+        *args,
+        new_data: t.Optional[t.List[DataDict]] = None,
+        non_model_fields: t.Optional[t.Iterable[str]] = None,
+        **kwargs,
+    ):
+        """Assert that the data used to create the models is a subset of the
+        models' data.
+
+        Use this assert helper instead of "assert_create" if the create() on a
+        list serializer is being called.
+
+        Args:
+            instance: The model instances to create.
+            validated_data: The data used to create the models.
+            new_data: Any new data that the models may have after creation.
+            non_model_fields: Validated data fields that are not in the model.
+        """
+        self._assert_many(
+            validated_data,
+            new_data,
+            non_model_fields,
+            lambda serializer, validated_data: serializer.create(
+                validated_data
+            ),
+            *args,
+            **kwargs,
+        )
 
     def assert_update(
         self,
@@ -205,17 +282,18 @@ class ModelSerializerTestCase(TestCase, t.Generic[AnyModel]):
             new_data: Any new data that the models may have after updating.
             non_model_fields: Validated data fields that are not in the model.
         """
-        kwargs.pop("many", None)  # many must be True
-        serializer = self._init_model_serializer(*args, **kwargs, many=True)
-        models = serializer.update(
-            instance, [data.copy() for data in validated_data]
+        assert len(instance) == len(validated_data)
+
+        self._assert_many(
+            validated_data,
+            new_data,
+            non_model_fields,
+            lambda serializer, validated_data: serializer.update(
+                instance, validated_data
+            ),
+            *args,
+            **kwargs,
         )
-        new_data = new_data or [{} for _ in range(len(instance))]
-        for data, _new_data, model in zip(validated_data, new_data, models):
-            data = {**data, **_new_data}
-            for field in non_model_fields or []:
-                data.pop(field)
-            self._assert_data_is_subset_of_model(data, model)
 
     def assert_to_representation(
         self, instance: AnyModel, new_data: DataDict, *args, **kwargs
@@ -231,7 +309,41 @@ class ModelSerializerTestCase(TestCase, t.Generic[AnyModel]):
         serializer = self._init_model_serializer(*args, **kwargs)
         data = serializer.to_representation(instance)
 
-        for field, value in new_data.items():
-            assert value == data.pop(field)
+        def assert_new_data_is_subset_of_data(new_data: DataDict, data):
+            assert isinstance(data, dict)
 
+            for field, new_value in new_data.items():
+                if isinstance(new_value, dict):
+                    assert_new_data_is_subset_of_data(new_value, data[field])
+                else:
+                    assert new_value == data.pop(field)
+
+        assert_new_data_is_subset_of_data(new_data, data)
         self._assert_data_is_subset_of_model(data, instance)
+
+
+class ModelListSerializerTestCase(
+    ModelSerializerTestCase[AnyModel], t.Generic[AnyModel]
+):
+    """Base for all model serializer test cases."""
+
+    model_list_serializer_class: t.Type[ModelListSerializer[AnyModel]]
+
+    @classmethod
+    def setUpClass(cls):
+        attr_name = "model_list_serializer_class"
+        assert hasattr(cls, attr_name), f'Attribute "{attr_name}" must be set.'
+
+        return super().setUpClass()
+
+    # --------------------------------------------------------------------------
+    # Private helpers.
+    # --------------------------------------------------------------------------
+
+    def _init_model_serializer(self, *args, parent=None, **kwargs):
+        kwargs.setdefault("child", self.model_serializer_class())
+        serializer = self.model_list_serializer_class(*args, **kwargs)
+        if parent:
+            serializer.parent = parent
+
+        return serializer

@@ -8,5 +8,8 @@ Custom test cases.
 from .api import APIClient, APITestCase
 from .api_request_factory import APIRequestFactory
 from .cron import CronTestCase
-from .model_serializer import ModelSerializerTestCase
+from .model_serializer import (
+    ModelListSerializerTestCase,
+    ModelSerializerTestCase,
+)
 from .model_view_set import ModelViewSetTestCase
