@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.14.7 (2024-03-12)
+
+### Fix
+
+* Fix data structure and test helpers ([#101](https://github.com/ocadotechnology/codeforlife-package-python/issues/101)) ([`183b68a`](https://github.com/ocadotechnology/codeforlife-package-python/commit/183b68abecf18ff8eb2f0b62ce4f3827240d4dcb))
+
 ## v0.14.6 (2024-03-07)
 
 ### Fix
