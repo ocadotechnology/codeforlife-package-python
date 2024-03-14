@@ -1,71 +1,57 @@
-"""Helpers for module "django.db.models.signals.pre_save".
+"""
+© Ocado Group
+Created on 14/03/2024 at 13:08:13(+00:00).
+
+Helpers for module "django.db.models.signals.pre_save".
 https://docs.djangoproject.com/en/3.2/ref/signals/#pre-save
 """
 
 import typing as t
 
-from django.db.models import Model
-
-from . import UpdateFields, _has_update_fields
-
-AnyModel = t.TypeVar("AnyModel", bound=Model)
+from . import general as _
 
 
-def was_created(instance: AnyModel):
-    """Check if the instance was created.
+def adding(instance: _.AnyModel):
+    """Check if the instance is being added to the database.
 
     Args:
-        instance: The current instance.
+        instance: The instance to check.
 
     Returns:
-        If the instance was created.
+        A flag designating if the instance is being added to the database.
     """
 
-    return instance.pk is not None
-
-
-def has_update_fields(actual: UpdateFields, expected: UpdateFields):
-    """Check if the expected fields are going to be updated.
-
-    Args:
-        actual: The fields that are going to be updated.
-        expected: A subset of the fields that are expected to be updated. If no
-            fields are expected to be updated, set to None.
-
-    Returns:
-        If the fields that are expected to be updated are a subset of the
-        fields that are going to be updated.
-    """
-
-    return _has_update_fields(actual, expected)
+    # pylint: disable-next=protected-access
+    return instance._state.adding
 
 
 def check_previous_values(
-    instance: AnyModel,
+    instance: _.AnyModel,
     predicates: t.Dict[str, t.Callable[[t.Any, t.Any], bool]],
 ):
+    # pylint: disable=line-too-long
     """Check if the previous values are as expected. If the model has not been
     created yet, the previous values are None.
 
     Args:
         instance: The current instance.
-        predicates: A predicate for each field. It accepts the arguments
-        (previous_value, value) and returns True if the values are as expected.
+        predicates: A predicate for each field. It accepts the arguments (previous_value, value) and returns True if the values are as expected.
 
     Returns:
         If all the previous values are as expected.
     """
+    # pylint: enable=line-too-long
 
-    if was_created(instance):
+    if adding(instance):
+        # pylint: disable-next=unused-argument
+        def get_previous_value(field: str):
+            return None
+
+    else:
         previous_instance = instance.__class__.objects.get(pk=instance.pk)
 
         def get_previous_value(field: str):
             return getattr(previous_instance, field)
-
-    else:
-        # pylint: disable-next=unused-argument
-        def get_previous_value(field: str):
-            return None
 
     return all(
         predicate(get_previous_value(field), getattr(instance, field))
@@ -73,7 +59,8 @@ def check_previous_values(
     )
 
 
-def previous_values_are_unequal(instance: AnyModel, fields: t.Set[str]):
+def previous_values_are_unequal(instance: _.AnyModel, fields: t.Set[str]):
+    # pylint: disable=line-too-long
     """Check if all the previous values are not equal to the current values. If
     the model has not been created yet, the previous values are None.
 
@@ -84,11 +71,11 @@ def previous_values_are_unequal(instance: AnyModel, fields: t.Set[str]):
     Returns:
         If all the previous values are not equal to the current values.
     """
+    # pylint: enable=line-too-long
 
     def predicate(v1, v2):
         return v1 != v2
 
     return check_previous_values(
-        instance,
-        {field: predicate for field in fields},
+        instance, {field: predicate for field in fields}
     )
