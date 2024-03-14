@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.14.8 (2024-03-14)
+
+### Fix
+
+* Signals ([#102](https://github.com/ocadotechnology/codeforlife-package-python/issues/102)) ([`e07d5c5`](https://github.com/ocadotechnology/codeforlife-package-python/commit/e07d5c5b279b0954de608589d714f0726cb2e847))
+
 ## v0.14.7 (2024-03-12)
 
 ### Fix
