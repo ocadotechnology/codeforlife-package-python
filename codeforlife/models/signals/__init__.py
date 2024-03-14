@@ -1,16 +1,15 @@
-"""Helpers for module "django.db.models.signals".
+"""
+© Ocado Group
+Created on 14/03/2024 at 12:52:50(+00:00).
+
+Helpers for module "django.db.models.signals".
 https://docs.djangoproject.com/en/3.2/ref/signals/#module-django.db.models.signals
 """
 
-import typing as t
 
-UpdateFields = t.Optional[t.FrozenSet[str]]
-
-
-def _has_update_fields(actual: UpdateFields, expected: UpdateFields):
-    if expected is None:
-        return actual is None
-    if actual is None:
-        return False
-
-    return all(update_field in actual for update_field in expected)
+from .general import (
+    UpdateFields,
+    assert_update_fields_includes,
+    update_fields_includes,
+)
+from .receiver import model_receiver
