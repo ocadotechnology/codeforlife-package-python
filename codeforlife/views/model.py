@@ -260,6 +260,46 @@ class ModelViewSet(APIView, _ModelViewSet[AnyModel], t.Generic[AnyModel]):
         }[t.cast(str, request.method)](request)
 
     @staticmethod
+    def update_action(
+        name: str,
+        serializer_kwargs: t.Optional[KwArgs] = None,
+        response_kwargs: t.Optional[KwArgs] = None,
+        **kwargs,
+    ):
+        """Generate a update action.
+
+        Example usage:
+
+        class UserViewSet(ModelViewSet[User]):
+            rename = ModelViewSet.update_action(name="rename")
+
+        Args:
+            name: The of the action's function name.
+            serializer_kwargs: The kwargs to initialize to the serializer.
+            response_kwargs: The kwargs to initialize to the response.
+
+        Returns:
+            A named update action.
+        """
+
+        def update(self: ModelViewSet[AnyModel], request: Request, **_: str):
+            instance = self.get_object()
+            serializer = self.get_serializer(
+                **(serializer_kwargs or {}),
+                instance=instance,
+                data=request.data,
+                many=False,
+                context=self.get_serializer_context(),
+            )
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            return Response(**(response_kwargs or {}), data=serializer.data)
+
+        update.__name__ = name
+
+        return action(**kwargs, detail=True, methods=["put"])(update)
+
+    @staticmethod
     def bulk_update_action(
         name: str,
         serializer_kwargs: t.Optional[KwArgs] = None,
@@ -269,13 +309,17 @@ class ModelViewSet(APIView, _ModelViewSet[AnyModel], t.Generic[AnyModel]):
         """Generate a bulk-update action.
 
         Example usage:
-        ```
+
         class UserViewSet(ModelViewSet[User]):
             rename = ModelViewSet.bulk_update_action(name="rename")
-        ```
 
         Args:
             name: The of the action's function name.
+            serializer_kwargs: The kwargs to initialize to the serializer.
+            response_kwargs: The kwargs to initialize to the response.
+
+        Returns:
+            A named bulk-update action.
         """
 
         def bulk_update(self: ModelViewSet[AnyModel], request: Request):
