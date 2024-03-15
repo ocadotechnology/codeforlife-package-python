@@ -42,6 +42,8 @@ class User(_User):
     session: "Session"  # type: ignore[assignment]
     userprofile: UserProfile
 
+    credential_fields = frozenset(["email", "password"])
+
     class Meta(TypedModelMeta):
         proxy = True
 
@@ -54,7 +56,7 @@ class User(_User):
         from .session import Session
 
         try:
-            return not self.session.auth_factors.exists()
+            return self.is_active and not self.session.auth_factors.exists()
         except Session.DoesNotExist:
             return False
 
@@ -308,6 +310,8 @@ class StudentUser(User):
 
     teacher: None
     student: Student
+
+    credential_fields = frozenset(["first_name", "password"])
 
     class Meta(TypedModelMeta):
         proxy = True
