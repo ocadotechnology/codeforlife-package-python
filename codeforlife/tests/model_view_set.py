@@ -700,14 +700,21 @@ class ModelViewSetTestCase(APITestCase, t.Generic[AnyModel]):
         )(json_model, serialized_model)
 
     def assert_get_serializer_class(
-        self, serializer_class: t.Type[BaseSerializer], *args, **kwargs
+        self,
+        serializer_class: t.Type[BaseSerializer],
+        action: str,
+        *args,
+        **kwargs,
     ):
         """Assert that the expected serializer class is returned.
 
         Args:
             serializer_class: The expected serializer class.
+            action: The model view set's action.
         """
-        model_view_set = self.model_view_set_class(*args, **kwargs)
+        model_view_set = self.model_view_set_class(
+            *args, **kwargs, action=action
+        )
         actual_serializer_class = model_view_set.get_serializer_class()
         self.assertEqual(serializer_class, actual_serializer_class)
 
