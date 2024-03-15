@@ -167,14 +167,14 @@ class ModelSerializerTestCase(TestCase, t.Generic[AnyModel]):
 
     # pylint: disable-next=too-many-arguments
     def assert_validate_field(
-        self, name: str, value, error_code: str, *args, **kwargs
+        self, name: str, error_code: str, *args, value=None, **kwargs
     ):
         """Asserts that calling validate_field() raises the expected error code.
 
         Args:
             name: The name of the field.
-            value: The value to pass to validate_field().
             error_code: The expected error code to be raised.
+            value: The value to pass to validate_field().
         """
         serializer = self._init_model_serializer(*args, **kwargs)
         validate_field = getattr(serializer, f"validate_{name}")
