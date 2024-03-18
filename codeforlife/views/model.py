@@ -9,7 +9,6 @@ from functools import cached_property
 from django.db.models import Model
 from django.db.models.query import QuerySet
 from rest_framework import status
-from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.serializers import ListSerializer
 from rest_framework.viewsets import ModelViewSet as DrfModelViewSet
@@ -19,6 +18,7 @@ from ..request import Request
 from ..serializers import ModelListSerializer, ModelSerializer
 from ..types import KwArgs
 from .api import APIView
+from .decorators import action
 
 AnyModel = t.TypeVar("AnyModel", bound=Model)
 
@@ -260,7 +260,37 @@ class ModelViewSet(APIView, _ModelViewSet[AnyModel], t.Generic[AnyModel]):
         }[t.cast(str, request.method)](request)
 
     @staticmethod
+    def _update_action(
+        name: str,
+        serializer_kwargs: t.Optional[KwArgs],
+        response_kwargs: t.Optional[KwArgs],
+        get_instance: t.Callable[
+            ["ModelViewSet[AnyModel]", Request],
+            t.Union[AnyModel, t.Iterable[AnyModel]],
+        ],
+        detail: bool,
+        **kwargs,
+    ):
+        def update(self: ModelViewSet[AnyModel], request: Request, **_: str):
+            instance = get_instance(self, request)
+            serializer = self.get_serializer(
+                **(serializer_kwargs or {}),
+                instance=instance,
+                data=request.data,
+                many=not detail,
+                context=self.get_serializer_context(),
+            )
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            return Response(**(response_kwargs or {}), data=serializer.data)
+
+        update.__name__ = name
+
+        return action(**kwargs, detail=detail, methods=["put"])(update)
+
+    @classmethod
     def update_action(
+        cls,
         name: str,
         serializer_kwargs: t.Optional[KwArgs] = None,
         response_kwargs: t.Optional[KwArgs] = None,
@@ -282,25 +312,18 @@ class ModelViewSet(APIView, _ModelViewSet[AnyModel], t.Generic[AnyModel]):
             A named update action.
         """
 
-        def update(self: ModelViewSet[AnyModel], request: Request, **_: str):
-            instance = self.get_object()
-            serializer = self.get_serializer(
-                **(serializer_kwargs or {}),
-                instance=instance,
-                data=request.data,
-                many=False,
-                context=self.get_serializer_context(),
-            )
-            serializer.is_valid(raise_exception=True)
-            serializer.save()
-            return Response(**(response_kwargs or {}), data=serializer.data)
+        return cls._update_action(
+            name=name,
+            serializer_kwargs=serializer_kwargs,
+            response_kwargs=response_kwargs,
+            get_instance=lambda self, _: self.get_object(),
+            detail=True,
+            **kwargs,
+        )
 
-        update.__name__ = name
-
-        return action(**kwargs, detail=True, methods=["put"])(update)
-
-    @staticmethod
+    @classmethod
     def bulk_update_action(
+        cls,
         name: str,
         serializer_kwargs: t.Optional[KwArgs] = None,
         response_kwargs: t.Optional[KwArgs] = None,
@@ -322,19 +345,13 @@ class ModelViewSet(APIView, _ModelViewSet[AnyModel], t.Generic[AnyModel]):
             A named bulk-update action.
         """
 
-        def bulk_update(self: ModelViewSet[AnyModel], request: Request):
-            queryset = self.get_bulk_queryset(request.json_dict.keys())
-            serializer = self.get_serializer(
-                **(serializer_kwargs or {}),
-                instance=queryset,
-                data=request.data,
-                many=True,
-                context=self.get_serializer_context(),
-            )
-            serializer.is_valid(raise_exception=True)
-            serializer.save()
-            return Response(**(response_kwargs or {}), data=serializer.data)
-
-        bulk_update.__name__ = name
-
-        return action(**kwargs, detail=False, methods=["put"])(bulk_update)
+        return cls._update_action(
+            name=name,
+            serializer_kwargs=serializer_kwargs,
+            response_kwargs=response_kwargs,
+            get_instance=lambda self, request: self.get_bulk_queryset(
+                request.json_dict.keys()
+            ),
+            detail=False,
+            **kwargs,
+        )
