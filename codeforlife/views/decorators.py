@@ -37,7 +37,7 @@ def action(**kwargs):
             url_path = re.sub(r"_{2}", "/", url_path)
 
             # Replace single underscore with dash. For example:
-            #   name: "messages__replies" -> url-path: "messages/replies"
+            #   name: "send_message" -> url-path: "send-message"
             url_path = re.sub(r"_", "-", url_path)
 
             kwargs["url_path"] = url_path
