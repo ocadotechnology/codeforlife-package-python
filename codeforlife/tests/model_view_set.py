@@ -289,7 +289,6 @@ class ModelViewSetClient(APIClient, t.Generic[AnyModel]):
             The HTTP response.
         """
         # pylint: enable=line-too-long
-
         response: Response = self.patch(
             self._test_case.reverse_action(
                 "detail",
@@ -374,6 +373,55 @@ class ModelViewSetClient(APIClient, t.Generic[AnyModel]):
     # --------------------------------------------------------------------------
     # Update (HTTP PUT)
     # --------------------------------------------------------------------------
+
+    def update(
+        self,
+        model: AnyModel,
+        data: DataDict,
+        action: str,
+        status_code_assertion: APIClient.StatusCodeAssertion = (
+            status.HTTP_200_OK
+        ),
+        make_assertions: bool = True,
+        reverse_kwargs: t.Optional[KwArgs] = None,
+        **kwargs,
+    ):
+        # pylint: disable=line-too-long
+        """Update a model.
+
+        Args:
+            model: The model to update.
+            data: The values for each field.
+            status_code_assertion: The expected status code.
+            make_assertions: A flag designating whether to make the default assertions.
+            reverse_kwargs: The kwargs for the reverse URL.
+
+        Returns:
+            The HTTP response.
+        """
+        # pylint: enable=line-too-long
+        response = self.put(
+            path=self._test_case.reverse_action(
+                action, model, kwargs=reverse_kwargs
+            ),
+            data=data,
+            status_code_assertion=status_code_assertion,
+            **kwargs,
+        )
+
+        if make_assertions:
+            self._assert_response_json(
+                response,
+                make_assertions=lambda json_model: self._assert_update(
+                    model,
+                    json_model,
+                    action,
+                    request_method="put",
+                    partial=False,
+                ),
+            )
+
+        return response
 
     def bulk_update(
         self,
@@ -652,14 +700,21 @@ class ModelViewSetTestCase(APITestCase, t.Generic[AnyModel]):
         )(json_model, serialized_model)
 
     def assert_get_serializer_class(
-        self, serializer_class: t.Type[BaseSerializer], *args, **kwargs
+        self,
+        serializer_class: t.Type[BaseSerializer],
+        action: str,
+        *args,
+        **kwargs,
     ):
         """Assert that the expected serializer class is returned.
 
         Args:
             serializer_class: The expected serializer class.
+            action: The model view set's action.
         """
-        model_view_set = self.model_view_set_class(*args, **kwargs)
+        model_view_set = self.model_view_set_class(
+            *args, **kwargs, action=action
+        )
         actual_serializer_class = model_view_set.get_serializer_class()
         self.assertEqual(serializer_class, actual_serializer_class)
 
