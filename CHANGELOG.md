@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.14.9 (2024-03-21)
+
+### Fix
+
+* Update password ([#103](https://github.com/ocadotechnology/codeforlife-package-python/issues/103)) ([`ed9aed5`](https://github.com/ocadotechnology/codeforlife-package-python/commit/ed9aed596d0698bb4002d77457f02947c288f2f0))
+
 ## v0.14.8 (2024-03-14)
 
 ### Fix
