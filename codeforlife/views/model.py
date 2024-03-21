@@ -304,7 +304,7 @@ class ModelViewSet(APIView, _ModelViewSet[AnyModel], t.Generic[AnyModel]):
             rename = ModelViewSet.update_action(name="rename")
 
         Args:
-            name: The of the action's function name.
+            name: The action's function's name.
             serializer_kwargs: The kwargs to initialize to the serializer.
             response_kwargs: The kwargs to initialize to the response.
 
@@ -337,7 +337,7 @@ class ModelViewSet(APIView, _ModelViewSet[AnyModel], t.Generic[AnyModel]):
             rename = ModelViewSet.bulk_update_action(name="rename")
 
         Args:
-            name: The of the action's function name.
+            name: The action's function's name.
             serializer_kwargs: The kwargs to initialize to the serializer.
             response_kwargs: The kwargs to initialize to the response.
 
