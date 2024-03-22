@@ -19,6 +19,7 @@ from .teacher import (
     SchoolTeacher,
     Teacher,
     TypedTeacher,
+    teacher_as_type,
 )
 from .user import (  # TODO: remove UserProfile
     AdminSchoolTeacherUser,

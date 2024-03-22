@@ -16,7 +16,9 @@ from django.utils.crypto import get_random_string
 from django_stubs_ext.db.models import TypedModelMeta
 from pyotp import TOTP
 
+from ... import mail
 from .klass import Class
+from .school import School
 from .student import Independent, Student
 from .teacher import (
     AdminSchoolTeacher,
@@ -131,7 +133,65 @@ AnyUser = t.TypeVar("AnyUser", bound=User)
 
 
 # pylint: disable-next=missing-class-docstring,too-few-public-methods
-class TeacherUserManager(UserManager[AnyUser], t.Generic[AnyUser]):
+class ContactableUserManager(UserManager[AnyUser], t.Generic[AnyUser]):
+    # pylint: disable-next=missing-function-docstring
+    def get_queryset(self):
+        return (
+            super().get_queryset().exclude(email__isnull=True).exclude(email="")
+        )
+
+
+class ContactableUser(User):
+    """A user that can be contacted."""
+
+    class Meta(TypedModelMeta):
+        proxy = True
+
+    def add_contact_to_dot_digital(self):
+        """Add contact info to DotDigital."""
+        mail.add_contact(self.email)
+
+    def remove_contact_from_dot_digital(self):
+        """Remove contact info from DotDigital."""
+        mail.remove_contact(self.email)
+
+    # TODO: override when ready to use DotDigital as our sole email provider.
+    # def email_user(self):
+    #     mail.send_mail()
+
+
+# pylint: disable-next=missing-class-docstring,too-few-public-methods
+class TeacherUserManager(ContactableUserManager[AnyUser], t.Generic[AnyUser]):
+    # pylint: disable-next=too-many-arguments
+    def create_user(  # type: ignore[override]
+        self,
+        first_name: str,
+        email: str,
+        password: str,
+        school: t.Optional[School] = None,
+        is_admin: bool = False,
+        **extra_fields,
+    ):
+        """Create a teacher-user."""
+        assert "username" not in extra_fields
+
+        user = super().create_user(
+            username=email,
+            email=email,
+            password=password,
+            first_name=first_name,
+            **extra_fields,
+        )
+
+        Teacher.objects.create(
+            school=school,
+            new_user=user,
+            user=UserProfile.objects.create(user=user),
+            is_admin=is_admin,
+        )
+
+        return user
+
     # pylint: disable-next=missing-function-docstring
     def get_queryset(self):
         return (
@@ -142,7 +202,7 @@ class TeacherUserManager(UserManager[AnyUser], t.Generic[AnyUser]):
         )
 
 
-class TeacherUser(User):
+class TeacherUser(ContactableUser):
     """A user that is a teacher."""
 
     teacher: Teacher
@@ -261,10 +321,7 @@ class NonSchoolTeacherUser(TeacherUser):
 # pylint: disable-next=missing-class-docstring,too-few-public-methods
 class StudentUserManager(UserManager["StudentUser"]):
     def create_user(  # type: ignore[override]
-        self,
-        first_name: str,
-        klass: Class,
-        **extra_fields,
+        self, first_name: str, klass: Class, **extra_fields
     ):
         """Create a student-user."""
         # pylint: disable-next=protected-access
@@ -354,7 +411,7 @@ class StudentUser(User):
 
 
 # pylint: disable-next=missing-class-docstring,too-few-public-methods
-class IndependentUserManager(UserManager["IndependentUser"]):
+class IndependentUserManager(ContactableUserManager["IndependentUser"]):
     # pylint: disable-next=missing-function-docstring
     def get_queryset(self):
         # TODO: student__isnull=True in new model
@@ -370,7 +427,7 @@ class IndependentUserManager(UserManager["IndependentUser"]):
         )
 
 
-class IndependentUser(User):
+class IndependentUser(ContactableUser):
     """A user that is an independent learner."""
 
     teacher: None

@@ -24,6 +24,11 @@ def action(**kwargs):
     - 3+ underscores are not supported and will raise an assertion error.
     """
 
+    assert "permission_classes" not in kwargs, (
+        "Our testing strategy does not support this setting."
+        " Instead, override get_permissions() in the view set."
+    )
+
     def wrapper(handler: t.Callable):
         # Set handler name as url-path if url-path is not specified.
         if "url_path" not in kwargs:
