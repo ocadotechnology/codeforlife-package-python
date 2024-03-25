@@ -166,6 +166,7 @@ class TeacherUserManager(ContactableUserManager[AnyUser], t.Generic[AnyUser]):
     def create_user(  # type: ignore[override]
         self,
         first_name: str,
+        last_name: str,
         email: str,
         password: str,
         school: t.Optional[School] = None,
@@ -180,6 +181,7 @@ class TeacherUserManager(ContactableUserManager[AnyUser], t.Generic[AnyUser]):
             email=email,
             password=password,
             first_name=first_name,
+            last_name=last_name,
             **extra_fields,
         )
 
