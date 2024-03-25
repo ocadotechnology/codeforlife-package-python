@@ -95,7 +95,7 @@ class AdminSchoolTeacher(SchoolTeacher):
     def is_last_admin(self):
         """Whether of not the teacher is the last admin in the school."""
         return (
-            not self.__class__.objects.filter(school=self.school, is_admin=True)
+            not self.__class__.objects.filter(school=self.school)
             .exclude(pk=self.pk)
             .exists()
         )
