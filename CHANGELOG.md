@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.14.10 (2024-03-25)
+
+### Fix
+
+* Register teacher ([#104](https://github.com/ocadotechnology/codeforlife-package-python/issues/104)) ([`3dbb995`](https://github.com/ocadotechnology/codeforlife-package-python/commit/3dbb995abf71c4228171cb56b5200eb0f8d17c3d))
+
 ## v0.14.9 (2024-03-21)
 
 ### Fix
