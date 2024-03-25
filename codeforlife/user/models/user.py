@@ -6,11 +6,12 @@ Created on 05/02/2024 at 09:50:04(+00:00).
 import string
 import typing as t
 
-from common.models import UserProfile
+from common.models import TotalActivity, UserProfile
 
 # pylint: disable-next=imported-auth-user
 from django.contrib.auth.models import User as _User
 from django.contrib.auth.models import UserManager
+from django.db.models import F
 from django.db.models.query import QuerySet
 from django.utils.crypto import get_random_string
 from django_stubs_ext.db.models import TypedModelMeta
@@ -192,6 +193,11 @@ class TeacherUserManager(ContactableUserManager[AnyUser], t.Generic[AnyUser]):
             is_admin=is_admin,
         )
 
+        # TODO: delete this in new data schema
+        TotalActivity.objects.update(
+            teacher_registrations=F("teacher_registrations") + 1
+        )
+
         return user
 
     # pylint: disable-next=missing-function-docstring
@@ -347,6 +353,11 @@ class StudentUserManager(UserManager["StudentUser"]):
             login_id=StudentUser._get_random_login_id(),
         )
 
+        # TODO: delete this in new data schema
+        TotalActivity.objects.update(
+            student_registrations=F("student_registrations") + 1
+        )
+
         return user
 
     # pylint: disable-next=missing-function-docstring
@@ -427,6 +438,17 @@ class IndependentUserManager(ContactableUserManager["IndependentUser"]):
             )
             .prefetch_related("new_student")
         )
+
+    def create_user(self):
+        # TODO: implement create independent user
+        user = super().create_user()
+
+        # TODO: delete this in new data schema
+        TotalActivity.objects.update(
+            independent_registrations=F("independent_registrations") + 1
+        )
+
+        return user
 
 
 class IndependentUser(ContactableUser):
