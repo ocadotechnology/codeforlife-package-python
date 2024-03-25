@@ -91,6 +91,28 @@ class AdminSchoolTeacher(SchoolTeacher):
 
     objects: models.Manager["AdminSchoolTeacher"] = Manager()
 
+    @property
+    def is_last_admin(self):
+        """Whether of not the teacher is the last admin in the school."""
+        return (
+            not self.__class__.objects.filter(school=self.school)
+            .exclude(pk=self.pk)
+            .exists()
+        )
+
+    @property
+    def school_teacher_users(self):
+        """All school-teacher-users the teacher can query."""
+        # pylint: disable-next=import-outside-toplevel
+        from .user import SchoolTeacherUser
+
+        return SchoolTeacherUser.objects.filter(new_teacher__school=self.school)
+
+    @property
+    def school_teachers(self):
+        """All school-teachers the teacher can query."""
+        return SchoolTeacher.objects.filter(school=self.school)
+
 
 class NonAdminSchoolTeacher(SchoolTeacher):
     """A non-admin-teacher that is in a school."""

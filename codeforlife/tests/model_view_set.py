@@ -377,8 +377,8 @@ class ModelViewSetClient(APIClient, t.Generic[AnyModel]):
     def update(
         self,
         model: AnyModel,
-        data: DataDict,
         action: str,
+        data: t.Optional[DataDict] = None,
         status_code_assertion: APIClient.StatusCodeAssertion = (
             status.HTTP_200_OK
         ),
@@ -629,6 +629,7 @@ class ModelViewSetTestCase(APITestCase, t.Generic[AnyModel]):
             lookup_field = self.model_view_set_class.lookup_field
             reverse_kwargs[lookup_field] = getattr(model, lookup_field)
 
+        name = name.replace("_", "-")
         return reverse(
             viewname=kwargs.pop("viewname", f"{self.basename}-{name}"),
             kwargs=reverse_kwargs,
@@ -667,7 +668,7 @@ class ModelViewSetTestCase(APITestCase, t.Generic[AnyModel]):
 
         # Create an instance of the model view set and serializer.
         model_view_set = self.model_view_set_class(
-            action=action,
+            action=action.replace("-", "_"),
             request=self.client.request_factory.generic(
                 request_method, user=user
             ),
@@ -748,6 +749,29 @@ class ModelViewSetTestCase(APITestCase, t.Generic[AnyModel]):
         if ordered and not queryset.ordered:
             queryset = queryset.order_by("pk")
         self.assertQuerysetEqual(queryset, values, ordered=ordered)
+
+    def assert_get_serializer_context(
+        self,
+        serializer_context: t.Dict[str, t.Any],
+        action: str,
+        *args,
+        **kwargs,
+    ):
+        """Assert that the serializer's context contains a subset of values.
+
+        Args:
+            serializer_context: The serializer's context.
+            action: The model view set's action.
+        """
+        kwargs.setdefault("request", self.client.request_factory.get())
+        kwargs.setdefault("format_kwarg", None)
+        model_view_set = self.model_view_set_class(
+            *args, **kwargs, action=action
+        )
+        actual_serializer_context = model_view_set.get_serializer_context()
+        self.assertDictContainsSubset(
+            serializer_context, actual_serializer_context
+        )
 
     def get_other_user(
         self,
