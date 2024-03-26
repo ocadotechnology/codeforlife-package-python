@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.14.11 (2024-03-26)
+
+### Fix
+
+* School_3 fixture ([#105](https://github.com/ocadotechnology/codeforlife-package-python/issues/105)) ([`45bac81`](https://github.com/ocadotechnology/codeforlife-package-python/commit/45bac81f39c4a672c4de3a1a10f1af3546b1b1e9))
+
 ## v0.14.10 (2024-03-25)
 
 ### Fix
