@@ -1,0 +1,68 @@
+[
+  {
+    "model": "common.school",
+    "pk": 4,
+    "fields": {
+      "name": "School 3",
+      "country": "GB",
+      "county": "Hertfordshire"
+    }
+  },
+  {
+    "model": "auth.user",
+    "pk": 31,
+    "fields": {
+      "first_name": "Peter",
+      "last_name": "Parker",
+      "username": "admin.teacher@school3.com",
+      "email": "admin.teacher@school3.com",
+      "password": "pbkdf2_sha256$720000$Jp50WPBA6WZImUIpj3UcVm$OJWB8+UoW5lLaUkHLYo0cKgMkyRI6qnqVOWxYEsi9T0="
+    }
+  },
+  {
+    "model": "common.userprofile",
+    "pk": 31,
+    "fields": {
+      "user": 31,
+      "is_verified": true
+    }
+  },
+  {
+    "model": "common.teacher",
+    "pk": 10,
+    "fields": {
+      "user": 31,
+      "new_user": 31,
+      "school": 4,
+      "is_admin": true
+    }
+  },
+  {
+    "model": "auth.user",
+    "pk": 32,
+    "fields": {
+      "first_name": "Doctor",
+      "last_name": "Octopus",
+      "username": "teacher@school3.com",
+      "email": "teacher@school3.com",
+      "password": "pbkdf2_sha256$720000$Jp50WPBA6WZImUIpj3UcVm$OJWB8+UoW5lLaUkHLYo0cKgMkyRI6qnqVOWxYEsi9T0="
+    }
+  },
+  {
+    "model": "common.userprofile",
+    "pk": 32,
+    "fields": {
+      "user": 32,
+      "is_verified": true
+    }
+  },
+  {
+    "model": "common.teacher",
+    "pk": 11,
+    "fields": {
+      "user": 32,
+      "new_user": 32,
+      "school": 4
+    }
+  }
+]
