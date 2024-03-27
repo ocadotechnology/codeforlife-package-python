@@ -2,12 +2,10 @@
 © Ocado Group
 Created on 05/02/2024 at 09:50:04(+00:00).
 """
-
 import string
 import typing as t
 
 from common.models import TotalActivity, UserProfile
-
 # pylint: disable-next=imported-auth-user
 from django.contrib.auth.models import User as _User
 from django.contrib.auth.models import UserManager
@@ -17,7 +15,6 @@ from django.utils.crypto import get_random_string
 from django_stubs_ext.db.models import TypedModelMeta
 from pyotp import TOTP
 
-from ... import mail
 from .klass import Class
 from .school import School
 from .student import Independent, Student
@@ -29,6 +26,7 @@ from .teacher import (
     Teacher,
     teacher_as_type,
 )
+from ... import mail
 
 if t.TYPE_CHECKING:
     from .auth_factor import AuthFactor
@@ -439,9 +437,33 @@ class IndependentUserManager(ContactableUserManager["IndependentUser"]):
             .prefetch_related("new_student")
         )
 
-    def create_user(self):
-        # TODO: implement create independent user
-        user = super().create_user()
+    def create_user(  # type: ignore[override]
+        self,
+        first_name: str,
+        last_name: str,
+        email: str,
+        password: str,
+        **extra_fields,
+    ):
+        """Create an independent-user."""
+        assert "username" not in extra_fields
+
+        user = super().create_user(
+            username=email,
+            email=email,
+            password=password,
+            first_name=first_name,
+            last_name=last_name,
+            **extra_fields,
+        )
+
+        # NOTE: Indy user needs a student object for now while we use the
+        # old models.
+        # TODO: Remove this once using the new models.
+        Student.objects.create(
+            new_user=user,
+            user=UserProfile.objects.create(user=user),
+        )
 
         # TODO: delete this in new data schema
         TotalActivity.objects.update(
