@@ -2,7 +2,6 @@
 © Ocado Group
 Created on 30/01/2024 at 12:36:00(+00:00).
 """
-
 from .base import PasswordValidatorTestCase
 from ....auth.password_validators import TeacherPasswordValidator
 from ....models.user import User

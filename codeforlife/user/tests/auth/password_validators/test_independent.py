@@ -2,7 +2,6 @@
 © Ocado Group
 Created on 30/01/2024 at 12:36:00(+00:00).
 """
-
 from .base import PasswordValidatorTestCase
 from ....auth.password_validators import IndependentPasswordValidator
 from ....models.user import User
@@ -11,8 +10,10 @@ from ....models.user import User
 class TestIndependentPasswordValidator(PasswordValidatorTestCase):
     @classmethod
     def setUpClass(cls):
+        # TODO: Update to check for not student and not teacher once we
+        #  switch to new models
         cls.user = User.objects.filter(
-            new_teacher__isnull=True, new_student__isnull=True
+            new_student__isnull=False, new_student__class_field__isnull=True
         ).first()
         assert cls.user is not None
 
