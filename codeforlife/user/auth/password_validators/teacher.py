@@ -14,7 +14,7 @@ from .base import PasswordValidator
 # pylint: disable-next=missing-class-docstring
 class TeacherPasswordValidator(PasswordValidator):
     def validate(self, password, user=None):
-        if user.teacher is not None:
+        if user and user.teacher:
             min_length = 10
 
             if len(password) < min_length:

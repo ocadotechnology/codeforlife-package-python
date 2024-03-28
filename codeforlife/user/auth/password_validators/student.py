@@ -12,7 +12,8 @@ from .base import PasswordValidator
 # pylint: disable-next=missing-class-docstring
 class StudentPasswordValidator(PasswordValidator):
     def validate(self, password, user=None):
-        if user.student is not None:
+        # TODO: Remove third check once we switch to new models
+        if user and user.student and user.student.class_field:
             min_length = 6
 
             if len(password) < min_length:
