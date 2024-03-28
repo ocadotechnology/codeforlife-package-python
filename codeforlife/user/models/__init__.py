@@ -2,7 +2,6 @@
 © Ocado Group
 Created on 05/02/2024 at 13:48:55(+00:00).
 """
-
 from .auth_factor import AuthFactor
 from .klass import Class
 from .otp_bypass_token import OtpBypassToken
