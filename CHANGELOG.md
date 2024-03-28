@@ -2,6 +2,14 @@
 
 <!--next-version-placeholder-->
 
+## v0.15.0 (2024-03-28)
+
+### Feature
+
+* Fix tests ([`220fe14`](https://github.com/ocadotechnology/codeforlife-package-python/commit/220fe14313354613d08ee0d861b16d3934544a9b))
+* Run Black to fix version bump ([`37c3cad`](https://github.com/ocadotechnology/codeforlife-package-python/commit/37c3cad7cd3ccb1c0332544a86456f150f698cc5))
+* Create indy user ([#106](https://github.com/ocadotechnology/codeforlife-package-python/issues/106)) ([`510dc4c`](https://github.com/ocadotechnology/codeforlife-package-python/commit/510dc4c002bf16592b9c569a87311b9c9e731f31))
+
 ## v0.14.11 (2024-03-26)
 
 ### Fix
