@@ -50,7 +50,7 @@ class ModelSerializerTestCase(TestCase, t.Generic[AnyModel]):
     # Private helpers.
     # --------------------------------------------------------------------------
 
-    NonModelFields = t.Union[t.List[str], t.Dict[str, "NonModelFields"]]
+    NonModelFields = t.Union[t.Set[str], t.Dict[str, "NonModelFields"]]
 
     def _init_model_serializer(
         self, *args, parent: t.Optional[BaseSerializer] = None, **kwargs
