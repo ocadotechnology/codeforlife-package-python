@@ -14,7 +14,6 @@ from django.urls import reverse
 from django.utils.http import urlencode
 from rest_framework import status
 from rest_framework.response import Response
-from rest_framework.serializers import DateTimeField
 
 from ..permissions import Permission
 from ..serializers import BaseSerializer
@@ -679,16 +678,13 @@ class ModelViewSetTestCase(APITestCase, t.Generic[AnyModel]):
         # Serialize the model.
         serialized_model = model_serializer.data
 
-        # Get DRF's function that converts datetimes to strings.
-        datetime_to_representation = DateTimeField().to_representation
-
         # Recursively convert all datetimes to strings.
         def datetime_values_to_representation(data: DataDict):
             for key, value in data.copy().items():
                 if isinstance(value, dict):
                     datetime_values_to_representation(value)
                 elif isinstance(value, datetime):
-                    data[key] = datetime_to_representation(value)
+                    data[key] = value.strftime("%Y-%m-%dT%H:%M:%S.%fZ")
 
         datetime_values_to_representation(serialized_model)
 
