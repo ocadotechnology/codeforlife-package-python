@@ -11,8 +11,11 @@ from ...models import Class, School, Student, Teacher, User, UserProfile
 from ...permissions import IsStudent, IsTeacher
 from ...views import SchoolViewSet
 
+RequestUser = User
 
-class TestSchoolViewSet(ModelViewSetTestCase[School]):
+
+# pylint: disable-next=too-many-ancestors
+class TestSchoolViewSet(ModelViewSetTestCase[RequestUser, School]):
     """
     Base naming convention:
         test_{action}

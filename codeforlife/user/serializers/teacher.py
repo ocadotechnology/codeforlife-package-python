@@ -7,11 +7,15 @@ import typing as t
 
 from ...serializers import ModelSerializer
 from ..models import AnyTeacher, Teacher
+from ..models import User as RequestUser
+
+# pylint: disable=missing-class-docstring
+# pylint: disable=too-many-ancestors
 
 
-# pylint: disable-next=missing-class-docstring
-class TeacherSerializer(ModelSerializer[AnyTeacher], t.Generic[AnyTeacher]):
-    # pylint: disable-next=missing-class-docstring,too-few-public-methods
+class TeacherSerializer(
+    ModelSerializer[RequestUser, AnyTeacher], t.Generic[AnyTeacher]
+):
     class Meta:
         model = Teacher
         fields = [

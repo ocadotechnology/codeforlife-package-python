@@ -12,9 +12,15 @@ from ..models import AnyUser, Student, Teacher, User
 from .student import StudentSerializer
 from .teacher import TeacherSerializer
 
+RequestUser = User
 
-# pylint: disable-next=missing-class-docstring
-class BaseUserSerializer(ModelSerializer[AnyUser], t.Generic[AnyUser]):
+# pylint: disable=missing-class-docstring
+# pylint: disable=too-many-ancestors
+
+
+class BaseUserSerializer(
+    ModelSerializer[RequestUser, AnyUser], t.Generic[AnyUser]
+):
     requesting_to_join_class = serializers.CharField(
         source="new_student.pending_class_request",
         read_only=True,
@@ -41,7 +47,6 @@ class BaseUserSerializer(ModelSerializer[AnyUser], t.Generic[AnyUser]):
         }
 
 
-# pylint: disable-next=missing-class-docstring,too-many-ancestors
 class UserSerializer(BaseUserSerializer[AnyUser], t.Generic[AnyUser]):
     student = StudentSerializer(
         source="new_student",

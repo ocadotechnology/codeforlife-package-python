@@ -7,13 +7,15 @@ from rest_framework import serializers
 
 from ...serializers import ModelSerializer
 from ..models import School
+from ..models import User as RequestUser
+
+# pylint: disable=missing-class-docstring
+# pylint: disable=too-many-ancestors
 
 
-# pylint: disable-next=missing-class-docstring
-class SchoolSerializer(ModelSerializer[School]):
+class SchoolSerializer(ModelSerializer[RequestUser, School]):
     uk_county = serializers.CharField(source="county", read_only=True)
 
-    # pylint: disable-next=missing-class-docstring,too-few-public-methods
     class Meta:
         model = School
         fields = [

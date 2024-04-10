@@ -10,9 +10,11 @@ from ....tests import ModelViewSetTestCase
 from ...models import Class, School, Student, Teacher, User, UserProfile
 from ...views import UserViewSet
 
+RequestUser = User
+
 
 # pylint: disable-next=too-many-ancestors,too-many-public-methods
-class TestUserViewSet(ModelViewSetTestCase[User]):
+class TestUserViewSet(ModelViewSetTestCase[RequestUser, User]):
     """
     Base naming convention:
         test_{action}

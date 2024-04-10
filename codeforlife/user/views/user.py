@@ -10,9 +10,11 @@ from ..filters import UserFilterSet
 from ..models import AnyUser, User
 from ..serializers import UserSerializer
 
+RequestUser = User
+
 
 # pylint: disable-next=missing-class-docstring,too-many-ancestors
-class UserViewSet(ModelViewSet[User]):
+class UserViewSet(ModelViewSet[RequestUser, User]):
     http_method_names = ["get"]
     serializer_class = UserSerializer[User]
     filterset_class = UserFilterSet

@@ -7,10 +7,13 @@ from rest_framework import serializers
 
 from ...serializers import ModelSerializer
 from ..models import Student
+from ..models import User as RequestUser
+
+# pylint: disable=missing-class-docstring
+# pylint: disable=too-many-ancestors
 
 
-# pylint: disable-next=missing-class-docstring
-class StudentSerializer(ModelSerializer[Student]):
+class StudentSerializer(ModelSerializer[RequestUser, Student]):
     klass = serializers.CharField(
         source="class_field.access_code", read_only=True
     )
@@ -19,7 +22,6 @@ class StudentSerializer(ModelSerializer[Student]):
         source="class_field.teacher.school.id", read_only=True
     )
 
-    # pylint: disable-next=missing-class-docstring,too-few-public-methods
     class Meta:
         model = Student
         fields = ["id", "klass", "school"]

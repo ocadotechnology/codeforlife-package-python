@@ -10,22 +10,24 @@ from copy import deepcopy
 from unittest.case import _AssertRaisesContext
 
 from django.db.models import Model
+from django.forms.models import model_to_dict
 from django.test import TestCase
 from rest_framework.serializers import BaseSerializer, ValidationError
 
 from ..serializers import ModelListSerializer, ModelSerializer
 from ..types import DataDict
+from ..user.models import AnyUser as RequestUser
 from .api_request_factory import APIRequestFactory
 
 AnyModel = t.TypeVar("AnyModel", bound=Model)
 
 
-class ModelSerializerTestCase(TestCase, t.Generic[AnyModel]):
+class ModelSerializerTestCase(TestCase, t.Generic[RequestUser, AnyModel]):
     """Base for all model serializer test cases."""
 
-    model_serializer_class: t.Type[ModelSerializer[AnyModel]]
+    model_serializer_class: t.Type[ModelSerializer[RequestUser, AnyModel]]
 
-    request_factory = APIRequestFactory()
+    request_factory = APIRequestFactory[RequestUser]()
 
     @classmethod
     def setUpClass(cls):
@@ -107,18 +109,9 @@ class ModelSerializerTestCase(TestCase, t.Generic[AnyModel]):
                 )
                 data.pop(field)
             elif isinstance(value, Model):
-                data[f"{field}_id"] = getattr(value, "id")
-                data.pop(field)
-            elif value is None:
-                assert getattr(model, field) is None
-                data.pop(field)
+                data[field] = getattr(value, "id")
 
-        model_dict = {
-            field: value
-            for field, value in model.__dict__.items()
-            if not field.startswith("_")
-        }
-        self.assertDictContainsSubset(data, model_dict)
+        self.assertDictContainsSubset(data, model_to_dict(model))
 
     def _assert_many(
         self,
@@ -126,7 +119,8 @@ class ModelSerializerTestCase(TestCase, t.Generic[AnyModel]):
         new_data: t.Optional[t.List[DataDict]],
         non_model_fields: t.Optional[NonModelFields],
         get_models: t.Callable[
-            [ModelListSerializer[AnyModel], t.List[DataDict]], t.List[AnyModel]
+            [ModelListSerializer[RequestUser, AnyModel], t.List[DataDict]],
+            t.List[AnyModel],
         ],
         *args,
         **kwargs,
@@ -138,9 +132,9 @@ class ModelSerializerTestCase(TestCase, t.Generic[AnyModel]):
             assert len(new_data) == len(validated_data)
 
         kwargs.pop("many", None)  # many must be True
-        serializer: ModelListSerializer[AnyModel] = self._init_model_serializer(
-            *args, **kwargs, many=True
-        )
+        serializer: ModelListSerializer[
+            RequestUser, AnyModel
+        ] = self._init_model_serializer(*args, **kwargs, many=True)
 
         models = get_models(serializer, deepcopy(validated_data))
         assert len(models) == len(validated_data)
@@ -355,11 +349,14 @@ class ModelSerializerTestCase(TestCase, t.Generic[AnyModel]):
 
 
 class ModelListSerializerTestCase(
-    ModelSerializerTestCase[AnyModel], t.Generic[AnyModel]
+    ModelSerializerTestCase[RequestUser, AnyModel],
+    t.Generic[RequestUser, AnyModel],
 ):
     """Base for all model serializer test cases."""
 
-    model_list_serializer_class: t.Type[ModelListSerializer[AnyModel]]
+    model_list_serializer_class: t.Type[
+        ModelListSerializer[RequestUser, AnyModel]
+    ]
 
     @classmethod
     def setUpClass(cls):

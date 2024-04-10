@@ -15,6 +15,7 @@ from rest_framework.request import Request as _Request
 from .types import JsonDict, JsonList
 from .user.models import (
     AdminSchoolTeacherUser,
+    AnyUser,
     IndependentUser,
     NonAdminSchoolTeacherUser,
     NonSchoolTeacherUser,
@@ -39,10 +40,34 @@ class HttpRequest(_HttpRequest):
 
 
 # pylint: disable-next=missing-class-docstring,abstract-method
-class Request(_Request):
+class Request(_Request, t.Generic[AnyUser]):
     session: SessionStore
-    user: t.Union[User, AnonymousUser]
     data: t.Any
+
+    @classmethod
+    def get_user_class(cls) -> t.Type[AnyUser]:
+        """Get the user class.
+
+        Returns:
+            The user class.
+        """
+        # pylint: disable-next=no-member
+        return t.get_args(cls.__orig_bases__[0])[  # type: ignore[attr-defined]
+            0
+        ]
+
+    @property
+    def user(self):
+        return t.cast(t.Union[AnyUser, AnonymousUser], super().user)
+
+    @user.setter
+    def user(self, value):
+        user_class = self.get_user_class()
+        if isinstance(value, User) and not isinstance(value, user_class):
+            value = value.as_type(user_class)
+
+        self._user = value
+        self._request.user = value
 
     @property
     def anon_user(self):
@@ -52,7 +77,7 @@ class Request(_Request):
     @property
     def auth_user(self):
         """The authenticated user that made the request."""
-        return t.cast(User, self.user)
+        return t.cast(AnyUser, self.user)
 
     @property
     def teacher_user(self):

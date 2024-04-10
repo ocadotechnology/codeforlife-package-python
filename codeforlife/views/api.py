@@ -3,20 +3,41 @@
 Created on 05/02/2024 at 16:33:52(+00:00).
 """
 
+import typing as t
+
 from rest_framework.views import APIView as _APIView
 
 from ..request import Request
+from ..user.models import AnyUser as RequestUser
 
 
 # pylint: disable-next=missing-class-docstring
-class APIView(_APIView):
-    request: Request
+class APIView(_APIView, t.Generic[RequestUser]):
+    request: Request[RequestUser]
+
+    @classmethod
+    def get_request_user_class(cls) -> t.Type[RequestUser]:
+        """Get the request's user class.
+
+        Returns:
+            The request's user class.
+        """
+        # pylint: disable-next=no-member
+        return t.get_args(cls.__orig_bases__[0])[  # type: ignore[attr-defined]
+            0
+        ]
 
     def initialize_request(self, request, *args, **kwargs):
         # NOTE: Call to super has side effects and is required.
         super().initialize_request(request, *args, **kwargs)
 
-        return Request(
+        # pylint: disable-next=too-few-public-methods
+        class _Request(
+            Request[self.get_request_user_class()]  # type: ignore[misc]
+        ):
+            pass
+
+        return _Request(
             request,
             parsers=self.get_parsers(),
             authenticators=self.get_authenticators(),
