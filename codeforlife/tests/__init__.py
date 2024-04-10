@@ -13,3 +13,4 @@ from .model_serializer import (
     ModelSerializerTestCase,
 )
 from .model_view_set import ModelViewSetTestCase
+from .test import TestCase

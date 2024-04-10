@@ -2,22 +2,21 @@
 © Ocado Group
 Created on 30/01/2024 at 12:36:00(+00:00).
 """
-from .base import PasswordValidatorTestCase
-from ....auth.password_validators import StudentPasswordValidator
-from ....models.user import User
+from ....tests import TestCase
+from ...models import User
+from .student import StudentPasswordValidator
 
 
-class TestStudentPasswordValidator(PasswordValidatorTestCase):
-    @classmethod
-    def setUpClass(cls):
+# pylint: disable-next=missing-class-docstring
+class TestStudentPasswordValidator(TestCase):
+    def setUp(self):
         # TODO: Remove second check once we switch to new models
-        cls.user = User.objects.filter(
+        self.user = User.objects.filter(
             new_student__isnull=False, new_student__class_field__isnull=False
         ).first()
-        assert cls.user is not None
+        assert self.user is not None
 
-        cls.validator = StudentPasswordValidator()
-        super(TestStudentPasswordValidator, cls).setUpClass()
+        self.validator = StudentPasswordValidator()
 
     def test_validate__password_too_short(self):
         """Password cannot be too short"""

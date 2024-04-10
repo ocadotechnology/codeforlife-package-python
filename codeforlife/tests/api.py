@@ -11,7 +11,6 @@ from django.utils import timezone
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.test import APIClient as _APIClient
-from rest_framework.test import APITestCase as _APITestCase
 
 from ..types import DataDict, JsonDict
 from ..user.models import AdminSchoolTeacherUser
@@ -28,6 +27,7 @@ from ..user.models import (
     User,
 )
 from .api_request_factory import APIRequestFactory
+from .test import TestCase
 
 LoginUser = t.TypeVar("LoginUser", bound=User)
 
@@ -40,15 +40,8 @@ class APIClient(_APIClient, t.Generic[RequestUser]):
     def __init__(self, enforce_csrf_checks: bool = False, **defaults):
         super().__init__(enforce_csrf_checks, **defaults)
 
-        # pylint: disable-next=too-few-public-methods
-        class _APIRequestFactory(
-            APIRequestFactory[  # type: ignore[misc]
-                self.get_request_user_class()
-            ]
-        ):
-            pass
-
-        self.request_factory = _APIRequestFactory(
+        self.request_factory = APIRequestFactory(
+            self.get_request_user_class(),
             enforce_csrf_checks,
             **defaults,
         )
@@ -481,7 +474,7 @@ class APIClient(_APIClient, t.Generic[RequestUser]):
     # pylint: enable=too-many-arguments,redefined-builtin
 
 
-class APITestCase(_APITestCase, t.Generic[RequestUser]):
+class APITestCase(TestCase, t.Generic[RequestUser]):
     """Base API test case to be inherited by all other API test cases."""
 
     client: APIClient[RequestUser]

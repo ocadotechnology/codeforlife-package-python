@@ -1,22 +1,28 @@
+"""
+© Ocado Group
+Created on 10/04/2024 at 13:17:18(+01:00).
+"""
+
 from datetime import timedelta
 
-from django.test import RequestFactory, TestCase
 from django.utils import timezone
 
-from ....auth.backends import OtpBypassTokenBackend
-from ....models import (
+from ....tests import APIRequestFactory, TestCase
+from ...models import (
     AuthFactor,
     OtpBypassToken,
     Session,
     SessionAuthFactor,
     User,
 )
+from .otp_bypass_token import OtpBypassTokenBackend
 
 
+# pylint: disable-next=missing-class-docstring,too-many-instance-attributes
 class TestTokenBackend(TestCase):
     def setUp(self):
         self.backend = OtpBypassTokenBackend()
-        self.request_factory = RequestFactory()
+        self.request_factory = APIRequestFactory(User)
 
         self.user = User.objects.get(id=2)
 
@@ -46,8 +52,8 @@ class TestTokenBackend(TestCase):
         )
 
     def test_authenticate(self):
-        request = self.request_factory.post("/")
-        request.user = self.user
+        """Can authenticate by bypassing a user's enabled OTP auth factor."""
+        request = self.request_factory.post("/", user=self.user)
 
         user = self.backend.authenticate(request, token=next(iter(self.tokens)))
 

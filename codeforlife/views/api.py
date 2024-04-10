@@ -31,14 +31,9 @@ class APIView(_APIView, t.Generic[RequestUser]):
         # NOTE: Call to super has side effects and is required.
         super().initialize_request(request, *args, **kwargs)
 
-        # pylint: disable-next=too-few-public-methods
-        class _Request(
-            Request[self.get_request_user_class()]  # type: ignore[misc]
-        ):
-            pass
-
-        return _Request(
-            request,
+        return Request(
+            user_class=self.get_request_user_class(),
+            request=request,
             parsers=self.get_parsers(),
             authenticators=self.get_authenticators(),
             negotiator=self.get_content_negotiator(),

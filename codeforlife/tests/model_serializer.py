@@ -11,13 +11,13 @@ from unittest.case import _AssertRaisesContext
 
 from django.db.models import Model
 from django.forms.models import model_to_dict
-from django.test import TestCase
 from rest_framework.serializers import BaseSerializer, ValidationError
 
 from ..serializers import ModelListSerializer, ModelSerializer
 from ..types import DataDict
 from ..user.models import AnyUser as RequestUser
 from .api_request_factory import APIRequestFactory
+from .test import TestCase
 
 AnyModel = t.TypeVar("AnyModel", bound=Model)
 
@@ -27,14 +27,28 @@ class ModelSerializerTestCase(TestCase, t.Generic[RequestUser, AnyModel]):
 
     model_serializer_class: t.Type[ModelSerializer[RequestUser, AnyModel]]
 
-    request_factory = APIRequestFactory[RequestUser]()
+    request_factory: APIRequestFactory[RequestUser]
 
     @classmethod
     def setUpClass(cls):
         attr_name = "model_serializer_class"
         assert hasattr(cls, attr_name), f'Attribute "{attr_name}" must be set.'
 
+        cls.request_factory = APIRequestFactory(cls.get_request_user_class())
+
         return super().setUpClass()
+
+    @classmethod
+    def get_request_user_class(cls) -> t.Type[AnyModel]:
+        """Get the model view set's class.
+
+        Returns:
+            The model view set's class.
+        """
+        # pylint: disable-next=no-member
+        return t.get_args(cls.__orig_bases__[0])[  # type: ignore[attr-defined]
+            0
+        ]
 
     @classmethod
     def get_model_class(cls) -> t.Type[AnyModel]:
@@ -45,7 +59,7 @@ class ModelSerializerTestCase(TestCase, t.Generic[RequestUser, AnyModel]):
         """
         # pylint: disable-next=no-member
         return t.get_args(cls.__orig_bases__[0])[  # type: ignore[attr-defined]
-            0
+            1
         ]
 
     # --------------------------------------------------------------------------

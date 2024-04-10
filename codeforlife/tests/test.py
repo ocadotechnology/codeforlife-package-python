@@ -1,18 +1,16 @@
 """
 © Ocado Group
-Created on 30/01/2024 at 19:01:00(+00:00).
-
-Base test case for all password validators.
+Created on 10/04/2024 at 13:03:00(+01:00).
 """
 
 from unittest.case import _AssertRaisesContext
 
 from django.core.exceptions import ValidationError
-from django.test import TestCase
+from django.test import TestCase as _TestCase
 
 
-class PasswordValidatorTestCase(TestCase):
-    """Base for all password validator test cases."""
+class TestCase(_TestCase):
+    """Base test case for all tests to inherit."""
 
     def assert_raises_validation_error(self, code: str, *args, **kwargs):
         """Assert code block raises a validation error.

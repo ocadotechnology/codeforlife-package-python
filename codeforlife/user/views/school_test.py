@@ -5,11 +5,11 @@ Created on 20/01/2024 at 09:47:30(+00:00).
 
 from rest_framework import status
 
-from ....permissions import OR, AllowNone
-from ....tests import ModelViewSetTestCase
-from ...models import Class, School, Student, Teacher, User, UserProfile
-from ...permissions import IsStudent, IsTeacher
-from ...views import SchoolViewSet
+from ...permissions import OR, AllowNone
+from ...tests import ModelViewSetTestCase
+from ..models import Class, School, Student, Teacher, User, UserProfile
+from ..permissions import IsStudent, IsTeacher
+from ..views import SchoolViewSet
 
 RequestUser = User
 

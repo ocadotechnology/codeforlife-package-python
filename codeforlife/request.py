@@ -44,17 +44,9 @@ class Request(_Request, t.Generic[AnyUser]):
     session: SessionStore
     data: t.Any
 
-    @classmethod
-    def get_user_class(cls) -> t.Type[AnyUser]:
-        """Get the user class.
-
-        Returns:
-            The user class.
-        """
-        # pylint: disable-next=no-member
-        return t.get_args(cls.__orig_bases__[0])[  # type: ignore[attr-defined]
-            0
-        ]
+    def __init__(self, user_class: t.Type[AnyUser], *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.user_class = user_class
 
     @property
     def user(self):
@@ -62,9 +54,8 @@ class Request(_Request, t.Generic[AnyUser]):
 
     @user.setter
     def user(self, value):
-        user_class = self.get_user_class()
-        if isinstance(value, User) and not isinstance(value, user_class):
-            value = value.as_type(user_class)
+        if isinstance(value, User) and not isinstance(value, self.user_class):
+            value = value.as_type(self.user_class)
 
         self._user = value
         self._request.user = value

@@ -21,6 +21,10 @@ from ..user.models import AnyUser
 class APIRequestFactory(_APIRequestFactory, t.Generic[AnyUser]):
     """Custom API request factory that returns DRF's Request object."""
 
+    def __init__(self, user_class: t.Type[AnyUser], *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.user_class = user_class
+
     @classmethod
     def get_user_class(cls) -> t.Type[AnyUser]:
         """Get the user class.
@@ -36,11 +40,8 @@ class APIRequestFactory(_APIRequestFactory, t.Generic[AnyUser]):
     def request(self, user: t.Optional[AnyUser] = None, **kwargs):
         wsgi_request = t.cast(WSGIRequest, super().request(**kwargs))
 
-        # pylint: disable-next=too-few-public-methods
-        class _Request(Request[self.get_user_class()]):  # type: ignore[misc]
-            pass
-
-        request = _Request(
+        request = Request(
+            self.user_class,
             wsgi_request,
             parsers=[
                 JSONParser(),
