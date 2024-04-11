@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.16.0 (2024-04-11)
+
+### Feature
+
+* Add rapid router ([#107](https://github.com/ocadotechnology/codeforlife-package-python/issues/107)) ([`e0646a2`](https://github.com/ocadotechnology/codeforlife-package-python/commit/e0646a2f191240de4371ef83a29654e6439639e0))
+
 ## v0.15.0 (2024-03-28)
 
 ### Feature
