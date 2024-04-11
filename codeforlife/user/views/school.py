@@ -6,12 +6,13 @@ Created on 24/01/2024 at 13:38:15(+00:00).
 from ...permissions import OR, AllowNone
 from ...views import ModelViewSet
 from ..models import School
+from ..models import User as RequestUser
 from ..permissions import IsStudent, IsTeacher
 from ..serializers import SchoolSerializer
 
 
 # pylint: disable-next=missing-class-docstring,too-many-ancestors
-class SchoolViewSet(ModelViewSet[School]):
+class SchoolViewSet(ModelViewSet[RequestUser, School]):
     http_method_names = ["get"]
     serializer_class = SchoolSerializer
 

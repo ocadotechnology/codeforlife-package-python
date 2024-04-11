@@ -7,10 +7,13 @@ from rest_framework import serializers
 
 from ...serializers import ModelSerializer
 from ..models import Class
+from ..models import User as RequestUser
+
+# pylint: disable=missing-class-docstring
+# pylint: disable=too-many-ancestors
 
 
-# pylint: disable-next=missing-class-docstring
-class ClassSerializer(ModelSerializer[Class]):
+class ClassSerializer(ModelSerializer[RequestUser, Class]):
     id = serializers.CharField(
         source="access_code",
         read_only=True,
@@ -31,7 +34,6 @@ class ClassSerializer(ModelSerializer[Class]):
         read_only=True,
     )
 
-    # pylint: disable-next=missing-class-docstring,too-few-public-methods
     class Meta:
         model = Class
         fields = [

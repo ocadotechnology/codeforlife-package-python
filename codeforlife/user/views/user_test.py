@@ -5,14 +5,16 @@ Created on 19/01/2024 at 17:15:56(+00:00).
 
 from rest_framework import status
 
-from ....permissions import IsAuthenticated
-from ....tests import ModelViewSetTestCase
-from ...models import Class, School, Student, Teacher, User, UserProfile
-from ...views import UserViewSet
+from ...permissions import IsAuthenticated
+from ...tests import ModelViewSetTestCase
+from ..models import Class, School, Student, Teacher, User, UserProfile
+from ..views import UserViewSet
+
+RequestUser = User
 
 
 # pylint: disable-next=too-many-ancestors,too-many-public-methods
-class TestUserViewSet(ModelViewSetTestCase[User]):
+class TestUserViewSet(ModelViewSetTestCase[RequestUser, User]):
     """
     Base naming convention:
         test_{action}

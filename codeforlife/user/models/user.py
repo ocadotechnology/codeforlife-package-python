@@ -16,6 +16,7 @@ from django.utils.crypto import get_random_string
 from django_stubs_ext.db.models import TypedModelMeta
 from pyotp import TOTP
 
+from ... import mail
 from .klass import Class
 from .school import School
 from .student import Independent, Student
@@ -27,7 +28,6 @@ from .teacher import (
     Teacher,
     teacher_as_type,
 )
-from ... import mail
 
 if t.TYPE_CHECKING:
     from .auth_factor import AuthFactor
@@ -105,16 +105,16 @@ class User(_User):
             issuer_name="Code for Life",
         )
 
-    def as_type(self, typed_user_class: t.Type["AnyTypedUser"]):
+    def as_type(self, user_class: t.Type["AnyUser"]):
         """Convert this generic user to a typed user.
 
         Args:
-            typed_user_class: The type of user to convert to.
+            user_class: The type of user to convert to.
 
         Returns:
             An instance of the typed user.
         """
-        return typed_user_class(
+        return user_class(
             pk=self.pk,
             first_name=self.first_name,
             last_name=self.last_name,

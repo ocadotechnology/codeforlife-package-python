@@ -9,7 +9,7 @@ from django.contrib.auth.hashers import check_password
 from django.core.exceptions import ValidationError
 from django.test import TestCase
 
-from ...models import OtpBypassToken, User, otp_bypass_token
+from . import OtpBypassToken, User, otp_bypass_token
 
 
 class TestOtpBypassToken(TestCase):

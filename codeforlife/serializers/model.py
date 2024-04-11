@@ -13,6 +13,7 @@ from rest_framework.serializers import ModelSerializer as _ModelSerializer
 from rest_framework.serializers import ValidationError as _ValidationError
 
 from ..types import DataDict, OrderedDataDict
+from ..user.models import AnyUser as RequestUser
 from .base import BaseSerializer
 
 AnyModel = t.TypeVar("AnyModel", bound=Model)
@@ -24,9 +25,9 @@ Data = t.Union[BulkCreateDataList, BulkUpdateDataDict]
 
 
 class ModelSerializer(
-    BaseSerializer,
+    BaseSerializer[RequestUser],
     _ModelSerializer[AnyModel],
-    t.Generic[AnyModel],
+    t.Generic[RequestUser, AnyModel],
 ):
     """Base model serializer for all model serializers."""
 
@@ -38,7 +39,7 @@ class ModelSerializer(
         # pylint: disable-next=import-outside-toplevel
         from ..views import ModelViewSet
 
-        return t.cast(ModelViewSet[AnyModel], super().view)
+        return t.cast(ModelViewSet[RequestUser, AnyModel], super().view)
 
     @property
     def non_none_instance(self):
@@ -62,22 +63,22 @@ class ModelSerializer(
 
 
 class ModelListSerializer(
-    BaseSerializer,
-    t.Generic[AnyModel],
+    BaseSerializer[RequestUser],
     _ListSerializer[t.List[AnyModel]],
+    t.Generic[RequestUser, AnyModel],
 ):
     """Base model list serializer for all model list serializers.
 
     Inherit this class if you wish to custom handle bulk create and/or update.
 
-    class UserListSerializer(ModelListSerializer[User]):
+    class UserListSerializer(ModelListSerializer[User, User]):
         def create(self, validated_data):
             ...
 
         def update(self, instance, validated_data):
             ...
 
-    class UserSerializer(ModelSerializer[User]):
+    class UserSerializer(ModelSerializer[User, User]):
         class Meta:
             model = User
             list_serializer_class = UserListSerializer
@@ -92,7 +93,7 @@ class ModelListSerializer(
         # pylint: disable-next=import-outside-toplevel
         from ..views import ModelViewSet
 
-        return t.cast(ModelViewSet[AnyModel], super().view)
+        return t.cast(ModelViewSet[RequestUser, AnyModel], super().view)
 
     @property
     def non_none_instance(self):

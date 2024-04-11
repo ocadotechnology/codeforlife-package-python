@@ -3,14 +3,17 @@
 Created on 20/01/2024 at 09:48:30(+00:00).
 """
 
-from ....permissions import OR
-from ....tests import ModelViewSetTestCase
-from ...models import Class
-from ...permissions import IsStudent, IsTeacher
-from ...views import ClassViewSet
+from ...permissions import OR
+from ...tests import ModelViewSetTestCase
+from ..models import Class, User
+from ..permissions import IsStudent, IsTeacher
+from ..views import ClassViewSet
+
+RequestUser = User
 
 
-class TestClassViewSet(ModelViewSetTestCase[Class]):
+# pylint: disable-next=too-many-ancestors
+class TestClassViewSet(ModelViewSetTestCase[RequestUser, Class]):
     """
     Base naming convention:
         test_{action}

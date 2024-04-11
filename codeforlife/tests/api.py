@@ -11,12 +11,11 @@ from django.utils import timezone
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.test import APIClient as _APIClient
-from rest_framework.test import APITestCase as _APITestCase
 
 from ..types import DataDict, JsonDict
+from ..user.models import AdminSchoolTeacherUser
+from ..user.models import AnyUser as RequestUser
 from ..user.models import (
-    AdminSchoolTeacherUser,
-    AnyUser,
     AuthFactor,
     IndependentUser,
     NonAdminSchoolTeacherUser,
@@ -28,19 +27,36 @@ from ..user.models import (
     User,
 )
 from .api_request_factory import APIRequestFactory
+from .test import TestCase
+
+LoginUser = t.TypeVar("LoginUser", bound=User)
 
 
-class APIClient(_APIClient):
+class APIClient(_APIClient, t.Generic[RequestUser]):
     """Base API client to be inherited by all other API clients."""
 
-    _test_case: "APITestCase"
+    _test_case: "APITestCase[RequestUser]"
 
     def __init__(self, enforce_csrf_checks: bool = False, **defaults):
         super().__init__(enforce_csrf_checks, **defaults)
+
         self.request_factory = APIRequestFactory(
+            self.get_request_user_class(),
             enforce_csrf_checks,
             **defaults,
         )
+
+    @classmethod
+    def get_request_user_class(cls) -> t.Type[RequestUser]:
+        """Get the request's user class.
+
+        Returns:
+            The request's user class.
+        """
+        # pylint: disable-next=no-member
+        return t.get_args(cls.__orig_bases__[0])[  # type: ignore[attr-defined]
+            0
+        ]
 
     @staticmethod
     def status_code_is_ok(status_code: int):
@@ -93,7 +109,7 @@ class APIClient(_APIClient):
     # Login Helpers
     # --------------------------------------------------------------------------
 
-    def _login_user_type(self, user_type: t.Type[AnyUser], **credentials):
+    def _login_user_type(self, user_type: t.Type[LoginUser], **credentials):
         # Logout current user (if any) before logging in next user.
         self.logout()
         assert super().login(
@@ -458,13 +474,35 @@ class APIClient(_APIClient):
     # pylint: enable=too-many-arguments,redefined-builtin
 
 
-class APITestCase(_APITestCase):
+class APITestCase(TestCase, t.Generic[RequestUser]):
     """Base API test case to be inherited by all other API test cases."""
 
-    client: APIClient
-    client_class = APIClient
+    client: APIClient[RequestUser]
+    client_class: t.Type[APIClient[RequestUser]] = APIClient
+
+    @classmethod
+    def get_request_user_class(cls) -> t.Type[RequestUser]:
+        """Get the request's user class.
+
+        Returns:
+            The request's user class.
+        """
+        # pylint: disable-next=no-member
+        return t.get_args(cls.__orig_bases__[0])[  # type: ignore[attr-defined]
+            0
+        ]
+
+    def _get_client_class(self):
+        # pylint: disable-next=too-few-public-methods
+        class _Client(
+            self.client_class[  # type: ignore[misc]
+                self.get_request_user_class()
+            ]
+        ):
+            _test_case = self
+
+        return _Client
 
     def _pre_setup(self):
+        self.client_class = self._get_client_class()
         super()._pre_setup()  # type: ignore[misc]
-        # pylint: disable-next=protected-access
-        self.client._test_case = self
