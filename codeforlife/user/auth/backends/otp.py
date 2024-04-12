@@ -5,11 +5,11 @@ Created on 01/02/2024 at 14:41:20(+00:00).
 
 import typing as t
 
-from django.contrib.auth.backends import BaseBackend
 from django.utils import timezone
 
 from ....request import HttpRequest
-from ...models import AuthFactor, User
+from ...models import AuthFactor
+from .base import BaseBackend
 
 
 class OtpBackend(BaseBackend):
@@ -27,7 +27,7 @@ class OtpBackend(BaseBackend):
         if (
             otp is None
             or request is None
-            or not isinstance(request.user, User)
+            or not isinstance(request.user, self.user_class)
             or not request.user.userprofile.otp_secret
             or not request.user.session.auth_factors.filter(
                 auth_factor__type=AuthFactor.Type.OTP
@@ -54,9 +54,3 @@ class OtpBackend(BaseBackend):
             return user
 
         return None
-
-    def get_user(self, user_id: int):
-        try:
-            return User.objects.get(id=user_id)
-        except User.DoesNotExist:
-            return None

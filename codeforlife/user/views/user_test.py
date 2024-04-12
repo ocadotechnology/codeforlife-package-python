@@ -293,7 +293,9 @@ class TestUserViewSet(ModelViewSetTestCase[RequestUser, User]):
         other_user = self.get_another_school_user(
             user,
             other_users=User.objects.exclude(id=user.id).filter(
-                new_student__class_field__teacher__school=user.student.class_field.teacher.school,
+                new_student__class_field__teacher__school=(
+                    user.student.class_field.teacher.school
+                ),
                 new_student__class_field=user.student.class_field,
             ),
             is_teacher=False,
@@ -315,7 +317,9 @@ class TestUserViewSet(ModelViewSetTestCase[RequestUser, User]):
             user,
             other_users=User.objects.exclude(id=user.id)
             .filter(
-                new_student__class_field__teacher__school=user.student.class_field.teacher.school,
+                new_student__class_field__teacher__school=(
+                    user.student.class_field.teacher.school
+                ),
             )
             .exclude(new_student__class_field=user.student.class_field),
             is_teacher=False,
@@ -389,7 +393,9 @@ class TestUserViewSet(ModelViewSetTestCase[RequestUser, User]):
         other_user = self.get_another_school_user(
             user,
             other_users=User.objects.exclude(
-                new_student__class_field__teacher__school=user.student.class_field.teacher.school
+                new_student__class_field__teacher__school=(
+                    user.student.class_field.teacher.school
+                )
             ).filter(new_student__class_field__teacher__school__isnull=False),
             is_teacher=False,
             same_school=False,

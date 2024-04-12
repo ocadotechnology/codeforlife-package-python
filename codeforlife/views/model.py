@@ -15,11 +15,14 @@ from rest_framework.viewsets import ModelViewSet as DrfModelViewSet
 
 from ..permissions import Permission
 from ..request import Request
-from ..serializers import ModelListSerializer, ModelSerializer
 from ..types import KwArgs
 from ..user.models import AnyUser as RequestUser
 from .api import APIView
 from .decorators import action
+
+if t.TYPE_CHECKING:
+    from ..serializers import ModelListSerializer, ModelSerializer
+
 
 AnyModel = t.TypeVar("AnyModel", bound=Model)
 
@@ -43,7 +46,9 @@ class ModelViewSet(
 ):
     """Base model view set for all model view sets."""
 
-    serializer_class: t.Optional[t.Type[ModelSerializer[RequestUser, AnyModel]]]
+    serializer_class: t.Optional[
+        t.Type["ModelSerializer[RequestUser, AnyModel]"]
+    ]
 
     @classmethod
     def get_model_class(cls) -> t.Type[AnyModel]:
@@ -85,6 +90,9 @@ class ModelViewSet(
                 setattr(list_serializer.child, "Meta", meta)
 
             if getattr(meta, "list_serializer_class", None) is None:
+                # pylint: disable-next=import-outside-toplevel
+                from ..serializers import ModelListSerializer
+
                 model_class = self.get_model_class()
 
                 # pylint: disable-next=too-few-public-methods
@@ -171,7 +179,7 @@ class ModelViewSet(
             A HTTP response containing a list of created models.
         """
         serializer = t.cast(
-            ModelListSerializer[RequestUser, AnyModel],
+            "ModelListSerializer[RequestUser, AnyModel]",
             self.get_serializer(data=request.data, many=True),
         )
         serializer.is_valid(raise_exception=True)
@@ -183,7 +191,7 @@ class ModelViewSet(
         )
 
     def perform_bulk_create(
-        self, serializer: ModelListSerializer[RequestUser, AnyModel]
+        self, serializer: "ModelListSerializer[RequestUser, AnyModel]"
     ):
         """Bulk create many instances of a model.
 
@@ -208,7 +216,7 @@ class ModelViewSet(
         # pylint: enable=line-too-long
         queryset = self.get_bulk_queryset(request.json_dict.keys())
         serializer = t.cast(
-            ModelListSerializer[RequestUser, AnyModel],
+            "ModelListSerializer[RequestUser, AnyModel]",
             self.get_serializer(
                 queryset,
                 data=request.data,
@@ -221,7 +229,7 @@ class ModelViewSet(
         return Response(serializer.data)
 
     def perform_bulk_update(
-        self, serializer: ModelListSerializer[RequestUser, AnyModel]
+        self, serializer: "ModelListSerializer[RequestUser, AnyModel]"
     ):
         """Partially bulk update many instances of a model.
 

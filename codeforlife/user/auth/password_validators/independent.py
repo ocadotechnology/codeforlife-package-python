@@ -1,3 +1,4 @@
+# pylint: disable=duplicate-code
 """
 © Ocado Group
 Created on 30/01/2024 at 12:30:00(+00:00).
@@ -11,7 +12,7 @@ from django.utils.translation import gettext as _
 from .base import PasswordValidator
 
 
-# pylint: disable-next=missing-class-docstring
+# pylint: disable-next=missing-class-docstring,too-few-public-methods
 class IndependentPasswordValidator(PasswordValidator):
     def validate(self, password, user=None):
         # TODO: Update to check for not student and not teacher once we

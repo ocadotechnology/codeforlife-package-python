@@ -19,23 +19,18 @@ from pyotp import TOTP
 from ... import mail
 from .klass import Class
 from .school import School
-from .student import Independent, Student
-from .teacher import (
-    AdminSchoolTeacher,
-    NonAdminSchoolTeacher,
-    NonSchoolTeacher,
-    SchoolTeacher,
-    Teacher,
-    teacher_as_type,
-)
 
 if t.TYPE_CHECKING:
     from .auth_factor import AuthFactor
     from .otp_bypass_token import OtpBypassToken
     from .session import Session
+    from .student import Independent, Student
+    from .teacher import Teacher
 
 
 class User(_User):
+    """A proxy to Django's user class."""
+
     _password: t.Optional[str]
 
     id: int  # type: ignore[assignment]
@@ -63,33 +58,47 @@ class User(_User):
             return False
 
     @property
-    def student(self) -> t.Optional[Student]:
+    def student(self) -> t.Optional["Student"]:
+        """A user's student-profile."""
+        # pylint: disable-next=import-outside-toplevel
+        from .student import Student
+
         try:
-            return self.new_student
+            # pylint: disable-next=no-member
+            return self.new_student  # type: ignore[attr-defined]
         except Student.DoesNotExist:
             return None
 
     @property
-    def teacher(self) -> t.Optional[Teacher]:
+    def teacher(self) -> t.Optional["Teacher"]:
+        """A user's teacher-profile."""
+        # pylint: disable-next=import-outside-toplevel
+        from .teacher import Teacher
+
         try:
-            return self.new_teacher
+            # pylint: disable-next=no-member
+            return self.new_teacher  # type: ignore[attr-defined]
         except Teacher.DoesNotExist:
             return None
 
     @property
     def otp_secret(self):
+        """Shorthand for user-profile field."""
         return self.userprofile.otp_secret
 
     @property
     def last_otp_for_time(self):
+        """Shorthand for user-profile field."""
         return self.userprofile.last_otp_for_time
 
     @property
     def is_verified(self):
+        """Shorthand for user-profile field."""
         return self.userprofile.is_verified
 
     @property
     def aimmo_badges(self):
+        """Shorthand for user-profile field."""
         return self.userprofile.aimmo_badges
 
     @property
@@ -190,6 +199,9 @@ class TeacherUserManager(ContactableUserManager[AnyUser], t.Generic[AnyUser]):
         **extra_fields,
     ):
         """Create a teacher-user."""
+        # pylint: disable-next=import-outside-toplevel
+        from .teacher import Teacher
+
         assert "username" not in extra_fields
 
         user = super().create_user(
@@ -228,7 +240,7 @@ class TeacherUserManager(ContactableUserManager[AnyUser], t.Generic[AnyUser]):
 class TeacherUser(ContactableUser):
     """A user that is a teacher."""
 
-    teacher: Teacher
+    teacher: "Teacher"
     student: None
 
     class Meta(TypedModelMeta):
@@ -246,10 +258,9 @@ class SchoolTeacherUserManager(TeacherUserManager[AnyUser], t.Generic[AnyUser]):
         return super().get_queryset().filter(new_teacher__school__isnull=False)
 
 
+# pylint: disable-next=too-many-ancestors
 class SchoolTeacherUser(TeacherUser):
     """A user that is a teacher in a school."""
-
-    student: None
 
     class Meta(TypedModelMeta):
         proxy = True
@@ -260,6 +271,9 @@ class SchoolTeacherUser(TeacherUser):
 
     @property
     def teacher(self):
+        # pylint: disable-next=import-outside-toplevel
+        from .teacher import SchoolTeacher, teacher_as_type
+
         return teacher_as_type(super().teacher, SchoolTeacher)
 
 
@@ -276,8 +290,6 @@ class AdminSchoolTeacherUserManager(
 class AdminSchoolTeacherUser(SchoolTeacherUser):
     """A user that is an admin-teacher in a school."""
 
-    student: None
-
     class Meta(TypedModelMeta):
         proxy = True
 
@@ -287,6 +299,9 @@ class AdminSchoolTeacherUser(SchoolTeacherUser):
 
     @property
     def teacher(self):
+        # pylint: disable-next=import-outside-toplevel
+        from .teacher import AdminSchoolTeacher, teacher_as_type
+
         return teacher_as_type(super().teacher, AdminSchoolTeacher)
 
 
@@ -303,8 +318,6 @@ class NonAdminSchoolTeacherUserManager(
 class NonAdminSchoolTeacherUser(SchoolTeacherUser):
     """A user that is a non-admin-teacher in a school."""
 
-    student: None
-
     class Meta(TypedModelMeta):
         proxy = True
 
@@ -314,6 +327,9 @@ class NonAdminSchoolTeacherUser(SchoolTeacherUser):
 
     @property
     def teacher(self):
+        # pylint: disable-next=import-outside-toplevel
+        from .teacher import NonAdminSchoolTeacher, teacher_as_type
+
         return teacher_as_type(super().teacher, NonAdminSchoolTeacher)
 
 
@@ -324,10 +340,9 @@ class NonSchoolTeacherUserManager(TeacherUserManager["NonSchoolTeacherUser"]):
         return super().get_queryset().filter(new_teacher__school__isnull=True)
 
 
+# pylint: disable-next=too-many-ancestors
 class NonSchoolTeacherUser(TeacherUser):
     """A user that is a teacher not in a school."""
-
-    student: None
 
     class Meta(TypedModelMeta):
         proxy = True
@@ -338,6 +353,9 @@ class NonSchoolTeacherUser(TeacherUser):
 
     @property
     def teacher(self):
+        # pylint: disable-next=import-outside-toplevel
+        from .teacher import NonSchoolTeacher, teacher_as_type
+
         return teacher_as_type(super().teacher, NonSchoolTeacher)
 
 
@@ -347,6 +365,9 @@ class StudentUserManager(UserManager["StudentUser"]):
         self, first_name: str, klass: Class, **extra_fields
     ):
         """Create a student-user."""
+        # pylint: disable-next=import-outside-toplevel
+        from .student import Student
+
         # pylint: disable-next=protected-access
         password = StudentUser._get_random_password()
 
@@ -394,7 +415,7 @@ class StudentUser(User):
     """A user that is a student."""
 
     teacher: None
-    student: Student
+    student: "Student"
 
     credential_fields = frozenset(["first_name", "password"])
 
@@ -412,6 +433,9 @@ class StudentUser(User):
     # TODO: move this is to Student model in new schema.
     @staticmethod
     def _get_random_login_id():
+        # pylint: disable-next=import-outside-toplevel
+        from .student import Student
+
         login_id = None
         while (
             login_id is None
@@ -423,6 +447,7 @@ class StudentUser(User):
 
     @staticmethod
     def get_random_username():
+        """Generate a random username that is unique."""
         username = None
 
         while (
@@ -463,6 +488,9 @@ class IndependentUserManager(ContactableUserManager["IndependentUser"]):
         **extra_fields,
     ):
         """Create an independent-user."""
+        # pylint: disable-next=import-outside-toplevel
+        from .student import Student
+
         assert "username" not in extra_fields
 
         user = super().create_user(
@@ -494,7 +522,7 @@ class IndependentUser(ContactableUser):
     """A user that is an independent learner."""
 
     teacher: None
-    student: Independent  # TODO: set to None in new model
+    student: "Independent"  # TODO: set to None in new model
 
     class Meta(TypedModelMeta):
         proxy = True

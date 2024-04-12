@@ -12,11 +12,13 @@ from dataclasses import dataclass
 import requests
 
 
+# pylint: disable-next=unused-argument
 def add_contact(email: str):
     """Add a new contact to Dotdigital."""
     # TODO: implement
 
 
+# pylint: disable-next=unused-argument
 def remove_contact(email: str):
     """Remove an existing contact from Dotdigital."""
     # TODO: implement
