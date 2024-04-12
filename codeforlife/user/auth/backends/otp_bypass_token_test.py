@@ -10,7 +10,7 @@ from .otp_bypass_token import OtpBypassTokenBackend
 
 # pylint: disable-next=missing-class-docstring,too-many-instance-attributes
 class TestTokenBackend(TestCase):
-    fixtures = ["school_2"]
+    fixtures = ["school_2", "school_2_sessions"]
 
     def setUp(self):
         self.backend = OtpBypassTokenBackend()
