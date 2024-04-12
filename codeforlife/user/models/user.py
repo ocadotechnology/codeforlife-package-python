@@ -128,6 +128,22 @@ class User(_User):
             last_login=self.last_login,
         )
 
+    def anonymize(self):
+        """Anonymize the user."""
+        self.first_name = ""
+        self.last_name = ""
+        self.email = ""
+        self.is_active = False
+        self.save(
+            update_fields=[
+                "first_name",
+                "last_name",
+                "email",
+                "username",
+                "is_active",
+            ]
+        )
+
 
 AnyUser = t.TypeVar("AnyUser", bound=User)
 

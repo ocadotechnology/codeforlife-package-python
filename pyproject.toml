@@ -21,12 +21,13 @@ django_settings_module = "manage"
 
 [tool.pylint.main]
 init-hook = "import os; os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'manage')"
+disable = ["fixme"]
 
 [tool.pylint.format]
 max-line-length = 80
 
 [tool.pylint.MASTER]
-ignore-paths = [".*/migrations/.*py"]
+ignore-paths = [".*/migrations/.*.py"]
 load-plugins = "pylint_django"
 
 [tool.isort]
