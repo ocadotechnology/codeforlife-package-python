@@ -11,6 +11,24 @@ from .custom import SERVICE_API_URL, SERVICE_NAME
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = bool(int(os.getenv("DEBUG", "1")))
 
+# Quick-start development settings - unsuitable for production
+# See https://docs.djangoproject.com/en/3.2/howto/deployment/checklist/
+
+ALLOWED_HOSTS = ["*"]
+
+# Application definition
+
+MIDDLEWARE = [
+    "django.contrib.sessions.middleware.SessionMiddleware",
+    "django.middleware.locale.LocaleMiddleware",
+    "corsheaders.middleware.CorsMiddleware",
+    "django.middleware.common.CommonMiddleware",
+    "django.middleware.csrf.CsrfViewMiddleware",
+    "django.contrib.messages.middleware.MessageMiddleware",
+    "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "django.middleware.clickjacking.XFrameOptionsMiddleware",
+]
+
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.getenv("SECRET_KEY", "replace-me")
 
@@ -43,6 +61,13 @@ SESSION_COOKIE_SECURE = True
 SESSION_COOKIE_SAMESITE = "None"
 SESSION_COOKIE_DOMAIN = "localhost" if DEBUG else "codeforlife.education"
 
+SECURE_CONTENT_TYPE_NOSNIFF = True
+SECURE_BROWSER_XSS_FILTER = True
+SECURE_REFERRER_POLICY = "strict-origin-when-cross-origin"
+
+EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+CLOUD_STORAGE_PREFIX = "https://storage.googleapis.com/codeforlife-assets/"
+
 # Internationalization
 # https://docs.djangoproject.com/en/3.2/topics/i18n/
 
@@ -63,7 +88,8 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 CSRF_COOKIE_NAME = f"{SERVICE_NAME}_csrftoken"
 CSRF_COOKIE_SAMESITE = "None"
-CSRF_COOKIE_SECURE = True  # TODO: Check if this breaks the auth system like it did on the old system
+# TODO: Check if this breaks the auth system like it did on the old system
+CSRF_COOKIE_SECURE = True
 
 # Logging
 # https://docs.djangoproject.com/en/3.2/topics/logging/
