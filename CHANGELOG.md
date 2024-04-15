@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.16.1 (2024-04-15)
+
+### Fix
+
+* Polish pylint ([#109](https://github.com/ocadotechnology/codeforlife-package-python/issues/109)) ([`4de8149`](https://github.com/ocadotechnology/codeforlife-package-python/commit/4de8149c4219a228cce42fc3af48a18e30f074d6))
+
 ## v0.16.0 (2024-04-11)
 
 ### Feature
