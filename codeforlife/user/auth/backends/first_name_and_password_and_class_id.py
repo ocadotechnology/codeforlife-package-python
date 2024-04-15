@@ -5,14 +5,15 @@ Created on 01/02/2024 at 14:48:17(+00:00).
 
 import typing as t
 
-from django.contrib.auth.backends import BaseBackend
-
 from ....request import HttpRequest
 from ...models import StudentUser
+from .base import BaseBackend
 
 
 class FirstNameAndPasswordAndClassIdBackend(BaseBackend):
     """Authenticate a student using their first name, password and class ID."""
+
+    user_class = StudentUser
 
     def authenticate(  # type: ignore[override]
         self,
@@ -25,20 +26,16 @@ class FirstNameAndPasswordAndClassIdBackend(BaseBackend):
         if first_name is None or password is None or class_id is None:
             return None
 
+        # pylint: disable=duplicate-code
         try:
-            user = StudentUser.objects.get(
+            user = self.user_class.objects.get(
                 first_name=first_name,
                 new_student__class_field__access_code=class_id,
             )
             if user.check_password(password):
                 return user
-        except StudentUser.DoesNotExist:
+        except self.user_class.DoesNotExist:
             return None
+        # pylint: enable=duplicate-code
 
         return None
-
-    def get_user(self, user_id: int):
-        try:
-            return StudentUser.objects.get(id=user_id)
-        except StudentUser.DoesNotExist:
-            return None

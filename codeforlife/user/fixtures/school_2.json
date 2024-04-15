@@ -37,6 +37,86 @@
     }
   },
   {
+    "model": "user.otpbypasstoken",
+    "pk": 1,
+    "fields": {
+      "user": 25,
+      "token": "pbkdf2_sha256$260000$011OTqfomu9thoyEWRLYFK$KsFF2r35p5RpxtTA0EeES72eIkw4DlGQHcepxSW56xE="
+    }
+  },
+  {
+    "model": "user.otpbypasstoken",
+    "pk": 2,
+    "fields": {
+      "user": 25,
+      "token": "pbkdf2_sha256$260000$wQW9GjnlsabApK0kkjUt5L$IBK97E59fyeA1rEbgiKUII3lfrw63Cgq0eRp5jHtjlU="
+    }
+  },
+  {
+    "model": "user.otpbypasstoken",
+    "pk": 3,
+    "fields": {
+      "user": 25,
+      "token": "pbkdf2_sha256$260000$EJwxoY1ah6BzgOgttCCx99$BSRgsSFBzRDA5gADNGx0V5mLhzp/FbE9KTFmM4o06jE="
+    }
+  },
+  {
+    "model": "user.otpbypasstoken",
+    "pk": 4,
+    "fields": {
+      "user": 25,
+      "token": "pbkdf2_sha256$260000$FNV24aOpnghaanUt2JHo5b$TSuYBOa1fYfUabbN4GSuNb3QgbFSyEB4Bzp5vVI82Sk="
+    }
+  },
+  {
+    "model": "user.otpbypasstoken",
+    "pk": 5,
+    "fields": {
+      "user": 25,
+      "token": "pbkdf2_sha256$260000$1HSXHAJyMZ8oXwHn1OyCft$tP6qpDvLLGrfsnvI6lNe6CahZahf9KOAco5uTsUwzf8="
+    }
+  },
+  {
+    "model": "user.otpbypasstoken",
+    "pk": 6,
+    "fields": {
+      "user": 25,
+      "token": "pbkdf2_sha256$260000$XnThvZ4jWsNtHL7TLTtDoS$J+RwZMVS1WSk0Lvg6p/CHPCXdS1SNPFvzT3W0J/5TX0="
+    }
+  },
+  {
+    "model": "user.otpbypasstoken",
+    "pk": 7,
+    "fields": {
+      "user": 25,
+      "token": "pbkdf2_sha256$260000$8Cdo3xbA2aQVSRIFZsYXXm$8CB1a7RQmwf38KDfaekoqehCBLc1zVLjCZkFU2a2NS0="
+    }
+  },
+  {
+    "model": "user.otpbypasstoken",
+    "pk": 8,
+    "fields": {
+      "user": 25,
+      "token": "pbkdf2_sha256$260000$1y4ppXofxUIlGRzL3aSsEI$J392zF/NIpddGO55YFlQBpKuAH7+AzbtD2b0uXDqXno="
+    }
+  },
+  {
+    "model": "user.otpbypasstoken",
+    "pk": 9,
+    "fields": {
+      "user": 25,
+      "token": "pbkdf2_sha256$260000$fLasC0CBMhbqNErkRYCOL3$V50MLGP1xhgqNKpQOuFxSIMcCfFx/SgKnS4FekqsNLU="
+    }
+  },
+  {
+    "model": "user.otpbypasstoken",
+    "pk": 10,
+    "fields": {
+      "user": 25,
+      "token": "pbkdf2_sha256$260000$CuguCtUPsZz3gzGfsBViPQ$aVUnPQGIHL4+7RqhHPIWWp/73ko2CtDGxL6UlbvLkK8="
+    }
+  },
+  {
     "model": "common.teacher",
     "pk": 8,
     "fields": {

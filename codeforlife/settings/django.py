@@ -103,8 +103,10 @@ WSGI_APPLICATION = "service.wsgi.application"
 # Password validation
 # https://docs.djangoproject.com/en/3.2/ref/settings/#auth-password-validators
 
-# TODO: compare Django's default common password validator with our own and decide which to keep
-# codeforlife.user.auth.password_validators.CommonPasswordValidator
+# TODO: compare Django's default common password validator with our own and
+#   decide which to keep:
+#   codeforlife.user.auth.password_validators.CommonPasswordValidator
+# pylint: disable=line-too-long
 AUTH_PASSWORD_VALIDATORS = [
     {
         "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
@@ -122,6 +124,7 @@ AUTH_PASSWORD_VALIDATORS = [
         "NAME": "codeforlife.user.auth.password_validators.IndependentPasswordValidator",
     },
 ]
+# pylint: enable=line-too-long
 
 # Installed Apps
 # https://docs.djangoproject.com/en/3.2/ref/settings/#installed-apps

@@ -6,6 +6,7 @@ Created on 14/03/2024 at 12:22:40(+00:00).
 from django.apps import AppConfig
 
 
+# pylint: disable-next=missing-class-docstring
 class UserConfig(AppConfig):
     name = "codeforlife.user"
 

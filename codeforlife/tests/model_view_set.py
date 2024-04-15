@@ -844,7 +844,7 @@ class ModelViewSetTestCase(
         school = (
             user.teacher.school
             if user.teacher
-            else user.student.class_field.teacher.school  # type: ignore[union-attr]
+            else user.student.class_field.teacher.school
         )
         assert school
 
@@ -883,10 +883,10 @@ class ModelViewSetTestCase(
                 # Else, both users are students.
                 else:
                     assert (
-                        user.student.class_field  # type: ignore[union-attr]
+                        user.student.class_field
                         == other_user.student.class_field
                         if same_class
-                        else user.student.class_field  # type: ignore[union-attr]
+                        else user.student.class_field
                         != other_user.student.class_field
                     )
         else:

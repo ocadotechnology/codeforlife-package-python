@@ -45,7 +45,9 @@ class UserViewSet(ModelViewSet[RequestUser, User]):
             students = (
                 user_class.objects.filter(
                     # TODO: add school foreign key to student model.
-                    new_student__class_field__teacher__school=user.teacher.school_id,
+                    new_student__class_field__teacher__school=(
+                        user.teacher.school_id
+                    ),
                 )
                 if user.teacher.is_admin
                 else user_class.objects.filter(

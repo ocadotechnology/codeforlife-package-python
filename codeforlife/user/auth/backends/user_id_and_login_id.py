@@ -6,14 +6,16 @@ Created on 01/02/2024 at 14:44:16(+00:00).
 import typing as t
 
 from common.helpers.generators import get_hashed_login_id
-from django.contrib.auth.backends import BaseBackend
 
 from ....request import HttpRequest
 from ...models import Student, StudentUser
+from .base import BaseBackend
 
 
 class UserIdAndLoginIdBackend(BaseBackend):
     """Authenticate a student using their ID and auto-generated password."""
+
+    user_class = StudentUser
 
     def authenticate(  # type: ignore[override]
         self,
@@ -37,9 +39,3 @@ class UserIdAndLoginIdBackend(BaseBackend):
                 return user
 
         return None
-
-    def get_user(self, user_id: int):
-        try:
-            return StudentUser.objects.get(id=user_id)
-        except StudentUser.DoesNotExist:
-            return None
