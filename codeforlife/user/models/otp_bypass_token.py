@@ -75,7 +75,6 @@ class OtpBypassToken(models.Model):
     class Meta(TypedModelMeta):
         verbose_name = _("OTP bypass token")
         verbose_name_plural = _("OTP bypass tokens")
-        unique_together = ("user", "token")
 
     def save(self, *args, **kwargs):
         raise IntegrityError("Cannot create or update a single instance.")
