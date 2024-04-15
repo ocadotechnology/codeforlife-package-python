@@ -15,6 +15,10 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       python-version:  3.8
+    steps:
+      - name: Echo
+        if: false
+        run: echo
 
   test:
     needs: [config]
