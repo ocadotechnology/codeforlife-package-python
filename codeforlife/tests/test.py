@@ -3,10 +3,38 @@
 Created on 10/04/2024 at 13:03:00(+01:00).
 """
 
+import typing as t
 from unittest.case import _AssertRaisesContext
 
 from django.core.exceptions import ValidationError
+from django.http import HttpResponse
+from django.test import Client as _Client
 from django.test import TestCase as _TestCase
+
+
+class Client(_Client):
+    """A Django client with type hints."""
+
+    def generic(self, *args, **kwargs):
+        return t.cast(HttpResponse, super().generic(*args, **kwargs))
+
+    def get(self, *args, **kwargs):
+        return t.cast(HttpResponse, super().get(*args, **kwargs))
+
+    def post(self, *args, **kwargs):
+        return t.cast(HttpResponse, super().post(*args, **kwargs))
+
+    def put(self, *args, **kwargs):
+        return t.cast(HttpResponse, super().put(*args, **kwargs))
+
+    def patch(self, *args, **kwargs):
+        return t.cast(HttpResponse, super().patch(*args, **kwargs))
+
+    def delete(self, *args, **kwargs):
+        return t.cast(HttpResponse, super().delete(*args, **kwargs))
+
+    def options(self, *args, **kwargs):
+        return t.cast(HttpResponse, super().options(*args, **kwargs))
 
 
 class TestCase(_TestCase):

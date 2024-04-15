@@ -13,5 +13,5 @@ from .model_serializer import (
     ModelListSerializerTestCase,
     ModelSerializerTestCase,
 )
-from .model_view_set import ModelViewSetTestCase
-from .test import TestCase
+from .model_view_set import ModelViewSetClient, ModelViewSetTestCase
+from .test import Client, TestCase
