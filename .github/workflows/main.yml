@@ -14,12 +14,7 @@ jobs:
   config:
     runs-on: ubuntu-latest
     outputs:
-      python-version:  ${{ steps.config.outputs.PYTHON_VERSION }}
-    steps:
-      - name: Output Configurations
-        id: config
-        run: |
-          echo "PYTHON_VERSION=3.8" >> $GITHUB_OUTPUT
+      python-version:  3.8
 
   test:
     needs: [config]
