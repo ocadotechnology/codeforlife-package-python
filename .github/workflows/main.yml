@@ -43,7 +43,7 @@ jobs:
 
       # TODO: assert code coverage target.
       - name: 🧪 Test Code Units
-        run: pipenv run pytest
+        run: pipenv run pytest -n auto
 
   release:
     concurrency: release

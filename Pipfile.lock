@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "faa5c6a7c151ec88930b9a47b55c2a26c78f6b588f9072b4363974987c6bbe99"
+            "sha256": "bde2bbcff41e1dfa67036ae9cc505d55d74f65295182ca7c981d8de42e6ae512"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -58,11 +58,11 @@
         },
         "cfl-common": {
             "hashes": [
-                "sha256:87fddbf4ae8d37ee48232f15161b4c9e237f9140a309199a1b27d9e44baf2ffe",
-                "sha256:a43e630a699160faf7a0a6af46ed14f464aa4420e1fe2db02842db4347544436"
+                "sha256:2a223a56ae479a1f2ae9c3458f769f67d0532d91b355a89942e2c69bb0cd249d",
+                "sha256:b3479a1da60179d448e19eaf3a229aad3d08df81ca8d1f1cbbcb2ec09f995e71"
             ],
             "index": "pypi",
-            "version": "==6.41.5"
+            "version": "==6.41.10"
         },
         "charset-normalizer": {
             "hashes": [
@@ -170,11 +170,11 @@
         },
         "codeforlife-portal": {
             "hashes": [
-                "sha256:03c351ff447d46893a79e498f72539d3c62af0ad2c19578904b6415f1c514c4a",
-                "sha256:ef91c3cbaa48682e72ddbdeaf3dc25f4505bfb50aeb4e2f5512b6f887f1d4f83"
+                "sha256:615f0d804180e6137bb0ad21f8f8496e592454256d27edc85da91f408183fc17",
+                "sha256:73ade350e710e20620e19ff3bb232e0300a5a7b0ff8d4ea556ee1e3a042572c3"
             ],
             "index": "pypi",
-            "version": "==6.41.5"
+            "version": "==6.41.10"
         },
         "defusedxml": {
             "hashes": [
@@ -856,7 +856,7 @@
                 "sha256:37dd54208da7e1cd875388217d5e00ebd4179249f90fb72437e91a35459a0ad3",
                 "sha256:a8b2bc7bffae282281c8140a97d3aa9c14da0b136dfe83f850eea9a5f7470427"
             ],
-            "markers": "python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2'",
+            "markers": "python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3'",
             "version": "==2.9.0.post0"
         },
         "pytz": {
@@ -1005,7 +1005,7 @@
                 "sha256:1e61c37477a1626458e36f7b1d82aa5c9b094fa4802892072e49de9c60c4c926",
                 "sha256:8abb2f1d86890a2dfb989f9a77cfcfd3e47c2a354b01111771326f8aa26e0254"
             ],
-            "markers": "python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2'",
+            "markers": "python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3'",
             "version": "==1.16.0"
         },
         "sortedcontainers": {
