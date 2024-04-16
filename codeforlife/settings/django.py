@@ -24,7 +24,6 @@ MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
-    "django.contrib.messages.middleware.MessageMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
@@ -61,11 +60,13 @@ SESSION_COOKIE_SECURE = True
 SESSION_COOKIE_SAMESITE = "None"
 SESSION_COOKIE_DOMAIN = "localhost" if DEBUG else "codeforlife.education"
 
+# Security
+# https://docs.djangoproject.com/en/3.2/topics/security/
+
 SECURE_CONTENT_TYPE_NOSNIFF = True
 SECURE_BROWSER_XSS_FILTER = True
 SECURE_REFERRER_POLICY = "strict-origin-when-cross-origin"
 
-EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 CLOUD_STORAGE_PREFIX = "https://storage.googleapis.com/codeforlife-assets/"
 
 # Internationalization
