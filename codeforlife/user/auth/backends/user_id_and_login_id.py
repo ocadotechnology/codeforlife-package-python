@@ -5,7 +5,12 @@ Created on 01/02/2024 at 14:44:16(+00:00).
 
 import typing as t
 
-from common.helpers.generators import get_hashed_login_id
+# isort: off
+from common.helpers.generators import (  # type: ignore[import-untyped]
+    get_hashed_login_id,
+)
+
+# isort: on
 
 from ....request import HttpRequest
 from ...models import Student, StudentUser

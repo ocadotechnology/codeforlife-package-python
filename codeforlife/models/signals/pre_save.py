@@ -48,7 +48,8 @@ def check_previous_values(
             return None
 
     else:
-        previous_instance = instance.__class__.objects.get(pk=instance.pk)
+        objects = instance.__class__.objects  # type: ignore[attr-defined]
+        previous_instance = objects.get(pk=instance.pk)
 
         def get_previous_value(field: str):
             return getattr(previous_instance, field)

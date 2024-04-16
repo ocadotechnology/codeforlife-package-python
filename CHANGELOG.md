@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.16.2 (2024-04-16)
+
+### Fix
+
+* Polish mypy ([#110](https://github.com/ocadotechnology/codeforlife-package-python/issues/110)) ([`bcbe98f`](https://github.com/ocadotechnology/codeforlife-package-python/commit/bcbe98f6209c493de1837f12ab32761478778004))
+
 ## v0.16.1 (2024-04-15)
 
 ### Fix
