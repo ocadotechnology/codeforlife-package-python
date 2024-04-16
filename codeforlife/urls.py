@@ -3,11 +3,13 @@
 Created on 12/04/2024 at 14:42:20(+01:00).
 """
 
+import typing as t
+
 from django.contrib import admin
 from django.contrib.auth.views import LogoutView
 from django.http import HttpResponse
 from django.shortcuts import render
-from django.urls import include, path, re_path
+from django.urls import URLPattern, URLResolver, include, path, re_path
 from rest_framework import status
 
 from .settings import SERVICE_IS_ROOT, SERVICE_NAME
@@ -31,7 +33,7 @@ def service_urlpatterns(
     """
 
     # Specific url patterns.
-    urlpatterns = [
+    urlpatterns: t.List[t.Union[URLResolver, URLPattern]] = [
         path(
             "admin/",
             admin.site.urls,

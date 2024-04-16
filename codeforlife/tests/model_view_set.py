@@ -8,6 +8,7 @@ Base test case for all model view sets.
 import typing as t
 from datetime import datetime
 
+from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Model
 from django.db.models.query import QuerySet
 from django.urls import reverse
@@ -19,7 +20,7 @@ from ..permissions import Permission
 from ..serializers import BaseSerializer
 from ..types import DataDict, JsonDict, KwArgs
 from ..user.models import AnyUser as RequestUser
-from ..user.models import User
+from ..user.models import Class, Student, User
 from ..views import ModelViewSet
 from .api import APIClient, APITestCase
 
@@ -681,8 +682,13 @@ class ModelViewSetTestCase(
         """
         # Get the logged-in user.
         try:
-            user = User.objects.get(session=self.client.session.session_key)
-        except User.DoesNotExist:
+            user = t.cast(
+                RequestUser,
+                self.get_request_user_class().objects.get(
+                    session=self.client.session.session_key
+                ),
+            )
+        except ObjectDoesNotExist:
             user = None  # NOTE: no user has logged in.
 
         # Create an instance of the model view set and serializer.
@@ -844,7 +850,9 @@ class ModelViewSetTestCase(
         school = (
             user.teacher.school
             if user.teacher
-            else user.student.class_field.teacher.school
+            else t.cast(
+                Class, t.cast(Student, user.student).class_field
+            ).teacher.school
         )
         assert school
 
@@ -882,12 +890,14 @@ class ModelViewSetTestCase(
                     )
                 # Else, both users are students.
                 else:
+                    klass = t.cast(
+                        Class, t.cast(Student, user.student).class_field
+                    )
+
                     assert (
-                        user.student.class_field
-                        == other_user.student.class_field
+                        klass == other_user.student.class_field
                         if same_class
-                        else user.student.class_field
-                        != other_user.student.class_field
+                        else klass != other_user.student.class_field
                     )
         else:
             assert school != other_school

@@ -6,6 +6,7 @@ Created on 12/04/2024 at 15:07:35(+01:00).
 import typing as t
 from unittest.case import _AssertRaisesContext
 
+from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Model
 from django.db.utils import IntegrityError
 
@@ -76,8 +77,9 @@ class ModelTestCase(TestCase, t.Generic[AnyModel]):
         """
 
         model_class = self.get_model_class()
-        with self.assertRaises(model_class.DoesNotExist):
+        with self.assertRaises(ObjectDoesNotExist):
             if isinstance(model_or_pk, Model):
                 model_or_pk.refresh_from_db()
             else:
-                model_class.objects.get(pk=model_or_pk)
+                objects = model_class.objects  # type: ignore[attr-defined]
+                objects.get(pk=model_or_pk)

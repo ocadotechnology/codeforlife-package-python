@@ -125,7 +125,9 @@ class APIClient(_APIClient, t.Generic[RequestUser]):
             otp = user.totp.at(now)
             with patch.object(timezone, "now", return_value=now):
                 assert super().login(
-                    request=self.request_factory.post(user=user),
+                    request=self.request_factory.post(
+                        user=t.cast(RequestUser, user)
+                    ),
                     otp=otp,
                 ), f'Failed to login with OTP "{otp}" at {now}.'
 

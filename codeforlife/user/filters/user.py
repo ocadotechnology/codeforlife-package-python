@@ -3,7 +3,9 @@
 Created on 03/04/2024 at 16:37:44(+01:00).
 """
 
-from django_filters import rest_framework as filters
+from django_filters import (  # type: ignore[import-untyped] # isort: skip
+    rest_framework as filters,
+)
 
 from ..models import User
 
