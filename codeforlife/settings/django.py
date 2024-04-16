@@ -24,6 +24,7 @@ MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
+    "django.middleware.security.SecurityMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
@@ -87,10 +88,11 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 # CSRF
 # https://docs.djangoproject.com/en/3.2/ref/csrf/
 
+# TODO: Decide on CSRF approach
 CSRF_COOKIE_NAME = f"{SERVICE_NAME}_csrftoken"
 CSRF_COOKIE_SAMESITE = "None"
-# TODO: Check if this breaks the auth system like it did on the old system
 CSRF_COOKIE_SECURE = True
+# CSRF_USE_SESSION = True
 
 # Logging
 # https://docs.djangoproject.com/en/3.2/topics/logging/
