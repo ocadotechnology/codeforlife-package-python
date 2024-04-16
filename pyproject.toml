@@ -11,6 +11,7 @@ extend-exclude = ".*/migrations/.*py"
 
 [tool.pytest.ini_options]
 env = ["DJANGO_SETTINGS_MODULE=manage"]
+addopts = "--cov --cov-report=html"
 
 [tool.mypy]
 plugins = ["mypy_django_plugin.main", "mypy_drf_plugin.main"]
@@ -34,3 +35,7 @@ load-plugins = "pylint_django"
 profile = "black"
 line_length = 80
 skip_glob = ["**/migrations/*.py"]
+
+[tool.coverage.run]
+include = ["codeforlife/*"]
+omit = ["*/test_*.py", "*/*_test.py"]
