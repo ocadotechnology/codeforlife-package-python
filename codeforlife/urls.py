@@ -1,3 +1,8 @@
+"""
+© Ocado Group
+Created on 12/04/2024 at 14:42:20(+01:00).
+"""
+
 from django.contrib import admin
 from django.contrib.auth.views import LogoutView
 from django.http import HttpResponse
@@ -14,6 +19,17 @@ def service_urlpatterns(
     frontend_template_name: str = "frontend.html",
     include_user_urls: bool = True,
 ):
+    """Generate standard url patterns for each service.
+
+    Args:
+        api_urls_path: The path to the api's urls.
+        frontend_template_name: The name of the frontend template to serve.
+        include_user_urls: Whether or not to include the CFL's user urls.
+
+    Returns:
+        The standard url patterns for each service.
+    """
+
     # Specific url patterns.
     urlpatterns = [
         path(

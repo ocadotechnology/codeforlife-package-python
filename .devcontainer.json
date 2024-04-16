@@ -17,7 +17,8 @@
         "ms-python.black-formatter",
         "qwtel.sqlite-viewer",
         "njpwerner.autodocstring",
-        "tamasfe.even-better-toml"
+        "tamasfe.even-better-toml",
+        "github.vscode-github-actions"
       ]
     }
   },

@@ -3,4 +3,5 @@
 Created on 20/02/2024 at 15:37:52(+00:00).
 """
 
+# pylint: disable-next=unused-import
 from common.models import School

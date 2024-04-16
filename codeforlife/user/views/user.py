@@ -10,9 +10,11 @@ from ..filters import UserFilterSet
 from ..models import AnyUser, User
 from ..serializers import UserSerializer
 
+RequestUser = User
+
 
 # pylint: disable-next=missing-class-docstring,too-many-ancestors
-class UserViewSet(ModelViewSet[User]):
+class UserViewSet(ModelViewSet[RequestUser, User]):
     http_method_names = ["get"]
     serializer_class = UserSerializer[User]
     filterset_class = UserFilterSet
@@ -43,7 +45,9 @@ class UserViewSet(ModelViewSet[User]):
             students = (
                 user_class.objects.filter(
                     # TODO: add school foreign key to student model.
-                    new_student__class_field__teacher__school=user.teacher.school_id,
+                    new_student__class_field__teacher__school=(
+                        user.teacher.school_id
+                    ),
                 )
                 if user.teacher.is_admin
                 else user_class.objects.filter(

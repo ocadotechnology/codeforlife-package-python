@@ -16,9 +16,13 @@ if t.TYPE_CHECKING:
 
 
 class AuthFactor(models.Model):
+    """A user's enabled authentication factor."""
+
     sessions: QuerySet["SessionAuthFactor"]
 
     class Type(models.TextChoices):
+        """The type of authentication factor."""
+
         OTP = "otp", _("one-time password")
 
     user = models.ForeignKey(

@@ -14,11 +14,11 @@ from django.urls import reverse
 from django.utils.http import urlencode
 from rest_framework import status
 from rest_framework.response import Response
-from rest_framework.serializers import DateTimeField
 
 from ..permissions import Permission
 from ..serializers import BaseSerializer
 from ..types import DataDict, JsonDict, KwArgs
+from ..user.models import AnyUser as RequestUser
 from ..user.models import User
 from ..views import ModelViewSet
 from .api import APIClient, APITestCase
@@ -28,13 +28,15 @@ AnyModel = t.TypeVar("AnyModel", bound=Model)
 # pylint: disable=no-member,too-many-arguments
 
 
-class ModelViewSetClient(APIClient, t.Generic[AnyModel]):
+class ModelViewSetClient(
+    APIClient[RequestUser], t.Generic[RequestUser, AnyModel]
+):
     """
     An API client that helps make requests to a model view set and assert their
     responses.
     """
 
-    _test_case: "ModelViewSetTestCase[AnyModel]"
+    _test_case: "ModelViewSetTestCase[RequestUser, AnyModel]"
 
     @property
     def _model_class(self):
@@ -579,13 +581,17 @@ class ModelViewSetClient(APIClient, t.Generic[AnyModel]):
 # pylint: enable=no-member
 
 
-class ModelViewSetTestCase(APITestCase, t.Generic[AnyModel]):
+class ModelViewSetTestCase(
+    APITestCase[RequestUser], t.Generic[RequestUser, AnyModel]
+):
     """Base for all model view set test cases."""
 
     basename: str
-    model_view_set_class: t.Type[ModelViewSet[AnyModel]]
-    client: ModelViewSetClient[AnyModel]
-    client_class = ModelViewSetClient  # type: ignore[assignment]
+    model_view_set_class: t.Type[ModelViewSet[RequestUser, AnyModel]]
+    client: ModelViewSetClient[RequestUser, AnyModel]
+    client_class: t.Type[
+        ModelViewSetClient[RequestUser, AnyModel]
+    ] = ModelViewSetClient
 
     @classmethod
     def get_model_class(cls) -> t.Type[AnyModel]:
@@ -596,7 +602,7 @@ class ModelViewSetTestCase(APITestCase, t.Generic[AnyModel]):
         """
         # pylint: disable-next=no-member
         return t.get_args(cls.__orig_bases__[0])[  # type: ignore[attr-defined]
-            0
+            1
         ]
 
     @classmethod
@@ -605,6 +611,19 @@ class ModelViewSetTestCase(APITestCase, t.Generic[AnyModel]):
             assert hasattr(cls, attr), f'Attribute "{attr}" must be set.'
 
         return super().setUpClass()
+
+    def _get_client_class(self):
+        # TODO: unpack type args in index after moving to python 3.11
+        # pylint: disable-next=too-few-public-methods
+        class _Client(
+            self.client_class[  # type: ignore[misc]
+                self.get_request_user_class(),
+                self.get_model_class(),
+            ]
+        ):
+            _test_case = self
+
+        return _Client
 
     def reverse_action(
         self,
@@ -679,16 +698,13 @@ class ModelViewSetTestCase(APITestCase, t.Generic[AnyModel]):
         # Serialize the model.
         serialized_model = model_serializer.data
 
-        # Get DRF's function that converts datetimes to strings.
-        datetime_to_representation = DateTimeField().to_representation
-
         # Recursively convert all datetimes to strings.
         def datetime_values_to_representation(data: DataDict):
             for key, value in data.copy().items():
                 if isinstance(value, dict):
                     datetime_values_to_representation(value)
                 elif isinstance(value, datetime):
-                    data[key] = datetime_to_representation(value)
+                    data[key] = value.strftime("%Y-%m-%dT%H:%M:%S.%fZ")
 
         datetime_values_to_representation(serialized_model)
 
@@ -828,7 +844,7 @@ class ModelViewSetTestCase(APITestCase, t.Generic[AnyModel]):
         school = (
             user.teacher.school
             if user.teacher
-            else user.student.class_field.teacher.school  # type: ignore[union-attr]
+            else user.student.class_field.teacher.school
         )
         assert school
 
@@ -867,10 +883,10 @@ class ModelViewSetTestCase(APITestCase, t.Generic[AnyModel]):
                 # Else, both users are students.
                 else:
                     assert (
-                        user.student.class_field  # type: ignore[union-attr]
+                        user.student.class_field
                         == other_user.student.class_field
                         if same_class
-                        else user.student.class_field  # type: ignore[union-attr]
+                        else user.student.class_field
                         != other_user.student.class_field
                     )
         else:

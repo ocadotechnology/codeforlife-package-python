@@ -1,0 +1,19 @@
+[
+  {
+    "model": "user.session",
+    "pk": "1",
+    "fields": {
+      "session_data": "",
+      "expire_date": "9999-01-01 00:00:00.0+00:00",
+      "user": 25
+    }
+  },
+  {
+    "model": "user.sessionauthfactor",
+    "pk": 1,
+    "fields": {
+      "session": "1",
+      "auth_factor": 1
+    }
+  }
+]

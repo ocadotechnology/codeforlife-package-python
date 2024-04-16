@@ -10,6 +10,8 @@ from .session import Session
 
 
 class SessionAuthFactor(models.Model):
+    """A pending authentication factor for a session."""
+
     session = models.ForeignKey(
         Session,
         related_name="auth_factors",

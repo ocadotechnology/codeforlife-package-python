@@ -5,10 +5,9 @@ Created on 01/02/2024 at 14:39:16(+00:00).
 
 import typing as t
 
-from django.contrib.auth.backends import BaseBackend
-
 from ....request import HttpRequest
-from ...models import AuthFactor, User
+from ...models import AuthFactor
+from .base import BaseBackend
 
 
 class OtpBypassTokenBackend(BaseBackend):
@@ -25,7 +24,7 @@ class OtpBypassTokenBackend(BaseBackend):
         if (
             token is None
             or request is None
-            or not isinstance(request.user, User)
+            or not isinstance(request.user, self.user_class)
             or not request.user.session.auth_factors.filter(
                 auth_factor__type=AuthFactor.Type.OTP
             ).exists()
@@ -42,9 +41,3 @@ class OtpBypassTokenBackend(BaseBackend):
                 return request.user
 
         return None
-
-    def get_user(self, user_id: int):
-        try:
-            return User.objects.get(id=user_id)
-        except User.DoesNotExist:
-            return None

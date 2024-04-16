@@ -5,14 +5,16 @@ Created on 19/01/2024 at 17:15:56(+00:00).
 
 from rest_framework import status
 
-from ....permissions import IsAuthenticated
-from ....tests import ModelViewSetTestCase
-from ...models import Class, School, Student, Teacher, User, UserProfile
-from ...views import UserViewSet
+from ...permissions import IsAuthenticated
+from ...tests import ModelViewSetTestCase
+from ..models import Class, School, Student, Teacher, User, UserProfile
+from ..views import UserViewSet
+
+RequestUser = User
 
 
 # pylint: disable-next=too-many-ancestors,too-many-public-methods
-class TestUserViewSet(ModelViewSetTestCase[User]):
+class TestUserViewSet(ModelViewSetTestCase[RequestUser, User]):
     """
     Base naming convention:
         test_{action}
@@ -291,7 +293,9 @@ class TestUserViewSet(ModelViewSetTestCase[User]):
         other_user = self.get_another_school_user(
             user,
             other_users=User.objects.exclude(id=user.id).filter(
-                new_student__class_field__teacher__school=user.student.class_field.teacher.school,
+                new_student__class_field__teacher__school=(
+                    user.student.class_field.teacher.school
+                ),
                 new_student__class_field=user.student.class_field,
             ),
             is_teacher=False,
@@ -313,7 +317,9 @@ class TestUserViewSet(ModelViewSetTestCase[User]):
             user,
             other_users=User.objects.exclude(id=user.id)
             .filter(
-                new_student__class_field__teacher__school=user.student.class_field.teacher.school,
+                new_student__class_field__teacher__school=(
+                    user.student.class_field.teacher.school
+                ),
             )
             .exclude(new_student__class_field=user.student.class_field),
             is_teacher=False,
@@ -387,7 +393,9 @@ class TestUserViewSet(ModelViewSetTestCase[User]):
         other_user = self.get_another_school_user(
             user,
             other_users=User.objects.exclude(
-                new_student__class_field__teacher__school=user.student.class_field.teacher.school
+                new_student__class_field__teacher__school=(
+                    user.student.class_field.teacher.school
+                )
             ).filter(new_student__class_field__teacher__school__isnull=False),
             is_teacher=False,
             same_school=False,

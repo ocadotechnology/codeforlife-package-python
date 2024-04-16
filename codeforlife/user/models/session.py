@@ -35,10 +35,12 @@ class Session(AbstractBaseSession):
 
     @property
     def is_expired(self):
+        """Whether or not this session has expired."""
         return self.expire_date < timezone.now()
 
     @property
     def store(self):
+        """A store instance for this session."""
         return self.get_session_store_class()(self.session_key)
 
     @classmethod
@@ -71,6 +73,7 @@ class SessionStore(DBStore):
         try:
             session = model_class.objects.get(user_id=user_id)
         except model_class.DoesNotExist:
+            # pylint: disable-next=import-outside-toplevel
             from .session_auth_factor import SessionAuthFactor
 
             # Associate session to user.

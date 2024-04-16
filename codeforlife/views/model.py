@@ -15,10 +15,14 @@ from rest_framework.viewsets import ModelViewSet as DrfModelViewSet
 
 from ..permissions import Permission
 from ..request import Request
-from ..serializers import ModelListSerializer, ModelSerializer
 from ..types import KwArgs
+from ..user.models import AnyUser as RequestUser
 from .api import APIView
 from .decorators import action
+
+if t.TYPE_CHECKING:
+    from ..serializers import ModelListSerializer, ModelSerializer
+
 
 AnyModel = t.TypeVar("AnyModel", bound=Model)
 
@@ -35,10 +39,16 @@ else:
 
 
 # pylint: disable-next=too-many-ancestors
-class ModelViewSet(APIView, _ModelViewSet[AnyModel], t.Generic[AnyModel]):
+class ModelViewSet(
+    APIView[RequestUser],
+    _ModelViewSet[AnyModel],
+    t.Generic[RequestUser, AnyModel],
+):
     """Base model view set for all model view sets."""
 
-    serializer_class: t.Optional[t.Type[ModelSerializer[AnyModel]]]
+    serializer_class: t.Optional[
+        t.Type["ModelSerializer[RequestUser, AnyModel]"]
+    ]
 
     @classmethod
     def get_model_class(cls) -> t.Type[AnyModel]:
@@ -80,11 +90,16 @@ class ModelViewSet(APIView, _ModelViewSet[AnyModel], t.Generic[AnyModel]):
                 setattr(list_serializer.child, "Meta", meta)
 
             if getattr(meta, "list_serializer_class", None) is None:
+                # pylint: disable-next=import-outside-toplevel
+                from ..serializers import ModelListSerializer
+
                 model_class = self.get_model_class()
 
                 # pylint: disable-next=too-few-public-methods
                 class _ModelListSerializer(
-                    ModelListSerializer[model_class]  # type: ignore[valid-type]
+                    ModelListSerializer[
+                        RequestUser, model_class  # type: ignore[valid-type]
+                    ]
                 ):
                     pass
 
@@ -100,39 +115,39 @@ class ModelViewSet(APIView, _ModelViewSet[AnyModel], t.Generic[AnyModel]):
     # View Set Actions
     # --------------------------------------------------------------------------
 
-    # pylint: disable-next=useless-parent-delegation
+    # pylint: disable=useless-parent-delegation
+
     def destroy(  # type: ignore[override]
-        self, request: Request, *args, **kwargs
+        self, request: Request[RequestUser], *args, **kwargs
     ):
         return super().destroy(request, *args, **kwargs)
 
-    # pylint: disable-next=useless-parent-delegation
     def create(  # type: ignore[override]
-        self, request: Request, *args, **kwargs
+        self, request: Request[RequestUser], *args, **kwargs
     ):
         return super().create(request, *args, **kwargs)
 
-    # pylint: disable-next=useless-parent-delegation
-    def list(self, request: Request, *args, **kwargs):  # type: ignore[override]
+    def list(  # type: ignore[override]
+        self, request: Request[RequestUser], *args, **kwargs
+    ):
         return super().list(request, *args, **kwargs)
 
-    # pylint: disable-next=useless-parent-delegation
     def retrieve(  # type: ignore[override]
-        self, request: Request, *args, **kwargs
+        self, request: Request[RequestUser], *args, **kwargs
     ):
         return super().retrieve(request, *args, **kwargs)
 
-    # pylint: disable-next=useless-parent-delegation
     def update(  # type: ignore[override]
-        self, request: Request, *args, **kwargs
+        self, request: Request[RequestUser], *args, **kwargs
     ):
         return super().update(request, *args, **kwargs)
 
-    # pylint: disable-next=useless-parent-delegation
     def partial_update(  # type: ignore[override]
-        self, request: Request, *args, **kwargs
+        self, request: Request[RequestUser], *args, **kwargs
     ):
         return super().partial_update(request, *args, **kwargs)
+
+    # pylint: enable=useless-parent-delegation
 
     # --------------------------------------------------------------------------
     # Bulk Actions
@@ -151,7 +166,7 @@ class ModelViewSet(APIView, _ModelViewSet[AnyModel], t.Generic[AnyModel]):
             **{f"{self.lookup_field}__in": lookup_values}
         )
 
-    def bulk_create(self, request: Request):
+    def bulk_create(self, request: Request[RequestUser]):
         """Bulk create many instances of a model.
 
         This is an extension of the default create action:
@@ -164,7 +179,7 @@ class ModelViewSet(APIView, _ModelViewSet[AnyModel], t.Generic[AnyModel]):
             A HTTP response containing a list of created models.
         """
         serializer = t.cast(
-            ModelListSerializer[AnyModel],
+            "ModelListSerializer[RequestUser, AnyModel]",
             self.get_serializer(data=request.data, many=True),
         )
         serializer.is_valid(raise_exception=True)
@@ -175,7 +190,9 @@ class ModelViewSet(APIView, _ModelViewSet[AnyModel], t.Generic[AnyModel]):
             headers=self.get_success_headers(serializer.data),
         )
 
-    def perform_bulk_create(self, serializer: ModelListSerializer[AnyModel]):
+    def perform_bulk_create(
+        self, serializer: "ModelListSerializer[RequestUser, AnyModel]"
+    ):
         """Bulk create many instances of a model.
 
         Args:
@@ -183,7 +200,7 @@ class ModelViewSet(APIView, _ModelViewSet[AnyModel], t.Generic[AnyModel]):
         """
         serializer.save()
 
-    def bulk_partial_update(self, request: Request):
+    def bulk_partial_update(self, request: Request[RequestUser]):
         # pylint: disable=line-too-long
         """Partially bulk update many instances of a model.
 
@@ -199,7 +216,7 @@ class ModelViewSet(APIView, _ModelViewSet[AnyModel], t.Generic[AnyModel]):
         # pylint: enable=line-too-long
         queryset = self.get_bulk_queryset(request.json_dict.keys())
         serializer = t.cast(
-            ModelListSerializer[AnyModel],
+            "ModelListSerializer[RequestUser, AnyModel]",
             self.get_serializer(
                 queryset,
                 data=request.data,
@@ -211,7 +228,9 @@ class ModelViewSet(APIView, _ModelViewSet[AnyModel], t.Generic[AnyModel]):
         self.perform_bulk_update(serializer)
         return Response(serializer.data)
 
-    def perform_bulk_update(self, serializer: ModelListSerializer[AnyModel]):
+    def perform_bulk_update(
+        self, serializer: "ModelListSerializer[RequestUser, AnyModel]"
+    ):
         """Partially bulk update many instances of a model.
 
         Args:
@@ -219,7 +238,7 @@ class ModelViewSet(APIView, _ModelViewSet[AnyModel], t.Generic[AnyModel]):
         """
         serializer.save()
 
-    def bulk_destroy(self, request: Request):
+    def bulk_destroy(self, request: Request[RequestUser]):
         """Bulk destroy many instances of a model.
 
         This is an extension of the default destroy action:
@@ -244,7 +263,7 @@ class ModelViewSet(APIView, _ModelViewSet[AnyModel], t.Generic[AnyModel]):
         queryset.delete()
 
     @action(detail=False, methods=["post", "patch", "delete"])
-    def bulk(self, request: Request):
+    def bulk(self, request: Request[RequestUser]):
         """Entry point for all bulk actions.
 
         Args:
@@ -265,13 +284,17 @@ class ModelViewSet(APIView, _ModelViewSet[AnyModel], t.Generic[AnyModel]):
         serializer_kwargs: t.Optional[KwArgs],
         response_kwargs: t.Optional[KwArgs],
         get_instance: t.Callable[
-            ["ModelViewSet[AnyModel]", Request],
+            ["ModelViewSet[RequestUser, AnyModel]", Request[RequestUser]],
             t.Union[AnyModel, t.Iterable[AnyModel]],
         ],
         detail: bool,
         **kwargs,
     ):
-        def update(self: ModelViewSet[AnyModel], request: Request, **_: str):
+        def update(
+            self: ModelViewSet[RequestUser, AnyModel],
+            request: Request[RequestUser],
+            **_: str,
+        ):
             instance = get_instance(self, request)
             serializer = self.get_serializer(
                 **(serializer_kwargs or {}),
