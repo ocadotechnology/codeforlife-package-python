@@ -11,7 +11,7 @@ extend-exclude = ".*/migrations/.*py"
 
 [tool.pytest.ini_options]
 env = ["DJANGO_SETTINGS_MODULE=manage"]
-addopts = "--cov --cov-report=html"
+addopts = "--cov --cov-report=xml"
 
 [tool.mypy]
 plugins = ["mypy_django_plugin.main", "mypy_drf_plugin.main"]
