@@ -38,4 +38,4 @@ skip_glob = ["**/migrations/*.py"]
 
 [tool.coverage.run]
 include = ["codeforlife/*"]
-omit = ["*/test_*.py", "*/*_test.py"]
+omit = ["*/test_*.py", "*/*_test.py", "codeforlife/tests/*"]
