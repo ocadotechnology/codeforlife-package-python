@@ -20,13 +20,11 @@ from ..user.models import AnyUser as RequestUser
 from .api import APIView
 from .decorators import action
 
-if t.TYPE_CHECKING:
-    from ..serializers import ModelListSerializer, ModelSerializer
-
-
 AnyModel = t.TypeVar("AnyModel", bound=Model)
 
-if t.TYPE_CHECKING:
+if t.TYPE_CHECKING:  # pragma: no cover
+    from ..serializers import ModelListSerializer, ModelSerializer
+
     # NOTE: This raises an error during runtime.
     # pylint: disable-next=too-few-public-methods
     class _ModelViewSet(DrfModelViewSet[AnyModel], t.Generic[AnyModel]):
@@ -117,32 +115,32 @@ class ModelViewSet(
 
     # pylint: disable=useless-parent-delegation
 
-    def destroy(  # type: ignore[override]
+    def destroy(  # type: ignore[override] # pragma: no cover
         self, request: Request[RequestUser], *args, **kwargs
     ):
         return super().destroy(request, *args, **kwargs)
 
-    def create(  # type: ignore[override]
+    def create(  # type: ignore[override] # pragma: no cover
         self, request: Request[RequestUser], *args, **kwargs
     ):
         return super().create(request, *args, **kwargs)
 
-    def list(  # type: ignore[override]
+    def list(  # type: ignore[override] # pragma: no cover
         self, request: Request[RequestUser], *args, **kwargs
     ):
         return super().list(request, *args, **kwargs)
 
-    def retrieve(  # type: ignore[override]
+    def retrieve(  # type: ignore[override] # pragma: no cover
         self, request: Request[RequestUser], *args, **kwargs
     ):
         return super().retrieve(request, *args, **kwargs)
 
-    def update(  # type: ignore[override]
+    def update(  # type: ignore[override] # pragma: no cover
         self, request: Request[RequestUser], *args, **kwargs
     ):
         return super().update(request, *args, **kwargs)
 
-    def partial_update(  # type: ignore[override]
+    def partial_update(  # type: ignore[override] # pragma: no cover
         self, request: Request[RequestUser], *args, **kwargs
     ):
         return super().partial_update(request, *args, **kwargs)
