@@ -12,7 +12,7 @@ on:
 
 jobs:
   test:
-    uses: ocadotechnology/codeforlife-workspace/.github/workflows/test-python-code.yaml@polish_test
+    uses: ocadotechnology/codeforlife-workspace/.github/workflows/test-python-code.yaml@main
     secrets: inherit
     with:
       # Cannot be set with an env var. Value must match in the release job.
