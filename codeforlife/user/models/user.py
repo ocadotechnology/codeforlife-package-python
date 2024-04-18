@@ -71,6 +71,8 @@ class User(_User):
         except Student.DoesNotExist:
             return None
 
+        return None  # TODO: remove
+
     @property
     def teacher(self) -> t.Optional["Teacher"]:
         """A user's teacher-profile."""
