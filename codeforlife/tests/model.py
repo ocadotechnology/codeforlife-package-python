@@ -25,7 +25,6 @@ class ModelTestCase(TestCase, t.Generic[AnyModel]):
         Returns:
             The model's class.
         """
-
         # pylint: disable-next=no-member
         return t.get_args(cls.__orig_bases__[0])[  # type: ignore[attr-defined]
             0
@@ -37,7 +36,6 @@ class ModelTestCase(TestCase, t.Generic[AnyModel]):
         Returns:
             Error catcher that will assert if an integrity error is raised.
         """
-
         return self.assertRaises(IntegrityError, *args, **kwargs)
 
     def assert_check_constraint(self, name: str, *args, **kwargs):
@@ -75,11 +73,26 @@ class ModelTestCase(TestCase, t.Generic[AnyModel]):
         Args:
             model_or_pk: The model itself or its primary key.
         """
-
-        model_class = self.get_model_class()
         with self.assertRaises(ObjectDoesNotExist):
             if isinstance(model_or_pk, Model):
                 model_or_pk.refresh_from_db()
             else:
-                objects = model_class.objects  # type: ignore[attr-defined]
-                objects.get(pk=model_or_pk)
+                (
+                    self.get_model_class().objects  # type: ignore[attr-defined]
+                ).get(pk=model_or_pk)
+
+    def assert_get_queryset(
+        self, values: t.Collection[AnyModel], ordered: bool = True
+    ):
+        """Assert that the expected queryset is returned.
+
+        Args:
+            values: The values we expect the queryset to contain.
+            ordered: Whether the queryset provides an implicit ordering.
+        """
+        queryset = (
+            self.get_model_class().objects  # type: ignore[attr-defined]
+        ).get_queryset()
+        if ordered and not queryset.ordered:
+            queryset = queryset.order_by("pk")
+        self.assertQuerysetEqual(queryset, values, ordered=ordered)
