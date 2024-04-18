@@ -68,8 +68,6 @@ SECURE_CONTENT_TYPE_NOSNIFF = True
 SECURE_BROWSER_XSS_FILTER = True
 SECURE_REFERRER_POLICY = "strict-origin-when-cross-origin"
 
-CLOUD_STORAGE_PREFIX = "https://storage.googleapis.com/codeforlife-assets/"
-
 # Internationalization
 # https://docs.djangoproject.com/en/3.2/topics/i18n/
 
