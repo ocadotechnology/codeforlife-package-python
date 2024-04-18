@@ -14,7 +14,7 @@ from django.utils import timezone
 
 from .user import User
 
-if t.TYPE_CHECKING:
+if t.TYPE_CHECKING:  # pragma: no cover
     from .session_auth_factor import SessionAuthFactor
 
 
@@ -81,10 +81,7 @@ class SessionStore(DBStore):
             session.user = User.objects.get(id=user_id)
             SessionAuthFactor.objects.bulk_create(
                 [
-                    SessionAuthFactor(
-                        session=session,
-                        auth_factor=auth_factor,
-                    )
+                    SessionAuthFactor(session=session, auth_factor=auth_factor)
                     for auth_factor in session.user.auth_factors.all()
                 ]
             )
