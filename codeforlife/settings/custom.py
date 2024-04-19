@@ -1,7 +1,6 @@
 """
 This file contains all of our custom settings we define for our own purposes.
 """
-
 import os
 
 # The name of the current service.
@@ -20,7 +19,6 @@ SERVICE_PORT = int(os.getenv("SERVICE_PORT", "8000"))
 SERVICE_BASE_URL = f"{SERVICE_PROTOCOL}://{SERVICE_DOMAIN}:{SERVICE_PORT}"
 if not SERVICE_IS_ROOT:
     SERVICE_BASE_URL += f"/{SERVICE_NAME}"
-
 
 # The api url of the current service.
 SERVICE_API_URL = f"{SERVICE_BASE_URL}/api"
