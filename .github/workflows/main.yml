@@ -15,7 +15,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Echo org id
-        run: echo "${{ github.repository_owner_id }}"
+        run: |
+          if [ ${{ github.repository_owner_id }} = 2088731 ]
+          then
+            echo "TRUE"
+          else
+            echo "FALSE"
+          fi
 
     # uses: ocadotechnology/codeforlife-workspace/.github/workflows/test-python-code.yaml@main
     # secrets: inherit
