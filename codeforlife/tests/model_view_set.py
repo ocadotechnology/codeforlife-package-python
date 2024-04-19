@@ -20,7 +20,6 @@ from ..permissions import Permission
 from ..serializers import BaseSerializer
 from ..types import DataDict, JsonDict, KwArgs
 from ..user.models import AnyUser as RequestUser
-from ..user.models import Class, Student, User
 from ..views import ModelViewSet
 from .api import APIClient, APITestCase
 
