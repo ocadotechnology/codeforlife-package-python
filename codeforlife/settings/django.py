@@ -1,8 +1,7 @@
 """
-This file contains all of the settings Django supports out of the box.
+This file contains all the settings Django supports out of the box.
 https://docs.djangoproject.com/en/3.2/ref/settings/
 """
-
 import os
 
 from django.utils.translation import gettext_lazy as _
@@ -11,6 +10,24 @@ from .custom import SERVICE_API_URL, SERVICE_NAME
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = bool(int(os.getenv("DEBUG", "1")))
+
+# Quick-start development settings - unsuitable for production
+# See https://docs.djangoproject.com/en/3.2/howto/deployment/checklist/
+
+ALLOWED_HOSTS = ["*"]
+
+# Application definition
+
+MIDDLEWARE = [
+    "django.contrib.sessions.middleware.SessionMiddleware",
+    "django.middleware.locale.LocaleMiddleware",
+    "corsheaders.middleware.CorsMiddleware",
+    "django.middleware.common.CommonMiddleware",
+    "django.middleware.csrf.CsrfViewMiddleware",
+    "django.middleware.security.SecurityMiddleware",
+    "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "django.middleware.clickjacking.XFrameOptionsMiddleware",
+]
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.getenv("SECRET_KEY", "replace-me")
@@ -44,12 +61,19 @@ SESSION_COOKIE_SECURE = True
 SESSION_COOKIE_SAMESITE = "None"
 SESSION_COOKIE_DOMAIN = "localhost" if DEBUG else "codeforlife.education"
 
+# Security
+# https://docs.djangoproject.com/en/3.2/topics/security/
+
+SECURE_CONTENT_TYPE_NOSNIFF = True
+SECURE_BROWSER_XSS_FILTER = True
+SECURE_REFERRER_POLICY = "strict-origin-when-cross-origin"
+
 # Internationalization
 # https://docs.djangoproject.com/en/3.2/topics/i18n/
 
 LANGUAGE_CODE = "en-gb"
 LANGUAGES = [("en-gb", _("English"))]
-TIME_ZONE = "Europe/London"  # TODO: use UTC?
+TIME_ZONE = "Europe/London"
 USE_I18N = True
 USE_L10N = True
 USE_TZ = True
@@ -57,14 +81,16 @@ USE_TZ = True
 # Default primary key field type
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
 
-DEFAULT_AUTO_FIELD = "django.db.models.AutoField"  # TODO: use BigAutoField
+DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
 
 # CSRF
 # https://docs.djangoproject.com/en/3.2/ref/csrf/
 
+# TODO: Decide on CSRF approach
 CSRF_COOKIE_NAME = f"{SERVICE_NAME}_csrftoken"
 CSRF_COOKIE_SAMESITE = "None"
 CSRF_COOKIE_SECURE = True
+# CSRF_USE_SESSION = True
 
 # Logging
 # https://docs.djangoproject.com/en/3.2/topics/logging/
@@ -91,12 +117,12 @@ LOGGING = {
 }
 
 # URLs
-# https://docs.djangoproject.com/en/4.2/ref/settings/#root-urlconf
+# https://docs.djangoproject.com/en/3.2/ref/settings/#root-urlconf
 
 ROOT_URLCONF = "service.urls"
 
 # App
-# https://docs.djangoproject.com/en/4.2/ref/settings/#wsgi-application
+# https://docs.djangoproject.com/en/3.2/ref/settings/#wsgi-application
 
 WSGI_APPLICATION = "service.wsgi.application"
 
@@ -104,8 +130,10 @@ WSGI_APPLICATION = "service.wsgi.application"
 # https://docs.djangoproject.com/en/3.2/ref/settings/#auth-password-validators
 
 # TODO: compare Django's default common password validator with our own and
-#   decide which to keep:
-#   codeforlife.user.auth.password_validators.CommonPasswordValidator
+#  decide which to keep
+# NOTE: Django's common password validator, while similar to ours,
+# seems based on a deprecated list of passwords.
+# codeforlife.user.auth.password_validators.CommonPasswordValidator
 # pylint: disable=line-too-long
 AUTH_PASSWORD_VALIDATORS = [
     {
