@@ -22,6 +22,12 @@ RequestUser = User
 class TestClassViewSet(ModelViewSetTestCase[RequestUser, Class]):
     basename = "class"
     model_view_set_class = ClassViewSet
+    fixtures = ["school_1"]
+
+    def setUp(self):
+        self.admin_school_teacher_user = AdminSchoolTeacherUser.objects.get(
+            email="admin.teacher@school1.com"
+        )
 
     # test: get permissions
 
@@ -81,3 +87,22 @@ class TestClassViewSet(ModelViewSetTestCase[RequestUser, Class]):
             values=user.teacher.classes,
             request=self.client.request_factory.get(user=user),
         )
+
+    # test: actions
+
+    def test_retrieve(self):
+        """Can successfully retrieve a class."""
+        user = StudentUser.objects.first()
+        assert user
+
+        self.client.login_as(user, password="Password1")
+        self.client.retrieve(model=user.student.class_field)
+
+    def test_list(self):
+        """Can successfully list classes."""
+        user = self.admin_school_teacher_user
+        # TODO: assert user has classes in new schema.
+        assert user.teacher.classes.count() >= 2
+
+        self.client.login_as(user)
+        self.client.list(models=user.teacher.classes.all())
