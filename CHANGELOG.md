@@ -2,6 +2,24 @@
 
 <!--next-version-placeholder-->
 
+## v0.16.5 (2024-04-18)
+
+### Fix
+
+* Polish tests ([#113](https://github.com/ocadotechnology/codeforlife-package-python/issues/113)) ([`05e17e2`](https://github.com/ocadotechnology/codeforlife-package-python/commit/05e17e2259b70075c791a601504009d6147f0a93))
+
+## v0.16.4 (2024-04-17)
+
+### Fix
+
+* Polish tests ([#112](https://github.com/ocadotechnology/codeforlife-package-python/issues/112)) ([`aeece27`](https://github.com/ocadotechnology/codeforlife-package-python/commit/aeece274f1b5c52c364bbeaa26ee550bd6c54e86))
+
+## v0.16.3 (2024-04-17)
+
+### Fix
+
+* Polish tests ([#111](https://github.com/ocadotechnology/codeforlife-package-python/issues/111)) ([`474837a`](https://github.com/ocadotechnology/codeforlife-package-python/commit/474837a959a0937eea7db1db8adecac4d4dd7c71))
+
 ## v0.16.2 (2024-04-16)
 
 ### Fix

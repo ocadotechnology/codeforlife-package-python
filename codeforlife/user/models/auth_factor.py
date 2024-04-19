@@ -11,7 +11,7 @@ from django.utils.translation import gettext_lazy as _
 
 from .user import User
 
-if t.TYPE_CHECKING:
+if t.TYPE_CHECKING:  # pragma: no cover
     from .session_auth_factor import SessionAuthFactor
 
 
@@ -37,4 +37,4 @@ class AuthFactor(models.Model):
         unique_together = ["user", "type"]
 
     def __str__(self):
-        return self.type
+        return str(self.type)

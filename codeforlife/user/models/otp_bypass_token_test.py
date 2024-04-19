@@ -19,17 +19,16 @@ class TestOtpBypassToken(ModelTestCase[OtpBypassToken]):
         assert user
         self.user = user
 
-    def test_bulk_create(self):
+    def test_objects__bulk_create(self):
         """Can bulk create a new set of tokens."""
         original_otp_bypass_tokens = list(self.user.otp_bypass_tokens.all())
 
         otp_bypass_tokens = OtpBypassToken.objects.bulk_create(self.user)
 
-        assert len(otp_bypass_tokens) == OtpBypassToken.max_count
-
         for otp_bypass_token in original_otp_bypass_tokens:
             self.assert_does_not_exist(otp_bypass_token)
 
+        assert len(otp_bypass_tokens) == OtpBypassToken.max_count
         assert len(otp_bypass_tokens) == self.user.otp_bypass_tokens.count()
 
         for otp_bypass_token in otp_bypass_tokens:
@@ -42,7 +41,7 @@ class TestOtpBypassToken(ModelTestCase[OtpBypassToken]):
             )
             assert check_password(raw_token, otp_bypass_token.token)
 
-    def test_create(self):
+    def test_save(self):
         """Cannot create or update a single instance."""
         with self.assert_raises_integrity_error():
             OtpBypassToken().save()

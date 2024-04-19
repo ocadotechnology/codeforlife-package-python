@@ -22,7 +22,7 @@ from ... import mail
 from .klass import Class
 from .school import School
 
-if t.TYPE_CHECKING:
+if t.TYPE_CHECKING:  # pragma: no cover
     from .auth_factor import AuthFactor
     from .otp_bypass_token import OtpBypassToken
     from .session import Session
