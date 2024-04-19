@@ -3,525 +3,167 @@
 Created on 19/01/2024 at 17:15:56(+00:00).
 """
 
-from rest_framework import status
+import typing as t
 
-from ...permissions import IsAuthenticated
+from django.db.models.query import QuerySet
+
 from ...tests import ModelViewSetTestCase
-from ..models import Class, School, Student, Teacher, User, UserProfile
+from ..models import (
+    AdminSchoolTeacherUser,
+    Class,
+    IndependentUser,
+    NonAdminSchoolTeacherUser,
+    NonSchoolTeacherUser,
+    SchoolTeacherUser,
+    Student,
+    StudentUser,
+    User,
+)
 from ..views import UserViewSet
 
 RequestUser = User
 
 
-# pylint: disable-next=too-many-ancestors,too-many-public-methods
+# pylint: disable-next=too-many-ancestors,too-many-public-methods,missing-class-docstring
 class TestUserViewSet(ModelViewSetTestCase[RequestUser, User]):
-    """
-    Base naming convention:
-        test_{action}
-
-    action: The view set action.
-        https://www.django-rest-framework.org/api-guide/viewsets/#viewset-actions
-    """
-
     basename = "user"
     model_view_set_class = UserViewSet
+    fixtures = ["non_school_teacher", "school_1"]
 
-    # TODO: replace this setup with data fixtures.
     def setUp(self):
-        school = School.objects.create(
-            name="ExampleSchool",
-            country="UK",
+        self.admin_school_teacher_user = AdminSchoolTeacherUser.objects.get(
+            email="admin.teacher@school1.com"
         )
 
-        user = User.objects.create(
-            first_name="Example",
-            last_name="Teacher",
-            email="example.teacher@codeforlife.com",
-            username="example.teacher@codeforlife.com",
+    # test: get queryset
+
+    def test_get_queryset__indy(self):
+        """Independent-users can only target themselves."""
+        user = IndependentUser.objects.first()
+        assert user
+
+        self.assert_get_queryset(
+            values=[user],
+            request=self.client.request_factory.get(user=user),
         )
 
-        user_profile = UserProfile.objects.create(user=user)
-
-        teacher = Teacher.objects.create(
-            user=user_profile,
-            new_user=user,
-            school=school,
-        )
-
-        klass = Class.objects.create(
-            name="ExampleClass",
-            teacher=teacher,
-            created_by=teacher,
-        )
-
-        user = User.objects.create(
-            first_name="Example",
-            last_name="Student",
-            email="example.student@codeforlife.com",
-            username="example.student@codeforlife.com",
-        )
-
-        user_profile = UserProfile.objects.create(user=user)
-
-        Student.objects.create(
-            class_field=klass,
-            user=user_profile,
-            new_user=user,
-        )
-
-    def _login_non_admin_school_teacher(self):
-        return self.client.login_non_admin_school_teacher(
-            email="maxplanck@codeforlife.com", password="Password1"
-        )
-
-    def _login_admin_school_teacher(self):
-        return self.client.login_admin_school_teacher(
-            email="alberteinstein@codeforlife.com", password="Password1"
-        )
-
-    def _login_student(self):
-        return self.client.login_student(
-            first_name="Leonardo",
-            password="Password1",
-            class_id="AB123",
-        )
-
-    def _login_indy(self):
-        return self.client.login_indy(
-            email="indianajones@codeforlife.com", password="Password1"
-        )
-
-    # pylint: disable-next=pointless-string-statement
-    """
-    Retrieve naming convention:
-        test_retrieve__{user_type}__{other_user_type}__{same_school}__{same_class}
-
-    user_type: The type of user that is making the request. Options:
-        - teacher: A non-admin teacher.
-        - admin_teacher: An admin teacher.
-        - student: A school student.
-        - indy_student: A non-school student.
-
-    other_user_type: The type of user whose data is being requested. Options:
-        - self: User's own data.
-        - teacher: Another teacher's data.
-        - student: Another student's data.
-
-    same_school: A flag for if the other user is from the same school. Options:
-        - same_school: The other user is from the same school.
-        - not_same_school: The other user is not from the same school.
-
-    same_class: A flag for if the other user is from the same class. Options:
-        - same_class: The other user is from the same class.
-        - not_same_class: The other user is not from the same class.
-    """
-
-    def test_retrieve__teacher__self(self):
+    def test_get_queryset__student(self):
         """
-        Teacher can retrieve their own user data.
+        Student-users can only target themselves, their classmates and their
+        teacher.
         """
+        user = StudentUser.objects.first()
+        assert user
 
-        user = self._login_non_admin_school_teacher()
-
-        self.client.retrieve(user)
-
-    def test_retrieve__student__self(self):
-        """
-        Student can retrieve their own user data.
-        """
-
-        user = self._login_student()
-
-        self.client.retrieve(user)
-
-    def test_retrieve__indy_student__self(self):
-        """
-        Independent student can retrieve their own user data.
-        """
-
-        user = self._login_indy()
-
-        self.client.retrieve(user)
-
-    def test_retrieve__teacher__teacher__same_school(self):
-        """
-        Teacher can retrieve another teacher from the same school.
-        """
-
-        user = self._login_non_admin_school_teacher()
-
-        other_user = self.get_another_school_user(
+        users = [
             user,
-            other_users=User.objects.exclude(id=user.id).filter(
-                new_teacher__school=user.teacher.school
-            ),
-            is_teacher=True,
-            same_school=True,
-        )
-
-        self.client.retrieve(other_user)
-
-    def test_retrieve__teacher__student__same_school__same_class(self):
-        """
-        Teacher can retrieve a student from the same school and class.
-        """
-
-        user = self._login_non_admin_school_teacher()
-
-        other_user = self.get_another_school_user(
-            user,
-            other_users=User.objects.filter(
-                new_student__class_field__teacher__school=user.teacher.school,
-                new_student__class_field__teacher=user.teacher,
-            ),
-            is_teacher=False,
-            same_school=True,
-            same_class=True,
-        )
-
-        self.client.retrieve(other_user)
-
-    def test_retrieve__teacher__student__same_school__not_same_class(self):
-        """
-        Teacher cannot retrieve a student from the same school and a different
-        class.
-        """
-
-        user = self._login_non_admin_school_teacher()
-
-        other_user = self.get_another_school_user(
-            user,
-            other_users=User.objects.filter(
-                new_student__class_field__teacher__school=user.teacher.school
-            ).exclude(new_student__class_field__teacher=user.teacher),
-            is_teacher=False,
-            same_school=True,
-            same_class=False,
-        )
-
-        self.client.retrieve(other_user, status.HTTP_404_NOT_FOUND)
-
-    def test_retrieve__admin_teacher__student__same_school__same_class(self):
-        """
-        Admin teacher can retrieve a student from the same school and class.
-        """
-
-        user = self._login_admin_school_teacher()
-
-        other_user = self.get_another_school_user(
-            user,
-            other_users=User.objects.filter(
-                new_student__class_field__teacher__school=user.teacher.school,
-                new_student__class_field__teacher=user.teacher,
-            ),
-            is_teacher=False,
-            same_school=True,
-            same_class=True,
-        )
-
-        self.client.retrieve(other_user)
-
-    def test_retrieve__admin_teacher__student__same_school__not_same_class(
-        self,
-    ):
-        """
-        Admin teacher can retrieve a student from the same school and a
-        different class.
-        """
-
-        user = self._login_admin_school_teacher()
-
-        other_user = self.get_another_school_user(
-            user,
-            other_users=User.objects.filter(
-                new_student__class_field__teacher__school=user.teacher.school
-            ).exclude(new_student__class_field__teacher=user.teacher),
-            is_teacher=False,
-            same_school=True,
-            same_class=False,
-        )
-
-        self.client.retrieve(other_user)
-
-    def test_retrieve__student__teacher__same_school__same_class(self):
-        """
-        Student can retrieve a teacher from the same school and class.
-        """
-
-        user = self._login_student()
-
-        other_user = self.get_another_school_user(
-            user,
-            other_users=User.objects.filter(
-                new_teacher__school=user.student.class_field.teacher.school,
-                new_teacher__class_teacher=user.student.class_field,
-            ),
-            is_teacher=True,
-            same_school=True,
-            same_class=True,
-        )
-
-        self.client.retrieve(other_user)
-
-    def test_retrieve__student__teacher__same_school__not_same_class(self):
-        """
-        Student cannot retrieve a teacher from the same school and a different
-        class.
-        """
-
-        user = self._login_student()
-
-        other_user = self.get_another_school_user(
-            user,
-            other_users=User.objects.filter(
-                new_teacher__school=user.student.class_field.teacher.school
-            ).exclude(new_teacher__class_teacher=user.student.class_field),
-            is_teacher=True,
-            same_school=True,
-            same_class=False,
-        )
-
-        self.client.retrieve(other_user, status.HTTP_404_NOT_FOUND)
-
-    def test_retrieve__student__student__same_school__same_class(self):
-        """
-        Student can retrieve another student from the same school and class.
-        """
-
-        user = self._login_student()
-
-        other_user = self.get_another_school_user(
-            user,
-            other_users=User.objects.exclude(id=user.id).filter(
-                new_student__class_field__teacher__school=(
-                    user.student.class_field.teacher.school
-                ),
-                new_student__class_field=user.student.class_field,
-            ),
-            is_teacher=False,
-            same_school=True,
-            same_class=True,
-        )
-
-        self.client.retrieve(other_user)
-
-    def test_retrieve__student__student__same_school__not_same_class(self):
-        """
-        Student cannot retrieve another student from the same school and a
-        different class.
-        """
-
-        user = self._login_student()
-
-        other_user = self.get_another_school_user(
-            user,
-            other_users=User.objects.exclude(id=user.id)
-            .filter(
-                new_student__class_field__teacher__school=(
-                    user.student.class_field.teacher.school
-                ),
-            )
-            .exclude(new_student__class_field=user.student.class_field),
-            is_teacher=False,
-            same_school=True,
-            same_class=False,
-        )
-
-        self.client.retrieve(other_user, status.HTTP_404_NOT_FOUND)
-
-    def test_retrieve__teacher__teacher__not_same_school(self):
-        """
-        Teacher cannot retrieve another teacher from another school.
-        """
-
-        user = self._login_non_admin_school_teacher()
-
-        other_user = self.get_another_school_user(
-            user,
-            other_users=User.objects.exclude(
-                new_teacher__school=user.teacher.school
-            ).filter(new_teacher__school__isnull=False),
-            is_teacher=True,
-            same_school=False,
-        )
-
-        self.client.retrieve(other_user, status.HTTP_404_NOT_FOUND)
-
-    def test_retrieve__teacher__student__not_same_school(self):
-        """
-        Teacher cannot retrieve a student from another school.
-        """
-
-        user = self._login_non_admin_school_teacher()
-
-        other_user = self.get_another_school_user(
-            user,
-            other_users=User.objects.exclude(
-                new_student__class_field__teacher__school=user.teacher.school
-            ).filter(new_student__class_field__teacher__school__isnull=False),
-            is_teacher=False,
-            same_school=False,
-        )
-
-        self.client.retrieve(other_user, status.HTTP_404_NOT_FOUND)
-
-    def test_retrieve__student__teacher__not_same_school(self):
-        """
-        Student cannot retrieve a teacher from another school.
-        """
-
-        user = self._login_student()
-
-        other_user = self.get_another_school_user(
-            user,
-            other_users=User.objects.exclude(
-                new_teacher__school=user.student.class_field.teacher.school
-            ).filter(new_teacher__school__isnull=False),
-            is_teacher=True,
-            same_school=False,
-        )
-
-        self.client.retrieve(other_user, status.HTTP_404_NOT_FOUND)
-
-    def test_retrieve__student__student__not_same_school(self):
-        """
-        Student cannot retrieve another student from another school.
-        """
-
-        user = self._login_student()
-
-        other_user = self.get_another_school_user(
-            user,
-            other_users=User.objects.exclude(
-                new_student__class_field__teacher__school=(
-                    user.student.class_field.teacher.school
+            user.student.class_field.teacher.new_user,
+            *list(
+                User.objects.exclude(pk=user.pk).filter(
+                    new_student__in=user.student.class_field.students.all()
                 )
-            ).filter(new_student__class_field__teacher__school__isnull=False),
-            is_teacher=False,
-            same_school=False,
-        )
-
-        self.client.retrieve(other_user, status.HTTP_404_NOT_FOUND)
-
-    def test_retrieve__indy_student__teacher(self):
-        """
-        Independent student cannot retrieve a teacher.
-        """
-
-        user = self._login_indy()
-
-        other_user = self.get_other_school_user(
-            user,
-            other_users=User.objects.filter(new_teacher__school__isnull=False),
-            is_teacher=True,
-        )
-
-        self.client.retrieve(other_user, status.HTTP_404_NOT_FOUND)
-
-    def test_retrieve__indy_student__student(self):
-        """
-        Independent student cannot retrieve a student.
-        """
-
-        user = self._login_indy()
-
-        other_user = self.get_other_school_user(
-            user,
-            other_users=User.objects.filter(
-                new_student__class_field__teacher__school__isnull=False
             ),
-            is_teacher=False,
-        )
-
-        self.client.retrieve(other_user, status.HTTP_404_NOT_FOUND)
-
-    # pylint: disable-next=pointless-string-statement
-    """
-    List naming convention:
-        test_list__{user_type}__{filters}
-
-    user_type: The type of user that is making the request. Options:
-        - teacher: A teacher.
-        - student: A school student.
-        - indy_student: A non-school student.
-
-    filters: Any search params used to dynamically filter the list.
-    """
-
-    def test_list__teacher(self):
-        """
-        Teacher can list all the users in the same class.
-        """
-
-        user = self._login_non_admin_school_teacher()
-
-        self.client.list(
-            User.objects.filter(new_teacher__school=user.teacher.school)
-            | User.objects.filter(
-                new_student__class_field__teacher__school=user.teacher.school,
-                new_student__class_field__teacher=user.teacher,
-            )
-        )
-
-    def test_list__teacher__students_in_class(self):
-        """
-        Teacher can list all the users in a class they own.
-        """
-
-        user = self._login_non_admin_school_teacher()
-
-        klass = user.teacher.class_teacher.first()
-        assert klass
-
-        self.client.list(
-            User.objects.filter(new_student__class_field=klass),
-            filters={"students_in_class": klass.id},
-        )
-
-    def test_list__student(self):
-        """
-        Student can list all users in their class.
-        """
-
-        user = self._login_student()
-
-        self.client.list(
-            [
-                user.student.class_field.teacher.new_user,
-                *User.objects.filter(
-                    new_student__class_field=user.student.class_field
-                ),
-            ]
-        )
-
-    def test_list__indy_student(self):
-        """
-        Independent student can list only themself.
-        """
-
-        user = self._login_indy()
-
-        self.client.list([user])
-
-    # pylint: disable-next=pointless-string-statement
-    """
-    General tests that apply to all actions.
-    """
-
-    def test_all__requires_authentication(self):
-        """
-        User must be authenticated to call any endpoint.
-        """
-
-        assert IsAuthenticated in UserViewSet.permission_classes
-
-    def test_all__only_http_get(self):
-        """
-        These model are read-only.
-        """
-
-        assert [name.lower() for name in UserViewSet.http_method_names] == [
-            "get"
         ]
+        users.sort(key=lambda user: user.pk)
 
-    # TODO: replace above tests with get_queryset() tests
+        self.assert_get_queryset(
+            values=users,
+            request=self.client.request_factory.get(user=user),
+        )
+
+    def test_get_queryset__teacher__non_school(self):
+        """Non-school-teacher-users can only target themselves."""
+        user = NonSchoolTeacherUser.objects.first()
+        assert user
+
+        self.assert_get_queryset(
+            values=[user],
+            request=self.client.request_factory.get(user=user),
+        )
+
+    def test_get_queryset__teacher__admin(self):
+        """
+        Admin-teacher-users can only target themselves, all teachers in their
+        school and all student in their school.
+        """
+        user = AdminSchoolTeacherUser.objects.first()
+        assert user
+
+        users = [
+            *list(user.teacher.school_teacher_users),
+            *list(user.teacher.student_users),
+        ]
+        users.sort(key=lambda user: user.pk)
+
+        self.assert_get_queryset(
+            values=users,
+            request=self.client.request_factory.get(user=user),
+        )
+
+    def test_get_queryset__teacher__non_admin(self):
+        """
+        Non-admin-teacher-users can only target themselves, all teachers in
+        their school and their class-students.
+        """
+        user = NonAdminSchoolTeacherUser.objects.first()
+        assert user
+
+        users = [
+            *list(
+                SchoolTeacherUser.objects.filter(
+                    new_teacher__school=user.teacher.school
+                )
+            ),
+            *list(user.teacher.student_users),
+        ]
+        users.sort(key=lambda user: user.pk)
+
+        self.assert_get_queryset(
+            values=users,
+            request=self.client.request_factory.get(user=user),
+        )
+
+    # test: actions
+
+    def test_list(self):
+        """Can successfully list users."""
+        user = AdminSchoolTeacherUser.objects.first()
+        assert user
+
+        users = [
+            *list(user.teacher.school_teacher_users),
+            *list(user.teacher.student_users),
+        ]
+        users.sort(key=lambda user: user.pk)
+
+        self.client.login_as(user, password="abc123")
+        self.client.list(models=users)
+
+    def test_list__students_in_class(self):
+        """Can successfully list student-users in a class."""
+        user = self.admin_school_teacher_user
+        assert user.teacher.classes.count() >= 2
+
+        klass = t.cast(Class, user.teacher.classes.first())
+        students: QuerySet[Student] = klass.students.all()
+        assert (
+            Student.objects.filter(
+                class_field__teacher__school=user.teacher.school
+            )
+            .exclude(pk__in=students.values_list("pk", flat=True))
+            .exists()
+        ), "There are no other students in other classes, in the same school."
+
+        self.client.login_as(user)
+        self.client.list(
+            models=StudentUser.objects.filter(new_student__in=students),
+            filters={"students_in_class": klass.access_code},
+        )
+
+    def test_retrieve(self):
+        """Can successfully retrieve users."""
+        user = AdminSchoolTeacherUser.objects.first()
+        assert user
+
+        self.client.login_as(user, password="abc123")
+        self.client.retrieve(model=user)
