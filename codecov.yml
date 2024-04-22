@@ -6,5 +6,6 @@ coverage: # https://docs.codecov.com/docs/codecov-yaml
     project:
       default:
         target: 90%
+        threshold: 0%
 
 comment: false
