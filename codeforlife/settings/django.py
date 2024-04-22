@@ -3,6 +3,7 @@ This file contains all the settings Django supports out of the box.
 https://docs.djangoproject.com/en/3.2/ref/settings/
 """
 import os
+from pathlib import Path
 
 from django.utils.translation import gettext_lazy as _
 
@@ -17,6 +18,28 @@ DEBUG = bool(int(os.getenv("DEBUG", "1")))
 ALLOWED_HOSTS = ["*"]
 
 # Application definition
+
+# Database
+# https://docs.djangoproject.com/en/3.2/ref/settings/#databases
+
+
+def get_databases(base_dir: Path):  # pragma: no cover
+    """Get the databases for the Django project.
+
+    Args:
+        base_dir: The base directory of the Django project.
+
+    Returns:
+        The databases for the django project.
+    """
+    return {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": base_dir / "db.sqlite3",
+            "ATOMIC_REQUESTS": True,
+        }
+    }
+
 
 MIDDLEWARE = [
     "django.contrib.sessions.middleware.SessionMiddleware",
