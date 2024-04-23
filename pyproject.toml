@@ -36,5 +36,11 @@ line_length = 80
 skip_glob = ["**/migrations/*.py"]
 
 [tool.coverage.run]
-include = ["codeforlife/*"]
-omit = ["*/test_*.py", "*/*_test.py", "codeforlife/tests/*"]
+omit = [
+  "*/test_*.py",
+  "*/*_test.py",
+  "manage.py",
+  "setup.py",
+  "codeforlife/tests/*",
+  "codeforlife/user/management/commands/summarize_fixtures.py",
+]
