@@ -17,8 +17,6 @@ DEBUG = bool(int(os.getenv("DEBUG", "1")))
 
 ALLOWED_HOSTS = ["*"]
 
-# Application definition
-
 # Database
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
 
@@ -40,6 +38,8 @@ def get_databases(base_dir: Path):  # pragma: no cover
         }
     }
 
+
+# Application definition
 
 MIDDLEWARE = [
     "django.contrib.sessions.middleware.SessionMiddleware",
