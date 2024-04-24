@@ -2,6 +2,14 @@
 
 <!--next-version-placeholder-->
 
+## v0.16.6 (2024-04-24)
+
+### Fix
+
+* Add helper get DB function ([#115](https://github.com/ocadotechnology/codeforlife-package-python/issues/115)) ([`60ea749`](https://github.com/ocadotechnology/codeforlife-package-python/commit/60ea749cfaf33301c0f6a8f1c75318e1b9fcb0ff))
+* Polish tests ([#114](https://github.com/ocadotechnology/codeforlife-package-python/issues/114)) ([`be81148`](https://github.com/ocadotechnology/codeforlife-package-python/commit/be81148996a51269ff25c245f4ba945e279afa8d))
+* Clean settings ([#108](https://github.com/ocadotechnology/codeforlife-package-python/issues/108)) ([`7cf61ca`](https://github.com/ocadotechnology/codeforlife-package-python/commit/7cf61cac74a19c2334c73fa41e6509afb520cd13))
+
 ## v0.16.5 (2024-04-18)
 
 ### Fix
