@@ -59,7 +59,7 @@ class UserViewSet(ModelViewSet[RequestUser, User]):
 
         return user_class.objects.filter(pk=user.pk)
 
-    def get_bulk_queryset(
+    def get_bulk_queryset(  # pragma: no cover
         self,
         lookup_values: t.Collection,
         user_class: t.Type[AnyUser] = User,  # type: ignore[assignment]

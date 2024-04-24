@@ -20,7 +20,6 @@ from ..permissions import Permission
 from ..serializers import BaseSerializer
 from ..types import DataDict, JsonDict, KwArgs
 from ..user.models import AnyUser as RequestUser
-from ..user.models import Class, Student, User
 from ..views import ModelViewSet
 from .api import APIClient, APITestCase
 
@@ -742,13 +741,15 @@ class ModelViewSetTestCase(
         self.assertEqual(serializer_class, actual_serializer_class)
 
     def assert_get_permissions(
-        self, permissions: t.List[Permission], *args, **kwargs
+        self, permissions: t.List[Permission], action: str, *args, **kwargs
     ):
         """Assert that the expected permissions are returned.
 
         Args:
             permissions: The expected permissions.
+            action: The model view set's action.
         """
+        kwargs["action"] = action
         model_view_set = self.model_view_set_class(*args, **kwargs)
         actual_permissions = model_view_set.get_permissions()
         self.assertListEqual(permissions, actual_permissions)
@@ -794,112 +795,3 @@ class ModelViewSetTestCase(
         self.assertDictContainsSubset(
             serializer_context, actual_serializer_context
         )
-
-    def get_other_user(
-        self,
-        user: User,
-        other_users: QuerySet[User],
-        is_teacher: bool,
-    ):
-        """
-        Get a different user.
-        """
-
-        other_user = other_users.first()
-        assert other_user
-        assert user != other_user
-        assert other_user.teacher if is_teacher else other_user.student
-        return other_user
-
-    def get_other_school_user(
-        self,
-        user: User,
-        other_users: QuerySet[User],
-        is_teacher: bool,
-    ):
-        """
-        Get a different user that is in a school.
-        - the provided user does not have to be in a school.
-        - the other user has to be in a school.
-        """
-
-        other_user = self.get_other_user(user, other_users, is_teacher)
-        assert (
-            other_user.teacher.school
-            if is_teacher
-            else other_user.student.class_field.teacher.school
-        )
-        return other_user
-
-    def get_another_school_user(
-        self,
-        user: User,
-        other_users: QuerySet[User],
-        is_teacher: bool,
-        same_school: bool,
-        same_class: t.Optional[bool] = None,
-    ):
-        """
-        Get a different user that is also in a school.
-         - the provided user has to be in a school.
-         - the other user has to be in a school.
-        """
-
-        other_user = self.get_other_school_user(user, other_users, is_teacher)
-
-        school = (
-            user.teacher.school
-            if user.teacher
-            else t.cast(
-                Class, t.cast(Student, user.student).class_field
-            ).teacher.school
-        )
-        assert school
-
-        other_school = (
-            other_user.teacher.school
-            if is_teacher
-            else other_user.student.class_field.teacher.school
-        )
-        assert other_school
-
-        if same_school:
-            assert school == other_school
-
-            # Cannot assert that 2 teachers are in the same class since a class
-            # can only have 1 teacher.
-            if not (user.teacher and other_user.teacher):
-                # At this point, same_class needs to be set.
-                assert same_class is not None, "same_class must be set."
-
-                # If one of the users is a teacher.
-                if user.teacher or is_teacher:
-                    # Get the teacher.
-                    teacher = other_user if is_teacher else user
-
-                    # Get the student's class' teacher.
-                    class_teacher = (
-                        user if is_teacher else other_user
-                    ).student.class_field.teacher.new_user
-
-                    # Assert the teacher is the class' teacher.
-                    assert (
-                        teacher == class_teacher
-                        if same_class
-                        else teacher != class_teacher
-                    )
-                # Else, both users are students.
-                else:
-                    klass = t.cast(
-                        Class, t.cast(Student, user.student).class_field
-                    )
-
-                    assert (
-                        klass == other_user.student.class_field
-                        if same_class
-                        else klass != other_user.student.class_field
-                    )
-        else:
-            assert school != other_school
-
-        return other_user

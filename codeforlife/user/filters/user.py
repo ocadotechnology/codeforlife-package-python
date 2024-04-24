@@ -13,7 +13,7 @@ from ..models import User
 # pylint: disable-next=missing-class-docstring
 class UserFilterSet(filters.FilterSet):
     students_in_class = filters.CharFilter(
-        "new_student__class_field",
+        "new_student__class_field__access_code",
         "exact",
     )
 
