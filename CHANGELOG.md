@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.16.7 (2024-05-09)
+
+### Fix
+
+* School teacher invitation ([#116](https://github.com/ocadotechnology/codeforlife-package-python/issues/116)) ([`dcdae9b`](https://github.com/ocadotechnology/codeforlife-package-python/commit/dcdae9bb0274f71ddd18ddff2711c57fba0d1d43))
+
 ## v0.16.6 (2024-04-24)
 
 ### Fix
