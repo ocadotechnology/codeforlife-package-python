@@ -198,6 +198,7 @@ class TeacherUserManager(ContactableUserManager[AnyUser], t.Generic[AnyUser]):
         password: str,
         school: t.Optional[School] = None,
         is_admin: bool = False,
+        is_verified: bool = False,
         **extra_fields,
     ):
         """Create a teacher-user."""
@@ -218,7 +219,7 @@ class TeacherUserManager(ContactableUserManager[AnyUser], t.Generic[AnyUser]):
         Teacher.objects.create(
             school=school,
             new_user=user,
-            user=UserProfile.objects.create(user=user),
+            user=UserProfile.objects.create(user=user, is_verified=is_verified),
             is_admin=is_admin,
         )
 
@@ -255,6 +256,29 @@ class TeacherUser(ContactableUser):
 
 # pylint: disable-next=missing-class-docstring,too-few-public-methods
 class SchoolTeacherUserManager(TeacherUserManager[AnyUser], t.Generic[AnyUser]):
+    # pylint: disable-next=signature-differs,too-many-arguments
+    def create_user(  # type: ignore[override]
+        self,
+        first_name: str,
+        last_name: str,
+        email: str,
+        password: str,
+        school: School,
+        is_admin: bool = False,
+        is_verified: bool = False,
+        **extra_fields,
+    ):
+        return super().create_user(
+            first_name=first_name,
+            last_name=last_name,
+            email=email,
+            password=password,
+            school=school,
+            is_admin=is_admin,
+            is_verified=is_verified,
+            **extra_fields,
+        )
+
     # pylint: disable-next=missing-function-docstring
     def get_queryset(self):
         return super().get_queryset().filter(new_teacher__school__isnull=False)
