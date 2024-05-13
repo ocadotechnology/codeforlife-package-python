@@ -393,6 +393,7 @@ class ModelViewSetClient(
 
         Args:
             model: The model to update.
+            action: The name of the action.
             data: The values for each field.
             status_code_assertion: The expected status code.
             make_assertions: A flag designating whether to make the default assertions.
@@ -443,6 +444,7 @@ class ModelViewSetClient(
         Args:
             models: The models to update.
             data: The values for each field, for each model.
+            action: The name of the action.
             status_code_assertion: The expected status code.
             make_assertions: A flag designating whether to make the default assertions.
             reverse_kwargs: The kwargs for the reverse URL.
@@ -574,6 +576,26 @@ class ModelViewSetClient(
             self._assert_response(
                 response, make_assertions=lambda: self._assert_destroy(data)
             )
+
+        return response
+
+    # --------------------------------------------------------------------------
+    # OTHER
+    # --------------------------------------------------------------------------
+
+    def cron_job(self, action: str):
+        """Call a CRON job.
+
+        Args:
+            action: The name of the action.
+
+        Returns:
+            The HTTP response.
+        """
+        response: Response = self.get(
+            self._test_case.reverse_action(action),
+            HTTP_X_APPENGINE_CRON="true",
+        )
 
         return response
 

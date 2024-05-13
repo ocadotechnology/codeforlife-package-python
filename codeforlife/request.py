@@ -49,6 +49,10 @@ class Request(_Request, t.Generic[AnyUser]):
         self.user_class = user_class
 
     @property
+    def query_params(self) -> t.Dict[str, str]:  # type: ignore[override]
+        return super().query_params
+
+    @property
     def user(self):
         return t.cast(t.Union[AnyUser, AnonymousUser], super().user)
 
