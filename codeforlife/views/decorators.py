@@ -9,6 +9,21 @@ import typing as t
 from rest_framework.decorators import action as _action
 
 
+def _handler_name_to_url_path(handler: t.Callable):
+    url_path = handler.__name__
+    assert not re.match(
+        r"_{3,}", url_path
+    ), "Cannot have 3+ underscores in action's name."
+
+    # Replace double underscores with sub-path. For example:
+    #   name: "messages__replies" -> url-path: "messages/replies"
+    url_path = re.sub(r"_{2}", "/", url_path)
+
+    # Replace single underscore with dash. For example:
+    #   name: "send_message" -> url-path: "send-message"
+    return re.sub(r"_", "-", url_path)
+
+
 def action(**kwargs):
     """
     Wraps DRF's @action decorator to support converting an action's name to a
@@ -32,21 +47,24 @@ def action(**kwargs):
     def wrapper(handler: t.Callable):
         # Set handler name as url-path if url-path is not specified.
         if "url_path" not in kwargs:
-            url_path = handler.__name__
-            assert not re.match(
-                r"_{3,}", url_path
-            ), "Cannot have 3+ underscores in action's name."
-
-            # Replace double underscores with sub-path. For example:
-            #   name: "messages__replies" -> url-path: "messages/replies"
-            url_path = re.sub(r"_{2}", "/", url_path)
-
-            # Replace single underscore with dash. For example:
-            #   name: "send_message" -> url-path: "send-message"
-            url_path = re.sub(r"_", "-", url_path)
-
-            kwargs["url_path"] = url_path
+            kwargs["url_path"] = _handler_name_to_url_path(handler)
 
         return _action(**kwargs)(handler)
 
     return wrapper
+
+
+def cron_job(handler: t.Callable):
+    # pylint: disable=line-too-long
+    """
+    Create an action that is meant to be called by Google as a CRON job.
+
+    See https://github.com/ocadotechnology/codeforlife-workspace/blob/main/cron.yaml.
+    """
+    # pylint: enable=line-too-long
+
+    return action(
+        detail=False,
+        methods=["get"],
+        url_path=f"cron/{_handler_name_to_url_path(handler)}",
+    )(handler)
