@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.16.8 (2024-05-13)
+
+### Fix
+
+* Support cron jobs ([#117](https://github.com/ocadotechnology/codeforlife-package-python/issues/117)) ([`49f1863`](https://github.com/ocadotechnology/codeforlife-package-python/commit/49f18633026c8fc7505041c91dcb6045d71a1549))
+
 ## v0.16.7 (2024-05-09)
 
 ### Fix
