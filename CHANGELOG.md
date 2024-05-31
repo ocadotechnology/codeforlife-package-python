@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.16.9 (2024-05-31)
+
+### Fix
+
+* Add dependencies common to all packages ([#118](https://github.com/ocadotechnology/codeforlife-package-python/issues/118)) ([`4a1905b`](https://github.com/ocadotechnology/codeforlife-package-python/commit/4a1905bc106eefc50fe308fea37885869ed1ee86))
+
 ## v0.16.8 (2024-05-13)
 
 ### Fix
