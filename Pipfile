@@ -13,14 +13,15 @@ django-cors-headers = "==4.1.0"
 django-csp = "==3.7"
 django-import-export = "==4.0.3"
 pyotp = "==2.9.0"
+requests = "==2.32.2"
 importlib-metadata = "==4.13.0" # TODO: remove. needed by old portal
 django-formtools = "==2.2" # TODO: remove. needed by old portal
 django-otp = "==1.0.2" # TODO: remove. needed by old portal
 # https://pypi.org/user/codeforlife/
-cfl-common = "==6.41.10" # TODO: remove
-codeforlife-portal = "==6.41.10" # TODO: remove
-aimmo = "==2.11.2" # TODO: remove
-rapid-router = "==5.16.21" # TODO: remove
+cfl-common = "==6.45.1" # TODO: remove
+codeforlife-portal = "==6.45.1" # TODO: remove
+aimmo = "==2.11.3" # TODO: remove
+rapid-router = "==5.18.4" # TODO: remove
 phonenumbers = "==8.12.12" # TODO: remove
 
 [dev-packages]
