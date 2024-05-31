@@ -12,8 +12,6 @@ django-two-factor-auth = "==1.13.2"
 django-cors-headers = "==4.1.0"
 django-csp = "==3.7"
 django-import-export = "==4.0.3"
-pydantic = "==1.10.7"
-flask = "==2.2.3"
 pyotp = "==2.9.0"
 importlib-metadata = "==4.13.0" # TODO: remove. needed by old portal
 django-formtools = "==2.2" # TODO: remove. needed by old portal
