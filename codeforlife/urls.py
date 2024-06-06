@@ -8,7 +8,6 @@ import typing as t
 from django.contrib import admin
 from django.contrib.auth.views import LogoutView
 from django.http import HttpResponse
-from django.shortcuts import render
 from django.urls import URLPattern, URLResolver, include, path, re_path
 from rest_framework import status
 
