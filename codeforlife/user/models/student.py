@@ -5,9 +5,15 @@
 Created on 14/02/2024 at 17:16:44(+00:00).
 """
 
+import typing as t
+
 from common.models import Student, StudentModelManager
 from django.db import models
-from django_stubs_ext.db.models import TypedModelMeta
+
+if t.TYPE_CHECKING:
+    from django_stubs_ext.db.models import TypedModelMeta
+else:
+    TypedModelMeta = object
 
 
 # TODO: This model is legacy and should be removed in the new data schema.

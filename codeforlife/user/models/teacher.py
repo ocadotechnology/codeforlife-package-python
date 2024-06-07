@@ -9,11 +9,15 @@ import typing as t
 
 from common.models import Teacher, TeacherModelManager
 from django.db import models
-from django_stubs_ext.db.models import TypedModelMeta
 
 from .klass import Class
 from .school import School
 from .student import Student
+
+if t.TYPE_CHECKING:
+    from django_stubs_ext.db.models import TypedModelMeta
+else:
+    TypedModelMeta = object
 
 AnyTeacher = t.TypeVar("AnyTeacher", bound=Teacher)
 

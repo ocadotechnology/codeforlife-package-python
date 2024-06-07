@@ -144,12 +144,12 @@ LOGGING = {
 # URLs
 # https://docs.djangoproject.com/en/3.2/ref/settings/#root-urlconf
 
-ROOT_URLCONF = "service.urls"
+ROOT_URLCONF = "src.service.urls"
 
 # App
 # https://docs.djangoproject.com/en/3.2/ref/settings/#wsgi-application
 
-WSGI_APPLICATION = "service.wsgi.application"
+WSGI_APPLICATION = "src.service.wsgi.application"
 
 # Password validation
 # https://docs.djangoproject.com/en/3.2/ref/settings/#auth-password-validators
@@ -183,6 +183,7 @@ AUTH_PASSWORD_VALIDATORS = [
 # https://docs.djangoproject.com/en/3.2/ref/settings/#installed-apps
 
 INSTALLED_APPS = [
+    "src.api",
     "codeforlife.user",
     "corsheaders",
     "rest_framework",

@@ -15,7 +15,6 @@ from django.contrib.auth.models import UserManager
 from django.db.models import F
 from django.db.models.query import QuerySet
 from django.utils.crypto import get_random_string
-from django_stubs_ext.db.models import TypedModelMeta
 from pyotp import TOTP
 
 from ... import mail
@@ -23,11 +22,15 @@ from .klass import Class
 from .school import School
 
 if t.TYPE_CHECKING:  # pragma: no cover
+    from django_stubs_ext.db.models import TypedModelMeta
+
     from .auth_factor import AuthFactor
     from .otp_bypass_token import OtpBypassToken
     from .session import Session
     from .student import Independent, Student
     from .teacher import Teacher
+else:
+    TypedModelMeta = object
 
 
 class User(_User):

@@ -11,9 +11,13 @@ from django.db import models
 from django.db.utils import IntegrityError
 from django.utils.crypto import get_random_string
 from django.utils.translation import gettext_lazy as _
-from django_stubs_ext.db.models import TypedModelMeta
 
 from .user import User
+
+if t.TYPE_CHECKING:
+    from django_stubs_ext.db.models import TypedModelMeta
+else:
+    TypedModelMeta = object
 
 
 class OtpBypassToken(models.Model):

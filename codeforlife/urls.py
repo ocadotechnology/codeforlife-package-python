@@ -8,32 +8,30 @@ import typing as t
 from django.contrib import admin
 from django.contrib.auth.views import LogoutView
 from django.http import HttpResponse
-from django.shortcuts import render
 from django.urls import URLPattern, URLResolver, include, path, re_path
 from rest_framework import status
 
 from .settings import SERVICE_IS_ROOT, SERVICE_NAME
 from .views import csrf
 
+UrlPatterns = t.List[t.Union[URLResolver, URLPattern]]
 
-def service_urlpatterns(
-    api_urls_path: str = "api.urls",
-    frontend_template_name: str = "frontend.html",
+
+def get_urlpatterns(
+    api_urls_path: str = "src.api.urls",
     include_user_urls: bool = True,
-):
+) -> UrlPatterns:
     """Generate standard url patterns for each service.
 
     Args:
         api_urls_path: The path to the api's urls.
-        frontend_template_name: The name of the frontend template to serve.
         include_user_urls: Whether or not to include the CFL's user urls.
 
     Returns:
         The standard url patterns for each service.
     """
 
-    # Specific url patterns.
-    urlpatterns: t.List[t.Union[URLResolver, URLPattern]] = [
+    urlpatterns: UrlPatterns = [
         path(
             "admin/",
             admin.site.urls,
@@ -62,9 +60,13 @@ def service_urlpatterns(
             ),
             name="session-expired",
         ),
+        path(
+            "api/",
+            include(api_urls_path),
+            name="api",
+        ),
     ]
 
-    # General url patterns.
     if include_user_urls:
         urlpatterns.append(
             path(
@@ -73,18 +75,6 @@ def service_urlpatterns(
                 name="user",
             )
         )
-    urlpatterns += [
-        path(
-            "api/",
-            include(api_urls_path),
-            name="api",
-        ),
-        re_path(
-            r"^(?!api/).*",
-            lambda request: render(request, frontend_template_name),
-            name="frontend",
-        ),
-    ]
 
     if SERVICE_IS_ROOT:
         return urlpatterns
