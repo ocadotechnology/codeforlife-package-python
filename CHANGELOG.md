@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.16.10 (2024-06-07)
+
+### Fix
+
+* Convert to backend repo ([#119](https://github.com/ocadotechnology/codeforlife-package-python/issues/119)) ([`6d4b6f9`](https://github.com/ocadotechnology/codeforlife-package-python/commit/6d4b6f912dea35fce4e8e9735b90b803f79bf34e))
+
 ## v0.16.9 (2024-05-31)
 
 ### Fix
