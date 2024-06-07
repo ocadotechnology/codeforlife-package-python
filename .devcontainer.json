@@ -37,6 +37,7 @@
     }
   },
   "name": "package-python",
+  "postCreateCommand": "pipenv install --dev",
   "remoteUser": "root",
   "service": "base-service",
   "shutdownAction": "none",
