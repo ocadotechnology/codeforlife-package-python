@@ -97,4 +97,7 @@ setup(
     install_requires=install_requires,
     extras_require={"dev": dev_requires},
     dependency_links=[],
+    entry_points={
+        "console_scripts": ["cflmanage=codeforlife.manage:main"],
+    },
 )
