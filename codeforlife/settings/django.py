@@ -144,12 +144,12 @@ LOGGING = {
 # URLs
 # https://docs.djangoproject.com/en/3.2/ref/settings/#root-urlconf
 
-ROOT_URLCONF = "src.service.urls"
+ROOT_URLCONF = "src.urls"
 
 # App
 # https://docs.djangoproject.com/en/3.2/ref/settings/#wsgi-application
 
-WSGI_APPLICATION = "src.service.wsgi.application"
+WSGI_APPLICATION = "main.app"
 
 # Password validation
 # https://docs.djangoproject.com/en/3.2/ref/settings/#auth-password-validators
