@@ -9,11 +9,14 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from ..permissions import AllowAny
+
 
 class CookieView(APIView):
     """A view to get a CSRF cookie."""
 
     http_method_names = ["get"]
+    permission_classes = [AllowAny]
 
     @method_decorator(ensure_csrf_cookie)
     def get(self, request: Request):
