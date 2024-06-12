@@ -66,11 +66,11 @@ LOGIN_URL = f"{SERVICE_API_URL}/session/expired/"
 # https://docs.djangoproject.com/en/3.2/ref/settings/#authentication-backends
 
 AUTHENTICATION_BACKENDS = [
-    "codeforlife.user.auth.backends.EmailAndPasswordBackend",
+    "codeforlife.user.auth.backends.EmailBackend",
     "codeforlife.user.auth.backends.OtpBackend",
     "codeforlife.user.auth.backends.OtpBypassTokenBackend",
-    "codeforlife.user.auth.backends.UserIdAndLoginIdBackend",
-    "codeforlife.user.auth.backends.FirstNameAndPasswordAndClassIdBackend",
+    "codeforlife.user.auth.backends.StudentBackend",
+    "codeforlife.user.auth.backends.StudentAutoBackend",
 ]
 
 # Sessions

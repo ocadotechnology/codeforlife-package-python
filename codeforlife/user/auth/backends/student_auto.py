@@ -17,7 +17,7 @@ from ...models import Student, StudentUser
 from .base import BaseBackend
 
 
-class UserIdAndLoginIdBackend(BaseBackend):
+class StudentAutoBackend(BaseBackend):
     """Authenticate a student using their ID and auto-generated password."""
 
     user_class = StudentUser
@@ -25,22 +25,26 @@ class UserIdAndLoginIdBackend(BaseBackend):
     def authenticate(  # type: ignore[override]
         self,
         request: t.Optional[HttpRequest],
-        user_id: t.Optional[int] = None,
-        login_id: t.Optional[str] = None,
+        student_id: t.Optional[int] = None,
+        auto_gen_password: t.Optional[str] = None,
         **kwargs
     ):
-        if user_id is None or login_id is None:
+        if student_id is None or auto_gen_password is None:
             return None
 
-        user = self.get_user(user_id)
-        if user:
+        try:
+            student = Student.objects.get(id=student_id)
+        except Student.DoesNotExist:
+            student = None
+
+        if student:
+            # TODO: refactor this
             # Check the url against the student's stored hash.
-            student = Student.objects.get(new_user=user)
             if (
-                student.login_id
-                # TODO: refactor this
-                and get_hashed_login_id(login_id) == student.login_id
+                student.new_user
+                and student.login_id
+                and get_hashed_login_id(auto_gen_password) == student.login_id
             ):
-                return user
+                return student.new_user
 
         return None
