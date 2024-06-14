@@ -124,7 +124,8 @@ def add_contact(
         ]
 
     response = requests.post(
-        url=f"https://{region}-api.dotdigital.com/v2/contacts",
+        # pylint: disable-next=line-too-long
+        url=f"https://{region}-api.dotdigital.com/v2/contacts/with-consent-and-preferences",
         json=body,
         headers={
             "accept": "application/json",
@@ -142,15 +143,64 @@ def add_contact(
 
 # pylint: disable-next=unused-argument
 def remove_contact(
-    email: str,
+    contact_identifier: str,
     region: str = "r1",
     auth: t.Optional[str] = None,
     timeout: int = 30,
 ):
+    # pylint: disable=line-too-long
     """Remove an existing contact from Dotdigital.
 
+    https://developer.dotdigital.com/reference/get-contact
     https://developer.dotdigital.com/reference/delete-contact
+
+    Args:
+        contact_identifier: Either the contact id or email address of the contact.
+        region: The Dotdigital region id your account belongs to e.g. r1, r2 or r3.
+        auth: The authorization header used to enable API access. If None, the value will be retrieved from the DOTDIGITAL_AUTH environment variable.
+        timeout: Send timeout to avoid hanging.
+
+    Raises:
+        AssertionError: If failed to get contact.
+        AssertionError: If failed to delete contact.
     """
+    # pylint: enable=line-too-long
+
+    if auth is None:
+        auth = os.environ["DOTDIGITAL_AUTH"]
+
+    response = requests.get(
+        # pylint: disable-next=line-too-long
+        url=f"https://{region}-api.dotdigital.com/v2/contacts/{contact_identifier}",
+        headers={
+            "accept": "application/json",
+            "authorization": auth,
+        },
+        timeout=timeout,
+    )
+
+    assert response.ok, (
+        "Failed to get contact."
+        f" Reason: {response.reason}."
+        f" Text: {response.text}."
+    )
+
+    contact_id: int = response.json()["id"]
+
+    response = requests.delete(
+        url=f"https://{region}-api.dotdigital.com/v2/contacts/{contact_id}",
+        headers={
+            "accept": "application/json",
+            "authorization": auth,
+        },
+        timeout=timeout,
+    )
+
+    assert response.ok, (
+        "Failed to delete contact."
+        f" Reason: {response.reason}."
+        f" Text: {response.text}."
+    )
 
 
 @dataclass
