@@ -11,17 +11,146 @@ from dataclasses import dataclass
 
 import requests
 
+from .types import JsonDict
+
+
+@dataclass
+class Preference:
+    """The marketing preferences for a Dotdigital contact."""
+
+    @dataclass
+    class Preference:
+        """
+        The preference values to set in the category. Only supply if
+        is_preference is false, and therefore referring to a preference
+        category.
+        """
+
+        id: int
+        is_preference: bool
+        is_opted_in: bool
+
+    id: int
+    is_preference: bool
+    preferences: t.Optional[t.List[Preference]] = None
+    is_opted_in: t.Optional[bool] = None
+
+
+# pylint: disable-next=too-many-arguments
+def add_contact(
+    email: str,
+    opt_in_type: t.Optional[
+        t.Literal["Unknown", "Single", "Double", "VerifiedDouble"]
+    ] = None,
+    email_type: t.Optional[t.Literal["PlainText, Html"]] = None,
+    data_fields: t.Optional[t.Dict[str, str]] = None,
+    consent_fields: t.Optional[t.List[t.Dict[str, str]]] = None,
+    preferences: t.Optional[t.List[Preference]] = None,
+    region: str = "r1",
+    auth: t.Optional[str] = None,
+    timeout: int = 30,
+):
+    # pylint: disable=line-too-long
+    """Add a new contact to Dotdigital.
+
+    https://developer.dotdigital.com/reference/create-contact-with-consent-and-preferences
+
+    Args:
+        email: The email address of the contact.
+        opt_in_type: The opt-in type of the contact.
+        email_type: The email type of the contact.
+        data_fields: Each contact data field is a key-value pair; the key is a string matching the data field name in Dotdigital.
+        consent_fields: The consent fields that apply to the contact.
+        preferences: The marketing preferences to be applied.
+        region: The Dotdigital region id your account belongs to e.g. r1, r2 or r3.
+        auth: The authorization header used to enable API access. If None, the value will be retrieved from the DOTDIGITAL_AUTH environment variable.
+        timeout: Send timeout to avoid hanging.
+
+    Raises:
+        AssertionError: If failed to add contact.
+    """
+    # pylint: enable=line-too-long
+
+    if auth is None:
+        auth = os.environ["DOTDIGITAL_AUTH"]
+
+    contact: JsonDict = {"email": email}
+    if opt_in_type is not None:
+        contact["optInType"] = opt_in_type
+    if email_type is not None:
+        contact["emailType"] = email_type
+    if data_fields is not None:
+        contact["dataFields"] = [
+            {"key": key, "value": value} for key, value in data_fields.items()
+        ]
+
+    body: JsonDict = {"contact": contact}
+    if consent_fields is not None:
+        body["consentFields"] = [
+            {
+                "fields": [
+                    {"key": key, "value": value}
+                    for key, value in fields.items()
+                ]
+            }
+            for fields in consent_fields
+        ]
+    if preferences is not None:
+        body["preferences"] = [
+            {
+                "id": preference.id,
+                "isPreference": preference.is_preference,
+                **(
+                    {}
+                    if preference.is_opted_in is None
+                    else {"isOptedIn": preference.is_opted_in}
+                ),
+                **(
+                    {}
+                    if preference.preferences is None
+                    else {
+                        "preferences": [
+                            {
+                                "id": _preference.id,
+                                "isPreference": _preference.is_preference,
+                                "isOptedIn": _preference.is_opted_in,
+                            }
+                            for _preference in preference.preferences
+                        ]
+                    }
+                ),
+            }
+            for preference in preferences
+        ]
+
+    response = requests.post(
+        url=f"https://{region}-api.dotdigital.com/v2/contacts",
+        json=body,
+        headers={
+            "accept": "application/json",
+            "authorization": auth,
+        },
+        timeout=timeout,
+    )
+
+    assert response.ok, (
+        "Failed to add contact."
+        f" Reason: {response.reason}."
+        f" Text: {response.text}."
+    )
+
 
 # pylint: disable-next=unused-argument
-def add_contact(email: str):
-    """Add a new contact to Dotdigital."""
-    # TODO: implement
+def remove_contact(
+    email: str,
+    region: str = "r1",
+    auth: t.Optional[str] = None,
+    timeout: int = 30,
+):
+    """Remove an existing contact from Dotdigital.
 
-
-# pylint: disable-next=unused-argument
-def remove_contact(email: str):
-    """Remove an existing contact from Dotdigital."""
-    # TODO: implement
+    https://developer.dotdigital.com/reference/delete-contact
+    """
 
 
 @dataclass
