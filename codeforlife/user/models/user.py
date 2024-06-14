@@ -186,9 +186,18 @@ class ContactableUser(User):
         mail.remove_contact(self.email)
 
     # pylint: disable-next=arguments-differ
-    def email_user(self, campaign_id: int, **kwargs):  # type: ignore[override]
+    def email_user(  # type: ignore[override]
+        self,
+        campaign_id: int,
+        personalization_values: t.Optional[t.Dict[str, str]] = None,
+        **kwargs,
+    ):
         kwargs["to_addresses"] = [self.email]
-        mail.send_mail(campaign_id=campaign_id, **kwargs)
+        mail.send_mail(
+            campaign_id=campaign_id,
+            personalization_values=personalization_values,
+            **kwargs,
+        )
 
 
 # pylint: disable-next=missing-class-docstring,too-few-public-methods
