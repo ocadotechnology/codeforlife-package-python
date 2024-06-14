@@ -185,9 +185,10 @@ class ContactableUser(User):
         """Remove contact info from DotDigital."""
         mail.remove_contact(self.email)
 
-    # TODO: override when ready to use DotDigital as our sole email provider.
-    # def email_user(self):
-    #     mail.send_mail()
+    # pylint: disable-next=arguments-differ
+    def email_user(self, campaign_id: int, **kwargs):  # type: ignore[override]
+        kwargs["to_addresses"] = [self.email]
+        mail.send_mail(campaign_id=campaign_id, **kwargs)
 
 
 # pylint: disable-next=missing-class-docstring,too-few-public-methods

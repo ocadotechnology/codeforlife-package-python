@@ -74,7 +74,7 @@ def add_contact(
     if auth is None:
         auth = os.environ["DOTDIGITAL_AUTH"]
 
-    contact: JsonDict = {"email": email}
+    contact: JsonDict = {"email": email.lower()}
     if opt_in_type is not None:
         contact["optInType"] = opt_in_type
     if email_type is not None:
