@@ -22,3 +22,10 @@ if not SERVICE_IS_ROOT:
 
 # The api url of the current service.
 SERVICE_API_URL = f"{SERVICE_BASE_URL}/api"
+
+# The authorization bearer token used to authenticate with Dotdigital.
+DOTDIGITAL_AUTH = os.getenv("DOTDIGITAL_AUTH", "REPLACE_ME")
+
+# A global flag used to enabled/disable calls to Dotdigital's API.
+# If disabled, API calls will be logged to the console instead.
+DOTDIGITAL_ENABLED = bool(int(os.getenv("DOTDIGITAL_ENABLED", "0")))

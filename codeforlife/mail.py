@@ -5,11 +5,13 @@ Created on 19/03/2024 at 12:14:34(+00:00).
 Dotdigital helpers.
 """
 
-import os
+import json
+import logging
 import typing as t
 from dataclasses import dataclass
 
 import requests
+from django.conf import settings
 
 from .types import JsonDict
 
@@ -72,7 +74,7 @@ def add_contact(
     # pylint: enable=line-too-long
 
     if auth is None:
-        auth = os.environ["DOTDIGITAL_AUTH"]
+        auth = settings.DOTDIGITAL_AUTH
 
     contact: JsonDict = {"email": email.lower()}
     if opt_in_type is not None:
@@ -123,6 +125,12 @@ def add_contact(
             for preference in preferences
         ]
 
+    if not settings.DOTDIGITAL_ENABLED:
+        logging.info(
+            "Added contact to DotDigital:\n%s", json.dumps(body, indent=2)
+        )
+        return
+
     response = requests.post(
         # pylint: disable-next=line-too-long
         url=f"https://{region}-api.dotdigital.com/v2/contacts/with-consent-and-preferences",
@@ -166,8 +174,12 @@ def remove_contact(
     """
     # pylint: enable=line-too-long
 
+    if not settings.DOTDIGITAL_ENABLED:
+        logging.info("Removed contact from DotDigital: %s", contact_identifier)
+        return
+
     if auth is None:
-        auth = os.environ["DOTDIGITAL_AUTH"]
+        auth = settings.DOTDIGITAL_AUTH
 
     response = requests.get(
         # pylint: disable-next=line-too-long
@@ -250,7 +262,7 @@ def send_mail(
     # pylint: enable=line-too-long
 
     if auth is None:
-        auth = os.environ["DOTDIGITAL_AUTH"]
+        auth = settings.DOTDIGITAL_AUTH
 
     body = {
         "campaignId": campaign_id,
@@ -281,6 +293,13 @@ def send_mail(
             }
             for attachment in attachments
         ]
+
+    if not settings.DOTDIGITAL_ENABLED:
+        logging.info(
+            "Sent a triggered email with DotDigital:\n%s",
+            json.dumps(body, indent=2),
+        )
+        return
 
     response = requests.post(
         url=f"https://{region}-api.dotdigital.com/v2/email/triggered-campaign",
