@@ -23,6 +23,13 @@ if not SERVICE_IS_ROOT:
 # The api url of the current service.
 SERVICE_API_URL = f"{SERVICE_BASE_URL}/api"
 
+# The website url of the current service.
+SERVICE_SITE_URL = (
+    "http://localhost:5173"
+    if SERVICE_DOMAIN == "localhost"
+    else SERVICE_BASE_URL
+)
+
 # The authorization bearer token used to authenticate with Dotdigital.
 DOTDIGITAL_AUTH = os.getenv("DOTDIGITAL_AUTH", "REPLACE_ME")
 
