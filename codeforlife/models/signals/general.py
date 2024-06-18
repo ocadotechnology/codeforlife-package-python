@@ -19,14 +19,9 @@ def update_fields_includes(update_fields: UpdateFields, includes: t.Set[str]):
         includes: The fields that should be included in the update-fields.
 
     Returns:
-        The fields missing in the update-fields. If update-fields is None, None
-        is returned.
+        A flag designating if the fields are included in the update-fields.
     """
-
-    if update_fields is None:
-        return None
-
-    return includes.difference(update_fields)
+    return update_fields and includes.issubset(update_fields)
 
 
 def assert_update_fields_includes(
@@ -38,9 +33,9 @@ def assert_update_fields_includes(
         update_fields: The update-fields provided in the call to .save().
         includes: The fields that should be included in the update-fields.
     """
-    missing_update_fields = update_fields_includes(update_fields, includes)
-    if missing_update_fields is not None:
-        assert not missing_update_fields, (
-            "Call to .save() did not include the following update-fields: "
-            f"{', '.join(missing_update_fields)}."
-        )
+    missing_update_fields = includes.difference(update_fields or set())
+
+    assert not missing_update_fields, (
+        "Call to .save() did not include the following update-fields: "
+        f"{', '.join(missing_update_fields)}."
+    )
