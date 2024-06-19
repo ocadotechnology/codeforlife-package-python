@@ -9,7 +9,7 @@ from ....request import HttpRequest
 from .base import BaseBackend
 
 
-class EmailAndPasswordBackend(BaseBackend):
+class EmailBackend(BaseBackend):
     """Authenticate a user by checking their email and password."""
 
     def authenticate(  # type: ignore[override]

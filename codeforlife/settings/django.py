@@ -66,11 +66,11 @@ LOGIN_URL = f"{SERVICE_API_URL}/session/expired/"
 # https://docs.djangoproject.com/en/3.2/ref/settings/#authentication-backends
 
 AUTHENTICATION_BACKENDS = [
-    "codeforlife.user.auth.backends.EmailAndPasswordBackend",
+    "codeforlife.user.auth.backends.EmailBackend",
     "codeforlife.user.auth.backends.OtpBackend",
     "codeforlife.user.auth.backends.OtpBypassTokenBackend",
-    "codeforlife.user.auth.backends.UserIdAndLoginIdBackend",
-    "codeforlife.user.auth.backends.FirstNameAndPasswordAndClassIdBackend",
+    "codeforlife.user.auth.backends.StudentBackend",
+    "codeforlife.user.auth.backends.StudentAutoBackend",
 ]
 
 # Sessions
@@ -79,7 +79,7 @@ AUTHENTICATION_BACKENDS = [
 SESSION_ENGINE = "codeforlife.user.models.session"
 SESSION_SAVE_EVERY_REQUEST = True
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
-SESSION_COOKIE_NAME = "sessionid_httponly_true"
+SESSION_COOKIE_NAME = "session_key"
 SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_AGE = 60 * 60
 SESSION_COOKIE_SECURE = True
@@ -144,12 +144,12 @@ LOGGING = {
 # URLs
 # https://docs.djangoproject.com/en/3.2/ref/settings/#root-urlconf
 
-ROOT_URLCONF = "src.service.urls"
+ROOT_URLCONF = "src.urls"
 
 # App
 # https://docs.djangoproject.com/en/3.2/ref/settings/#wsgi-application
 
-WSGI_APPLICATION = "src.service.wsgi.application"
+WSGI_APPLICATION = "main.app"
 
 # Password validation
 # https://docs.djangoproject.com/en/3.2/ref/settings/#auth-password-validators

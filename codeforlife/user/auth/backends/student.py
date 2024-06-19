@@ -10,7 +10,7 @@ from ...models import StudentUser
 from .base import BaseBackend
 
 
-class FirstNameAndPasswordAndClassIdBackend(BaseBackend):
+class StudentBackend(BaseBackend):
     """Authenticate a student using their first name, password and class ID."""
 
     user_class = StudentUser
