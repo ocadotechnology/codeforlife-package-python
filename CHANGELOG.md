@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.16.12 (2024-06-19)
+
+### Fix
+
+* Override logout view ([`1e4855c`](https://github.com/ocadotechnology/codeforlife-package-python/commit/1e4855c5b1c7c7d4a2dfac9b29901efe50e654f5))
+
 ## v0.16.11 (2024-06-19)
 
 ### Fix
