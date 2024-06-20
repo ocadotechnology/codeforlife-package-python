@@ -2,6 +2,18 @@
 
 <!--next-version-placeholder-->
 
+## v0.16.12 (2024-06-19)
+
+### Fix
+
+* Override logout view ([`1e4855c`](https://github.com/ocadotechnology/codeforlife-package-python/commit/1e4855c5b1c7c7d4a2dfac9b29901efe50e654f5))
+
+## v0.16.11 (2024-06-19)
+
+### Fix
+
+* Auth flow ([#120](https://github.com/ocadotechnology/codeforlife-package-python/issues/120)) ([`c0ce515`](https://github.com/ocadotechnology/codeforlife-package-python/commit/c0ce515a4e5557c757e19dc8aa15ebb0437bc887))
+
 ## v0.16.10 (2024-06-07)
 
 ### Fix

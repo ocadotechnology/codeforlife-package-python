@@ -6,13 +6,12 @@ Created on 12/04/2024 at 14:42:20(+01:00).
 import typing as t
 
 from django.contrib import admin
-from django.contrib.auth.views import LogoutView
 from django.http import HttpResponse
 from django.urls import URLPattern, URLResolver, include, path, re_path
 from rest_framework import status
 
 from .settings import SERVICE_IS_ROOT, SERVICE_NAME
-from .views import csrf
+from .views import CsrfCookieView, LogoutView
 
 UrlPatterns = t.List[t.Union[URLResolver, URLPattern]]
 
@@ -39,7 +38,7 @@ def get_urlpatterns(
         ),
         path(
             "api/csrf/cookie/",
-            csrf.CookieView.as_view(),
+            CsrfCookieView.as_view(),
             name="get-csrf-cookie",
         ),
         path(
