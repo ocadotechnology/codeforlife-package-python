@@ -22,20 +22,3 @@ def update_fields_includes(update_fields: UpdateFields, includes: t.Set[str]):
         A flag designating if the fields are included in the update-fields.
     """
     return update_fields and includes.issubset(update_fields)
-
-
-def assert_update_fields_includes(
-    update_fields: UpdateFields, includes: t.Set[str]
-):
-    """Assert the call to .save() includes the update-fields specified.
-
-    Args:
-        update_fields: The update-fields provided in the call to .save().
-        includes: The fields that should be included in the update-fields.
-    """
-    missing_update_fields = includes.difference(update_fields or set())
-
-    assert not missing_update_fields, (
-        "Call to .save() did not include the following update-fields: "
-        f"{', '.join(missing_update_fields)}."
-    )
