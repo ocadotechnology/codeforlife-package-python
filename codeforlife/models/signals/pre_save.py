@@ -47,7 +47,7 @@ def _generate_get_previous_value(
 
 def check_previous_values(
     instance: _.AnyModel,
-    predicates: t.Dict[str, t.Callable[[t.Any, t.Any], bool]],
+    predicates: t.Dict[str, t.Callable[[t.Any], bool]],
 ):
     # pylint: disable=line-too-long
     """Check if the previous values are as expected. If the model has not been
@@ -55,7 +55,7 @@ def check_previous_values(
 
     Args:
         instance: The current instance.
-        predicates: A predicate for each field. It accepts the arguments (previous_value, value) and returns True if the values are as expected.
+        predicates: A predicate for each field. The previous value is passed in as an arg and it should return True if the previous value is as expected.
 
     Returns:
         If all the previous values are as expected.
@@ -65,7 +65,7 @@ def check_previous_values(
     get_previous_value = _generate_get_previous_value(instance)
 
     return all(
-        predicate(get_previous_value(field), getattr(instance, field))
+        predicate(get_previous_value(field))
         for field, predicate in predicates.items()
     )
 

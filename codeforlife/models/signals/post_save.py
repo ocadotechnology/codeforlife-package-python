@@ -14,26 +14,28 @@ from .pre_save import PREVIOUS_VALUE_KEY
 FieldValue = t.TypeVar("FieldValue")
 
 
-def has_previous_values(instance: _.AnyModel, fields: t.Dict[str, t.Type]):
+def check_previous_values(
+    instance: _.AnyModel,
+    predicates: t.Dict[str, t.Callable[[t.Any], bool]],
+):
     # pylint: disable=line-too-long
-    """Check if the instance has the specified previous values and that the
-    values are an instance of the specified type.
+    """Check if the previous values are as expected. If the previous value's key
+    is not on the model, this check returns false.
 
     Args:
         instance: The current instance.
-        fields: The fields the instance should have and the type of each value.
+        predicates: A predicate for each field. The previous value is passed in as an arg and it should return True if the previous value is as expected.
 
     Returns:
-        If the instance has all the previous values and all the values are of
-        the expected type.
+        If all the previous values are as expected.
     """
     # pylint: enable=line-too-long
 
-    for field, cls in fields.items():
+    for field, predicate in predicates.items():
         previous_value_key = PREVIOUS_VALUE_KEY.format(field=field)
 
-        if not hasattr(instance, previous_value_key) or not isinstance(
-            getattr(instance, previous_value_key), cls
+        if not hasattr(instance, previous_value_key) or not predicate(
+            getattr(instance, previous_value_key)
         ):
             return False
 
