@@ -10,6 +10,8 @@ import typing as t
 
 from . import general as _
 
+PREVIOUS_VALUE_KEY = "previous_{field}"
+
 
 def adding(instance: _.AnyModel):
     """Check if the instance is being added to the database.
@@ -82,7 +84,11 @@ def set_previous_values(instance: _.AnyModel, fields: t.Set[str]):
     get_previous_value = _generate_get_previous_value(instance)
 
     for field in fields:
-        setattr(instance, f"previous_{field}", get_previous_value(field))
+        setattr(
+            instance,
+            PREVIOUS_VALUE_KEY.format(field=field),
+            get_previous_value(field),
+        )
 
 
 def previous_values_are_unequal(instance: _.AnyModel, fields: t.Set[str]):
