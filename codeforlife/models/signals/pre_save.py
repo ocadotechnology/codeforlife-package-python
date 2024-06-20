@@ -105,9 +105,12 @@ def previous_values_are_unequal(instance: _.AnyModel, fields: t.Set[str]):
     """
     # pylint: enable=line-too-long
 
-    def predicate(v1, v2):
-        return v1 != v2
-
     return check_previous_values(
-        instance, {field: predicate for field in fields}
+        instance,
+        {
+            field: lambda previous_value: (
+                previous_value != getattr(instance, field)
+            )
+            for field in fields
+        },
     )
