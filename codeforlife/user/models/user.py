@@ -313,7 +313,9 @@ class SchoolTeacherUser(TeacherUser):
         # pylint: disable-next=import-outside-toplevel
         from .teacher import SchoolTeacher, teacher_as_type
 
-        return teacher_as_type(super().teacher, SchoolTeacher)
+        teacher = super().teacher
+
+        return teacher_as_type(teacher, SchoolTeacher) if teacher else None
 
 
 # pylint: disable-next=missing-class-docstring,too-few-public-methods
@@ -341,7 +343,9 @@ class AdminSchoolTeacherUser(SchoolTeacherUser):
         # pylint: disable-next=import-outside-toplevel
         from .teacher import AdminSchoolTeacher, teacher_as_type
 
-        return teacher_as_type(super().teacher, AdminSchoolTeacher)
+        teacher = super().teacher
+
+        return teacher_as_type(teacher, AdminSchoolTeacher) if teacher else None
 
 
 # pylint: disable-next=missing-class-docstring,too-few-public-methods
@@ -369,7 +373,11 @@ class NonAdminSchoolTeacherUser(SchoolTeacherUser):
         # pylint: disable-next=import-outside-toplevel
         from .teacher import NonAdminSchoolTeacher, teacher_as_type
 
-        return teacher_as_type(super().teacher, NonAdminSchoolTeacher)
+        teacher = super().teacher
+
+        return (
+            teacher_as_type(teacher, NonAdminSchoolTeacher) if teacher else None
+        )
 
 
 # pylint: disable-next=missing-class-docstring,too-few-public-methods
@@ -395,7 +403,9 @@ class NonSchoolTeacherUser(TeacherUser):
         # pylint: disable-next=import-outside-toplevel
         from .teacher import NonSchoolTeacher, teacher_as_type
 
-        return teacher_as_type(super().teacher, NonSchoolTeacher)
+        teacher = super().teacher
+
+        return teacher_as_type(teacher, NonSchoolTeacher) if teacher else None
 
 
 # pylint: disable-next=missing-class-docstring,too-few-public-methods

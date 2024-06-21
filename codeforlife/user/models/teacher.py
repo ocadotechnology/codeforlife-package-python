@@ -175,9 +175,6 @@ def teacher_as_type(
     Returns:
         An instance of the typed teacher.
     """
-    # TODO: remove in new schema
-    if teacher is None:
-        return None
 
     return typed_teacher_class(
         pk=teacher.pk,
