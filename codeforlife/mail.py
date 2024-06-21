@@ -65,7 +65,7 @@ def add_contact(
         consent_fields: The consent fields that apply to the contact.
         preferences: The marketing preferences to be applied.
         region: The Dotdigital region id your account belongs to e.g. r1, r2 or r3.
-        auth: The authorization header used to enable API access. If None, the value will be retrieved from the DOTDIGITAL_AUTH environment variable.
+        auth: The authorization header used to enable API access. If None, the value will be retrieved from the MAIL_AUTH environment variable.
         timeout: Send timeout to avoid hanging.
 
     Raises:
@@ -74,7 +74,7 @@ def add_contact(
     # pylint: enable=line-too-long
 
     if auth is None:
-        auth = settings.DOTDIGITAL_AUTH
+        auth = settings.MAIL_AUTH
 
     contact: JsonDict = {"email": email.lower()}
     if opt_in_type is not None:
@@ -125,7 +125,7 @@ def add_contact(
             for preference in preferences
         ]
 
-    if not settings.DOTDIGITAL_ENABLED:
+    if not settings.MAIL_ENABLED:
         logging.info(
             "Added contact to DotDigital:\n%s", json.dumps(body, indent=2)
         )
@@ -165,7 +165,7 @@ def remove_contact(
     Args:
         contact_identifier: Either the contact id or email address of the contact.
         region: The Dotdigital region id your account belongs to e.g. r1, r2 or r3.
-        auth: The authorization header used to enable API access. If None, the value will be retrieved from the DOTDIGITAL_AUTH environment variable.
+        auth: The authorization header used to enable API access. If None, the value will be retrieved from the MAIL_AUTH environment variable.
         timeout: Send timeout to avoid hanging.
 
     Raises:
@@ -174,12 +174,12 @@ def remove_contact(
     """
     # pylint: enable=line-too-long
 
-    if not settings.DOTDIGITAL_ENABLED:
+    if not settings.MAIL_ENABLED:
         logging.info("Removed contact from DotDigital: %s", contact_identifier)
         return
 
     if auth is None:
-        auth = settings.DOTDIGITAL_AUTH
+        auth = settings.MAIL_AUTH
 
     response = requests.get(
         # pylint: disable-next=line-too-long
@@ -253,7 +253,7 @@ def send_mail(
         metadata: The metadata for your email. It can be either a single value or a series of values in a JSON object.
         attachments: A Base64 encoded string. All attachment types are supported. Maximum file size: 15 MB.
         region: The Dotdigital region id your account belongs to e.g. r1, r2 or r3.
-        auth: The authorization header used to enable API access. If None, the value will be retrieved from the DOTDIGITAL_AUTH environment variable.
+        auth: The authorization header used to enable API access. If None, the value will be retrieved from the MAIL_AUTH environment variable.
         timeout: Send timeout to avoid hanging.
 
     Raises:
@@ -262,7 +262,7 @@ def send_mail(
     # pylint: enable=line-too-long
 
     if auth is None:
-        auth = settings.DOTDIGITAL_AUTH
+        auth = settings.MAIL_AUTH
 
     body = {
         "campaignId": campaign_id,
@@ -294,7 +294,7 @@ def send_mail(
             for attachment in attachments
         ]
 
-    if not settings.DOTDIGITAL_ENABLED:
+    if not settings.MAIL_ENABLED:
         logging.info(
             "Sent a triggered email with DotDigital:\n%s",
             json.dumps(body, indent=2),

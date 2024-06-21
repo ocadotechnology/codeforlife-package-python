@@ -31,8 +31,8 @@ SERVICE_SITE_URL = (
 )
 
 # The authorization bearer token used to authenticate with Dotdigital.
-DOTDIGITAL_AUTH = os.getenv("DOTDIGITAL_AUTH", "REPLACE_ME")
+MAIL_AUTH = os.getenv("MAIL_AUTH", "REPLACE_ME")
 
-# A global flag used to enabled/disable calls to Dotdigital's API.
-# If disabled, API calls will be logged to the console instead.
-DOTDIGITAL_ENABLED = bool(int(os.getenv("DOTDIGITAL_ENABLED", "0")))
+# A global flag to enable/disable sending emails.
+# If disabled, emails will be logged to the console instead.
+MAIL_ENABLED = bool(int(os.getenv("MAIL_ENABLED", "0")))
