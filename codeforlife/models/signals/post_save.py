@@ -20,7 +20,7 @@ def check_previous_values(
 ):
     # pylint: disable=line-too-long
     """Check if the previous values are as expected. If the previous value's key
-    is not on the model, this check returns false.
+    is not on the model, this check returns False.
 
     Args:
         instance: The current instance.
@@ -36,6 +36,31 @@ def check_previous_values(
 
         if not hasattr(instance, previous_value_key) or not predicate(
             getattr(instance, previous_value_key)
+        ):
+            return False
+
+    return True
+
+
+def previous_values_are_unequal(instance: _.AnyModel, fields: t.Set[str]):
+    # pylint: disable=line-too-long
+    """Check if all the previous values are not equal to the current values. If
+    the previous value's key is not on the model, this check returns False.
+
+    Args:
+        instance: The current instance.
+        fields: The fields that should not be equal.
+
+    Returns:
+        If all the previous values are not equal to the current values.
+    """
+    # pylint: enable=line-too-long
+
+    for field in fields:
+        previous_value_key = PREVIOUS_VALUE_KEY.format(field=field)
+
+        if not hasattr(instance, previous_value_key) or (
+            getattr(instance, field) == getattr(instance, previous_value_key)
         ):
             return False
 
