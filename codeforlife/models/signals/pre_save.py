@@ -10,6 +10,8 @@ import typing as t
 
 from . import general as _
 
+PREVIOUS_VALUE_KEY = "previous_{field}"
+
 
 def adding(instance: _.AnyModel):
     """Check if the instance is being added to the database.
@@ -25,23 +27,9 @@ def adding(instance: _.AnyModel):
     return instance._state.adding
 
 
-def check_previous_values(
+def _generate_get_previous_value(
     instance: _.AnyModel,
-    predicates: t.Dict[str, t.Callable[[t.Any, t.Any], bool]],
-):
-    # pylint: disable=line-too-long
-    """Check if the previous values are as expected. If the model has not been
-    created yet, the previous values are None.
-
-    Args:
-        instance: The current instance.
-        predicates: A predicate for each field. It accepts the arguments (previous_value, value) and returns True if the values are as expected.
-
-    Returns:
-        If all the previous values are as expected.
-    """
-    # pylint: enable=line-too-long
-
+) -> t.Callable[[str], t.Any]:
     if adding(instance):
         # pylint: disable-next=unused-argument
         def get_previous_value(field: str):
@@ -54,10 +42,53 @@ def check_previous_values(
         def get_previous_value(field: str):
             return getattr(previous_instance, field)
 
+    return get_previous_value
+
+
+def check_previous_values(
+    instance: _.AnyModel,
+    predicates: t.Dict[str, t.Callable[[t.Any], bool]],
+):
+    # pylint: disable=line-too-long
+    """Check if the previous values are as expected. If the model has not been
+    created yet, the previous values are None.
+
+    Args:
+        instance: The current instance.
+        predicates: A predicate for each field. The previous value is passed in as an arg and it should return True if the previous value is as expected.
+
+    Returns:
+        If all the previous values are as expected.
+    """
+    # pylint: enable=line-too-long
+
+    get_previous_value = _generate_get_previous_value(instance)
+
     return all(
-        predicate(get_previous_value(field), getattr(instance, field))
+        predicate(get_previous_value(field))
         for field, predicate in predicates.items()
     )
+
+
+def set_previous_values(instance: _.AnyModel, fields: t.Set[str]):
+    # pylint: disable=line-too-long
+    """Set the previous value of the specified fields. All fields are set on the
+    instance with the naming convention: "previous_{field}".
+
+    Args:
+        instance: The current instance.
+        fields: The fields to get the previous value for.
+    """
+    # pylint: enable=line-too-long
+
+    get_previous_value = _generate_get_previous_value(instance)
+
+    for field in fields:
+        setattr(
+            instance,
+            PREVIOUS_VALUE_KEY.format(field=field),
+            get_previous_value(field),
+        )
 
 
 def previous_values_are_unequal(instance: _.AnyModel, fields: t.Set[str]):
@@ -74,9 +105,9 @@ def previous_values_are_unequal(instance: _.AnyModel, fields: t.Set[str]):
     """
     # pylint: enable=line-too-long
 
-    def predicate(v1, v2):
-        return v1 != v2
+    get_previous_value = _generate_get_previous_value(instance)
 
-    return check_previous_values(
-        instance, {field: predicate for field in fields}
+    return all(
+        get_previous_value(field) != getattr(instance, field)
+        for field in fields
     )

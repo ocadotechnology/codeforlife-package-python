@@ -24,6 +24,7 @@ from .user import (  # TODO: remove UserProfile
     AdminSchoolTeacherUser,
     AnyTypedUser,
     AnyUser,
+    ContactableUser,
     IndependentUser,
     NonAdminSchoolTeacherUser,
     NonSchoolTeacherUser,

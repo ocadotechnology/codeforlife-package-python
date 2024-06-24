@@ -185,9 +185,19 @@ class ContactableUser(User):
         """Remove contact info from DotDigital."""
         mail.remove_contact(self.email)
 
-    # TODO: override when ready to use DotDigital as our sole email provider.
-    # def email_user(self):
-    #     mail.send_mail()
+    # pylint: disable-next=arguments-differ
+    def email_user(  # type: ignore[override]
+        self,
+        campaign_id: int,
+        personalization_values: t.Optional[t.Dict[str, str]] = None,
+        **kwargs,
+    ):
+        kwargs["to_addresses"] = [self.email]
+        mail.send_mail(
+            campaign_id=campaign_id,
+            personalization_values=personalization_values,
+            **kwargs,
+        )
 
 
 # pylint: disable-next=missing-class-docstring,too-few-public-methods
@@ -303,7 +313,9 @@ class SchoolTeacherUser(TeacherUser):
         # pylint: disable-next=import-outside-toplevel
         from .teacher import SchoolTeacher, teacher_as_type
 
-        return teacher_as_type(super().teacher, SchoolTeacher)
+        teacher = super().teacher
+
+        return teacher_as_type(teacher, SchoolTeacher) if teacher else None
 
 
 # pylint: disable-next=missing-class-docstring,too-few-public-methods
@@ -331,7 +343,9 @@ class AdminSchoolTeacherUser(SchoolTeacherUser):
         # pylint: disable-next=import-outside-toplevel
         from .teacher import AdminSchoolTeacher, teacher_as_type
 
-        return teacher_as_type(super().teacher, AdminSchoolTeacher)
+        teacher = super().teacher
+
+        return teacher_as_type(teacher, AdminSchoolTeacher) if teacher else None
 
 
 # pylint: disable-next=missing-class-docstring,too-few-public-methods
@@ -359,7 +373,11 @@ class NonAdminSchoolTeacherUser(SchoolTeacherUser):
         # pylint: disable-next=import-outside-toplevel
         from .teacher import NonAdminSchoolTeacher, teacher_as_type
 
-        return teacher_as_type(super().teacher, NonAdminSchoolTeacher)
+        teacher = super().teacher
+
+        return (
+            teacher_as_type(teacher, NonAdminSchoolTeacher) if teacher else None
+        )
 
 
 # pylint: disable-next=missing-class-docstring,too-few-public-methods
@@ -385,7 +403,9 @@ class NonSchoolTeacherUser(TeacherUser):
         # pylint: disable-next=import-outside-toplevel
         from .teacher import NonSchoolTeacher, teacher_as_type
 
-        return teacher_as_type(super().teacher, NonSchoolTeacher)
+        teacher = super().teacher
+
+        return teacher_as_type(teacher, NonSchoolTeacher) if teacher else None
 
 
 # pylint: disable-next=missing-class-docstring,too-few-public-methods

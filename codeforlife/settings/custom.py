@@ -22,3 +22,17 @@ if not SERVICE_IS_ROOT:
 
 # The api url of the current service.
 SERVICE_API_URL = f"{SERVICE_BASE_URL}/api"
+
+# The website url of the current service.
+SERVICE_SITE_URL = (
+    "http://localhost:5173"
+    if SERVICE_DOMAIN == "localhost"
+    else SERVICE_BASE_URL
+)
+
+# The authorization bearer token used to authenticate with Dotdigital.
+MAIL_AUTH = os.getenv("MAIL_AUTH", "REPLACE_ME")
+
+# A global flag to enable/disable sending emails.
+# If disabled, emails will be logged to the console instead.
+MAIL_ENABLED = bool(int(os.getenv("MAIL_ENABLED", "0")))

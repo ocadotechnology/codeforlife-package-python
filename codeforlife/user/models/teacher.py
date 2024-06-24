@@ -175,6 +175,7 @@ def teacher_as_type(
     Returns:
         An instance of the typed teacher.
     """
+
     return typed_teacher_class(
         pk=teacher.pk,
         user=teacher.user,

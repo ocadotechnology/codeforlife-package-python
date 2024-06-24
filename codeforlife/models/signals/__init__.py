@@ -7,9 +7,5 @@ https://docs.djangoproject.com/en/3.2/ref/signals/#module-django.db.models.signa
 """
 
 
-from .general import (
-    UpdateFields,
-    assert_update_fields_includes,
-    update_fields_includes,
-)
+from .general import UpdateFields, update_fields_includes
 from .receiver import model_receiver
