@@ -151,7 +151,8 @@ def add_contact(
 
 # pylint: disable-next=unused-argument
 def remove_contact(
-    contact_identifier: str,
+    value: str,
+    identifier: t.Literal["contact-id", "email", "mobile-number"] = "email",
     region: str = "r1",
     auth: t.Optional[str] = None,
     timeout: int = 30,
@@ -159,31 +160,34 @@ def remove_contact(
     # pylint: disable=line-too-long
     """Remove an existing contact from Dotdigital.
 
-    https://developer.dotdigital.com/reference/get-contact
-    https://developer.dotdigital.com/reference/delete-contact
+    https://developer.dotdigital.com/reference/deletecontact-1
 
     Args:
-        contact_identifier: Either the contact id or email address of the contact.
+        value: The unique value to identify the contact. Note: Must be the same type as the identifier.
+        identifier: Field to use to uniquely identify the contact.
         region: The Dotdigital region id your account belongs to e.g. r1, r2 or r3.
         auth: The authorization header used to enable API access. If None, the value will be retrieved from the MAIL_AUTH environment variable.
         timeout: Send timeout to avoid hanging.
 
     Raises:
-        AssertionError: If failed to get contact.
         AssertionError: If failed to delete contact.
+
+    Returns:
+        A flag designating whether the contact was removed. True if the contact
+        was found, False if the contact was not found.
     """
     # pylint: enable=line-too-long
 
     if not settings.MAIL_ENABLED:
-        logging.info("Removed contact from DotDigital: %s", contact_identifier)
-        return
+        logging.info("Removed contact from DotDigital: %s", value)
+        return True
 
     if auth is None:
         auth = settings.MAIL_AUTH
 
     response = requests.get(
         # pylint: disable-next=line-too-long
-        url=f"https://{region}-api.dotdigital.com/v2/contacts/{contact_identifier}",
+        url=f"https://{region}-api.dotdigital.com/contacts/v3/{identifier}/{value}",
         headers={
             "accept": "application/json",
             "authorization": auth,
@@ -191,28 +195,15 @@ def remove_contact(
         timeout=timeout,
     )
 
-    assert response.ok, (
-        "Failed to get contact."
-        f" Reason: {response.reason}."
-        f" Text: {response.text}."
-    )
+    not_found = response.status_code == 404
 
-    contact_id: int = response.json()["id"]
-
-    response = requests.delete(
-        url=f"https://{region}-api.dotdigital.com/v2/contacts/{contact_id}",
-        headers={
-            "accept": "application/json",
-            "authorization": auth,
-        },
-        timeout=timeout,
-    )
-
-    assert response.ok, (
+    assert response.ok or not_found, (
         "Failed to delete contact."
         f" Reason: {response.reason}."
         f" Text: {response.text}."
     )
+
+    return not not_found
 
 
 @dataclass
