@@ -178,15 +178,15 @@ def remove_contact(
     """
     # pylint: enable=line-too-long
 
+    if identifier == "email":
+        value = value.lower()
+
     if not settings.MAIL_ENABLED:
         logging.info("Removed contact from DotDigital: %s", value)
         return True
 
     if auth is None:
         auth = settings.MAIL_AUTH
-
-    if identifier == "email":
-        value = value.lower()
 
     response = requests.delete(
         # pylint: disable-next=line-too-long
