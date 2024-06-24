@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.17.0 (2024-06-24)
+
+### Feature
+
+* Send triggered emails ([#121](https://github.com/ocadotechnology/codeforlife-package-python/issues/121)) ([`394cc1b`](https://github.com/ocadotechnology/codeforlife-package-python/commit/394cc1b9934befd3fc98fa19c4da00e83424d213))
+
 ## v0.16.12 (2024-06-19)
 
 ### Fix
