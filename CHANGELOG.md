@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.17.1 (2024-06-24)
+
+### Fix
+
+* Dd contact endpoint ([#122](https://github.com/ocadotechnology/codeforlife-package-python/issues/122)) ([`fe44707`](https://github.com/ocadotechnology/codeforlife-package-python/commit/fe44707a1b958e425bba07c41fc2c71f3eec20f6))
+
 ## v0.17.0 (2024-06-24)
 
 ### Feature
