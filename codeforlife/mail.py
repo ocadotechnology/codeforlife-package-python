@@ -185,6 +185,9 @@ def remove_contact(
     if auth is None:
         auth = settings.MAIL_AUTH
 
+    if identifier == "email":
+        value = value.lower()
+
     response = requests.delete(
         # pylint: disable-next=line-too-long
         url=f"https://{region}-api.dotdigital.com/contacts/v3/{identifier}/{value}",
