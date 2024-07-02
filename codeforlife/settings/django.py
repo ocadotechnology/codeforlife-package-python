@@ -144,7 +144,7 @@ LOGGING = {
 # URLs
 # https://docs.djangoproject.com/en/3.2/ref/settings/#root-urlconf
 
-ROOT_URLCONF = "src.urls"
+ROOT_URLCONF = "api.urls"
 
 # App
 # https://docs.djangoproject.com/en/3.2/ref/settings/#wsgi-application
@@ -183,9 +183,58 @@ AUTH_PASSWORD_VALIDATORS = [
 # https://docs.djangoproject.com/en/3.2/ref/settings/#installed-apps
 
 INSTALLED_APPS = [
-    "src.api",
+    "django.contrib.admin",
+    "django.contrib.admindocs",
+    "django.contrib.auth",
+    "django.contrib.contenttypes",
+    "django.contrib.sessions",
+    "django.contrib.messages",
+    "django.contrib.sites",
+    "django.contrib.staticfiles",
+    "aimmo",  # TODO: remove
+    "game",  # TODO: remove
+    "portal",  # TODO: remove
+    "common",  # TODO: remove
+    "api",
     "codeforlife.user",
     "corsheaders",
     "rest_framework",
     "django_filters",
+]
+
+# Static files (CSS, JavaScript, Images)
+# https://docs.djangoproject.com/en/3.2/howto/static-files/
+
+
+def get_static_root(base_dir: Path):
+    """Get the static root for the Django project.
+
+    Args:
+        base_dir: The base directory of the Django project.
+
+    Returns:
+        The static root for the django project.
+    """
+    return base_dir / "static"
+
+
+STATIC_URL = "/static/"
+
+# Templates
+# https://docs.djangoproject.com/en/3.2/ref/templates/
+
+TEMPLATES = [
+    {
+        "BACKEND": "django.template.backends.django.DjangoTemplates",
+        "DIRS": [],
+        "APP_DIRS": True,
+        "OPTIONS": {
+            "context_processors": [
+                "django.template.context_processors.debug",
+                "django.template.context_processors.request",
+                "django.contrib.auth.context_processors.auth",
+                "django.contrib.messages.context_processors.messages",
+            ],
+        },
+    },
 ]

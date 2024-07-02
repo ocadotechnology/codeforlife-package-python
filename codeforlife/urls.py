@@ -17,7 +17,7 @@ UrlPatterns = t.List[t.Union[URLResolver, URLPattern]]
 
 
 def get_urlpatterns(
-    api_urls_path: str = "src.api.urls",
+    api_url_patterns: UrlPatterns,
     include_user_urls: bool = True,
 ) -> UrlPatterns:
     """Generate standard url patterns for each service.
@@ -61,7 +61,7 @@ def get_urlpatterns(
         ),
         path(
             "api/",
-            include(api_urls_path),
+            include(api_url_patterns),
             name="api",
         ),
     ]
