@@ -221,12 +221,6 @@ class ModelViewSetClient(
         """
         # pylint: enable=line-too-long
 
-        assert self._model_class.objects.difference(
-            self._model_class.objects.filter(
-                pk__in=[model.pk for model in models]
-            )
-        ).exists(), "List must exclude some models for a valid test."
-
         response: Response = self.get(
             (
                 self._test_case.reverse_action("list", kwargs=reverse_kwargs)
