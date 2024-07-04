@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.18.0 (2024-07-04)
+
+### Feature
+
+* Backend template ([#123](https://github.com/ocadotechnology/codeforlife-package-python/issues/123)) ([`9924fee`](https://github.com/ocadotechnology/codeforlife-package-python/commit/9924fee3e0818b45ff6b8aedbdd89e72f42e10f8))
+
 ## v0.17.1 (2024-06-24)
 
 ### Fix
