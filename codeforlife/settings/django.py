@@ -42,7 +42,7 @@ def get_databases(base_dir: Path):  # pragma: no cover
 # Application definition
 
 MIDDLEWARE = [
-    "django.contrib.sessions.middleware.SessionMiddleware",
+    "codeforlife.middlewares.SessionMiddleware",
     "django.middleware.locale.LocaleMiddleware",
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.common.CommonMiddleware",

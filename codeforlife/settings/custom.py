@@ -36,3 +36,6 @@ MAIL_AUTH = os.getenv("MAIL_AUTH", "REPLACE_ME")
 # A global flag to enable/disable sending emails.
 # If disabled, emails will be logged to the console instead.
 MAIL_ENABLED = bool(int(os.getenv("MAIL_ENABLED", "0")))
+
+# The name of the session metadata cookie.
+SESSION_METADATA_COOKIE_NAME = "session_metadata"
