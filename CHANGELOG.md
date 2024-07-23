@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.18.1 (2024-07-23)
+
+### Fix
+
+* Delete session metadata cookie ([#126](https://github.com/ocadotechnology/codeforlife-package-python/issues/126)) ([`ab8eb0a`](https://github.com/ocadotechnology/codeforlife-package-python/commit/ab8eb0ade2f042b22e5683077dbbb59f532000eb))
+
 ## v0.18.0 (2024-07-04)
 
 ### Feature
