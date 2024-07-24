@@ -5,6 +5,7 @@ Created on 24/01/2024 at 13:47:53(+00:00).
 
 from ...permissions import OR
 from ...views import ModelViewSet
+from ..filters import ClassFilterSet
 from ..models import Class
 from ..models import User as RequestUser
 from ..permissions import IsStudent, IsTeacher
@@ -16,6 +17,7 @@ class ClassViewSet(ModelViewSet[RequestUser, Class]):
     http_method_names = ["get"]
     lookup_field = "access_code"
     serializer_class = ClassSerializer
+    filterset_class = ClassFilterSet
 
     def get_permissions(self):
         # Only school-teachers can list classes.

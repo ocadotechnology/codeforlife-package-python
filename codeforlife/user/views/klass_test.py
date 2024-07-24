@@ -106,3 +106,15 @@ class TestClassViewSet(ModelViewSetTestCase[RequestUser, Class]):
 
         self.client.login_as(user)
         self.client.list(models=user.teacher.classes.all())
+
+    def test_list__teacher(self):
+        """Can successfully list classes assigned to a teacher."""
+        user = self.admin_school_teacher_user
+        classes = Class.objects.filter(teacher=user.teacher)
+        assert classes.exists()
+
+        self.client.login_as(user)
+        self.client.list(
+            models=classes,
+            filters={"teacher": user.teacher.id},
+        )
