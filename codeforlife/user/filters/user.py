@@ -17,6 +17,8 @@ class UserFilterSet(filters.FilterSet):
         "exact",
     )
 
+    teachers_in_school = filters.NumberFilter("new_teacher__school")
+
     class Meta:
         model = User
-        fields = ["students_in_class"]
+        fields = ["students_in_class", "teachers_in_school"]

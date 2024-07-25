@@ -197,7 +197,7 @@ class ModelViewSetClient(
 
     def list(
         self,
-        models: t.Iterable[AnyModel],
+        models: t.Collection[AnyModel],
         status_code_assertion: APIClient.StatusCodeAssertion = (
             status.HTTP_200_OK
         ),
@@ -234,6 +234,7 @@ class ModelViewSetClient(
 
             def _make_assertions(response_json: JsonDict):
                 json_models = t.cast(t.List[JsonDict], response_json["data"])
+                assert len(models) == len(json_models)
                 for model, json_model in zip(models, json_models):
                     self._test_case.assert_serialized_model_equals_json_model(
                         model, json_model, action="list", request_method="get"

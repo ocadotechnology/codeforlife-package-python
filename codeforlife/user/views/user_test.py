@@ -160,6 +160,18 @@ class TestUserViewSet(ModelViewSetTestCase[RequestUser, User]):
             filters={"students_in_class": klass.access_code},
         )
 
+    def test_list__teachers_in_school(self):
+        """Can successfully list teacher-users in a school."""
+        user = self.admin_school_teacher_user
+        school_teacher_users = user.teacher.school_teacher_users.all()
+        assert school_teacher_users.exists()
+
+        self.client.login_as(user)
+        self.client.list(
+            models=school_teacher_users,
+            filters={"teachers_in_school": user.teacher.school.id},
+        )
+
     def test_retrieve(self):
         """Can successfully retrieve users."""
         user = AdminSchoolTeacherUser.objects.first()
