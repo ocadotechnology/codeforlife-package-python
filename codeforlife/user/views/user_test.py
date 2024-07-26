@@ -169,7 +169,32 @@ class TestUserViewSet(ModelViewSetTestCase[RequestUser, User]):
         self.client.login_as(user)
         self.client.list(
             models=school_teacher_users,
-            filters={"teachers_in_school": user.teacher.school.id},
+            filters={"teachers_in_school": str(user.teacher.school.id)},
+        )
+
+    def test_list___id(self):
+        """Can successfully list all users in a school and exclude some IDs."""
+        user = AdminSchoolTeacherUser.objects.first()
+        assert user
+
+        users = [
+            *list(user.teacher.school_teacher_users),
+            *list(user.teacher.student_users),
+        ]
+        users.sort(key=lambda user: user.pk)
+
+        exclude_user_1: User = users.pop()
+        exclude_user_2: User = users.pop()
+
+        self.client.login_as(user, password="abc123")
+        self.client.list(
+            models=users,
+            filters={
+                "_id": [
+                    str(exclude_user_1.id),
+                    str(exclude_user_2.id),
+                ]
+            },
         )
 
     def test_retrieve(self):

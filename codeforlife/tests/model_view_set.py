@@ -202,7 +202,7 @@ class ModelViewSetClient(
             status.HTTP_200_OK
         ),
         make_assertions: bool = True,
-        filters: t.Optional[t.Dict[str, str]] = None,
+        filters: t.Optional[t.Dict[str, t.Union[str, t.Iterable[str]]]] = None,
         reverse_kwargs: t.Optional[KwArgs] = None,
         **kwargs,
     ):
@@ -221,10 +221,18 @@ class ModelViewSetClient(
         """
         # pylint: enable=line-too-long
 
+        query: t.List[t.Tuple[str, str]] = []
+        for key, values in (filters or {}).items():
+            if isinstance(values, str):
+                query.append((key, values))
+            else:
+                for value in values:
+                    query.append((key, value))
+
         response: Response = self.get(
             (
                 self._test_case.reverse_action("list", kwargs=reverse_kwargs)
-                + f"?{urlencode(filters or {})}"
+                + f"?{urlencode(query)}"
             ),
             status_code_assertion=status_code_assertion,
             **kwargs,

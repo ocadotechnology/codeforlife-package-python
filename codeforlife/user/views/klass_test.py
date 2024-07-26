@@ -116,5 +116,5 @@ class TestClassViewSet(ModelViewSetTestCase[RequestUser, Class]):
         self.client.login_as(user)
         self.client.list(
             models=classes,
-            filters={"teacher": user.teacher.id},
+            filters={"teacher": str(user.teacher.id)},
         )
