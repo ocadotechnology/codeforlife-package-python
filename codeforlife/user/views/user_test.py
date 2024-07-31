@@ -197,6 +197,23 @@ class TestUserViewSet(ModelViewSetTestCase[RequestUser, User]):
             },
         )
 
+    def test_list__name(self):
+        """Can successfully list all users by name."""
+        user = AdminSchoolTeacherUser.objects.first()
+        assert user
+
+        school_users = user.teacher.school_users
+        first_name, last_name = user.first_name, user.last_name[:1]
+
+        self.client.login_as(user, password="abc123")
+        self.client.list(
+            models=(
+                school_users.filter(first_name__icontains=first_name)
+                | school_users.filter(last_name__icontains=last_name)
+            ),
+            filters={"name": f"{first_name} {last_name}"},
+        )
+
     def test_retrieve(self):
         """Can successfully retrieve users."""
         user = AdminSchoolTeacherUser.objects.first()
