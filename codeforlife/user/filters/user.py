@@ -22,12 +22,12 @@ class UserFilterSet(FilterSet):
         "exact",
     )
 
-    teachers_in_school = filters.NumberFilter("new_teacher__school")
-
     _id = filters.NumberFilter(method="_id_method")
     _id_method = FilterSet.make_exclude_field_list_method("id")
 
     name = filters.CharFilter(method="name_method")
+
+    only_teachers = filters.BooleanFilter(method="only_teachers__method")
 
     def name_method(
         self: FilterSet, queryset: QuerySet[User], name: str, *args
@@ -44,6 +44,16 @@ class UserFilterSet(FilterSet):
             first_name__icontains=first_name
         ) | queryset.filter(last_name__icontains=last_name)
 
+    def only_teachers__method(
+        self: FilterSet, queryset: QuerySet[User], _: str, value: bool
+    ):
+        """Get only teacher-users."""
+        return (
+            queryset.filter(new_teacher__isnull=False, new_student__isnull=True)
+            if value
+            else queryset
+        )
+
     class Meta:
         model = User
-        fields = ["students_in_class", "teachers_in_school", "_id", "name"]
+        fields = ["students_in_class", "only_teachers", "_id", "name"]

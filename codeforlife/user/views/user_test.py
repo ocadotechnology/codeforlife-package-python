@@ -160,8 +160,8 @@ class TestUserViewSet(ModelViewSetTestCase[RequestUser, User]):
             filters={"students_in_class": klass.access_code},
         )
 
-    def test_list__teachers_in_school(self):
-        """Can successfully list teacher-users in a school."""
+    def test_list__only_teachers(self):
+        """Can successfully list only teacher-users."""
         user = self.admin_school_teacher_user
         school_teacher_users = user.teacher.school_teacher_users.all()
         assert school_teacher_users.exists()
@@ -169,7 +169,7 @@ class TestUserViewSet(ModelViewSetTestCase[RequestUser, User]):
         self.client.login_as(user)
         self.client.list(
             models=school_teacher_users,
-            filters={"teachers_in_school": str(user.teacher.school.id)},
+            filters={"only_teachers": str(True)},
         )
 
     def test_list___id(self):
