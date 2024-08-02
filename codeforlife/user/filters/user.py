@@ -5,14 +5,13 @@ Created on 03/04/2024 at 16:37:44(+01:00).
 
 import typing as t
 
-from django.db.models.query import QuerySet
-
-from ...filters import FilterSet
-from ..models import User
-
+from django.db.models.query import QuerySet  # isort: skip
 from django_filters import (  # type: ignore[import-untyped] # isort: skip
     rest_framework as filters,
 )
+
+from ...filters import FilterSet  # isort: skip
+from ..models import User  # isort: skip
 
 
 # pylint: disable-next=missing-class-docstring
