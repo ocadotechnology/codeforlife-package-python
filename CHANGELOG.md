@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.18.2 (2024-08-05)
+
+### Fix
+
+* Base login form ([`95f8535`](https://github.com/ocadotechnology/codeforlife-package-python/commit/95f8535799f15ab9af0ef7093c071700faa56240))
+
 ## v0.18.1 (2024-07-23)
 
 ### Fix
