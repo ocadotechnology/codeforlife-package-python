@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.18.3 (2024-08-05)
+
+### Fix
+
+* Delete base login form ([`5d6e55f`](https://github.com/ocadotechnology/codeforlife-package-python/commit/5d6e55f2aaa923b41ba0893fbc34c862058b8227))
+
 ## v0.18.2 (2024-08-05)
 
 ### Fix
