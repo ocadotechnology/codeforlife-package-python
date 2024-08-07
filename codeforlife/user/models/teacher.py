@@ -9,6 +9,7 @@ import typing as t
 
 from common.models import Teacher, TeacherModelManager
 from django.db import models
+from django.db.models import Q
 
 from .klass import Class
 from .school import School
@@ -81,6 +82,40 @@ class SchoolTeacher(Teacher):
             new_student__pending_class_request__in=self.classes
         )
 
+    @property
+    def school_teacher_users(self):
+        """All school-teacher-users the teacher can query."""
+        # pylint: disable-next=import-outside-toplevel
+        from .user import SchoolTeacherUser
+
+        return SchoolTeacherUser.objects.filter(new_teacher__school=self.school)
+
+    @property
+    def school_teachers(self):
+        """All school-teachers the teacher can query."""
+        return SchoolTeacher.objects.filter(school=self.school)
+
+    @property
+    def school_users(self):
+        """All users in the school the teacher can query."""
+        # pylint: disable-next=import-outside-toplevel
+        from .user import User
+
+        return User.objects.filter(
+            Q(  # student-users
+                new_teacher__isnull=True,
+                **(
+                    {"new_student__class_field__teacher__school": self.school}
+                    if self.is_admin
+                    else {"new_student__class_field__teacher": self}
+                )
+            )
+            | Q(  # school-teacher-users
+                new_student__isnull=True,
+                new_teacher__school=self.school,
+            )
+        )
+
 
 class AdminSchoolTeacher(SchoolTeacher):
     """An admin-teacher that is in a school."""
@@ -105,19 +140,6 @@ class AdminSchoolTeacher(SchoolTeacher):
             .exclude(pk=self.pk)
             .exists()
         )
-
-    @property
-    def school_teacher_users(self):
-        """All school-teacher-users the teacher can query."""
-        # pylint: disable-next=import-outside-toplevel
-        from .user import SchoolTeacherUser
-
-        return SchoolTeacherUser.objects.filter(new_teacher__school=self.school)
-
-    @property
-    def school_teachers(self):
-        """All school-teachers the teacher can query."""
-        return SchoolTeacher.objects.filter(school=self.school)
 
 
 class NonAdminSchoolTeacher(SchoolTeacher):

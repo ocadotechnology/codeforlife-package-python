@@ -160,6 +160,60 @@ class TestUserViewSet(ModelViewSetTestCase[RequestUser, User]):
             filters={"students_in_class": klass.access_code},
         )
 
+    def test_list__only_teachers(self):
+        """Can successfully list only teacher-users."""
+        user = self.admin_school_teacher_user
+        school_teacher_users = user.teacher.school_teacher_users.all()
+        assert school_teacher_users.exists()
+
+        self.client.login_as(user)
+        self.client.list(
+            models=school_teacher_users,
+            filters={"only_teachers": str(True)},
+        )
+
+    def test_list___id(self):
+        """Can successfully list all users in a school and exclude some IDs."""
+        user = AdminSchoolTeacherUser.objects.first()
+        assert user
+
+        users = [
+            *list(user.teacher.school_teacher_users),
+            *list(user.teacher.student_users),
+        ]
+        users.sort(key=lambda user: user.pk)
+
+        exclude_user_1: User = users.pop()
+        exclude_user_2: User = users.pop()
+
+        self.client.login_as(user, password="abc123")
+        self.client.list(
+            models=users,
+            filters={
+                "_id": [
+                    str(exclude_user_1.id),
+                    str(exclude_user_2.id),
+                ]
+            },
+        )
+
+    def test_list__name(self):
+        """Can successfully list all users by name."""
+        user = AdminSchoolTeacherUser.objects.first()
+        assert user
+
+        school_users = user.teacher.school_users
+        first_name, last_name = user.first_name, user.last_name[:1]
+
+        self.client.login_as(user, password="abc123")
+        self.client.list(
+            models=(
+                school_users.filter(first_name__icontains=first_name)
+                | school_users.filter(last_name__icontains=last_name)
+            ),
+            filters={"name": f"{first_name} {last_name}"},
+        )
+
     def test_retrieve(self):
         """Can successfully retrieve users."""
         user = AdminSchoolTeacherUser.objects.first()

@@ -197,12 +197,12 @@ class ModelViewSetClient(
 
     def list(
         self,
-        models: t.Iterable[AnyModel],
+        models: t.Collection[AnyModel],
         status_code_assertion: APIClient.StatusCodeAssertion = (
             status.HTTP_200_OK
         ),
         make_assertions: bool = True,
-        filters: t.Optional[t.Dict[str, str]] = None,
+        filters: t.Optional[t.Dict[str, t.Union[str, t.Iterable[str]]]] = None,
         reverse_kwargs: t.Optional[KwArgs] = None,
         **kwargs,
     ):
@@ -221,10 +221,18 @@ class ModelViewSetClient(
         """
         # pylint: enable=line-too-long
 
+        query: t.List[t.Tuple[str, str]] = []
+        for key, values in (filters or {}).items():
+            if isinstance(values, str):
+                query.append((key, values))
+            else:
+                for value in values:
+                    query.append((key, value))
+
         response: Response = self.get(
             (
                 self._test_case.reverse_action("list", kwargs=reverse_kwargs)
-                + f"?{urlencode(filters or {})}"
+                + f"?{urlencode(query)}"
             ),
             status_code_assertion=status_code_assertion,
             **kwargs,
@@ -234,6 +242,7 @@ class ModelViewSetClient(
 
             def _make_assertions(response_json: JsonDict):
                 json_models = t.cast(t.List[JsonDict], response_json["data"])
+                assert len(models) == len(json_models)
                 for model, json_model in zip(models, json_models):
                     self._test_case.assert_serialized_model_equals_json_model(
                         model, json_model, action="list", request_method="get"
