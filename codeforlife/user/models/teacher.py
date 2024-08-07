@@ -9,6 +9,7 @@ import typing as t
 
 from common.models import Teacher, TeacherModelManager
 from django.db import models
+from django.db.models import Q
 
 from .klass import Class
 from .school import School
@@ -100,9 +101,8 @@ class SchoolTeacher(Teacher):
         # pylint: disable-next=import-outside-toplevel
         from .user import User
 
-        return (
-            # student-users
-            User.objects.filter(
+        return User.objects.filter(
+            Q(  # student-users
                 new_teacher__isnull=True,
                 **(
                     {"new_student__class_field__teacher__school": self.school}
@@ -110,8 +110,7 @@ class SchoolTeacher(Teacher):
                     else {"new_student__class_field__teacher": self}
                 )
             )
-            # school-teacher-users
-            | User.objects.filter(
+            | Q(  # school-teacher-users
                 new_student__isnull=True,
                 new_teacher__school=self.school,
             )

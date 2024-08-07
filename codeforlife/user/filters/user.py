@@ -5,6 +5,7 @@ Created on 03/04/2024 at 16:37:44(+01:00).
 
 import typing as t
 
+from django.db.models import Q  # isort: skip
 from django.db.models.query import QuerySet  # isort: skip
 from django_filters import (  # type: ignore[import-untyped] # isort: skip
     rest_framework as filters,
@@ -40,8 +41,9 @@ class UserFilterSet(FilterSet):
         # TODO: use PostgreSQL specific lookup
         # https://docs.djangoproject.com/en/5.0/ref/contrib/postgres/lookups/#std-fieldlookup-trigram_similar
         return queryset.filter(
-            first_name__icontains=first_name
-        ) | queryset.filter(last_name__icontains=last_name)
+            Q(first_name__icontains=first_name)
+            | Q(last_name__icontains=last_name)
+        )
 
     def only_teachers__method(
         self: FilterSet, queryset: QuerySet[User], _: str, value: bool
