@@ -102,11 +102,6 @@ class User(_User):
         return self.userprofile.is_verified
 
     @property
-    def aimmo_badges(self):
-        """Shorthand for user-profile field."""
-        return self.userprofile.aimmo_badges
-
-    @property
     def totp(self):
         """Time-based one-time-password for user."""
         return TOTP(self.otp_secret)
