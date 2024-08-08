@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.18.5 (2024-08-08)
+
+### Fix
+
+* Remove Kurono ([#130](https://github.com/ocadotechnology/codeforlife-package-python/issues/130)) ([`13a9b60`](https://github.com/ocadotechnology/codeforlife-package-python/commit/13a9b609941f554ccc70d77489c02ab1c86bb0c6))
+
 ## v0.18.4 (2024-08-07)
 
 ### Fix
