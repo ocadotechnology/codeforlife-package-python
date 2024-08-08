@@ -2,7 +2,7 @@
 © Ocado Group
 Created on 12/04/2024 at 16:53:52(+01:00).
 
-This file manages manages Django but also acts a settings file.
+This file manages Django but also acts a settings file.
 """
 
 from pathlib import Path
@@ -21,7 +21,6 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "django.contrib.sites",
     "codeforlife.user",
-    "aimmo",  # TODO: remove this
     "game",  # TODO: remove this
     "common",  # TODO: remove this
     "portal",  # TODO: remove this

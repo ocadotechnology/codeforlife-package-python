@@ -191,7 +191,6 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.sites",
     "django.contrib.staticfiles",
-    "aimmo",  # TODO: remove
     "game",  # TODO: remove
     "portal",  # TODO: remove
     "common",  # TODO: remove
