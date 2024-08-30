@@ -11,7 +11,7 @@ from common.models import TotalActivity, UserProfile
 
 # pylint: disable-next=imported-auth-user
 from django.contrib.auth.models import User as _User
-from django.contrib.auth.models import UserManager
+from django.contrib.auth.models import UserManager as _UserManager
 from django.db.models import F
 from django.db.models.query import QuerySet
 from django.utils.crypto import get_random_string
@@ -157,13 +157,28 @@ class User(_User):
 AnyUser = t.TypeVar("AnyUser", bound=User)
 
 
-# pylint: disable-next=missing-class-docstring,too-few-public-methods
-class ContactableUserManager(UserManager[AnyUser], t.Generic[AnyUser]):
+# pylint: disable-next=missing-class-docstring
+class UserManager(_UserManager[AnyUser], t.Generic[AnyUser]):
+    def filter_users(self, queryset: QuerySet[User]):
+        """Filter the users to the specific type.
+
+        Args:
+            queryset: The queryset of users to filter.
+
+        Returns:
+            A subset of the queryset of users.
+        """
+        return queryset
+
     # pylint: disable-next=missing-function-docstring
     def get_queryset(self):
-        return (
-            super().get_queryset().exclude(email__isnull=True).exclude(email="")
-        )
+        return self.filter_users(super().get_queryset())
+
+
+# pylint: disable-next=missing-class-docstring,too-few-public-methods
+class ContactableUserManager(UserManager[AnyUser], t.Generic[AnyUser]):
+    def filter_users(self, queryset: QuerySet[User]):
+        return queryset.exclude(email__isnull=True).exclude(email="")
 
 
 class ContactableUser(User):
@@ -238,14 +253,15 @@ class TeacherUserManager(ContactableUserManager[AnyUser], t.Generic[AnyUser]):
 
         return user
 
-    # pylint: disable-next=missing-function-docstring
-    def get_queryset(self):
+    def filter_users(self, queryset: QuerySet[User]):
         return (
             super()
-            .get_queryset()
+            .filter_users(queryset)
             .filter(new_teacher__isnull=False, new_student__isnull=True)
-            .prefetch_related("new_teacher")
         )
+
+    def get_queryset(self):
+        return super().get_queryset().prefetch_related("new_teacher")
 
 
 class TeacherUser(ContactableUser):
@@ -287,9 +303,12 @@ class SchoolTeacherUserManager(TeacherUserManager[AnyUser], t.Generic[AnyUser]):
             **extra_fields,
         )
 
-    # pylint: disable-next=missing-function-docstring
-    def get_queryset(self):
-        return super().get_queryset().filter(new_teacher__school__isnull=False)
+    def filter_users(self, queryset: QuerySet[User]):
+        return (
+            super()
+            .filter_users(queryset)
+            .filter(new_teacher__school__isnull=False)
+        )
 
 
 # pylint: disable-next=too-many-ancestors
@@ -317,9 +336,8 @@ class SchoolTeacherUser(TeacherUser):
 class AdminSchoolTeacherUserManager(
     SchoolTeacherUserManager["AdminSchoolTeacherUser"]
 ):
-    # pylint: disable-next=missing-function-docstring
-    def get_queryset(self):
-        return super().get_queryset().filter(new_teacher__is_admin=True)
+    def filter_users(self, queryset: QuerySet[User]):
+        return super().filter_users(queryset).filter(new_teacher__is_admin=True)
 
 
 # pylint: disable-next=too-many-ancestors
@@ -347,9 +365,10 @@ class AdminSchoolTeacherUser(SchoolTeacherUser):
 class NonAdminSchoolTeacherUserManager(
     SchoolTeacherUserManager["NonAdminSchoolTeacherUser"]
 ):
-    # pylint: disable-next=missing-function-docstring
-    def get_queryset(self):
-        return super().get_queryset().filter(new_teacher__is_admin=False)
+    def filter_users(self, queryset: QuerySet[User]):
+        return (
+            super().filter_users(queryset).filter(new_teacher__is_admin=False)
+        )
 
 
 # pylint: disable-next=too-many-ancestors
@@ -377,9 +396,12 @@ class NonAdminSchoolTeacherUser(SchoolTeacherUser):
 
 # pylint: disable-next=missing-class-docstring,too-few-public-methods
 class NonSchoolTeacherUserManager(TeacherUserManager["NonSchoolTeacherUser"]):
-    # pylint: disable-next=missing-function-docstring
-    def get_queryset(self):
-        return super().get_queryset().filter(new_teacher__school__isnull=True)
+    def filter_users(self, queryset: QuerySet[User]):
+        return (
+            super()
+            .filter_users(queryset)
+            .filter(new_teacher__school__isnull=True)
+        )
 
 
 # pylint: disable-next=too-many-ancestors
@@ -440,19 +462,16 @@ class StudentUserManager(UserManager["StudentUser"]):
 
         return user
 
-    # pylint: disable-next=missing-function-docstring
-    def get_queryset(self):
-        return (
-            super()
-            .get_queryset()
-            .filter(
-                new_teacher__isnull=True,
-                new_student__isnull=False,
-                # TODO: remove in new model
-                new_student__class_field__isnull=False,
-            )
-            .prefetch_related("new_student")
+    def filter_users(self, queryset: QuerySet[User]):
+        return queryset.filter(
+            new_teacher__isnull=True,
+            new_student__isnull=False,
+            # TODO: remove in new model
+            new_student__class_field__isnull=False,
         )
+
+    def get_queryset(self):
+        return super().get_queryset().prefetch_related("new_student")
 
 
 class StudentUser(User):
@@ -509,19 +528,20 @@ class StudentUser(User):
 
 # pylint: disable-next=missing-class-docstring,too-few-public-methods
 class IndependentUserManager(ContactableUserManager["IndependentUser"]):
-    # pylint: disable-next=missing-function-docstring
-    def get_queryset(self):
-        # TODO: student__isnull=True in new model
+    def filter_users(self, queryset: QuerySet[User]):
         return (
             super()
-            .get_queryset()
+            .filter_users(queryset)
             .filter(
                 new_teacher__isnull=True,
+                # TODO: student__isnull=True in new model
                 new_student__isnull=False,
                 new_student__class_field__isnull=True,
             )
-            .prefetch_related("new_student")
         )
+
+    def get_queryset(self):
+        return super().get_queryset().prefetch_related("new_student")
 
     def create_user(  # type: ignore[override]
         self,
