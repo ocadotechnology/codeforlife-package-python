@@ -28,7 +28,7 @@ RequestUser = User
 class TestUserViewSet(ModelViewSetTestCase[RequestUser, User]):
     basename = "user"
     model_view_set_class = UserViewSet
-    fixtures = ["non_school_teacher", "school_1"]
+    fixtures = ["non_school_teacher", "school_1", "independent"]
 
     def setUp(self):
         self.admin_school_teacher_user = AdminSchoolTeacherUser.objects.get(
@@ -160,7 +160,7 @@ class TestUserViewSet(ModelViewSetTestCase[RequestUser, User]):
             filters={"students_in_class": klass.access_code},
         )
 
-    def test_list__only_teachers(self):
+    def test_list__type__teacher(self):
         """Can successfully list only teacher-users."""
         user = self.admin_school_teacher_user
         school_teacher_users = user.teacher.school_teacher_users.all()
@@ -169,7 +169,31 @@ class TestUserViewSet(ModelViewSetTestCase[RequestUser, User]):
         self.client.login_as(user)
         self.client.list(
             models=school_teacher_users,
-            filters={"only_teachers": str(True)},
+            filters={"type": "teacher"},
+        )
+
+    def test_list__type__student(self):
+        """Can successfully list only student-users."""
+        user = self.admin_school_teacher_user
+        student_users = user.teacher.student_users.all()
+        assert student_users.exists()
+
+        self.client.login_as(user)
+        self.client.list(
+            models=student_users,
+            filters={"type": "student"},
+        )
+
+    def test_list__type__indy(self):
+        """Can successfully list only independent-users."""
+        user = self.admin_school_teacher_user
+        indy_users = user.teacher.indy_users.all()
+        assert indy_users.exists()
+
+        self.client.login_as(user)
+        self.client.list(
+            models=indy_users,
+            filters={"type": "indy"},
         )
 
     def test_list___id(self):
