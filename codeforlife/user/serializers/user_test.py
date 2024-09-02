@@ -22,6 +22,7 @@ class TestUserSerializer(ModelSerializerTestCase[User, User]):
         self.assert_to_representation(
             user,
             new_data={
+                "requesting_to_join_class": None,
                 "teacher": {
                     "id": user.teacher.id,
                     "school": user.teacher.school.id,
@@ -39,6 +40,7 @@ class TestUserSerializer(ModelSerializerTestCase[User, User]):
         self.assert_to_representation(
             user,
             new_data={
+                "requesting_to_join_class": None,
                 "teacher": None,
                 "student": {
                     "id": user.student.id,
@@ -55,5 +57,9 @@ class TestUserSerializer(ModelSerializerTestCase[User, User]):
 
         self.assert_to_representation(
             user,
-            new_data={"teacher": None, "student": None},
+            new_data={
+                "requesting_to_join_class": None,
+                "teacher": None,
+                "student": None,
+            },
         )
