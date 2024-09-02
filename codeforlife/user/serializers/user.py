@@ -72,6 +72,16 @@ class UserSerializer(BaseUserSerializer[AnyUser], t.Generic[AnyUser]):
             student = None
 
         try:
+            requesting_to_join_class = (
+                instance.new_student.pending_class_request.access_code
+                if instance.new_student
+                and instance.new_student.pending_class_request
+                else None
+            )
+        except Student.DoesNotExist:
+            requesting_to_join_class = None
+
+        try:
             teacher = (
                 TeacherSerializer[Teacher](instance.new_teacher).data
                 if instance.new_teacher
@@ -87,6 +97,7 @@ class UserSerializer(BaseUserSerializer[AnyUser], t.Generic[AnyUser]):
             "email": instance.email,
             "is_active": instance.is_active,
             "date_joined": instance.date_joined,
+            "requesting_to_join_class": requesting_to_join_class,
             "student": student,
             "teacher": teacher,
         }

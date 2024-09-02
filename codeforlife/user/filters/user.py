@@ -12,7 +12,12 @@ from django_filters import (  # type: ignore[import-untyped] # isort: skip
 )
 
 from ...filters import FilterSet  # isort: skip
-from ..models import User  # isort: skip
+from ..models import (  # isort: skip
+    User,
+    TeacherUser,
+    StudentUser,
+    IndependentUser,
+)
 
 
 # pylint: disable-next=missing-class-docstring
@@ -22,14 +27,22 @@ class UserFilterSet(FilterSet):
         "exact",
     )
 
-    _id = filters.NumberFilter(method="_id_method")
-    _id_method = FilterSet.make_exclude_field_list_method("id")
+    _id = filters.NumberFilter(method="_id__method")
+    _id__method = FilterSet.make_exclude_field_list_method("id")
 
-    name = filters.CharFilter(method="name_method")
+    name = filters.CharFilter(method="name__method")
 
-    only_teachers = filters.BooleanFilter(method="only_teachers__method")
+    type = filters.ChoiceFilter(
+        choices=[
+            ("teacher", "teacher"),
+            ("student", "student"),
+            ("independent", "independent"),
+            ("indy", "independent"),
+        ],
+        method="type__method",
+    )
 
-    def name_method(
+    def name__method(
         self: FilterSet, queryset: QuerySet[User], name: str, *args
     ):
         """Get all first names and last names that contain a substring."""
@@ -45,16 +58,19 @@ class UserFilterSet(FilterSet):
             | Q(last_name__icontains=last_name)
         )
 
-    def only_teachers__method(
-        self: FilterSet, queryset: QuerySet[User], _: str, value: bool
+    def type__method(
+        self: FilterSet,
+        queryset: QuerySet[User],
+        _: str,
+        value: t.Literal["teacher", "student", "independent"],
     ):
-        """Get only teacher-users."""
-        return (
-            queryset.filter(new_teacher__isnull=False, new_student__isnull=True)
-            if value
-            else queryset
-        )
+        """Get users of a specific type."""
+        if value == "teacher":
+            return TeacherUser.objects.filter_users(queryset)
+        if value == "student":
+            return StudentUser.objects.filter_users(queryset)
+        return IndependentUser.objects.filter_users(queryset)
 
     class Meta:
         model = User
-        fields = ["students_in_class", "only_teachers", "_id", "name"]
+        fields = ["students_in_class", "type", "_id", "name"]

@@ -54,8 +54,19 @@ class UserViewSet(ModelViewSet[RequestUser, User]):
                     new_student__class_field__teacher=user.teacher
                 )
             )
+            independents = (
+                user_class.objects.filter(
+                    new_student__pending_class_request__teacher__school=(
+                        user.teacher.school_id
+                    )
+                )
+                if user.teacher.is_admin
+                else user_class.objects.filter(
+                    new_student__pending_class_request__teacher=user.teacher
+                )
+            )
 
-            return teachers | students
+            return teachers | students | independents
 
         return user_class.objects.filter(pk=user.pk)
 
