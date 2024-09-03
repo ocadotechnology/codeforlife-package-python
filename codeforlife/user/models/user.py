@@ -532,10 +532,7 @@ class StudentUser(User):
     # pylint: disable-next=arguments-differ
     def set_password(self, raw_password: t.Optional[str] = None):
         super().set_password(raw_password or self._get_random_password())
-        (
-            self.student.login_id,
-            self._login_id,
-        ) = self._get_random_login_id()
+        self._login_id, self.student.login_id = self._get_random_login_id()
 
 
 # pylint: disable-next=missing-class-docstring,too-few-public-methods
