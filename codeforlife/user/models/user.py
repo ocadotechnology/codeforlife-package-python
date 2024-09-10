@@ -434,8 +434,10 @@ class StudentUserManager(UserManager["StudentUser"]):
         # pylint: disable-next=import-outside-toplevel
         from .student import Student
 
-        # pylint: disable-next=protected-access
+        # pylint: disable=protected-access
         password = StudentUser._get_random_password()
+        login_id, hashed_login_id = StudentUser._get_random_login_id()
+        # pylint: enable=protected-access
 
         user = super().create_user(
             **extra_fields,
@@ -444,16 +446,17 @@ class StudentUserManager(UserManager["StudentUser"]):
             password=password,
         )
 
-        # pylint: disable-next=protected-access
-        user._password = password
-
         Student.objects.create(
             class_field=klass,
             user=UserProfile.objects.create(user=user),
             new_user=user,
-            # pylint: disable-next=protected-access
-            login_id=StudentUser._get_random_login_id(),
+            login_id=hashed_login_id,
         )
+
+        # pylint: disable=protected-access
+        user._password = password
+        user._login_id = login_id
+        # pylint: enable=protected-access
 
         # TODO: delete this in new data schema
         TotalActivity.objects.update(
@@ -477,6 +480,9 @@ class StudentUserManager(UserManager["StudentUser"]):
 class StudentUser(User):
     """A user that is a student."""
 
+    # TODO: move this is to Student model in new schema.
+    _login_id: t.Optional[str]
+
     teacher: None
     student: "Student"
 
@@ -497,22 +503,25 @@ class StudentUser(User):
     @staticmethod
     def _get_random_login_id():
         # pylint: disable-next=import-outside-toplevel
-        from .student import Student
+        # from .student import Student
 
-        login_id = None
-        while (
-            login_id is None
-            or Student.objects.filter(login_id=login_id).exists()
-        ):
-            login_id = get_random_string(length=64)
+        # login_id = None
+        # while (
+        #     login_id is None
+        #     or Student.objects.filter(login_id=login_id).exists()
+        # ):
+        #     login_id = get_random_string(length=64)
 
-        return login_id
+        # TODO: replace below code with commented out code above.
+        # pylint: disable-next=import-outside-toplevel
+        from common.helpers.generators import generate_login_id
+
+        return generate_login_id()
 
     @staticmethod
     def get_random_username():
         """Generate a random username that is unique."""
         username = None
-
         while (
             username is None or User.objects.filter(username=username).exists()
         ):
@@ -523,7 +532,7 @@ class StudentUser(User):
     # pylint: disable-next=arguments-differ
     def set_password(self, raw_password: t.Optional[str] = None):
         super().set_password(raw_password or self._get_random_password())
-        self.student.login_id = self._get_random_login_id()
+        self._login_id, self.student.login_id = self._get_random_login_id()
 
 
 # pylint: disable-next=missing-class-docstring,too-few-public-methods
