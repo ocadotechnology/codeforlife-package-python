@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.18.7 (2024-09-10)
+
+### Fix
+
+* Portal frontend 50 ([#132](https://github.com/ocadotechnology/codeforlife-package-python/issues/132)) ([`a3fccd7`](https://github.com/ocadotechnology/codeforlife-package-python/commit/a3fccd7c31b0ab4ea4286318ef951a5fa09e55d3))
+
 ## v0.18.6 (2024-09-02)
 
 ### Fix
