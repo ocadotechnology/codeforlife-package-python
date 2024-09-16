@@ -15,7 +15,7 @@ from django.http import (
     HttpResponseServerError,
 )
 
-handler400 = lambda request: HttpResponseBadRequest()
-handler403 = lambda request: HttpResponseForbidden()
-handler404 = lambda request: HttpResponseNotFound()
+handler400 = lambda request, template: HttpResponseBadRequest()
+handler403 = lambda request, template: HttpResponseForbidden()
+handler404 = lambda request, template: HttpResponseNotFound()
 handler500 = lambda request: HttpResponseServerError()
