@@ -10,8 +10,8 @@ from django.http import HttpResponse
 from django.urls import URLPattern, URLResolver, include, path, re_path
 from rest_framework import status
 
-from .settings import SERVICE_IS_ROOT, SERVICE_NAME
-from .views import CsrfCookieView, LogoutView
+from ..settings import SERVICE_IS_ROOT, SERVICE_NAME
+from ..views import CsrfCookieView, LogoutView
 
 UrlPatterns = t.List[t.Union[URLResolver, URLPattern]]
 
