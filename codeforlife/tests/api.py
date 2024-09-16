@@ -37,8 +37,17 @@ class APIClient(_APIClient, t.Generic[RequestUser]):
 
     _test_case: "APITestCase[RequestUser]"
 
-    def __init__(self, enforce_csrf_checks: bool = False, **defaults):
-        super().__init__(enforce_csrf_checks, **defaults)
+    def __init__(
+        self,
+        enforce_csrf_checks: bool = False,
+        raise_request_exception=False,
+        **defaults,
+    ):
+        super().__init__(
+            enforce_csrf_checks,
+            raise_request_exception=raise_request_exception,
+            **defaults,
+        )
 
         self.request_factory = APIRequestFactory(
             self.get_request_user_class(),
