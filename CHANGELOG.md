@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.18.8 (2024-09-16)
+
+### Fix
+
+* Contributor frontend 4 ([#133](https://github.com/ocadotechnology/codeforlife-package-python/issues/133)) ([`373ef2d`](https://github.com/ocadotechnology/codeforlife-package-python/commit/373ef2de9e33170f0955b9352eff05cb2f0ceb7c))
+
 ## v0.18.7 (2024-09-10)
 
 ### Fix
