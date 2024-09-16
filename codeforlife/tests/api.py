@@ -338,7 +338,7 @@ class APIClient(_APIClient, t.Generic[RequestUser]):
         assert status_code_assertion(
             status_code
         ), f"Unexpected status code: {status_code}." + (
-            "\nValidation errors:: "
+            "\nValidation errors: "
             + json.dumps(
                 # pylint: disable-next=no-member
                 response.json(),  # type: ignore[attr-defined]
