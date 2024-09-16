@@ -15,7 +15,9 @@ from django.http import (
     HttpResponseServerError,
 )
 
+# pylint: disable=unnecessary-lambda-assignment
 handler400 = lambda request, template: HttpResponseBadRequest()
 handler403 = lambda request, template: HttpResponseForbidden()
 handler404 = lambda request, template: HttpResponseNotFound()
 handler500 = lambda request: HttpResponseServerError()
+# pylint: enable=unnecessary-lambda-assignment
