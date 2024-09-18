@@ -183,9 +183,9 @@ class ModelViewSet(
         serializer.is_valid(raise_exception=True)
         self.perform_bulk_create(serializer)
         return Response(
-            dict(serializer.data),
+            serializer.data,
             status=status.HTTP_201_CREATED,
-            headers=self.get_success_headers(dict(serializer.data)),
+            headers=self.get_success_headers(serializer.data),
         )
 
     def perform_bulk_create(
@@ -224,7 +224,7 @@ class ModelViewSet(
         )
         serializer.is_valid(raise_exception=True)
         self.perform_bulk_update(serializer)
-        return Response(dict(serializer.data))
+        return Response(serializer.data)
 
     def perform_bulk_update(
         self, serializer: "ModelListSerializer[RequestUser, AnyModel]"
@@ -303,9 +303,7 @@ class ModelViewSet(
             )
             serializer.is_valid(raise_exception=True)
             serializer.save()
-            return Response(
-                **(response_kwargs or {}), data=dict(serializer.data)
-            )
+            return Response(**(response_kwargs or {}), data=serializer.data)
 
         update.__name__ = name
 
