@@ -10,6 +10,7 @@ from copy import deepcopy
 from unittest.case import _AssertRaisesContext
 
 from django.db.models import Model
+from django.forms.models import model_to_dict
 from rest_framework.serializers import BaseSerializer, ValidationError
 
 from ..serializers import ModelListSerializer, ModelSerializer
@@ -124,11 +125,7 @@ class ModelSerializerTestCase(TestCase, t.Generic[RequestUser, AnyModel]):
             elif isinstance(value, Model):
                 data[field] = getattr(value, "id")
 
-        model_dict = {
-            field: value
-            for field, value in model.__dict__.items()
-            if not field.startswith("_")
-        }
+        model_dict = model_to_dict(model)
         self.assertDictEqual(model_dict | data, model_dict)
 
     def _assert_many(
@@ -340,7 +337,12 @@ class ModelSerializerTestCase(TestCase, t.Generic[RequestUser, AnyModel]):
         )
 
     def assert_to_representation(
-        self, instance: AnyModel, new_data: DataDict, *args, **kwargs
+        self,
+        instance: AnyModel,
+        new_data: DataDict,
+        *args,
+        non_model_fields: t.Optional[NonModelFields] = None,
+        **kwargs,
     ):
         """Assert:
         1. the new data fields not contained in the model are equal.
@@ -349,6 +351,7 @@ class ModelSerializerTestCase(TestCase, t.Generic[RequestUser, AnyModel]):
         Args:
             instance: The model instance to represent.
             new_data: The field values not contained in the model.
+            non_model_fields: Data fields that are not in the model.
         """
         serializer = self._init_model_serializer(*args, **kwargs)
         data = serializer.to_representation(instance)
@@ -357,12 +360,14 @@ class ModelSerializerTestCase(TestCase, t.Generic[RequestUser, AnyModel]):
             assert isinstance(data, dict)
 
             for field, new_value in new_data.items():
+                value = data[field]
                 if isinstance(new_value, dict):
-                    assert_new_data_is_subset_of_data(new_value, data[field])
+                    assert_new_data_is_subset_of_data(new_value, value)
                 else:
-                    assert new_value == data.pop(field)
+                    assert new_value == value
 
         assert_new_data_is_subset_of_data(new_data, data)
+        data = self._get_data(data, None, non_model_fields)
         self._assert_data_is_subset_of_model(data, instance)
 
 

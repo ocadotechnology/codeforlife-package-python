@@ -64,7 +64,7 @@ class UserSerializer(BaseUserSerializer[AnyUser], t.Generic[AnyUser]):
     def to_representation(self, instance):
         try:
             student = (
-                StudentSerializer(instance.new_student).data
+                dict(StudentSerializer(instance.new_student).data)
                 if instance.new_student and instance.new_student.class_field
                 else None
             )
@@ -83,7 +83,7 @@ class UserSerializer(BaseUserSerializer[AnyUser], t.Generic[AnyUser]):
 
         try:
             teacher = (
-                TeacherSerializer[Teacher](instance.new_teacher).data
+                dict(TeacherSerializer[Teacher](instance.new_teacher).data)
                 if instance.new_teacher
                 else None
             )
