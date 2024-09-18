@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.18.12 (2024-09-18)
+
+### Fix
+
+* Wrap dicts everywhere ([#135](https://github.com/ocadotechnology/codeforlife-package-python/issues/135)) ([`1499cf9`](https://github.com/ocadotechnology/codeforlife-package-python/commit/1499cf996692600a4fdb960a09a589546f86ec63))
+
 ## v0.18.11 (2024-09-18)
 
 ### Fix
