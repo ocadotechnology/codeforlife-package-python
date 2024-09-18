@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.18.10 (2024-09-18)
+
+### Fix
+
+* Install setuptools in pipeline ([`e112451`](https://github.com/ocadotechnology/codeforlife-package-python/commit/e1124512472800daa3abcdb8eedf6f2d82ecee84))
+
 ## v0.18.9 (2024-09-18)
 
 ### Fix
