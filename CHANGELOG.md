@@ -2,6 +2,14 @@
 
 <!--next-version-placeholder-->
 
+## v0.18.11 (2024-09-18)
+
+### Fix
+
+* Dummy commit, bump version again ([`eba6db5`](https://github.com/ocadotechnology/codeforlife-package-python/commit/eba6db59b9e18a3db4c9e94a743cb9888094a8e8))
+* Dummy commit, bump version ([`e54a2ba`](https://github.com/ocadotechnology/codeforlife-package-python/commit/e54a2bafe27093f905401f22e1df2fe7417d228e))
+* Update markers in lockfile ([`c1e8ad9`](https://github.com/ocadotechnology/codeforlife-package-python/commit/c1e8ad9abd9c8e05c5658edb61ca8efd90e8e3d5))
+
 ## v0.18.10 (2024-09-18)
 
 ### Fix
