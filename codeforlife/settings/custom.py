@@ -1,6 +1,7 @@
 """
 This file contains all of our custom settings we define for our own purposes.
 """
+
 import os
 
 # The name of the current service.

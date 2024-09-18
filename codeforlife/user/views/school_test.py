@@ -3,7 +3,6 @@
 Created on 20/01/2024 at 09:47:30(+00:00).
 """
 
-
 from ...permissions import OR, AllowNone
 from ...tests import ModelViewSetTestCase
 from ..models import School, SchoolTeacherUser, StudentUser, User

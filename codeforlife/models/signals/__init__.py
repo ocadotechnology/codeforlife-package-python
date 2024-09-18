@@ -6,6 +6,5 @@ Helpers for module "django.db.models.signals".
 https://docs.djangoproject.com/en/3.2/ref/signals/#module-django.db.models.signals
 """
 
-
 from .general import UpdateFields, update_fields_includes
 from .receiver import model_receiver

@@ -2,6 +2,7 @@
 This file contains all the settings Django supports out of the box.
 https://docs.djangoproject.com/en/3.2/ref/settings/
 """
+
 import os
 from pathlib import Path
 

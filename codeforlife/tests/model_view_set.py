@@ -614,9 +614,9 @@ class ModelViewSetTestCase(
     basename: str
     model_view_set_class: t.Type[ModelViewSet[RequestUser, AnyModel]]
     client: ModelViewSetClient[RequestUser, AnyModel]
-    client_class: t.Type[
-        ModelViewSetClient[RequestUser, AnyModel]
-    ] = ModelViewSetClient
+    client_class: t.Type[ModelViewSetClient[RequestUser, AnyModel]] = (
+        ModelViewSetClient
+    )
 
     @classmethod
     def get_model_class(cls) -> t.Type[AnyModel]:
@@ -743,11 +743,10 @@ class ModelViewSetTestCase(
 
         # Assert the JSON model provided in the response is an exact match or
         # subset of the serialized model.
-        (
-            self.assertDictContainsSubset
-            if contains_subset
-            else self.assertDictEqual
-        )(json_model, serialized_model)
+        self.assertDictEqual(
+            serialized_model | json_model if contains_subset else json_model,
+            serialized_model,
+        )
 
     def assert_get_serializer_class(
         self,
@@ -820,6 +819,7 @@ class ModelViewSetTestCase(
             *args, **kwargs, action=action
         )
         actual_serializer_context = model_view_set.get_serializer_context()
-        self.assertDictContainsSubset(
-            serializer_context, actual_serializer_context
+        self.assertDictEqual(
+            actual_serializer_context | serializer_context,
+            actual_serializer_context,
         )
