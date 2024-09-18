@@ -31,7 +31,7 @@ class TestUserSerializer(ModelSerializerTestCase[User, User]):
                 "student": None,
             },
             # TODO: remove in new schema.
-            non_model_fields=["requesting_to_join_class", "teacher", "student"],
+            non_model_fields={"requesting_to_join_class", "teacher", "student"},
         )
 
     def test_to_representation__student(self):
@@ -51,7 +51,7 @@ class TestUserSerializer(ModelSerializerTestCase[User, User]):
                 },
             },
             # TODO: remove in new schema.
-            non_model_fields=["requesting_to_join_class", "teacher", "student"],
+            non_model_fields={"requesting_to_join_class", "teacher", "student"},
         )
 
     def test_to_representation__indy(self):
