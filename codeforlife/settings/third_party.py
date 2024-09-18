@@ -1,6 +1,7 @@
 """
 This file contains custom settings defined by third party extensions.
 """
+
 from .django import DEBUG
 
 # CORS

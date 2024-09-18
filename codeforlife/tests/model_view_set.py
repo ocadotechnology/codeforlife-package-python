@@ -614,9 +614,9 @@ class ModelViewSetTestCase(
     basename: str
     model_view_set_class: t.Type[ModelViewSet[RequestUser, AnyModel]]
     client: ModelViewSetClient[RequestUser, AnyModel]
-    client_class: t.Type[
-        ModelViewSetClient[RequestUser, AnyModel]
-    ] = ModelViewSetClient
+    client_class: t.Type[ModelViewSetClient[RequestUser, AnyModel]] = (
+        ModelViewSetClient
+    )
 
     @classmethod
     def get_model_class(cls) -> t.Type[AnyModel]:

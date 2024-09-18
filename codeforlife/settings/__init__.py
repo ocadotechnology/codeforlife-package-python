@@ -13,6 +13,7 @@ from codeforlife import settings as cfl_settings
 cfl_settings.EXAMPLE_SETTING
 `
 """
+
 from .custom import *
 from .django import *
 from .third_party import *
