@@ -13,11 +13,11 @@ from django.db.models import Model
 from django.forms.models import model_to_dict
 from rest_framework.serializers import BaseSerializer, ValidationError
 
-from .api_request_factory import APIRequestFactory
-from .test import TestCase
 from ..serializers import ModelListSerializer, ModelSerializer
 from ..types import DataDict
 from ..user.models import AnyUser as RequestUser
+from .api_request_factory import APIRequestFactory
+from .test import TestCase
 
 AnyModel = t.TypeVar("AnyModel", bound=Model)
 
