@@ -10,7 +10,6 @@ from copy import deepcopy
 from unittest.case import _AssertRaisesContext
 
 from django.db.models import Model
-from django.forms.models import model_to_dict
 from rest_framework.serializers import BaseSerializer, ValidationError
 
 from ..serializers import ModelListSerializer, ModelSerializer
@@ -151,9 +150,9 @@ class ModelSerializerTestCase(TestCase, t.Generic[RequestUser, AnyModel]):
             assert len(new_data) == len(validated_data)
 
         kwargs.pop("many", None)  # many must be True
-        serializer: ModelListSerializer[
-            RequestUser, AnyModel
-        ] = self._init_model_serializer(*args, **kwargs, many=True)
+        serializer: ModelListSerializer[RequestUser, AnyModel] = (
+            self._init_model_serializer(*args, **kwargs, many=True)
+        )
 
         models = get_models(serializer, deepcopy(validated_data))
         assert len(models) == len(validated_data)
