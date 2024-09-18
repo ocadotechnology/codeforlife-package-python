@@ -66,4 +66,6 @@ class TestUserSerializer(ModelSerializerTestCase[User, User]):
                 "teacher": None,
                 "student": None,
             },
+            # TODO: remove in new schema.
+            non_model_fields={"requesting_to_join_class", "teacher", "student"},
         )
