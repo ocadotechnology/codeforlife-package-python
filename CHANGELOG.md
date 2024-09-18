@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.18.9 (2024-09-18)
+
+### Fix
+
+* Upgrade to Python 3.12 ([#134](https://github.com/ocadotechnology/codeforlife-package-python/issues/134)) ([`aed00bf`](https://github.com/ocadotechnology/codeforlife-package-python/commit/aed00bf4ccae9fb67eb4923d0260450e22b491ba))
+
 ## v0.18.8 (2024-09-16)
 
 ### Fix
