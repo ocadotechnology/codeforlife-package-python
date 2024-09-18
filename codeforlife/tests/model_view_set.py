@@ -16,12 +16,12 @@ from django.utils.http import urlencode
 from rest_framework import status
 from rest_framework.response import Response
 
+from .api import APIClient, APITestCase
 from ..permissions import Permission
 from ..serializers import BaseSerializer
 from ..types import DataDict, JsonDict, KwArgs
 from ..user.models import AnyUser as RequestUser
 from ..views import ModelViewSet
-from .api import APIClient, APITestCase
 
 AnyModel = t.TypeVar("AnyModel", bound=Model)
 
@@ -614,9 +614,9 @@ class ModelViewSetTestCase(
     basename: str
     model_view_set_class: t.Type[ModelViewSet[RequestUser, AnyModel]]
     client: ModelViewSetClient[RequestUser, AnyModel]
-    client_class: t.Type[
-        ModelViewSetClient[RequestUser, AnyModel]
-    ] = ModelViewSetClient
+    client_class: t.Type[ModelViewSetClient[RequestUser, AnyModel]] = (
+        ModelViewSetClient
+    )
 
     @classmethod
     def get_model_class(cls) -> t.Type[AnyModel]:
