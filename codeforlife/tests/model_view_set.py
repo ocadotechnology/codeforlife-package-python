@@ -729,7 +729,7 @@ class ModelViewSetTestCase(
         model_serializer = model_view_set.get_serializer(model)
 
         # Serialize the model.
-        serialized_model = model_serializer.data
+        serialized_model = dict(model_serializer.data)
 
         # Recursively convert all datetimes to strings.
         def datetime_values_to_representation(data: DataDict):
