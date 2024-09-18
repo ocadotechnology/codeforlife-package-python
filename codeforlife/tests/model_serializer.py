@@ -125,7 +125,7 @@ class ModelSerializerTestCase(TestCase, t.Generic[RequestUser, AnyModel]):
             elif isinstance(value, Model):
                 data[field] = getattr(value, "id")
 
-        self.assertDictContainsSubset(data, model_to_dict(model))
+        self.assertEqual(model_to_dict(model), {**model_to_dict(model), **data})
 
     def _assert_many(
         self,
@@ -146,9 +146,9 @@ class ModelSerializerTestCase(TestCase, t.Generic[RequestUser, AnyModel]):
             assert len(new_data) == len(validated_data)
 
         kwargs.pop("many", None)  # many must be True
-        serializer: ModelListSerializer[RequestUser, AnyModel] = (
-            self._init_model_serializer(*args, **kwargs, many=True)
-        )
+        serializer: ModelListSerializer[
+            RequestUser, AnyModel
+        ] = self._init_model_serializer(*args, **kwargs, many=True)
 
         models = get_models(serializer, deepcopy(validated_data))
         assert len(models) == len(validated_data)
