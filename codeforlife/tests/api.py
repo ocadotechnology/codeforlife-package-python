@@ -268,6 +268,8 @@ class APIClient(_APIClient, t.Generic[RequestUser]):
             user: The user to log in as.
             password: The user's password.
         """
+        auth_user = None
+
         if isinstance(user, AdminSchoolTeacherUser):
             auth_user = self.login_admin_school_teacher(user.email, password)
         elif isinstance(user, NonAdminSchoolTeacherUser):

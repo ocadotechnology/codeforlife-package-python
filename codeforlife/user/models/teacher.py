@@ -174,6 +174,7 @@ class NonSchoolTeacher(Teacher):
     objects: models.Manager["NonSchoolTeacher"] = Manager()
 
 
+# pylint: disable-next=invalid-name
 TypedTeacher = t.Union[
     SchoolTeacher,
     AdminSchoolTeacher,

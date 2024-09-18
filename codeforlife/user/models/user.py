@@ -605,6 +605,7 @@ class IndependentUser(ContactableUser):
     )
 
 
+# pylint: disable-next=invalid-name
 TypedUser = t.Union[
     TeacherUser,
     SchoolTeacherUser,
