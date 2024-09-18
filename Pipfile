@@ -18,14 +18,14 @@ importlib-metadata = "==4.13.0" # TODO: remove. needed by old portal
 django-formtools = "==2.2" # TODO: remove. needed by old portal
 django-otp = "==1.0.2" # TODO: remove. needed by old portal
 # https://pypi.org/user/codeforlife/
-cfl-common = "==7.1.1" # TODO: remove
-codeforlife-portal = "==7.1.1" # TODO: remove
-rapid-router = "==6.0.1" # TODO: remove
+cfl-common = "==7.3.3" # TODO: remove
+codeforlife-portal = "==7.3.3" # TODO: remove
+rapid-router = "==6.5.2" # TODO: remove
 phonenumbers = "==8.12.12" # TODO: remove
 
 [dev-packages]
-black = "==23.1.0"
-pytest = "==7.2.1"
+black = "==24.8.0"
+pytest = "==8.3.3"
 pytest-cov = "==5.0.0"
 pytest-env = "==0.8.1"
 pytest-xdist = {version = "==3.5.0", extras = ["psutil"]}
@@ -34,7 +34,7 @@ django-extensions = "==3.2.1"
 django-test-migrations = "==1.2.0"
 pyparsing = "==3.0.9"
 pydot = "==1.4.2"
-pylint = "==3.0.2"
+pylint = "==3.2.7"
 pylint-django = "==2.5.5"
 isort = "==5.13.2"
 mypy = "==1.6.1"
@@ -42,4 +42,4 @@ django-stubs = {version = "==4.2.6", extras = ["compatible-mypy"]}
 djangorestframework-stubs = {version = "==3.14.4", extras = ["compatible-mypy"]}
 
 [requires]
-python_version = "3.8"
+python_version = "3.12"

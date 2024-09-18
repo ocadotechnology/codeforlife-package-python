@@ -2,7 +2,7 @@
 © Ocado Group
 Created on 11/12/2023 at 10:59:40(+00:00).
 
-Setup the Code for Life package during installation. 
+Setup the Code for Life package during installation.
 """
 
 import json
@@ -93,7 +93,7 @@ setup(
     include_package_data=True,
     data_files=[get_data_files(DATA_DIR), get_data_files(USER_FIXTURES_DIR)],
     package_data={"codeforlife": ["py.typed"]},
-    python_requires="==3.8.*",
+    python_requires="==3.12.*",
     install_requires=install_requires,
     extras_require={"dev": dev_requires},
     dependency_links=[],
