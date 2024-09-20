@@ -22,14 +22,9 @@ class ClassViewSet(ModelViewSet[RequestUser, Class]):
     def get_permissions(self):
         # Only school-teachers can list classes.
         if self.action == "list":
-            return [OR(IsTeacher(is_admin=True), IsTeacher(in_class=True))]
+            return [IsTeacher(in_school=True)]
 
-        return [
-            OR(
-                IsStudent(),
-                OR(IsTeacher(is_admin=True), IsTeacher(in_class=True)),
-            )
-        ]
+        return [OR(IsStudent(), IsTeacher(in_school=True))]
 
     # pylint: disable-next=missing-function-docstring
     def get_queryset(self):
@@ -37,8 +32,4 @@ class ClassViewSet(ModelViewSet[RequestUser, Class]):
         if user.student:
             return Class.objects.filter(students=user.student)
 
-        user = self.request.school_teacher_user
-        if user.teacher.is_admin:
-            return Class.objects.filter(teacher__school=user.teacher.school)
-
-        return Class.objects.filter(teacher=user.teacher)
+        return self.request.school_teacher_user.teacher.classes

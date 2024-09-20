@@ -66,11 +66,7 @@ class SchoolTeacher(Teacher):
     @property
     def classes(self):
         """All classes the teacher can query."""
-        return (
-            Class.objects.filter(teacher__school=self.school)
-            if self.is_admin
-            else self.class_teacher.all()
-        )
+        return Class.objects.filter(teacher__school=self.school)
 
     @property
     def indy_users(self):

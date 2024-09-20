@@ -5,13 +5,7 @@ Created on 20/01/2024 at 09:48:30(+00:00).
 
 from ...permissions import OR
 from ...tests import ModelViewSetTestCase
-from ..models import (
-    AdminSchoolTeacherUser,
-    Class,
-    NonAdminSchoolTeacherUser,
-    StudentUser,
-    User,
-)
+from ..models import AdminSchoolTeacherUser, Class, StudentUser, User
 from ..permissions import IsStudent, IsTeacher
 from ..views import ClassViewSet
 
@@ -34,21 +28,14 @@ class TestClassViewSet(ModelViewSetTestCase[RequestUser, Class]):
     def test_get_permissions__list(self):
         """Only school-teachers can list classes."""
         self.assert_get_permissions(
-            permissions=[
-                OR(IsTeacher(is_admin=True), IsTeacher(in_class=True))
-            ],
+            permissions=[IsTeacher(in_school=True)],
             action="list",
         )
 
     def test_get_permissions__retrieve(self):
         """Anyone in a school can retrieve a class."""
         self.assert_get_permissions(
-            permissions=[
-                OR(
-                    IsStudent(),
-                    OR(IsTeacher(is_admin=True), IsTeacher(in_class=True)),
-                )
-            ],
+            permissions=[OR(IsStudent(), IsTeacher(in_school=True))],
             action="retrieve",
         )
 
@@ -64,23 +51,9 @@ class TestClassViewSet(ModelViewSetTestCase[RequestUser, Class]):
             request=self.client.request_factory.get(user=user),
         )
 
-    def test_get_queryset__teacher__admin(self):
-        """
-        Admin-teacher-users can only target all the classes in their school.
-        """
+    def test_get_queryset__teacher(self):
+        """Teacher-users can only target all the classes in their school."""
         user = AdminSchoolTeacherUser.objects.first()
-        assert user
-
-        self.assert_get_queryset(
-            values=user.teacher.classes,
-            request=self.client.request_factory.get(user=user),
-        )
-
-    def test_get_queryset__teacher__non_admin(self):
-        """
-        Non-admin-teacher-users can only target all the classes they teach.
-        """
-        user = NonAdminSchoolTeacherUser.objects.first()
         assert user
 
         self.assert_get_queryset(
@@ -106,6 +79,23 @@ class TestClassViewSet(ModelViewSetTestCase[RequestUser, Class]):
 
         self.client.login_as(user)
         self.client.list(models=user.teacher.classes.all())
+
+    def test_list___id(self):
+        """Can successfully list classes in a school, excluding some by ID."""
+        user = self.admin_school_teacher_user
+        assert user
+
+        classes = user.teacher.classes
+        assert classes.count() >= 2
+
+        first_class = classes[0]
+        classes = classes[1:]
+
+        self.client.login_as(user)
+        self.client.list(
+            models=classes,
+            filters={"_id": first_class.access_code},
+        )
 
     def test_list__teacher(self):
         """Can successfully list classes assigned to a teacher."""
