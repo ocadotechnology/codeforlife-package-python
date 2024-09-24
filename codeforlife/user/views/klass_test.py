@@ -97,6 +97,31 @@ class TestClassViewSet(ModelViewSetTestCase[RequestUser, Class]):
             filters={"_id": first_class.access_code},
         )
 
+    def test_list__id_or_name(self):
+        """
+        Can successfully list classes in a school, filtered by their ID or name.
+        """
+        user = self.admin_school_teacher_user
+        assert user
+
+        klass = user.teacher.classes.first()
+        assert klass
+
+        partial_access_code = klass.access_code[:-1]
+        partial_name = klass.name[:-1]
+
+        self.client.login_as(user)
+        self.client.list(
+            models=user.teacher.classes.filter(
+                access_code__icontains=partial_access_code
+            ),
+            filters={"id_or_name": partial_access_code},
+        )
+        self.client.list(
+            models=user.teacher.classes.filter(name__icontains=partial_name),
+            filters={"id_or_name": partial_name},
+        )
+
     def test_list__teacher(self):
         """Can successfully list classes assigned to a teacher."""
         user = self.admin_school_teacher_user
