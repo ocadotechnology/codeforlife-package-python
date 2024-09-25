@@ -21,7 +21,7 @@ class ClassFilterSet(FilterSet):
     id_or_name = filters.CharFilter(method="id_or_name__method")
 
     def id_or_name__method(self, queryset: QuerySet[Class], _: str, value: str):
-        """Get classes where the id or the contain a substring."""
+        """Get classes where the id or the name contain a substring."""
         return queryset.filter(
             Q(access_code__icontains=value) | Q(name__icontains=value)
         )
