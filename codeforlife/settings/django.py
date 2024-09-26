@@ -22,19 +22,33 @@ ALLOWED_HOSTS = ["*"]
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
 
 
-def get_databases(base_dir: Path):  # pragma: no cover
+def get_databases(  # pragma: no cover
+    name: str,
+    host: str = "localhost",
+    port: int = 5432,
+    user: str = "root",
+    password: str = "password",
+):
     """Get the databases for the Django project.
 
     Args:
-        base_dir: The base directory of the Django project.
+        name: The name of the database.
+        host: The network the database is exposed on.
+        port: The port of the server the database is exposed on.
+        user: A registered user on the database server.
+        password: The password of the database server.
 
     Returns:
         The databases for the django project.
     """
     return {
         "default": {
-            "ENGINE": "django.db.backends.sqlite3",
-            "NAME": base_dir / "db.sqlite3",
+            "ENGINE": "django.db.backends.postgresql",
+            "NAME": os.getenv("DB_NAME", name),
+            "HOST": os.getenv("DB_HOST", host),
+            "PORT": int(os.getenv("DB_PORT", port)),
+            "USER": os.getenv("DB_USER", user),
+            "PASSWORD": os.getenv("DB_PASSWORD", password),
             "ATOMIC_REQUESTS": True,
         }
     }
