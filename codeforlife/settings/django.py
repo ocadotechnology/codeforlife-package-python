@@ -23,7 +23,7 @@ ALLOWED_HOSTS = ["*"]
 
 
 def get_databases(  # pragma: no cover
-    name: str,
+    name: str = SERVICE_NAME,
     host: str = "localhost",
     port: int = 5432,
     user: str = "root",
