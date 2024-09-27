@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.19.0 (2024-09-27)
+
+### Feature
+
+* Workspace 145 ([#138](https://github.com/ocadotechnology/codeforlife-package-python/issues/138)) ([`c749c7c`](https://github.com/ocadotechnology/codeforlife-package-python/commit/c749c7c19de02c25ac9eda1e115b8cd97d04ccf1))
+
 ## v0.18.14 (2024-09-27)
 
 ### Fix
