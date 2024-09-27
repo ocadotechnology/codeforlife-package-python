@@ -30,8 +30,6 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = "codeforlife.user.urls"
 
-DATABASES = get_databases()
-
 if __name__ == "__main__":
     import os
     import sys

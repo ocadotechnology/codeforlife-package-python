@@ -21,38 +21,17 @@ ALLOWED_HOSTS = ["*"]
 # Database
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
 
-
-def get_databases(  # pragma: no cover
-    name: str = SERVICE_NAME,
-    host: str = "localhost",
-    port: int = 5432,
-    user: str = "root",
-    password: str = "password",
-):
-    """Get the databases for the Django project.
-
-    Args:
-        name: The name of the database.
-        host: The network the database is exposed on.
-        port: The port of the server the database is exposed on.
-        user: A registered user on the database server.
-        password: The password of the database server.
-
-    Returns:
-        The databases for the django project.
-    """
-    return {
-        "default": {
-            "ENGINE": "django.db.backends.postgresql",
-            "NAME": os.getenv("DB_NAME", name),
-            "HOST": os.getenv("DB_HOST", host),
-            "PORT": int(os.getenv("DB_PORT", port)),
-            "USER": os.getenv("DB_USER", user),
-            "PASSWORD": os.getenv("DB_PASSWORD", password),
-            "ATOMIC_REQUESTS": True,
-        }
+DATABASES = {
+    "default": {
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": os.getenv("DB_NAME", SERVICE_NAME),
+        "HOST": os.getenv("DB_HOST", "localhost"),
+        "PORT": int(os.getenv("DB_PORT", "5432")),
+        "USER": os.getenv("DB_USER", "root"),
+        "PASSWORD": os.getenv("DB_PASSWORD", "password"),
+        "ATOMIC_REQUESTS": True,
     }
-
+}
 
 # Application definition
 
