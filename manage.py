@@ -5,12 +5,8 @@ Created on 12/04/2024 at 16:53:52(+01:00).
 This file manages Django but also acts a settings file.
 """
 
-from pathlib import Path
-
 # pylint: disable-next=wildcard-import,unused-wildcard-import
 from codeforlife.settings import *
-
-BASE_DIR = Path(__file__).resolve().parent
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -33,8 +29,6 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = "codeforlife.user.urls"
-
-DATABASES = get_databases(BASE_DIR)
 
 if __name__ == "__main__":
     import os
