@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.19.1 (2024-09-27)
+
+### Fix
+
+* Trigger deployment ([#140](https://github.com/ocadotechnology/codeforlife-package-python/issues/140)) ([`a8c87b1`](https://github.com/ocadotechnology/codeforlife-package-python/commit/a8c87b161d075d293975fb3cf2470b480a1ec709))
+
 ## v0.19.0 (2024-09-27)
 
 ### Feature
