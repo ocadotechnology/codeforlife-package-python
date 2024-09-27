@@ -5,6 +5,7 @@ Created on 19/01/2024 at 17:15:56(+00:00).
 
 import typing as t
 
+from django.db.models import Q
 from django.db.models.query import QuerySet
 
 from ...tests import ModelViewSetTestCase
@@ -231,10 +232,10 @@ class TestUserViewSet(ModelViewSetTestCase[RequestUser, User]):
 
         self.client.login_as(user, password="abc123")
         self.client.list(
-            models=(
-                school_users.filter(first_name__icontains=first_name)
-                | school_users.filter(last_name__icontains=last_name)
-            ),
+            models=school_users.filter(
+                Q(first_name__icontains=first_name)
+                | Q(last_name__icontains=last_name)
+            ).order_by("pk"),
             filters={"name": f"{first_name} {last_name}"},
         )
 

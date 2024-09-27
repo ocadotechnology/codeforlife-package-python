@@ -5,6 +5,8 @@ Created on 24/01/2024 at 13:12:05(+00:00).
 
 import typing as t
 
+from django.db.models import Q
+
 from ...views import ModelViewSet
 from ..filters import UserFilterSet
 from ..models import AnyUser, User
@@ -26,47 +28,39 @@ class UserViewSet(ModelViewSet[RequestUser, User]):
         user = self.request.auth_user
         if user.student:
             if user.student.class_field is None:
-                return user_class.objects.filter(id=user.id)
+                return user_class.objects.filter(pk=user.pk)
 
-            teachers = user_class.objects.filter(
-                new_teacher=user.student.class_field.teacher
-            )
-            students = user_class.objects.filter(
-                new_student__class_field=user.student.class_field
-            )
-
-            return teachers | students
+            return user_class.objects.filter(
+                Q(new_teacher=user.student.class_field.teacher)
+                | Q(new_student__class_field=user.student.class_field)
+            ).order_by("pk")
 
         user = self.request.teacher_user
         if user.teacher.school:
-            teachers = user_class.objects.filter(
-                new_teacher__school=user.teacher.school_id
-            )
-            students = (
-                user_class.objects.filter(
-                    # TODO: add school foreign key to student model.
-                    new_student__class_field__teacher__school=(
-                        user.teacher.school_id
-                    ),
+            return user_class.objects.filter(
+                Q(new_teacher__school=user.teacher.school_id)
+                | (
+                    Q(
+                        # TODO: add school foreign key to student model.
+                        new_student__class_field__teacher__school=(
+                            user.teacher.school_id
+                        ),
+                    )
+                    if user.teacher.is_admin
+                    else Q(new_student__class_field__teacher=user.teacher)
                 )
-                if user.teacher.is_admin
-                else user_class.objects.filter(
-                    new_student__class_field__teacher=user.teacher
-                )
-            )
-            independents = (
-                user_class.objects.filter(
-                    new_student__pending_class_request__teacher__school=(
-                        user.teacher.school_id
+                | (
+                    Q(
+                        new_student__pending_class_request__teacher__school=(
+                            user.teacher.school_id
+                        )
+                    )
+                    if user.teacher.is_admin
+                    else Q(
+                        new_student__pending_class_request__teacher=user.teacher
                     )
                 )
-                if user.teacher.is_admin
-                else user_class.objects.filter(
-                    new_student__pending_class_request__teacher=user.teacher
-                )
-            )
-
-            return teachers | students | independents
+            ).order_by("pk")
 
         return user_class.objects.filter(pk=user.pk)
 
