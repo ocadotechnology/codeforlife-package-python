@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.18.14 (2024-09-27)
+
+### Fix
+
+* Tests ([#137](https://github.com/ocadotechnology/codeforlife-package-python/issues/137)) ([`d5abac1`](https://github.com/ocadotechnology/codeforlife-package-python/commit/d5abac12e72af83382dda3b1dd6d2bd20c28bca2))
+
 ## v0.18.13 (2024-09-25)
 
 ### Fix
