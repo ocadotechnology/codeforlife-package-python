@@ -73,7 +73,8 @@ class OtpBypassToken(models.Model):
 
     token = models.CharField(
         _("token"),
-        max_length=length,
+        max_length=88,
+        help_text=_("The hashed equivalent of the token."),
     )
 
     class Meta(TypedModelMeta):
