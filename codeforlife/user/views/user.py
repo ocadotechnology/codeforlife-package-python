@@ -35,7 +35,7 @@ class UserViewSet(ModelViewSet[RequestUser, User]):
                 new_student__class_field=user.student.class_field
             )
 
-            return teachers | students
+            return (teachers | students).order_by("pk")
 
         user = self.request.teacher_user
         if user.teacher.school:
@@ -66,7 +66,7 @@ class UserViewSet(ModelViewSet[RequestUser, User]):
                 )
             )
 
-            return teachers | students | independents
+            return (teachers | students | independents).order_by("pk")
 
         return user_class.objects.filter(pk=user.pk)
 
