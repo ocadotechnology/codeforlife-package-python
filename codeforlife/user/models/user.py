@@ -172,7 +172,7 @@ class UserManager(_UserManager[AnyUser], t.Generic[AnyUser]):
 
     # pylint: disable-next=missing-function-docstring
     def get_queryset(self):
-        return self.filter_users(super().get_queryset())
+        return self.filter_users(super().get_queryset().filter(is_active=True))
 
 
 # pylint: disable-next=missing-class-docstring,too-few-public-methods

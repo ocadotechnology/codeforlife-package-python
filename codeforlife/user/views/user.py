@@ -25,19 +25,22 @@ class UserViewSet(ModelViewSet[RequestUser, User]):
         self,
         user_class: t.Type[AnyUser] = User,  # type: ignore[assignment]
     ):
+        # TODO: remove this in new schema and add to get_queryset
+        queryset = user_class.objects.filter(is_active=True)
+
         user = self.request.auth_user
         if user.student:
             if user.student.class_field is None:
-                return user_class.objects.filter(pk=user.pk)
+                return queryset.filter(pk=user.pk)
 
-            return user_class.objects.filter(
+            return queryset.filter(
                 Q(new_teacher=user.student.class_field.teacher)
                 | Q(new_student__class_field=user.student.class_field)
             ).order_by("pk")
 
         user = self.request.teacher_user
         if user.teacher.school:
-            return user_class.objects.filter(
+            return queryset.filter(
                 Q(new_teacher__school=user.teacher.school_id)
                 | (
                     Q(
@@ -62,7 +65,7 @@ class UserViewSet(ModelViewSet[RequestUser, User]):
                 )
             ).order_by("pk")
 
-        return user_class.objects.filter(pk=user.pk)
+        return queryset.filter(pk=user.pk)
 
     def get_bulk_queryset(  # pragma: no cover
         self,
