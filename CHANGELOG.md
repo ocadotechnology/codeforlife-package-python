@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.19.2 (2024-10-11)
+
+### Fix
+
+* User queryset ([#141](https://github.com/ocadotechnology/codeforlife-package-python/issues/141)) ([`fbac442`](https://github.com/ocadotechnology/codeforlife-package-python/commit/fbac442c924a127a79147a6e6ba3819ab8c07e7a))
+
 ## v0.19.1 (2024-09-27)
 
 ### Fix
