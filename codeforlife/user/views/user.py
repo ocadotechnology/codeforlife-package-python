@@ -27,7 +27,7 @@ class UserViewSet(ModelViewSet[RequestUser, User]):
     ):
         # TODO: remove this in new schema and add to get_queryset
         queryset = user_class.objects.filter(is_active=True)
-        
+
         user = self.request.auth_user
         if user.student:
             if user.student.class_field is None:
