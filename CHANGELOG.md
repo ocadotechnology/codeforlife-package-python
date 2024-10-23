@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.19.3 (2024-10-23)
+
+### Fix
+
+* Sites ([#142](https://github.com/ocadotechnology/codeforlife-package-python/issues/142)) ([`9f10ed5`](https://github.com/ocadotechnology/codeforlife-package-python/commit/9f10ed5f94e986fb2f918727b8796fd90dd88cb4))
+
 ## v0.19.2 (2024-10-11)
 
 ### Fix
