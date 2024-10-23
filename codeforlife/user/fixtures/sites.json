@@ -1,0 +1,18 @@
+[
+  {
+    "model": "sites.site",
+    "pk": 2,
+    "fields": {
+      "domain": "localhost:8000",
+      "name": "localhost:8000"
+    }
+  },
+  {
+    "model": "sites.site",
+    "pk": 3,
+    "fields": {
+      "domain": "127.0.0.1:8000",
+      "name": "127.0.0.1:8000"
+    }
+  }
+]
