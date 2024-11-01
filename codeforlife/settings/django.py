@@ -143,7 +143,7 @@ ROOT_URLCONF = "api.urls"
 # App
 # https://docs.djangoproject.com/en/3.2/ref/settings/#wsgi-application
 
-WSGI_APPLICATION = "main.app"
+WSGI_APPLICATION = "application.app"
 
 # Password validation
 # https://docs.djangoproject.com/en/3.2/ref/settings/#auth-password-validators
