@@ -13,38 +13,32 @@ from django.http import HttpRequest as _HttpRequest
 from rest_framework.request import Request as _Request
 
 from .types import JsonDict, JsonList
-from .user.models import (
-    AdminSchoolTeacherUser,
-    AnyUser,
-    IndependentUser,
-    NonAdminSchoolTeacherUser,
-    NonSchoolTeacherUser,
-    SchoolTeacherUser,
-    StudentUser,
-    TeacherUser,
-    User,
-)
-from .user.models.session import SessionStore
+
+if t.TYPE_CHECKING:
+    from .user.models import User
+    from .user.models.session import SessionStore
+
+    AnyUser = t.TypeVar("AnyUser", bound=User)
 
 
 # pylint: disable-next=missing-class-docstring
 class WSGIRequest(_WSGIRequest):
-    session: SessionStore
-    user: t.Union[User, AnonymousUser]
+    session: "SessionStore"
+    user: t.Union["User", AnonymousUser]
 
 
 # pylint: disable-next=missing-class-docstring
 class HttpRequest(_HttpRequest):
-    session: SessionStore
-    user: t.Union[User, AnonymousUser]
+    session: "SessionStore"
+    user: t.Union["User", AnonymousUser]
 
 
 # pylint: disable-next=missing-class-docstring,abstract-method
-class Request(_Request, t.Generic[AnyUser]):
-    session: SessionStore
+class Request(_Request, t.Generic["AnyUser"]):
+    session: "SessionStore"
     data: t.Any
 
-    def __init__(self, user_class: t.Type[AnyUser], *args, **kwargs):
+    def __init__(self, user_class: t.Type["AnyUser"], *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.user_class = user_class
 
@@ -54,7 +48,7 @@ class Request(_Request, t.Generic[AnyUser]):
 
     @property
     def user(self):
-        return t.cast(t.Union[AnyUser, AnonymousUser], super().user)
+        return t.cast(t.Union["AnyUser", AnonymousUser], super().user)
 
     @user.setter
     def user(self, value):
@@ -72,21 +66,30 @@ class Request(_Request, t.Generic[AnyUser]):
     @property
     def auth_user(self):
         """The authenticated user that made the request."""
-        return t.cast(AnyUser, self.user)
+        return t.cast("AnyUser", self.user)
 
     @property
     def teacher_user(self):
         """The authenticated teacher-user that made the request."""
+        # pylint: disable-next=import-outside-toplevel
+        from .user.models import TeacherUser
+
         return self.auth_user.as_type(TeacherUser)
 
     @property
     def school_teacher_user(self):
         """The authenticated school-teacher-user that made the request."""
+        # pylint: disable-next=import-outside-toplevel
+        from .user.models import SchoolTeacherUser
+
         return self.auth_user.as_type(SchoolTeacherUser)
 
     @property
     def admin_school_teacher_user(self):
         """The authenticated admin-school-teacher-user that made the request."""
+        # pylint: disable-next=import-outside-toplevel
+        from .user.models import AdminSchoolTeacherUser
+
         return self.auth_user.as_type(AdminSchoolTeacherUser)
 
     @property
@@ -94,21 +97,33 @@ class Request(_Request, t.Generic[AnyUser]):
         """
         The authenticated non-admin-school-teacher-user that made the request.
         """
+        # pylint: disable-next=import-outside-toplevel
+        from .user.models import NonAdminSchoolTeacherUser
+
         return self.auth_user.as_type(NonAdminSchoolTeacherUser)
 
     @property
     def non_school_teacher_user(self):
         """The authenticated non-school-teacher-user that made the request."""
+        # pylint: disable-next=import-outside-toplevel
+        from .user.models import NonSchoolTeacherUser
+
         return self.auth_user.as_type(NonSchoolTeacherUser)
 
     @property
     def student_user(self):
         """The authenticated student-user that made the request."""
+        # pylint: disable-next=import-outside-toplevel
+        from .user.models import StudentUser
+
         return self.auth_user.as_type(StudentUser)
 
     @property
     def indy_user(self):
         """The authenticated independent-user that made the request."""
+        # pylint: disable-next=import-outside-toplevel
+        from .user.models import IndependentUser
+
         return self.auth_user.as_type(IndependentUser)
 
     @property
