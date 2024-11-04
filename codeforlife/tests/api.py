@@ -13,26 +13,28 @@ from rest_framework.response import Response
 from rest_framework.test import APIClient as _APIClient
 
 from ..types import DataDict, JsonDict
-from ..user.models import AdminSchoolTeacherUser
-from ..user.models import AnyUser as RequestUser
-from ..user.models import (
-    AuthFactor,
-    IndependentUser,
-    NonAdminSchoolTeacherUser,
-    NonSchoolTeacherUser,
-    SchoolTeacherUser,
-    StudentUser,
-    TeacherUser,
-    TypedUser,
-    User,
-)
 from .api_request_factory import APIRequestFactory
 from .test import TestCase
 
-LoginUser = t.TypeVar("LoginUser", bound=User)
+if t.TYPE_CHECKING:
+    from ..user.models import (
+        AdminSchoolTeacherUser,
+        AuthFactor,
+        IndependentUser,
+        NonAdminSchoolTeacherUser,
+        NonSchoolTeacherUser,
+        SchoolTeacherUser,
+        StudentUser,
+        TeacherUser,
+        TypedUser,
+        User,
+    )
+
+    RequestUser = t.TypeVar("RequestUser", bound=User)
+    LoginUser = t.TypeVar("LoginUser", bound=User)
 
 
-class APIClient(_APIClient, t.Generic[RequestUser]):
+class APIClient(_APIClient, t.Generic["RequestUser"]):
     """Base API client to be inherited by all other API clients."""
 
     _test_case: "APITestCase[RequestUser]"
@@ -56,7 +58,7 @@ class APIClient(_APIClient, t.Generic[RequestUser]):
         )
 
     @classmethod
-    def get_request_user_class(cls) -> t.Type[RequestUser]:
+    def get_request_user_class(cls) -> t.Type["RequestUser"]:
         """Get the request's user class.
 
         Returns:
@@ -118,7 +120,10 @@ class APIClient(_APIClient, t.Generic[RequestUser]):
     # Login Helpers
     # --------------------------------------------------------------------------
 
-    def _login_user_type(self, user_type: t.Type[LoginUser], **credentials):
+    def _login_user_type(self, user_type: t.Type["LoginUser"], **credentials):
+        # pylint: disable-next=import-outside-toplevel
+        from ..user.models import AuthFactor
+
         # Logout current user (if any) before logging in next user.
         self.logout()
         assert super().login(
@@ -135,7 +140,7 @@ class APIClient(_APIClient, t.Generic[RequestUser]):
             with patch.object(timezone, "now", return_value=now):
                 assert super().login(
                     request=self.request_factory.post(
-                        user=t.cast(RequestUser, user)
+                        user=t.cast("RequestUser", user)
                     ),
                     otp=otp,
                 ), f'Failed to login with OTP "{otp}" at {now}.'
@@ -162,6 +167,9 @@ class APIClient(_APIClient, t.Generic[RequestUser]):
         Returns:
             The teacher-user.
         """
+        # pylint: disable-next=import-outside-toplevel
+        from ..user.models import TeacherUser
+
         return self._login_user_type(
             TeacherUser, email=email, password=password
         )
@@ -176,6 +184,9 @@ class APIClient(_APIClient, t.Generic[RequestUser]):
         Returns:
             The school-teacher-user.
         """
+        # pylint: disable-next=import-outside-toplevel
+        from ..user.models import SchoolTeacherUser
+
         return self._login_user_type(
             SchoolTeacherUser, email=email, password=password
         )
@@ -192,6 +203,9 @@ class APIClient(_APIClient, t.Generic[RequestUser]):
         Returns:
             The admin-school-teacher-user.
         """
+        # pylint: disable-next=import-outside-toplevel
+        from ..user.models import AdminSchoolTeacherUser
+
         return self._login_user_type(
             AdminSchoolTeacherUser, email=email, password=password
         )
@@ -208,6 +222,9 @@ class APIClient(_APIClient, t.Generic[RequestUser]):
         Returns:
             The non-admin-school-teacher-user.
         """
+        # pylint: disable-next=import-outside-toplevel
+        from ..user.models import NonAdminSchoolTeacherUser
+
         return self._login_user_type(
             NonAdminSchoolTeacherUser, email=email, password=password
         )
@@ -222,6 +239,9 @@ class APIClient(_APIClient, t.Generic[RequestUser]):
         Returns:
             The non-school-teacher-user.
         """
+        # pylint: disable-next=import-outside-toplevel
+        from ..user.models import NonSchoolTeacherUser
+
         return self._login_user_type(
             NonSchoolTeacherUser, email=email, password=password
         )
@@ -239,6 +259,9 @@ class APIClient(_APIClient, t.Generic[RequestUser]):
         Returns:
             The student-user.
         """
+        # pylint: disable-next=import-outside-toplevel
+        from ..user.models import StudentUser
+
         return self._login_user_type(
             StudentUser,
             first_name=first_name,
@@ -256,11 +279,14 @@ class APIClient(_APIClient, t.Generic[RequestUser]):
         Returns:
             The independent-user.
         """
+        # pylint: disable-next=import-outside-toplevel
+        from ..user.models import IndependentUser
+
         return self._login_user_type(
             IndependentUser, email=email, password=password
         )
 
-    def login_as(self, user: TypedUser, password: str = "password"):
+    def login_as(self, user: "TypedUser", password: str = "password"):
         """Log in as a user. The user instance needs to be a user proxy in order
         to know which credentials are required.
 
@@ -268,6 +294,17 @@ class APIClient(_APIClient, t.Generic[RequestUser]):
             user: The user to log in as.
             password: The user's password.
         """
+        # pylint: disable-next=import-outside-toplevel
+        from ..user.models import (
+            AdminSchoolTeacherUser,
+            IndependentUser,
+            NonAdminSchoolTeacherUser,
+            NonSchoolTeacherUser,
+            SchoolTeacherUser,
+            StudentUser,
+            TeacherUser,
+        )
+
         auth_user = None
 
         if isinstance(user, AdminSchoolTeacherUser):
@@ -487,14 +524,14 @@ class APIClient(_APIClient, t.Generic[RequestUser]):
     # pylint: enable=too-many-arguments,redefined-builtin
 
 
-class APITestCase(TestCase, t.Generic[RequestUser]):
+class APITestCase(TestCase, t.Generic["RequestUser"]):
     """Base API test case to be inherited by all other API test cases."""
 
-    client: APIClient[RequestUser]
-    client_class: t.Type[APIClient[RequestUser]] = APIClient
+    client: APIClient["RequestUser"]
+    client_class: t.Type[APIClient["RequestUser"]] = APIClient
 
     @classmethod
-    def get_request_user_class(cls) -> t.Type[RequestUser]:
+    def get_request_user_class(cls) -> t.Type["RequestUser"]:
         """Get the request's user class.
 
         Returns:
