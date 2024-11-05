@@ -1,0 +1,188 @@
+"""
+© Ocado Group
+Created on 05/11/2024 at 17:53:40(+00:00).
+
+Base model list serializers.
+"""
+
+import typing as t
+
+from django.db.models import Model
+from rest_framework.serializers import ListSerializer as _ListSerializer
+from rest_framework.serializers import ValidationError as _ValidationError
+
+from ..types import DataDict, OrderedDataDict
+from .base import BaseSerializer
+
+# pylint: disable=duplicate-code
+if t.TYPE_CHECKING:
+    from ..user.models import User
+
+    RequestUser = t.TypeVar("RequestUser", bound=User)
+else:
+    RequestUser = t.TypeVar("RequestUser")
+
+AnyModel = t.TypeVar("AnyModel", bound=Model)
+# pylint: enable=duplicate-code
+
+BulkCreateDataList = t.List[DataDict]
+BulkUpdateDataDict = t.Dict[t.Any, DataDict]
+Data = t.Union[BulkCreateDataList, BulkUpdateDataDict]
+
+
+class ModelListSerializer(
+    BaseSerializer[RequestUser],
+    _ListSerializer[t.List[AnyModel]],
+    t.Generic[RequestUser, AnyModel],
+):
+    """Base model list serializer for all model list serializers.
+
+    Inherit this class if you wish to custom handle bulk create and/or update.
+
+    class UserListSerializer(ModelListSerializer[User, User]):
+        def create(self, validated_data):
+            ...
+
+        def update(self, instance, validated_data):
+            ...
+
+    class UserSerializer(ModelSerializer[User, User]):
+        class Meta:
+            model = User
+            list_serializer_class = UserListSerializer
+    """
+
+    instance: t.Optional[t.List[AnyModel]]
+    batch_size: t.Optional[int] = None
+
+    @property
+    def view(self):
+        # NOTE: import outside top-level to avoid circular imports.
+        # pylint: disable-next=import-outside-toplevel
+        from ..views import ModelViewSet
+
+        return t.cast(ModelViewSet[RequestUser, AnyModel], super().view)
+
+    @property
+    def non_none_instance(self):
+        """Casts the instance to not None."""
+        return t.cast(t.List[AnyModel], self.instance)
+
+    @classmethod
+    def get_model_class(cls) -> t.Type[AnyModel]:
+        """Get the model view set's class.
+
+        Returns:
+            The model view set's class.
+        """
+        # pylint: disable-next=no-member
+        return t.get_args(cls.__orig_bases__[0])[  # type: ignore[attr-defined]
+            0
+        ]
+
+    def __init__(self, *args, **kwargs):
+        instance = args[0] if args else kwargs.pop("instance", None)
+        if instance is not None and not isinstance(instance, list):
+            instance = list(instance)
+
+        super().__init__(instance, *args[1:], **kwargs)
+
+    def create(self, validated_data: t.List[DataDict]) -> t.List[AnyModel]:
+        """Bulk create many instances of a model.
+
+        https://www.django-rest-framework.org/api-guide/serializers/#customizing-multiple-create
+
+        Args:
+            validated_data: The data used to create the models.
+
+        Returns:
+            The models.
+        """
+        model_class = self.get_model_class()
+        return model_class.objects.bulk_create(  # type: ignore[attr-defined]
+            objs=[model_class(**data) for data in validated_data],
+            batch_size=self.batch_size,
+        )
+
+    def update(
+        self,
+        instance: t.List[AnyModel],
+        validated_data: t.List[DataDict],
+    ) -> t.List[AnyModel]:
+        """Bulk update many instances of a model.
+
+        https://www.django-rest-framework.org/api-guide/serializers/#customizing-multiple-update
+
+        Args:
+            instance: The models to update.
+            validated_data: The field-value pairs to update for each model.
+
+        Returns:
+            The models.
+        """
+        # Models and data must have equal length and be ordered the same!
+        for model, data in zip(instance, validated_data):
+            for field, value in data.items():
+                setattr(model, field, value)
+
+        model_class = self.get_model_class()
+        model_class.objects.bulk_update(  # type: ignore[attr-defined]
+            objs=instance,
+            fields={field for data in validated_data for field in data.keys()},
+            batch_size=self.batch_size,
+        )
+
+        return instance
+
+    def validate(self, attrs: t.List[DataDict]):
+        # If performing a bulk create.
+        if self.instance is None:
+            if len(attrs) == 0:
+                raise _ValidationError(
+                    "Nothing to create.",
+                    code="nothing_to_create",
+                )
+
+        # Else, performing a bulk update.
+        else:
+            if len(attrs) == 0:
+                raise _ValidationError(
+                    "Nothing to update.",
+                    code="nothing_to_update",
+                )
+            if len(attrs) != len(self.instance):
+                raise _ValidationError(
+                    "Some models do not exist.",
+                    code="models_do_not_exist",
+                )
+
+        return attrs
+
+    def to_internal_value(self, data: Data):
+        # If performing a bulk create.
+        if self.instance is None:
+            data = t.cast(BulkCreateDataList, data)
+
+            return t.cast(
+                t.List[OrderedDataDict],
+                super().to_internal_value(data),
+            )
+
+        # Else, performing a bulk update.
+        data = t.cast(BulkUpdateDataDict, data)
+        data_items = list(data.items())
+
+        # Models and data are required to be sorted by the lookup field.
+        data_items.sort(key=lambda item: item[0])
+        self.instance.sort(
+            key=lambda model: getattr(model, self.view.lookup_field)
+        )
+
+        return t.cast(
+            t.List[OrderedDataDict],
+            super().to_internal_value([item[1] for item in data_items]),
+        )
+
+    # pylint: disable-next=useless-parent-delegation,arguments-renamed
+    def to_representation(self, instance: t.List[AnyModel]) -> t.List[DataDict]:
+        return super().to_representation(instance)
