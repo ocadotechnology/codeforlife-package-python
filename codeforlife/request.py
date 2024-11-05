@@ -18,7 +18,9 @@ if t.TYPE_CHECKING:
     from .user.models import User
     from .user.models.session import SessionStore
 
-AnyUser = t.TypeVar("AnyUser")
+    AnyUser = t.TypeVar("AnyUser", bound=User)
+else:
+    AnyUser = t.TypeVar("AnyUser")
 
 
 # pylint: disable-next=missing-class-docstring

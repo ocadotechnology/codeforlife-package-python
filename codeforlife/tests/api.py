@@ -17,24 +17,16 @@ from .api_request_factory import APIRequestFactory
 from .test import TestCase
 
 if t.TYPE_CHECKING:
-    from ..user.models import (
-        AdminSchoolTeacherUser,
-        AuthFactor,
-        IndependentUser,
-        NonAdminSchoolTeacherUser,
-        NonSchoolTeacherUser,
-        SchoolTeacherUser,
-        StudentUser,
-        TeacherUser,
-        TypedUser,
-        User,
-    )
+    from ..user.models import TypedUser, User
 
     RequestUser = t.TypeVar("RequestUser", bound=User)
     LoginUser = t.TypeVar("LoginUser", bound=User)
+else:
+    RequestUser = t.TypeVar("RequestUser")
+    LoginUser = t.TypeVar("LoginUser")
 
 
-class APIClient(_APIClient, t.Generic["RequestUser"]):
+class APIClient(_APIClient, t.Generic[RequestUser]):
     """Base API client to be inherited by all other API clients."""
 
     _test_case: "APITestCase[RequestUser]"
@@ -58,7 +50,7 @@ class APIClient(_APIClient, t.Generic["RequestUser"]):
         )
 
     @classmethod
-    def get_request_user_class(cls) -> t.Type["RequestUser"]:
+    def get_request_user_class(cls) -> t.Type[RequestUser]:
         """Get the request's user class.
 
         Returns:
@@ -120,7 +112,7 @@ class APIClient(_APIClient, t.Generic["RequestUser"]):
     # Login Helpers
     # --------------------------------------------------------------------------
 
-    def _login_user_type(self, user_type: t.Type["LoginUser"], **credentials):
+    def _login_user_type(self, user_type: t.Type[LoginUser], **credentials):
         # pylint: disable-next=import-outside-toplevel
         from ..user.models import AuthFactor
 
@@ -140,7 +132,7 @@ class APIClient(_APIClient, t.Generic["RequestUser"]):
             with patch.object(timezone, "now", return_value=now):
                 assert super().login(
                     request=self.request_factory.post(
-                        user=t.cast("RequestUser", user)
+                        user=t.cast(RequestUser, user)
                     ),
                     otp=otp,
                 ), f'Failed to login with OTP "{otp}" at {now}.'
@@ -524,14 +516,14 @@ class APIClient(_APIClient, t.Generic["RequestUser"]):
     # pylint: enable=too-many-arguments,redefined-builtin
 
 
-class APITestCase(TestCase, t.Generic["RequestUser"]):
+class APITestCase(TestCase, t.Generic[RequestUser]):
     """Base API test case to be inherited by all other API test cases."""
 
-    client: APIClient["RequestUser"]
-    client_class: t.Type[APIClient["RequestUser"]] = APIClient
+    client: APIClient[RequestUser]
+    client_class: t.Type[APIClient[RequestUser]] = APIClient
 
     @classmethod
-    def get_request_user_class(cls) -> t.Type["RequestUser"]:
+    def get_request_user_class(cls) -> t.Type[RequestUser]:
         """Get the request's user class.
 
         Returns:
