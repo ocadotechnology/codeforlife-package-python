@@ -8,6 +8,7 @@ Custom Request which hints to our custom types.
 import typing as t
 
 from django.contrib.auth.models import AbstractBaseUser, AnonymousUser
+from django.contrib.sessions.backends.db import SessionStore as DBStore
 from rest_framework.request import Request as _Request
 
 from ..types import JsonDict, JsonList
@@ -21,12 +22,14 @@ if t.TYPE_CHECKING:
 else:
     AnyUser = t.TypeVar("AnyUser")
 
+AnyDBStore = t.TypeVar("AnyDBStore", bound=DBStore)
 AnyAbstractBaseUser = t.TypeVar("AnyAbstractBaseUser", bound=AbstractBaseUser)
 
 
 # pylint: disable-next=missing-class-docstring,abstract-method
-class BaseRequest(_Request, t.Generic[AnyAbstractBaseUser]):
+class BaseRequest(_Request, t.Generic[AnyDBStore, AnyAbstractBaseUser]):
     data: t.Any
+    session: AnyDBStore
     user: t.Union[AnyAbstractBaseUser, AnonymousUser]
 
     @property
@@ -55,9 +58,7 @@ class BaseRequest(_Request, t.Generic[AnyAbstractBaseUser]):
 
 
 # pylint: disable-next=missing-class-docstring,abstract-method
-class Request(BaseRequest[AnyUser], t.Generic[AnyUser]):
-    session: "SessionStore"
-
+class Request(BaseRequest["SessionStore", AnyUser], t.Generic[AnyUser]):
     def __init__(self, user_class: t.Type[AnyUser], *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.user_class = user_class

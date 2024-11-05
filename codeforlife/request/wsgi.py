@@ -8,6 +8,7 @@ Custom WSGIRequest which hints to our custom types.
 import typing as t
 
 from django.contrib.auth.models import AbstractBaseUser, AnonymousUser
+from django.contrib.sessions.backends.db import SessionStore as DBStore
 from django.core.handlers.wsgi import WSGIRequest as _WSGIRequest
 
 # pylint: disable-next=duplicate-code
@@ -19,14 +20,16 @@ if t.TYPE_CHECKING:
 else:
     AnyUser = t.TypeVar("AnyUser")
 
+AnyDBStore = t.TypeVar("AnyDBStore", bound=DBStore)
 AnyAbstractBaseUser = t.TypeVar("AnyAbstractBaseUser", bound=AbstractBaseUser)
 
 
 # pylint: disable-next=missing-class-docstring
-class BaseWSGIRequest(_WSGIRequest, t.Generic[AnyAbstractBaseUser]):
+class BaseWSGIRequest(_WSGIRequest, t.Generic[AnyDBStore, AnyAbstractBaseUser]):
+    session: AnyDBStore
     user: t.Union[AnyAbstractBaseUser, AnonymousUser]
 
 
 # pylint: disable-next=missing-class-docstring
-class WSGIRequest(BaseWSGIRequest[AnyUser], t.Generic[AnyUser]):
-    session: "SessionStore"
+class WSGIRequest(BaseWSGIRequest["SessionStore", AnyUser], t.Generic[AnyUser]):
+    pass

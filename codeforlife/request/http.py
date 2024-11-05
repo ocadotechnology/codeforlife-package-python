@@ -8,6 +8,7 @@ Custom HttpRequest which hints to our custom types.
 import typing as t
 
 from django.contrib.auth.models import AbstractBaseUser, AnonymousUser
+from django.contrib.sessions.backends.db import SessionStore as DBStore
 from django.http import HttpRequest as _HttpRequest
 
 # pylint: disable-next=duplicate-code
@@ -19,14 +20,16 @@ if t.TYPE_CHECKING:
 else:
     AnyUser = t.TypeVar("AnyUser")
 
+AnyDBStore = t.TypeVar("AnyDBStore", bound=DBStore)
 AnyAbstractBaseUser = t.TypeVar("AnyAbstractBaseUser", bound=AbstractBaseUser)
 
 
 # pylint: disable-next=missing-class-docstring
-class BaseHttpRequest(_HttpRequest, t.Generic[AnyAbstractBaseUser]):
+class BaseHttpRequest(_HttpRequest, t.Generic[AnyDBStore, AnyAbstractBaseUser]):
+    session: AnyDBStore
     user: t.Union[AnyAbstractBaseUser, AnonymousUser]
 
 
 # pylint: disable-next=missing-class-docstring
-class HttpRequest(BaseHttpRequest[AnyUser], t.Generic[AnyUser]):
-    session: "SessionStore"
+class HttpRequest(BaseHttpRequest["SessionStore", AnyUser], t.Generic[AnyUser]):
+    pass
