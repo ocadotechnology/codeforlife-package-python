@@ -19,6 +19,7 @@ class ClassViewSet(ModelViewSet[RequestUser, Class]):
     serializer_class = ClassSerializer
     filterset_class = ClassFilterSet
 
+    # pylint: disable-next=missing-function-docstring
     def get_permissions(self):
         # Only school-teachers can list classes.
         if self.action == "list":
