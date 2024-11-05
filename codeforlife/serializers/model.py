@@ -10,37 +10,33 @@ import typing as t
 from django.db.models import Model
 from rest_framework.serializers import ModelSerializer as _ModelSerializer
 
+from ..request import BaseRequest, Request
 from ..types import DataDict
 from .base import BaseSerializer
 
 # pylint: disable=duplicate-code
 if t.TYPE_CHECKING:
     from ..user.models import User
+    from ..views import BaseModelViewSet, ModelViewSet
 
     RequestUser = t.TypeVar("RequestUser", bound=User)
 else:
     RequestUser = t.TypeVar("RequestUser")
 
 AnyModel = t.TypeVar("AnyModel", bound=Model)
+AnyBaseRequest = t.TypeVar("AnyBaseRequest", bound=BaseRequest)
 # pylint: enable=duplicate-code
 
 
-class ModelSerializer(
-    BaseSerializer[RequestUser],
+class BaseModelSerializer(
+    BaseSerializer[AnyBaseRequest],
     _ModelSerializer[AnyModel],
-    t.Generic[RequestUser, AnyModel],
+    t.Generic[AnyBaseRequest, AnyModel],
 ):
     """Base model serializer for all model serializers."""
 
     instance: t.Optional[AnyModel]
-
-    @property
-    def view(self):
-        # NOTE: import outside top-level to avoid circular imports.
-        # pylint: disable-next=import-outside-toplevel
-        from ..views import ModelViewSet
-
-        return t.cast(ModelViewSet[RequestUser, AnyModel], super().view)
+    view: "BaseModelViewSet[AnyBaseRequest, AnyModel]"
 
     @property
     def non_none_instance(self):
@@ -61,3 +57,12 @@ class ModelSerializer(
     # pylint: disable-next=useless-parent-delegation
     def to_representation(self, instance: AnyModel) -> DataDict:
         return super().to_representation(instance)
+
+
+class ModelSerializer(
+    BaseModelSerializer[Request[RequestUser], AnyModel],
+    t.Generic[RequestUser, AnyModel],
+):
+    """Base model serializer for all model serializers."""
+
+    view: "ModelViewSet[RequestUser, AnyModel]"  # type: ignore[assignment]

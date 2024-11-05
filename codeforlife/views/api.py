@@ -7,9 +7,9 @@ import typing as t
 
 from rest_framework.views import APIView as _APIView
 
-from ..request import Request
+from ..request import BaseRequest, Request
 
-# pylint: disable-next=duplicate-code
+# pylint: disable=duplicate-code
 if t.TYPE_CHECKING:
     from ..user.models import User
 
@@ -17,11 +17,18 @@ if t.TYPE_CHECKING:
 else:
     RequestUser = t.TypeVar("RequestUser")
 
+AnyBaseRequest = t.TypeVar("AnyBaseRequest", bound=BaseRequest)
+
+# pylint: enable=duplicate-code
+
 
 # pylint: disable-next=missing-class-docstring
-class APIView(_APIView, t.Generic[RequestUser]):
-    request: Request[RequestUser]
+class BaseAPIView(_APIView, t.Generic[AnyBaseRequest]):
+    request: AnyBaseRequest
 
+
+# pylint: disable-next=missing-class-docstring
+class APIView(BaseAPIView[Request[RequestUser]], t.Generic[RequestUser]):
     @classmethod
     def get_request_user_class(cls) -> t.Type[RequestUser]:
         """Get the request's user class.
