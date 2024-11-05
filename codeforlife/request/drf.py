@@ -13,7 +13,7 @@ from rest_framework.request import Request as _Request
 
 from ..types import JsonDict, JsonList
 
-# pylint: disable-next=duplicate-code
+# pylint: disable=duplicate-code
 if t.TYPE_CHECKING:
     from ..user.models import User
     from ..user.models.session import SessionStore
@@ -24,6 +24,7 @@ else:
 
 AnyDBStore = t.TypeVar("AnyDBStore", bound=DBStore)
 AnyAbstractBaseUser = t.TypeVar("AnyAbstractBaseUser", bound=AbstractBaseUser)
+# pylint: enable=duplicate-code
 
 
 # pylint: disable-next=missing-class-docstring,abstract-method

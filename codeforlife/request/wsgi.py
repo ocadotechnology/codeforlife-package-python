@@ -11,7 +11,7 @@ from django.contrib.auth.models import AbstractBaseUser, AnonymousUser
 from django.contrib.sessions.backends.db import SessionStore as DBStore
 from django.core.handlers.wsgi import WSGIRequest as _WSGIRequest
 
-# pylint: disable-next=duplicate-code
+# pylint: disable=duplicate-code
 if t.TYPE_CHECKING:
     from ..user.models import User
     from ..user.models.session import SessionStore
@@ -22,6 +22,7 @@ else:
 
 AnyDBStore = t.TypeVar("AnyDBStore", bound=DBStore)
 AnyAbstractBaseUser = t.TypeVar("AnyAbstractBaseUser", bound=AbstractBaseUser)
+# pylint: enable=duplicate-code
 
 
 # pylint: disable-next=missing-class-docstring
