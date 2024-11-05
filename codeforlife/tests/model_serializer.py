@@ -15,9 +15,16 @@ from rest_framework.serializers import BaseSerializer, ValidationError
 
 from ..serializers import ModelListSerializer, ModelSerializer
 from ..types import DataDict
-from ..user.models import AnyUser as RequestUser
 from .api_request_factory import APIRequestFactory
 from .test import TestCase
+
+if t.TYPE_CHECKING:
+    from ..user.models import User
+
+    RequestUser = t.TypeVar("RequestUser", bound=User)
+else:
+    RequestUser = t.TypeVar("RequestUser")
+
 
 AnyModel = t.TypeVar("AnyModel", bound=Model)
 

@@ -13,8 +13,14 @@ from rest_framework.serializers import ModelSerializer as _ModelSerializer
 from rest_framework.serializers import ValidationError as _ValidationError
 
 from ..types import DataDict, OrderedDataDict
-from ..user.models import AnyUser as RequestUser
 from .base import BaseSerializer
+
+if t.TYPE_CHECKING:
+    from ..user.models import User
+
+    RequestUser = t.TypeVar("RequestUser", bound=User)
+else:
+    RequestUser = t.TypeVar("RequestUser")
 
 AnyModel = t.TypeVar("AnyModel", bound=Model)
 

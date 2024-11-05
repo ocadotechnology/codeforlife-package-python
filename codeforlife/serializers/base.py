@@ -11,7 +11,13 @@ from django.views import View
 from rest_framework.serializers import BaseSerializer as _BaseSerializer
 
 from ..request import Request
-from ..user.models import AnyUser as RequestUser
+
+if t.TYPE_CHECKING:
+    from ..user.models import User
+
+    RequestUser = t.TypeVar("RequestUser", bound=User)
+else:
+    RequestUser = t.TypeVar("RequestUser")
 
 
 # pylint: disable-next=abstract-method

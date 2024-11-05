@@ -19,9 +19,15 @@ from rest_framework.response import Response
 from ..permissions import Permission
 from ..serializers import BaseSerializer
 from ..types import DataDict, JsonDict, KwArgs
-from ..user.models import AnyUser as RequestUser
 from ..views import ModelViewSet
 from .api import APIClient, APITestCase
+
+if t.TYPE_CHECKING:
+    from ..user.models import User
+
+    RequestUser = t.TypeVar("RequestUser", bound=User)
+else:
+    RequestUser = t.TypeVar("RequestUser")
 
 AnyModel = t.TypeVar("AnyModel", bound=Model)
 

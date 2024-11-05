@@ -16,7 +16,6 @@ from rest_framework.viewsets import ModelViewSet as DrfModelViewSet
 from ..permissions import Permission
 from ..request import Request
 from ..types import KwArgs
-from ..user.models import AnyUser as RequestUser
 from .api import APIView
 from .decorators import action
 
@@ -24,6 +23,9 @@ AnyModel = t.TypeVar("AnyModel", bound=Model)
 
 if t.TYPE_CHECKING:  # pragma: no cover
     from ..serializers import ModelListSerializer, ModelSerializer
+    from ..user.models import User
+
+    RequestUser = t.TypeVar("RequestUser", bound=User)
 
     # NOTE: This raises an error during runtime.
     # pylint: disable-next=too-few-public-methods
@@ -31,6 +33,8 @@ if t.TYPE_CHECKING:  # pragma: no cover
         pass
 
 else:
+    RequestUser = t.TypeVar("RequestUser")
+
     # pylint: disable-next=too-many-ancestors
     class _ModelViewSet(DrfModelViewSet, t.Generic[AnyModel]):
         pass
