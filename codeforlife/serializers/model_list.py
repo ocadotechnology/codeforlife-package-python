@@ -11,18 +11,21 @@ from django.db.models import Model
 from rest_framework.serializers import ListSerializer as _ListSerializer
 from rest_framework.serializers import ValidationError as _ValidationError
 
+from ..request import BaseRequest, Request
 from ..types import DataDict, OrderedDataDict
 from .base import BaseSerializer
 
 # pylint: disable=duplicate-code
 if t.TYPE_CHECKING:
     from ..user.models import User
+    from ..views import BaseModelViewSet, ModelViewSet
 
     RequestUser = t.TypeVar("RequestUser", bound=User)
 else:
     RequestUser = t.TypeVar("RequestUser")
 
 AnyModel = t.TypeVar("AnyModel", bound=Model)
+AnyBaseRequest = t.TypeVar("AnyBaseRequest", bound=BaseRequest)
 # pylint: enable=duplicate-code
 
 BulkCreateDataList = t.List[DataDict]
@@ -30,10 +33,10 @@ BulkUpdateDataDict = t.Dict[t.Any, DataDict]
 Data = t.Union[BulkCreateDataList, BulkUpdateDataDict]
 
 
-class ModelListSerializer(
-    BaseSerializer[RequestUser],
+class BaseModelListSerializer(
+    BaseSerializer[AnyBaseRequest],
     _ListSerializer[t.List[AnyModel]],
-    t.Generic[RequestUser, AnyModel],
+    t.Generic[AnyBaseRequest, AnyModel],
 ):
     """Base model list serializer for all model list serializers.
 
@@ -54,14 +57,7 @@ class ModelListSerializer(
 
     instance: t.Optional[t.List[AnyModel]]
     batch_size: t.Optional[int] = None
-
-    @property
-    def view(self):
-        # NOTE: import outside top-level to avoid circular imports.
-        # pylint: disable-next=import-outside-toplevel
-        from ..views import ModelViewSet
-
-        return t.cast(ModelViewSet[RequestUser, AnyModel], super().view)
+    view: "BaseModelViewSet[AnyBaseRequest, AnyModel]"
 
     @property
     def non_none_instance(self):
@@ -186,3 +182,27 @@ class ModelListSerializer(
     # pylint: disable-next=useless-parent-delegation,arguments-renamed
     def to_representation(self, instance: t.List[AnyModel]) -> t.List[DataDict]:
         return super().to_representation(instance)
+
+
+class ModelListSerializer(
+    BaseModelListSerializer[Request[RequestUser], AnyModel],
+    t.Generic[RequestUser, AnyModel],
+):
+    """Base model list serializer for all model list serializers.
+
+    Inherit this class if you wish to custom handle bulk create and/or update.
+
+    class UserListSerializer(ModelListSerializer[User, User]):
+        def create(self, validated_data):
+            ...
+
+        def update(self, instance, validated_data):
+            ...
+
+    class UserSerializer(ModelSerializer[User, User]):
+        class Meta:
+            model = User
+            list_serializer_class = UserListSerializer
+    """
+
+    view: "ModelViewSet[RequestUser, AnyModel]"  # type: ignore[assignment]
