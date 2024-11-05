@@ -36,17 +36,41 @@ class HttpRequest(_HttpRequest):
 
 
 # pylint: disable-next=missing-class-docstring,abstract-method
-class Request(_Request, t.Generic[AnyUser]):
-    session: "SessionStore"
+class BaseRequest(_Request, t.Generic[AnyUser]):
     data: t.Any
-
-    def __init__(self, user_class: t.Type[AnyUser], *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.user_class = user_class
+    session: "SessionStore"
+    user: t.Union[AnyUser, AnonymousUser]
 
     @property
     def query_params(self) -> t.Dict[str, str]:  # type: ignore[override]
         return super().query_params
+
+    @property
+    def anon_user(self):
+        """The anonymous user that made the request."""
+        return t.cast(AnonymousUser, self.user)
+
+    @property
+    def auth_user(self):
+        """The authenticated user that made the request."""
+        return t.cast(AnyUser, self.user)
+
+    @property
+    def json_dict(self):
+        """The data as a json dictionary."""
+        return t.cast(JsonDict, self.data)
+
+    @property
+    def json_list(self):
+        """The data as a json list."""
+        return t.cast(JsonList, self.data)
+
+
+# pylint: disable-next=missing-class-docstring,abstract-method
+class Request(BaseRequest[AnyUser], t.Generic[AnyUser]):
+    def __init__(self, user_class: t.Type[AnyUser], *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.user_class = user_class
 
     @property
     def user(self):
@@ -66,16 +90,6 @@ class Request(_Request, t.Generic[AnyUser]):
 
         self._user = value
         self._request.user = value
-
-    @property
-    def anon_user(self):
-        """The anonymous user that made the request."""
-        return t.cast(AnonymousUser, self.user)
-
-    @property
-    def auth_user(self):
-        """The authenticated user that made the request."""
-        return t.cast(AnyUser, self.user)
 
     @property
     def teacher_user(self):
@@ -134,13 +148,3 @@ class Request(_Request, t.Generic[AnyUser]):
         from .user.models import IndependentUser
 
         return self.auth_user.as_type(IndependentUser)
-
-    @property
-    def json_dict(self):
-        """The data as a json dictionary."""
-        return t.cast(JsonDict, self.data)
-
-    @property
-    def json_list(self):
-        """The data as a json list."""
-        return t.cast(JsonList, self.data)
