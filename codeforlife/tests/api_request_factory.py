@@ -16,6 +16,7 @@ from rest_framework.test import APIRequestFactory as _APIRequestFactory
 
 from ..request import Request
 
+# pylint: disable-next=duplicate-code
 if t.TYPE_CHECKING:
     from ..user.models import User
 

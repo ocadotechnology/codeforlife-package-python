@@ -18,6 +18,7 @@ from ..types import DataDict
 from .api_request_factory import APIRequestFactory
 from .test import TestCase
 
+# pylint: disable-next=duplicate-code
 if t.TYPE_CHECKING:
     from ..user.models import User
 

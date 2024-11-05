@@ -22,6 +22,7 @@ from ..types import DataDict, JsonDict, KwArgs
 from ..views import ModelViewSet
 from .api import APIClient, APITestCase
 
+# pylint: disable-next=duplicate-code
 if t.TYPE_CHECKING:
     from ..user.models import User
 

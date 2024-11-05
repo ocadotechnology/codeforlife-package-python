@@ -14,6 +14,7 @@ from rest_framework.request import Request as _Request
 
 from .types import JsonDict, JsonList
 
+# pylint: disable-next=duplicate-code
 if t.TYPE_CHECKING:
     from .user.models import User
     from .user.models.session import SessionStore
