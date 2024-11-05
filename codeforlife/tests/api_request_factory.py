@@ -15,7 +15,13 @@ from rest_framework.parsers import (
 from rest_framework.test import APIRequestFactory as _APIRequestFactory
 
 from ..request import Request
-from ..user.models import AnyUser
+
+if t.TYPE_CHECKING:
+    from ..user.models import User
+
+    AnyUser = t.TypeVar("AnyUser", bound=User)
+else:
+    AnyUser = t.TypeVar("AnyUser")
 
 
 class APIRequestFactory(_APIRequestFactory, t.Generic[AnyUser]):
