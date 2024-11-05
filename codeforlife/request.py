@@ -7,7 +7,7 @@ Override default request objects.
 
 import typing as t
 
-from django.contrib.auth.models import AnonymousUser
+from django.contrib.auth.models import AbstractBaseUser, AnonymousUser
 from django.core.handlers.wsgi import WSGIRequest as _WSGIRequest
 from django.http import HttpRequest as _HttpRequest
 from rest_framework.request import Request as _Request
@@ -22,24 +22,25 @@ if t.TYPE_CHECKING:
 else:
     AnyUser = t.TypeVar("AnyUser")
 
-
-# pylint: disable-next=missing-class-docstring
-class WSGIRequest(_WSGIRequest):
-    session: "SessionStore"
-    user: t.Union["User", AnonymousUser]
+AnyAbstractBaseUser = t.TypeVar("AnyAbstractBaseUser", bound=AbstractBaseUser)
 
 
 # pylint: disable-next=missing-class-docstring
-class HttpRequest(_HttpRequest):
+class WSGIRequest(_WSGIRequest, t.Generic[AnyUser]):
     session: "SessionStore"
-    user: t.Union["User", AnonymousUser]
+    user: t.Union[AnyUser, AnonymousUser]
+
+
+# pylint: disable-next=missing-class-docstring
+class HttpRequest(_HttpRequest, t.Generic[AnyUser]):
+    session: "SessionStore"
+    user: t.Union[AnyUser, AnonymousUser]
 
 
 # pylint: disable-next=missing-class-docstring,abstract-method
-class BaseRequest(_Request, t.Generic[AnyUser]):
+class BaseRequest(_Request, t.Generic[AnyAbstractBaseUser]):
     data: t.Any
-    session: "SessionStore"
-    user: t.Union[AnyUser, AnonymousUser]
+    user: t.Union[AnyAbstractBaseUser, AnonymousUser]
 
     @property
     def query_params(self) -> t.Dict[str, str]:  # type: ignore[override]
@@ -53,7 +54,7 @@ class BaseRequest(_Request, t.Generic[AnyUser]):
     @property
     def auth_user(self):
         """The authenticated user that made the request."""
-        return t.cast(AnyUser, self.user)
+        return t.cast(AnyAbstractBaseUser, self.user)
 
     @property
     def json_dict(self):
@@ -68,6 +69,8 @@ class BaseRequest(_Request, t.Generic[AnyUser]):
 
 # pylint: disable-next=missing-class-docstring,abstract-method
 class Request(BaseRequest[AnyUser], t.Generic[AnyUser]):
+    session: "SessionStore"
+
     def __init__(self, user_class: t.Type[AnyUser], *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.user_class = user_class
