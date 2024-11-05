@@ -8,7 +8,13 @@ import typing as t
 from rest_framework.views import APIView as _APIView
 
 from ..request import Request
-from ..user.models import AnyUser as RequestUser
+
+if t.TYPE_CHECKING:
+    from ..user.models import User
+
+    RequestUser = t.TypeVar("RequestUser", bound=User)
+else:
+    RequestUser = t.TypeVar("RequestUser")
 
 
 # pylint: disable-next=missing-class-docstring
