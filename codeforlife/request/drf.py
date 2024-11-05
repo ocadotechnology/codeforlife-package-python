@@ -1,41 +1,27 @@
 """
 © Ocado Group
-Created on 19/02/2024 at 15:28:22(+00:00).
+Created on 05/11/2024 at 14:41:58(+00:00).
 
-Override default request objects.
+Custom Request which hints to our custom types.
 """
 
 import typing as t
 
 from django.contrib.auth.models import AbstractBaseUser, AnonymousUser
-from django.core.handlers.wsgi import WSGIRequest as _WSGIRequest
-from django.http import HttpRequest as _HttpRequest
 from rest_framework.request import Request as _Request
 
-from .types import JsonDict, JsonList
+from ..types import JsonDict, JsonList
 
 # pylint: disable-next=duplicate-code
 if t.TYPE_CHECKING:
-    from .user.models import User
-    from .user.models.session import SessionStore
+    from ..user.models import User
+    from ..user.models.session import SessionStore
 
     AnyUser = t.TypeVar("AnyUser", bound=User)
 else:
     AnyUser = t.TypeVar("AnyUser")
 
 AnyAbstractBaseUser = t.TypeVar("AnyAbstractBaseUser", bound=AbstractBaseUser)
-
-
-# pylint: disable-next=missing-class-docstring
-class WSGIRequest(_WSGIRequest, t.Generic[AnyUser]):
-    session: "SessionStore"
-    user: t.Union[AnyUser, AnonymousUser]
-
-
-# pylint: disable-next=missing-class-docstring
-class HttpRequest(_HttpRequest, t.Generic[AnyUser]):
-    session: "SessionStore"
-    user: t.Union[AnyUser, AnonymousUser]
 
 
 # pylint: disable-next=missing-class-docstring,abstract-method
@@ -83,7 +69,7 @@ class Request(BaseRequest[AnyUser], t.Generic[AnyUser]):
     @user.setter
     def user(self, value):
         # pylint: disable-next=import-outside-toplevel
-        from .user.models import User
+        from ..user.models import User
 
         if (
             isinstance(value, User)
@@ -99,7 +85,7 @@ class Request(BaseRequest[AnyUser], t.Generic[AnyUser]):
     def teacher_user(self):
         """The authenticated teacher-user that made the request."""
         # pylint: disable-next=import-outside-toplevel
-        from .user.models import TeacherUser
+        from ..user.models import TeacherUser
 
         return self.auth_user.as_type(TeacherUser)
 
@@ -107,7 +93,7 @@ class Request(BaseRequest[AnyUser], t.Generic[AnyUser]):
     def school_teacher_user(self):
         """The authenticated school-teacher-user that made the request."""
         # pylint: disable-next=import-outside-toplevel
-        from .user.models import SchoolTeacherUser
+        from ..user.models import SchoolTeacherUser
 
         return self.auth_user.as_type(SchoolTeacherUser)
 
@@ -115,7 +101,7 @@ class Request(BaseRequest[AnyUser], t.Generic[AnyUser]):
     def admin_school_teacher_user(self):
         """The authenticated admin-school-teacher-user that made the request."""
         # pylint: disable-next=import-outside-toplevel
-        from .user.models import AdminSchoolTeacherUser
+        from ..user.models import AdminSchoolTeacherUser
 
         return self.auth_user.as_type(AdminSchoolTeacherUser)
 
@@ -125,7 +111,7 @@ class Request(BaseRequest[AnyUser], t.Generic[AnyUser]):
         The authenticated non-admin-school-teacher-user that made the request.
         """
         # pylint: disable-next=import-outside-toplevel
-        from .user.models import NonAdminSchoolTeacherUser
+        from ..user.models import NonAdminSchoolTeacherUser
 
         return self.auth_user.as_type(NonAdminSchoolTeacherUser)
 
@@ -133,7 +119,7 @@ class Request(BaseRequest[AnyUser], t.Generic[AnyUser]):
     def non_school_teacher_user(self):
         """The authenticated non-school-teacher-user that made the request."""
         # pylint: disable-next=import-outside-toplevel
-        from .user.models import NonSchoolTeacherUser
+        from ..user.models import NonSchoolTeacherUser
 
         return self.auth_user.as_type(NonSchoolTeacherUser)
 
@@ -141,7 +127,7 @@ class Request(BaseRequest[AnyUser], t.Generic[AnyUser]):
     def student_user(self):
         """The authenticated student-user that made the request."""
         # pylint: disable-next=import-outside-toplevel
-        from .user.models import StudentUser
+        from ..user.models import StudentUser
 
         return self.auth_user.as_type(StudentUser)
 
@@ -149,6 +135,6 @@ class Request(BaseRequest[AnyUser], t.Generic[AnyUser]):
     def indy_user(self):
         """The authenticated independent-user that made the request."""
         # pylint: disable-next=import-outside-toplevel
-        from .user.models import IndependentUser
+        from ..user.models import IndependentUser
 
         return self.auth_user.as_type(IndependentUser)
