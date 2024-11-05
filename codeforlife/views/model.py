@@ -21,6 +21,7 @@ from .decorators import action
 
 AnyModel = t.TypeVar("AnyModel", bound=Model)
 
+# pylint: disable-next=duplicate-code
 if t.TYPE_CHECKING:  # pragma: no cover
     from ..serializers import ModelListSerializer, ModelSerializer
     from ..user.models import User

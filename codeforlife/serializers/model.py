@@ -15,6 +15,7 @@ from rest_framework.serializers import ValidationError as _ValidationError
 from ..types import DataDict, OrderedDataDict
 from .base import BaseSerializer
 
+# pylint: disable-next=duplicate-code
 if t.TYPE_CHECKING:
     from ..user.models import User
 

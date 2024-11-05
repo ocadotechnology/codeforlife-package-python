@@ -12,6 +12,7 @@ from rest_framework.serializers import BaseSerializer as _BaseSerializer
 
 from ..request import Request
 
+# pylint: disable-next=duplicate-code
 if t.TYPE_CHECKING:
     from ..user.models import User
 

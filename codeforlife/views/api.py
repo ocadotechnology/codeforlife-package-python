@@ -9,6 +9,7 @@ from rest_framework.views import APIView as _APIView
 
 from ..request import Request
 
+# pylint: disable-next=duplicate-code
 if t.TYPE_CHECKING:
     from ..user.models import User
 
