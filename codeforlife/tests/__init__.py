@@ -9,8 +9,12 @@ from .api import APIClient, APITestCase
 from .api_request_factory import APIRequestFactory, BaseAPIRequestFactory
 from .cron import CronTestCase
 from .model import ModelTestCase
-from .model_serializer import (
+from .model_list_serializer import (
+    BaseModelListSerializerTestCase,
     ModelListSerializerTestCase,
+)
+from .model_serializer import (
+    BaseModelSerializerTestCase,
     ModelSerializerTestCase,
 )
 from .model_view_set import ModelViewSetClient, ModelViewSetTestCase

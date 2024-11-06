@@ -13,12 +13,16 @@ from django.db.models import Model
 from django.forms.models import model_to_dict
 from rest_framework.serializers import BaseSerializer, ValidationError
 
-from ..serializers import ModelListSerializer, ModelSerializer
+from ..serializers import (
+    BaseModelSerializer,
+    ModelListSerializer,
+    ModelSerializer,
+)
 from ..types import DataDict
-from .api_request_factory import APIRequestFactory
+from .api_request_factory import APIRequestFactory, BaseAPIRequestFactory
 from .test import TestCase
 
-# pylint: disable-next=duplicate-code
+# pylint: disable=duplicate-code
 if t.TYPE_CHECKING:
     from ..user.models import User
 
@@ -26,49 +30,44 @@ if t.TYPE_CHECKING:
 else:
     RequestUser = t.TypeVar("RequestUser")
 
-
 AnyModel = t.TypeVar("AnyModel", bound=Model)
+AnyBaseModelSerializer = t.TypeVar(
+    "AnyBaseModelSerializer", bound=BaseModelSerializer
+)
+AnyBaseAPIRequestFactory = t.TypeVar(
+    "AnyBaseAPIRequestFactory", bound=BaseAPIRequestFactory
+)
+# pylint: enable=duplicate-code
 
 
-class ModelSerializerTestCase(TestCase, t.Generic[RequestUser, AnyModel]):
+class BaseModelSerializerTestCase(
+    TestCase,
+    t.Generic[AnyBaseModelSerializer, AnyBaseAPIRequestFactory, AnyModel],
+):
     """Base for all model serializer test cases."""
 
-    model_serializer_class: t.Type[ModelSerializer[RequestUser, AnyModel]]
+    model_serializer_class: t.Type[AnyBaseModelSerializer]
 
-    request_factory: APIRequestFactory[RequestUser]
+    request_factory: AnyBaseAPIRequestFactory
+    request_factory_class: t.Type[AnyBaseAPIRequestFactory]
+
+    REQUIRED_ATTRS: t.Set[str] = {
+        "model_serializer_class",
+        "request_factory_class",
+    }
+
+    @classmethod
+    def _initialize_request_factory(cls, **kwargs):
+        return cls.request_factory_class(**kwargs)
 
     @classmethod
     def setUpClass(cls):
-        attr_name = "model_serializer_class"
-        assert hasattr(cls, attr_name), f'Attribute "{attr_name}" must be set.'
+        for attr in cls.REQUIRED_ATTRS:
+            assert hasattr(cls, attr), f'Attribute "{attr}" must be set.'
 
-        cls.request_factory = APIRequestFactory(cls.get_request_user_class())
+        cls.request_factory = cls._initialize_request_factory()
 
         return super().setUpClass()
-
-    @classmethod
-    def get_request_user_class(cls) -> t.Type[AnyModel]:
-        """Get the model view set's class.
-
-        Returns:
-            The model view set's class.
-        """
-        # pylint: disable-next=no-member
-        return t.get_args(cls.__orig_bases__[0])[  # type: ignore[attr-defined]
-            0
-        ]
-
-    @classmethod
-    def get_model_class(cls) -> t.Type[AnyModel]:
-        """Get the model view set's class.
-
-        Returns:
-            The model view set's class.
-        """
-        # pylint: disable-next=no-member
-        return t.get_args(cls.__orig_bases__[0])[  # type: ignore[attr-defined]
-            1
-        ]
 
     # --------------------------------------------------------------------------
     # Private helpers.
@@ -379,31 +378,43 @@ class ModelSerializerTestCase(TestCase, t.Generic[RequestUser, AnyModel]):
         self._assert_data_is_subset_of_model(data, instance)
 
 
-class ModelListSerializerTestCase(
-    ModelSerializerTestCase[RequestUser, AnyModel],
+class ModelSerializerTestCase(
+    BaseModelSerializerTestCase[
+        ModelSerializer[RequestUser, AnyModel],
+        APIRequestFactory[RequestUser],
+        AnyModel,
+    ],
     t.Generic[RequestUser, AnyModel],
 ):
     """Base for all model serializer test cases."""
 
-    model_list_serializer_class: t.Type[
-        ModelListSerializer[RequestUser, AnyModel]
-    ]
+    request_factory_class = APIRequestFactory
 
     @classmethod
-    def setUpClass(cls):
-        attr_name = "model_list_serializer_class"
-        assert hasattr(cls, attr_name), f'Attribute "{attr_name}" must be set.'
+    def get_request_user_class(cls) -> t.Type[AnyModel]:
+        """Get the model view set's class.
 
-        return super().setUpClass()
+        Returns:
+            The model view set's class.
+        """
+        # pylint: disable-next=no-member
+        return t.get_args(cls.__orig_bases__[0])[  # type: ignore[attr-defined]
+            0
+        ]
 
-    # --------------------------------------------------------------------------
-    # Private helpers.
-    # --------------------------------------------------------------------------
+    @classmethod
+    def get_model_class(cls) -> t.Type[AnyModel]:
+        """Get the model view set's class.
 
-    def _init_model_serializer(self, *args, parent=None, **kwargs):
-        kwargs.setdefault("child", self.model_serializer_class())
-        serializer = self.model_list_serializer_class(*args, **kwargs)
-        if parent:
-            serializer.parent = parent
+        Returns:
+            The model view set's class.
+        """
+        # pylint: disable-next=no-member
+        return t.get_args(cls.__orig_bases__[0])[  # type: ignore[attr-defined]
+            1
+        ]
 
-        return serializer
+    @classmethod
+    def _initialize_request_factory(cls, **kwargs):
+        kwargs["user_class"] = cls.get_request_user_class()
+        return super()._initialize_request_factory(**kwargs)
