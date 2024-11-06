@@ -6,6 +6,7 @@ Created on 05/02/2024 at 09:50:04(+00:00).
 """
 import string
 import typing as t
+from datetime import datetime
 
 from common.models import TotalActivity, UserProfile
 
@@ -18,6 +19,7 @@ from django.utils.crypto import get_random_string
 from pyotp import TOTP
 
 from ... import mail
+from ...models import AbstractBaseUser
 from .klass import Class
 from .school import School
 
@@ -33,7 +35,16 @@ else:
     TypedModelMeta = object
 
 
-class User(_User):
+# TODO: remove in new schema
+class _AbstractBaseUser(AbstractBaseUser):
+    password: str = None  # type: ignore[assignment]
+    last_login: datetime = None  # type: ignore[assignment]
+
+    class Meta(TypedModelMeta):
+        abstract = True
+
+
+class User(_AbstractBaseUser, _User):
     """A proxy to Django's user class."""
 
     _password: t.Optional[str]
