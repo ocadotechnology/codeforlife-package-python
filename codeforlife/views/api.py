@@ -25,10 +25,25 @@ AnyBaseRequest = t.TypeVar("AnyBaseRequest", bound=BaseRequest)
 # pylint: disable-next=missing-class-docstring
 class BaseAPIView(_APIView, t.Generic[AnyBaseRequest]):
     request: AnyBaseRequest
+    request_class: t.Type[AnyBaseRequest]
+
+    def initialize_request(self, request, *args, **kwargs):
+        # NOTE: Call to super has side effects and is required.
+        super().initialize_request(request, *args, **kwargs)
+
+        return self.request_class(
+            request=request,
+            parsers=self.get_parsers(),
+            authenticators=self.get_authenticators(),
+            negotiator=self.get_content_negotiator(),
+            parser_context=self.get_parser_context(request),
+        )
 
 
 # pylint: disable-next=missing-class-docstring
 class APIView(BaseAPIView[Request[RequestUser]], t.Generic[RequestUser]):
+    request_class = Request
+
     @classmethod
     def get_request_user_class(cls) -> t.Type[RequestUser]:
         """Get the request's user class.
@@ -45,7 +60,7 @@ class APIView(BaseAPIView[Request[RequestUser]], t.Generic[RequestUser]):
         # NOTE: Call to super has side effects and is required.
         super().initialize_request(request, *args, **kwargs)
 
-        return Request(
+        return self.request_class(
             user_class=self.get_request_user_class(),
             request=request,
             parsers=self.get_parsers(),
