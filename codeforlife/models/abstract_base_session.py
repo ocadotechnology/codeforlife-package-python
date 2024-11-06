@@ -14,6 +14,7 @@ from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 from .abstract_base_user import AbstractBaseUser
+from .base import Model
 
 if t.TYPE_CHECKING:
     from django_stubs_ext.db.models import TypedModelMeta
@@ -23,7 +24,7 @@ else:
     TypedModelMeta = object
 
 
-class AbstractBaseSession(_AbstractBaseSession):
+class AbstractBaseSession(Model, _AbstractBaseSession):
     """
     Base session class to be inherited by all session classes.
     https://docs.djangoproject.com/en/3.2/topics/http/sessions/#example

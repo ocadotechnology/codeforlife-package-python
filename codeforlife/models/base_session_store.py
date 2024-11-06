@@ -56,7 +56,8 @@ class BaseSessionStore(
             session: The anon session.
             user_id: The user to associate.
         """
-        session.user = self.get_user_class().objects.get(id=user_id)
+        objects = self.get_user_class().objects  # type: ignore[attr-defined]
+        session.user = objects.get(id=user_id)
 
     def create_model_instance(self, data):
         try:
