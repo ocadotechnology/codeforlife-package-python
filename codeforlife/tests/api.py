@@ -5,7 +5,7 @@ Created on 23/02/2024 at 08:46:27(+00:00).
 
 import typing as t
 
-from .api_client import APIClient
+from .api_client import APIClient, BaseAPIClient
 from .test import TestCase
 
 # pylint: disable=duplicate-code
@@ -15,14 +15,25 @@ if t.TYPE_CHECKING:
     RequestUser = t.TypeVar("RequestUser", bound=User)
 else:
     RequestUser = t.TypeVar("RequestUser")
+
+AnyBaseAPIClient = t.TypeVar("AnyBaseAPIClient", bound=BaseAPIClient)
 # pylint: enable=duplicate-code
 
 
-class APITestCase(TestCase, t.Generic[RequestUser]):
+class BaseAPITestCase(TestCase, t.Generic[AnyBaseAPIClient]):
     """Base API test case to be inherited by all other API test cases."""
 
-    client: APIClient[RequestUser]
-    client_class: t.Type[APIClient[RequestUser]] = APIClient
+    client: AnyBaseAPIClient
+    client_class: t.Type[AnyBaseAPIClient]
+
+
+class APITestCase(
+    BaseAPITestCase[APIClient[RequestUser]],
+    t.Generic[RequestUser],
+):
+    """Base API test case to be inherited by all other API test cases."""
+
+    client_class = APIClient
 
     @classmethod
     def get_request_user_class(cls) -> t.Type[RequestUser]:
