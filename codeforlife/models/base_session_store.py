@@ -72,7 +72,9 @@ class BaseSessionStore(
             session = model_class.objects.get(user_id=user_id)
         except model_class.DoesNotExist:
             session = model_class.objects.get(session_key=self.session_key)
-            self.associate_session_to_user(session, user_id)
+            self.associate_session_to_user(
+                t.cast(AnyAbstractBaseSession, session), user_id
+            )
 
         session.session_data = self.encode(data)
 

@@ -10,7 +10,6 @@ from django.contrib.sessions.base_session import (
     AbstractBaseSession as _AbstractBaseSession,
 )
 from django.db import models
-from django.db.models import Manager
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
@@ -31,7 +30,6 @@ class AbstractBaseSession(_AbstractBaseSession):
     """
 
     pk: str  # type: ignore[assignment]
-    objects: Manager[t.Self]
 
     user_id: int
     user = models.OneToOneField(

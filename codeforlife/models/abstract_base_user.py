@@ -6,7 +6,6 @@ Created on 06/11/2024 at 16:38:15(+00:00).
 import typing as t
 
 from django.contrib.auth.models import AbstractBaseUser as _AbstractBaseUser
-from django.db.models import Manager
 from django.utils.translation import gettext_lazy as _
 
 if t.TYPE_CHECKING:
@@ -26,7 +25,6 @@ class AbstractBaseUser(_AbstractBaseUser):
     id: int
     pk: int
     session: "AbstractBaseSession"
-    objects: Manager[t.Self]
 
     # pylint: disable-next=missing-class-docstring,too-few-public-methods
     class Meta(TypedModelMeta):
