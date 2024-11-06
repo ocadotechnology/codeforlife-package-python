@@ -35,6 +35,7 @@ AnyModel = t.TypeVar("AnyModel", bound=Model)
 # pylint: disable=no-member,too-many-arguments
 
 
+# pylint: disable-next=too-many-ancestors
 class ModelViewSetClient(
     APIClient[RequestUser], t.Generic[RequestUser, AnyModel]
 ):
@@ -613,6 +614,7 @@ class ModelViewSetClient(
 # pylint: enable=no-member
 
 
+# pylint: disable-next=too-many-ancestors
 class ModelViewSetTestCase(
     APITestCase[RequestUser], t.Generic[RequestUser, AnyModel]
 ):
