@@ -10,11 +10,11 @@ from django.contrib.sessions.base_session import (
     AbstractBaseSession as _AbstractBaseSession,
 )
 from django.db import models
+from django.db.models import Manager
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 from .abstract_base_user import AbstractBaseUser
-from .base import Model
 
 if t.TYPE_CHECKING:
     from django_stubs_ext.db.models import TypedModelMeta
@@ -24,13 +24,14 @@ else:
     TypedModelMeta = object
 
 
-class AbstractBaseSession(Model, _AbstractBaseSession):
+class AbstractBaseSession(_AbstractBaseSession):
     """
     Base session class to be inherited by all session classes.
     https://docs.djangoproject.com/en/3.2/topics/http/sessions/#example
     """
 
     pk: str  # type: ignore[assignment]
+    objects: Manager[t.Self]
 
     user_id: int
     user = models.OneToOneField(
