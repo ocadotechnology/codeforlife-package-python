@@ -20,8 +20,12 @@ if t.TYPE_CHECKING:
     from ..views import BaseModelViewSet, ModelViewSet
 
     RequestUser = t.TypeVar("RequestUser", bound=User)
+    AnyBaseModelViewSet = t.TypeVar(
+        "AnyBaseModelViewSet", bound=BaseModelViewSet
+    )
 else:
     RequestUser = t.TypeVar("RequestUser")
+    AnyBaseModelViewSet = t.TypeVar("AnyBaseModelViewSet")
 
 AnyModel = t.TypeVar("AnyModel", bound=Model)
 AnyBaseRequest = t.TypeVar("AnyBaseRequest", bound=BaseRequest)
@@ -31,12 +35,12 @@ AnyBaseRequest = t.TypeVar("AnyBaseRequest", bound=BaseRequest)
 class BaseModelSerializer(
     BaseSerializer[AnyBaseRequest],
     _ModelSerializer[AnyModel],
-    t.Generic[AnyBaseRequest, AnyModel],
+    t.Generic[AnyBaseRequest, AnyBaseModelViewSet, AnyModel],
 ):
     """Base model serializer for all model serializers."""
 
     instance: t.Optional[AnyModel]
-    view: "BaseModelViewSet[AnyBaseRequest, AnyModel]"
+    view: AnyBaseModelViewSet
 
     @property
     def non_none_instance(self):
@@ -60,9 +64,11 @@ class BaseModelSerializer(
 
 
 class ModelSerializer(
-    BaseModelSerializer[Request[RequestUser], AnyModel],
+    BaseModelSerializer[
+        Request[RequestUser],
+        "ModelViewSet[RequestUser, AnyModel]",
+        AnyModel,
+    ],
     t.Generic[RequestUser, AnyModel],
 ):
     """Base model serializer for all model serializers."""
-
-    view: "ModelViewSet[RequestUser, AnyModel]"  # type: ignore[assignment]
