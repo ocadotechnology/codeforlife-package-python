@@ -8,18 +8,20 @@ Base test case for all model view sets.
 import typing as t
 from datetime import datetime
 
+from django.contrib.auth import get_user_model
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Model
 from django.urls import reverse
 
+from ..models import AbstractBaseUser
 from ..permissions import Permission
 from ..serializers import BaseSerializer
 from ..types import DataDict, JsonDict, KwArgs
-from ..views import ModelViewSet
-from .api import APITestCase
-from .model_view_set_client import ModelViewSetClient
+from ..views import BaseModelViewSet, ModelViewSet
+from .api import APITestCase, BaseAPITestCase
+from .model_view_set_client import BaseModelViewSetClient, ModelViewSetClient
 
-# pylint: disable-next=duplicate-code
+# pylint: disable=duplicate-code
 if t.TYPE_CHECKING:
     from ..user.models import User
 
@@ -28,21 +30,32 @@ else:
     RequestUser = t.TypeVar("RequestUser")
 
 AnyModel = t.TypeVar("AnyModel", bound=Model)
-# pylint: disable=no-member,too-many-arguments
+AnyBaseModelViewSetClient = t.TypeVar(
+    "AnyBaseModelViewSetClient", bound=BaseModelViewSetClient
+)
+AnyBaseModelViewSet = t.TypeVar("AnyBaseModelViewSet", bound=BaseModelViewSet)
+# pylint: enable=duplicate-code
 
 
-# pylint: disable-next=too-many-ancestors
-class ModelViewSetTestCase(
-    APITestCase[RequestUser], t.Generic[RequestUser, AnyModel]
+class BaseModelViewSetTestCase(
+    BaseAPITestCase[AnyBaseModelViewSetClient],
+    t.Generic[AnyBaseModelViewSet, AnyBaseModelViewSetClient, AnyModel],
 ):
     """Base for all model view set test cases."""
 
     basename: str
-    model_view_set_class: t.Type[ModelViewSet[RequestUser, AnyModel]]
-    client: ModelViewSetClient[RequestUser, AnyModel]
-    client_class: t.Type[ModelViewSetClient[RequestUser, AnyModel]] = (
-        ModelViewSetClient
-    )
+    model_view_set_class: t.Type[AnyBaseModelViewSet]
+
+    REQUIRED_ATTRS: t.Set[str] = {"model_view_set_class", "basename"}
+
+    @classmethod
+    def get_request_user_class(cls):
+        """Get the request's user class.
+
+        Returns:
+            The request's user class.
+        """
+        return t.cast(AbstractBaseUser, get_user_model())
 
     @classmethod
     def get_model_class(cls) -> t.Type[AnyModel]:
@@ -53,28 +66,15 @@ class ModelViewSetTestCase(
         """
         # pylint: disable-next=no-member
         return t.get_args(cls.__orig_bases__[0])[  # type: ignore[attr-defined]
-            1
+            2
         ]
 
     @classmethod
     def setUpClass(cls):
-        for attr in ["model_view_set_class", "basename"]:
+        for attr in cls.REQUIRED_ATTRS:
             assert hasattr(cls, attr), f'Attribute "{attr}" must be set.'
 
         return super().setUpClass()
-
-    def _get_client_class(self):
-        # TODO: unpack type args in index after moving to python 3.11
-        # pylint: disable-next=too-few-public-methods
-        class _Client(
-            self.client_class[  # type: ignore[misc]
-                self.get_request_user_class(),
-                self.get_model_class(),
-            ]
-        ):
-            _test_case = self
-
-        return _Client
 
     def reverse_action(
         self,
@@ -113,6 +113,7 @@ class ModelViewSetTestCase(
     # Assertion Helpers
     # --------------------------------------------------------------------------
 
+    # pylint: disable-next=too-many-arguments
     def assert_serialized_model_equals_json_model(
         self,
         model: AnyModel,
@@ -135,11 +136,8 @@ class ModelViewSetTestCase(
         """
         # Get the logged-in user.
         try:
-            user = t.cast(
-                RequestUser,
-                self.get_request_user_class().objects.get(
-                    session=self.client.session.session_key
-                ),
+            user = self.get_request_user_class().objects.get(
+                session=self.client.session.session_key
             )
         except ObjectDoesNotExist:
             user = None  # NOTE: no user has logged in.
@@ -147,6 +145,7 @@ class ModelViewSetTestCase(
         # Create an instance of the model view set and serializer.
         model_view_set = self.model_view_set_class(
             action=action.replace("-", "_"),
+            # pylint: disable-next=no-member
             request=self.client.request_factory.generic(
                 request_method, user=user
             ),
@@ -239,6 +238,7 @@ class ModelViewSetTestCase(
             serializer_context: The serializer's context.
             action: The model view set's action.
         """
+        # pylint: disable-next=no-member
         kwargs.setdefault("request", self.client.request_factory.get())
         kwargs.setdefault("format_kwarg", None)
         model_view_set = self.model_view_set_class(
@@ -249,3 +249,55 @@ class ModelViewSetTestCase(
             actual_serializer_context | serializer_context,
             actual_serializer_context,
         )
+
+
+# pylint: disable-next=too-many-ancestors
+class ModelViewSetTestCase(
+    BaseModelViewSetTestCase[
+        ModelViewSet[RequestUser, AnyModel],
+        ModelViewSetClient[RequestUser, AnyModel],
+        AnyModel,
+    ],
+    APITestCase[RequestUser],
+    t.Generic[RequestUser, AnyModel],
+):
+    """Base for all model view set test cases."""
+
+    client_class = ModelViewSetClient
+
+    @classmethod
+    def get_request_user_class(cls) -> t.Type[RequestUser]:
+        """Get the request's user class.
+
+        Returns:
+            The request's user class.
+        """
+        # pylint: disable-next=no-member
+        return t.get_args(cls.__orig_bases__[0])[  # type: ignore[attr-defined]
+            0
+        ]
+
+    @classmethod
+    def get_model_class(cls) -> t.Type[AnyModel]:
+        """Get the model view set's class.
+
+        Returns:
+            The model view set's class.
+        """
+        # pylint: disable-next=no-member
+        return t.get_args(cls.__orig_bases__[0])[  # type: ignore[attr-defined]
+            1
+        ]
+
+    def _get_client_class(self):
+        # TODO: unpack type args in index after moving to python 3.11
+        # pylint: disable-next=too-few-public-methods
+        class _Client(
+            self.client_class[  # type: ignore[misc]
+                self.get_request_user_class(),
+                self.get_model_class(),
+            ]
+        ):
+            _test_case = self
+
+        return _Client

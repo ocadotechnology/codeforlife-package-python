@@ -14,31 +14,38 @@ from rest_framework import status
 from rest_framework.response import Response
 
 from ..types import DataDict, JsonDict, KwArgs
-from .api import APIClient
+from .api import APIClient, BaseAPIClient
+from .api_request_factory import APIRequestFactory, BaseAPIRequestFactory
 
-# pylint: disable-next=duplicate-code
+# pylint: disable=duplicate-code
 if t.TYPE_CHECKING:
     from ..user.models import User
-    from .model_view_set import ModelViewSetTestCase
+    from .model_view_set import BaseModelViewSetTestCase, ModelViewSetTestCase
 
     RequestUser = t.TypeVar("RequestUser", bound=User)
+    AnyBaseModelViewSetTestCase = t.TypeVar(
+        "AnyBaseModelViewSetTestCase", bound=BaseModelViewSetTestCase
+    )
 else:
     RequestUser = t.TypeVar("RequestUser")
+    AnyBaseModelViewSetTestCase = t.TypeVar("AnyBaseModelViewSetTestCase")
 
 AnyModel = t.TypeVar("AnyModel", bound=Model)
-# pylint: disable=no-member,too-many-arguments
+AnyBaseAPIRequestFactory = t.TypeVar(
+    "AnyBaseAPIRequestFactory", bound=BaseAPIRequestFactory
+)
+# pylint: enable=duplicate-code
 
 
 # pylint: disable-next=too-many-ancestors
-class ModelViewSetClient(
-    APIClient[RequestUser], t.Generic[RequestUser, AnyModel]
+class BaseModelViewSetClient(
+    BaseAPIClient[AnyBaseModelViewSetTestCase, AnyBaseAPIRequestFactory],
+    t.Generic[AnyBaseModelViewSetTestCase, AnyBaseAPIRequestFactory],
 ):
     """
     An API client that helps make requests to a model view set and assert their
     responses.
     """
-
-    _test_case: "ModelViewSetTestCase[RequestUser, AnyModel]"
 
     @property
     def _model_class(self):
@@ -197,6 +204,7 @@ class ModelViewSetClient(
 
         return response
 
+    # pylint: disable-next=too-many-arguments
     def list(
         self,
         models: t.Collection[AnyModel],
@@ -258,6 +266,7 @@ class ModelViewSetClient(
     # Partial Update (HTTP PATCH)
     # --------------------------------------------------------------------------
 
+    # pylint: disable-next=too-many-arguments
     def _assert_update(
         self,
         model: AnyModel,
@@ -271,6 +280,7 @@ class ModelViewSetClient(
             model, json_model, action, request_method, contains_subset=partial
         )
 
+    # pylint: disable-next=too-many-arguments
     def partial_update(
         self,
         model: AnyModel,
@@ -321,6 +331,7 @@ class ModelViewSetClient(
 
         return response
 
+    # pylint: disable-next=too-many-arguments
     def bulk_partial_update(
         self,
         models: t.Union[t.List[AnyModel], QuerySet[AnyModel]],
@@ -381,6 +392,7 @@ class ModelViewSetClient(
     # Update (HTTP PUT)
     # --------------------------------------------------------------------------
 
+    # pylint: disable-next=too-many-arguments
     def update(
         self,
         model: AnyModel,
@@ -431,6 +443,7 @@ class ModelViewSetClient(
 
         return response
 
+    # pylint: disable-next=too-many-arguments
     def bulk_update(
         self,
         models: t.Union[t.List[AnyModel], QuerySet[AnyModel]],
@@ -605,4 +618,16 @@ class ModelViewSetClient(
         return response
 
 
-# pylint: enable=no-member
+# pylint: disable-next=too-many-ancestors
+class ModelViewSetClient(  # type: ignore[misc]
+    BaseModelViewSetClient[
+        "ModelViewSetTestCase[RequestUser, AnyModel]",
+        APIRequestFactory[RequestUser],
+    ],
+    APIClient[RequestUser],
+    t.Generic[RequestUser, AnyModel],
+):
+    """
+    An API client that helps make requests to a model view set and assert their
+    responses.
+    """
