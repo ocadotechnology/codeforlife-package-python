@@ -7,8 +7,6 @@ Reusable type hints.
 
 import typing as t
 
-T = t.TypeVar("T")
-
 Args = t.Tuple[t.Any, ...]
 KwArgs = t.Dict[str, t.Any]
 
