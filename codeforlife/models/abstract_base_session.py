@@ -5,7 +5,6 @@ Created on 06/11/2024 at 16:44:56(+00:00).
 
 import typing as t
 
-from django.contrib.auth import get_user_model
 from django.contrib.sessions.base_session import (
     AbstractBaseSession as _AbstractBaseSession,
 )
@@ -15,12 +14,16 @@ from django.utils.translation import gettext_lazy as _
 
 from .abstract_base_user import AbstractBaseUser
 
+# pylint: disable=duplicate-code
 if t.TYPE_CHECKING:
     from django_stubs_ext.db.models import TypedModelMeta
 
     from .base_session_store import BaseSessionStore
 else:
     TypedModelMeta = object
+
+AnyAbstractBaseUser = t.TypeVar("AnyAbstractBaseUser", bound=AbstractBaseUser)
+# pylint: enable=duplicate-code
 
 
 class AbstractBaseSession(_AbstractBaseSession):
@@ -32,12 +35,6 @@ class AbstractBaseSession(_AbstractBaseSession):
     pk: str  # type: ignore[assignment]
 
     user_id: int
-    user = models.OneToOneField(
-        t.cast(t.Type[AbstractBaseUser], get_user_model()),
-        null=True,
-        blank=True,
-        on_delete=models.CASCADE,
-    )
 
     # pylint: disable-next=missing-class-docstring,too-few-public-methods
     class Meta(TypedModelMeta):
@@ -58,3 +55,24 @@ class AbstractBaseSession(_AbstractBaseSession):
     @classmethod
     def get_session_store_class(cls) -> t.Type["BaseSessionStore"]:
         raise NotImplementedError
+
+    @staticmethod
+    def init_user_field(user_class: t.Type[AnyAbstractBaseUser]):
+        """Initializes the user field that relates a session to a user.
+
+        Example:
+            class Session(AbstractBaseSession):
+                user = AbstractBaseSession.init_user_field(User)
+
+        Args:
+            user_class: The user model to associate sessions to.
+
+        Returns:
+            A one-to-one field that relates to the provided user model.
+        """
+        return models.OneToOneField(
+            user_class,
+            null=True,
+            blank=True,
+            on_delete=models.CASCADE,
+        )

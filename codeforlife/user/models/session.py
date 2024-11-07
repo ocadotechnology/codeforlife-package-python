@@ -5,7 +5,6 @@ Created on 20/02/2024 at 15:31:38(+00:00).
 
 import typing as t
 
-from django.db import models
 from django.db.models.query import QuerySet
 
 from ...models import AbstractBaseSession, BaseSessionStore
@@ -23,13 +22,7 @@ class Session(AbstractBaseSession):
 
     auth_factors: QuerySet["SessionAuthFactor"]
 
-    # TODO: remove in new schema
-    user = models.OneToOneField(  # type: ignore[assignment]
-        User,
-        null=True,
-        blank=True,
-        on_delete=models.CASCADE,
-    )
+    user = AbstractBaseSession.init_user_field(User)
 
     @classmethod
     def get_session_store_class(cls):
