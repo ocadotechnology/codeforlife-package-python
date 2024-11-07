@@ -21,8 +21,12 @@ if t.TYPE_CHECKING:
     from ..views import BaseModelViewSet, ModelViewSet
 
     RequestUser = t.TypeVar("RequestUser", bound=User)
+    AnyBaseModelViewSet = t.TypeVar(
+        "AnyBaseModelViewSet", bound=BaseModelViewSet
+    )
 else:
     RequestUser = t.TypeVar("RequestUser")
+    AnyBaseModelViewSet = t.TypeVar("AnyBaseModelViewSet")
 
 AnyModel = t.TypeVar("AnyModel", bound=Model)
 AnyBaseRequest = t.TypeVar("AnyBaseRequest", bound=BaseRequest)
@@ -36,7 +40,7 @@ Data = t.Union[BulkCreateDataList, BulkUpdateDataDict]
 class BaseModelListSerializer(
     BaseSerializer[AnyBaseRequest],
     _ListSerializer[t.List[AnyModel]],
-    t.Generic[AnyBaseRequest, AnyModel],
+    t.Generic[AnyBaseRequest, AnyBaseModelViewSet, AnyModel],
 ):
     """Base model list serializer for all model list serializers.
 
@@ -57,7 +61,7 @@ class BaseModelListSerializer(
 
     instance: t.Optional[t.List[AnyModel]]
     batch_size: t.Optional[int] = None
-    view: "BaseModelViewSet[AnyBaseRequest, AnyModel]"
+    view: AnyBaseModelViewSet
 
     @property
     def non_none_instance(self):
@@ -185,7 +189,11 @@ class BaseModelListSerializer(
 
 
 class ModelListSerializer(
-    BaseModelListSerializer[Request[RequestUser], AnyModel],
+    BaseModelListSerializer[
+        Request[RequestUser],
+        "ModelViewSet[RequestUser, AnyModel]",
+        AnyModel,
+    ],
     t.Generic[RequestUser, AnyModel],
 ):
     """Base model list serializer for all model list serializers.
@@ -204,5 +212,3 @@ class ModelListSerializer(
             model = User
             list_serializer_class = UserListSerializer
     """
-
-    view: "ModelViewSet[RequestUser, AnyModel]"  # type: ignore[assignment]
