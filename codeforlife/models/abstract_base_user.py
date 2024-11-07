@@ -3,7 +3,6 @@
 Created on 06/11/2024 at 16:38:15(+00:00).
 """
 
-# import sys
 import typing as t
 from functools import cached_property
 
@@ -53,15 +52,6 @@ class AbstractBaseUser(_AbstractBaseUser):
     @property
     def is_authenticated(self):
         """A flag designating if this contributor has authenticated."""
-        # TODO: delete if not needed.
-        # Avoid initial migration error where session table is not created yet
-        # if (
-        #     sys.argv
-        #     and "manage.py" in sys.argv[0]
-        #     and "runserver" not in sys.argv
-        # ):
-        #     return True
-
         try:
             return self.is_active and not self.session.is_expired
         except self._session_class.DoesNotExist:
