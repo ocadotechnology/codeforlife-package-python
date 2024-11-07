@@ -22,7 +22,6 @@ class AbstractBaseUser(_AbstractBaseUser):
     https://docs.djangoproject.com/en/3.2/topics/auth/customizing/#using-a-custom-user-model-when-starting-a-project
     """
 
-    id: int
     pk: int
     session: "AbstractBaseSession"
 
