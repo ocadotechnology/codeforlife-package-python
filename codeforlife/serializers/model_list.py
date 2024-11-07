@@ -12,7 +12,7 @@ from rest_framework.serializers import ListSerializer as _ListSerializer
 from rest_framework.serializers import ValidationError as _ValidationError
 
 from ..request import BaseRequest, Request
-from ..types import DataDict, OrderedDataDict
+from ..types import DataDict, OrderedDataDict, get_arg
 from .base import BaseSerializer
 
 # pylint: disable=duplicate-code
@@ -75,10 +75,7 @@ class BaseModelListSerializer(
         Returns:
             The model view set's class.
         """
-        # pylint: disable-next=no-member
-        return t.get_args(cls.__orig_bases__[0])[  # type: ignore[attr-defined]
-            0
-        ]
+        return get_arg(cls, 0)
 
     def __init__(self, *args, **kwargs):
         instance = args[0] if args else kwargs.pop("instance", None)

@@ -15,7 +15,7 @@ from rest_framework.viewsets import ModelViewSet as DrfModelViewSet
 
 from ..permissions import Permission
 from ..request import BaseRequest, Request
-from ..types import KwArgs
+from ..types import KwArgs, get_arg
 from .api import APIView, BaseAPIView
 from .decorators import action
 
@@ -71,10 +71,7 @@ class BaseModelViewSet(
         Returns:
             The model view set's class.
         """
-        # pylint: disable-next=no-member
-        return t.get_args(cls.__orig_bases__[0])[  # type: ignore[attr-defined]
-            0
-        ]
+        return get_arg(cls, 0)
 
     @cached_property
     def lookup_field_name(self):

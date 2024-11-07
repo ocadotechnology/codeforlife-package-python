@@ -18,7 +18,7 @@ from ..serializers import (
     BaseModelSerializer,
     ModelSerializer,
 )
-from ..types import DataDict
+from ..types import DataDict, get_arg
 from .api_request_factory import APIRequestFactory, BaseAPIRequestFactory
 from .test import TestCase
 
@@ -397,10 +397,7 @@ class ModelSerializerTestCase(
         Returns:
             The model view set's class.
         """
-        # pylint: disable-next=no-member
-        return t.get_args(cls.__orig_bases__[0])[  # type: ignore[attr-defined]
-            0
-        ]
+        return get_arg(cls, 0)
 
     @classmethod
     def get_model_class(cls) -> t.Type[AnyModel]:
@@ -409,10 +406,7 @@ class ModelSerializerTestCase(
         Returns:
             The model view set's class.
         """
-        # pylint: disable-next=no-member
-        return t.get_args(cls.__orig_bases__[0])[  # type: ignore[attr-defined]
-            1
-        ]
+        return get_arg(cls, 1)
 
     @classmethod
     def _initialize_request_factory(cls, **kwargs):

@@ -16,6 +16,7 @@ from rest_framework.parsers import (
 from rest_framework.test import APIRequestFactory as _APIRequestFactory
 
 from ..request import BaseRequest, Request
+from ..types import get_arg
 
 # pylint: disable=duplicate-code
 if t.TYPE_CHECKING:
@@ -247,10 +248,7 @@ class APIRequestFactory(
         Returns:
             The user class.
         """
-        # pylint: disable-next=no-member
-        return t.get_args(cls.__orig_bases__[0])[  # type: ignore[attr-defined]
-            0
-        ]
+        return get_arg(cls, 0)
 
     def _init_request(self, wsgi_request):
         return Request[AnyUser](

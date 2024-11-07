@@ -12,7 +12,7 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.test import APIClient as _APIClient
 
-from ..types import DataDict, JsonDict
+from ..types import DataDict, JsonDict, get_arg
 from .api_request_factory import APIRequestFactory, BaseAPIRequestFactory
 
 # pylint: disable=duplicate-code
@@ -329,10 +329,7 @@ class APIClient(
         Returns:
             The request's user class.
         """
-        # pylint: disable-next=no-member
-        return t.get_args(cls.__orig_bases__[0])[  # type: ignore[attr-defined]
-            0
-        ]
+        return get_arg(cls, 0)
 
     # --------------------------------------------------------------------------
     # Login Helpers

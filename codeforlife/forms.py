@@ -11,6 +11,7 @@ from django.core.exceptions import ValidationError
 from django.core.handlers.wsgi import WSGIRequest
 
 from .models import AbstractBaseUser
+from .types import get_arg
 
 AnyAbstractBaseUser = t.TypeVar("AnyAbstractBaseUser", bound=AbstractBaseUser)
 
@@ -23,10 +24,7 @@ class BaseLoginForm(forms.Form, t.Generic[AnyAbstractBaseUser]):
     @classmethod
     def get_user_class(cls) -> t.Type[AnyAbstractBaseUser]:
         """Get the user class."""
-        # pylint: disable-next=no-member
-        return t.get_args(cls.__orig_bases__[0])[  # type: ignore[attr-defined]
-            0
-        ]
+        return get_arg(cls, 0)
 
     def __init__(self, request: WSGIRequest, *args, **kwargs):
         self.request = request

@@ -16,7 +16,7 @@ from django.urls import reverse
 from ..models import AbstractBaseUser
 from ..permissions import Permission
 from ..serializers import BaseSerializer
-from ..types import DataDict, JsonDict, KwArgs
+from ..types import DataDict, JsonDict, KwArgs, get_arg
 from ..views import BaseModelViewSet, ModelViewSet
 from .api import APITestCase, BaseAPITestCase
 from .model_view_set_client import BaseModelViewSetClient, ModelViewSetClient
@@ -65,9 +65,7 @@ class BaseModelViewSetTestCase(
             The model view set's class.
         """
         # pylint: disable-next=no-member
-        return t.get_args(cls.__orig_bases__[0])[  # type: ignore[attr-defined]
-            2
-        ]
+        return get_arg(cls, 2)
 
     @classmethod
     def setUpClass(cls):
@@ -272,10 +270,7 @@ class ModelViewSetTestCase(
         Returns:
             The request's user class.
         """
-        # pylint: disable-next=no-member
-        return t.get_args(cls.__orig_bases__[0])[  # type: ignore[attr-defined]
-            0
-        ]
+        return get_arg(cls, 0)
 
     @classmethod
     def get_model_class(cls) -> t.Type[AnyModel]:
@@ -284,10 +279,7 @@ class ModelViewSetTestCase(
         Returns:
             The model view set's class.
         """
-        # pylint: disable-next=no-member
-        return t.get_args(cls.__orig_bases__[0])[  # type: ignore[attr-defined]
-            1
-        ]
+        return get_arg(cls, 1)
 
     def _get_client_class(self):
         # TODO: unpack type args in index after moving to python 3.11

@@ -9,6 +9,7 @@ from django.http import HttpRequest
 from rest_framework.views import APIView as _APIView
 
 from ..request import BaseRequest, Request
+from ..types import get_arg
 
 # pylint: disable=duplicate-code
 if t.TYPE_CHECKING:
@@ -55,10 +56,7 @@ class APIView(BaseAPIView[Request[RequestUser]], t.Generic[RequestUser]):
         Returns:
             The request's user class.
         """
-        # pylint: disable-next=no-member
-        return t.get_args(cls.__orig_bases__[0])[  # type: ignore[attr-defined]
-            0
-        ]
+        return get_arg(cls, 0)
 
     def _initialize_request(self, request, **kwargs):
         kwargs["user_class"] = self.get_request_user_class()

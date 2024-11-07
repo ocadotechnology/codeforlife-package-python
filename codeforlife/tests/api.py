@@ -5,6 +5,7 @@ Created on 23/02/2024 at 08:46:27(+00:00).
 
 import typing as t
 
+from ..types import get_arg
 from .api_client import APIClient, BaseAPIClient
 from .test import TestCase
 
@@ -47,10 +48,7 @@ class APITestCase(
         Returns:
             The request's user class.
         """
-        # pylint: disable-next=no-member
-        return t.get_args(cls.__orig_bases__[0])[  # type: ignore[attr-defined]
-            0
-        ]
+        return get_arg(cls, 0)
 
     def _get_client_class(self):
         # pylint: disable-next=too-few-public-methods

@@ -9,6 +9,8 @@ from django.contrib.auth import SESSION_KEY
 from django.contrib.sessions.backends.db import SessionStore
 from django.utils import timezone
 
+from ..types import get_arg
+
 if t.TYPE_CHECKING:
     from .abstract_base_session import AbstractBaseSession
     from .abstract_base_user import AbstractBaseUser
@@ -35,18 +37,12 @@ class BaseSessionStore(
 
     @classmethod
     def get_model_class(cls) -> t.Type[AnyAbstractBaseSession]:
-        # pylint: disable-next=no-member
-        return t.get_args(cls.__orig_bases__[0])[  # type: ignore[attr-defined]
-            0
-        ]
+        return get_arg(cls, 0)
 
     @classmethod
     def get_user_class(cls) -> t.Type[AnyAbstractBaseUser]:
         """Get the user class."""
-        # pylint: disable-next=no-member
-        return t.get_args(cls.__orig_bases__[0])[  # type: ignore[attr-defined]
-            1
-        ]
+        return get_arg(cls, 1)
 
     def associate_session_to_user(
         self, session: AnyAbstractBaseSession, user_id: int
