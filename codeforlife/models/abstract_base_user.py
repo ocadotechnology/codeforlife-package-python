@@ -3,8 +3,12 @@
 Created on 06/11/2024 at 16:38:15(+00:00).
 """
 
+import sys
 import typing as t
+from functools import cached_property
 
+from django.apps import apps
+from django.conf import settings
 from django.contrib.auth.models import AbstractBaseUser as _AbstractBaseUser
 from django.utils.translation import gettext_lazy as _
 
@@ -30,3 +34,34 @@ class AbstractBaseUser(_AbstractBaseUser):
         abstract = True
         verbose_name = _("user")
         verbose_name_plural = _("users")
+
+    @cached_property
+    def _session_class(self):
+        return t.cast(
+            t.Type["AbstractBaseSession"],
+            apps.get_model(
+                app_label=(
+                    t.cast(str, settings.SESSION_ENGINE)
+                    .lower()
+                    .removesuffix(".models.session")
+                    .split(".")[-1]
+                ),
+                model_name="session",
+            ),
+        )
+
+    @property
+    def is_authenticated(self):
+        """A flag designating if this contributor has authenticated."""
+        # Avoid initial migration error where session table is not created yet
+        if (
+            sys.argv
+            and "manage.py" in sys.argv[0]
+            and "runserver" not in sys.argv
+        ):
+            return True
+
+        try:
+            return self.is_active and not self.session.is_expired
+        except self._session_class.DoesNotExist:
+            return False

@@ -62,16 +62,11 @@ class User(_AbstractBaseUser, _User):
 
     @property
     def is_authenticated(self):
-        """
-        Check if the user has any pending auth factors.
-        """
-        # pylint: disable-next=import-outside-toplevel
-        from .session import Session
-
-        try:
-            return self.is_active and not self.session.auth_factors.exists()
-        except Session.DoesNotExist:
-            return False
+        return (
+            not self.session.auth_factors.exists()
+            if super().is_authenticated
+            else False
+        )
 
     @property
     def student(self) -> t.Optional["Student"]:
