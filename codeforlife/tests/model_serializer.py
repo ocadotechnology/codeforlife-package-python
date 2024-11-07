@@ -141,7 +141,7 @@ class BaseModelSerializerTestCase(
         new_data: t.Optional[t.List[DataDict]],
         non_model_fields: t.Optional[NonModelFields],
         get_models: t.Callable[
-            [BaseModelListSerializer[t.Any, AnyModel], t.List[DataDict]],
+            [BaseModelListSerializer[t.Any, t.Any, AnyModel], t.List[DataDict]],
             t.List[AnyModel],
         ],
         *args,
@@ -154,7 +154,7 @@ class BaseModelSerializerTestCase(
             assert len(new_data) == len(validated_data)
 
         kwargs.pop("many", None)  # many must be True
-        serializer: BaseModelListSerializer[t.Any, AnyModel] = (
+        serializer: BaseModelListSerializer[t.Any, t.Any, AnyModel] = (
             self._init_model_serializer(*args, **kwargs, many=True)
         )
 
