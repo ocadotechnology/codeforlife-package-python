@@ -58,7 +58,7 @@ class BaseSessionStore(
             user_id: The user to associate.
         """
         objects = self.get_user_class().objects  # type: ignore[attr-defined]
-        session.user = objects.get(id=user_id)
+        session.user = objects.get(id=user_id)  # type: ignore[attr-defined]
 
     def create_model_instance(self, data):
         try:
@@ -70,7 +70,9 @@ class BaseSessionStore(
         model_class = self.get_model_class()
 
         try:
-            session = model_class.objects.get(user_id=user_id)
+            session = model_class.objects.get(
+                user_id=user_id,  # type: ignore[misc]
+            )
         except model_class.DoesNotExist:
             session = model_class.objects.get(session_key=self.session_key)
             self.associate_session_to_user(
