@@ -192,6 +192,7 @@ class ContactableUserManager(UserManager[AnyUser], t.Generic[AnyUser]):
         return queryset.exclude(email__isnull=True).exclude(email="")
 
 
+# pylint: disable-next=too-many-ancestors
 class ContactableUser(User):
     """A user that can be contacted."""
 
@@ -275,6 +276,7 @@ class TeacherUserManager(ContactableUserManager[AnyUser], t.Generic[AnyUser]):
         return super().get_queryset().prefetch_related("new_teacher")
 
 
+# pylint: disable-next=too-many-ancestors
 class TeacherUser(ContactableUser):
     """A user that is a teacher."""
 
@@ -488,6 +490,7 @@ class StudentUserManager(UserManager["StudentUser"]):
         return super().get_queryset().prefetch_related("new_student")
 
 
+# pylint: disable-next=too-many-ancestors
 class StudentUser(User):
     """A user that is a student."""
 
@@ -602,6 +605,7 @@ class IndependentUserManager(ContactableUserManager["IndependentUser"]):
         return user
 
 
+# pylint: disable-next=too-many-ancestors
 class IndependentUser(ContactableUser):
     """A user that is an independent learner."""
 
