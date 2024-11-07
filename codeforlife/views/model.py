@@ -31,6 +31,9 @@ if t.TYPE_CHECKING:  # pragma: no cover
     from ..user.models import User
 
     RequestUser = t.TypeVar("RequestUser", bound=User)
+    AnyBaseModelSerializer = t.TypeVar(
+        "AnyBaseModelSerializer", bound=BaseModelSerializer
+    )
 
     # NOTE: This raises an error during runtime.
     # pylint: disable-next=too-few-public-methods
@@ -39,6 +42,7 @@ if t.TYPE_CHECKING:  # pragma: no cover
 
 else:
     RequestUser = t.TypeVar("RequestUser")
+    AnyBaseModelSerializer = t.TypeVar("AnyBaseModelSerializer")
 
     # pylint: disable-next=too-many-ancestors
     class _ModelViewSet(DrfModelViewSet, t.Generic[AnyModel]):
@@ -54,13 +58,11 @@ AnyBaseRequest = t.TypeVar("AnyBaseRequest", bound=BaseRequest)
 class BaseModelViewSet(
     BaseAPIView[AnyBaseRequest],
     _ModelViewSet[AnyModel],
-    t.Generic[AnyBaseRequest, AnyModel],
+    t.Generic[AnyBaseRequest, AnyBaseModelSerializer, AnyModel],
 ):
     """Base model view set for all model view sets."""
 
-    serializer_class: t.Optional[
-        t.Type["BaseModelSerializer[AnyBaseRequest, AnyModel]"]
-    ]
+    serializer_class: t.Optional[t.Type[AnyBaseModelSerializer]]
 
     @classmethod
     def get_model_class(cls) -> t.Type[AnyModel]:
@@ -160,15 +162,15 @@ class BaseModelViewSet(
 
 # pylint: disable-next=too-many-ancestors
 class ModelViewSet(
-    BaseModelViewSet[Request[RequestUser], AnyModel],
+    BaseModelViewSet[
+        Request[RequestUser],
+        "ModelSerializer[RequestUser, AnyModel]",
+        AnyModel,
+    ],
     APIView[RequestUser],
     t.Generic[RequestUser, AnyModel],
 ):
     """Base model view set for all model view sets."""
-
-    serializer_class: t.Optional[
-        t.Type["ModelSerializer[RequestUser, AnyModel]"]
-    ]
 
     def get_bulk_queryset(self, lookup_values: t.Collection):
         """Get the queryset for a bulk action.
