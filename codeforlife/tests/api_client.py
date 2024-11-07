@@ -373,6 +373,9 @@ class APIClient(
         Returns:
             The user.
         """
+        # pylint: disable-next=import-outside-toplevel
+        from ..user.models import User
+
         return self._login_user_type(User, **credentials)
 
     def login_teacher(self, email: str, password: str = "password"):
