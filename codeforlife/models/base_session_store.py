@@ -42,6 +42,7 @@ class BaseSessionStore(
 
     @classmethod
     def get_user_class(cls) -> t.Type[AnyAbstractBaseUser]:
+        """Get the user class."""
         # pylint: disable-next=no-member
         return t.get_args(cls.__orig_bases__[0])[  # type: ignore[attr-defined]
             1
