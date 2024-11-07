@@ -18,6 +18,6 @@ from .model_serializer import (
     BaseModelSerializerTestCase,
     ModelSerializerTestCase,
 )
-from .model_view_set import ModelViewSetTestCase
-from .model_view_set_client import ModelViewSetClient
+from .model_view_set import BaseModelViewSetTestCase, ModelViewSetTestCase
+from .model_view_set_client import BaseModelViewSetClient, ModelViewSetClient
 from .test import Client, TestCase
