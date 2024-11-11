@@ -6,6 +6,7 @@ Created on 28/10/2024 at 16:19:47(+00:00).
 import multiprocessing
 import typing as t
 
+from django.core.management import call_command
 from gunicorn.app.base import BaseApplication  # type: ignore[import-untyped]
 
 
@@ -19,6 +20,8 @@ class StandaloneApplication(BaseApplication):
     """
 
     def __init__(self, app: t.Callable):
+        call_command("migrate", interactive=False)
+
         self.options = {
             "bind": "0.0.0.0:8080",
             # https://docs.gunicorn.org/en/stable/design.html#how-many-workers
