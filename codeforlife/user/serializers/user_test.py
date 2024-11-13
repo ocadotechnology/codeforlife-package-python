@@ -8,7 +8,7 @@ from ..models import IndependentUser, StudentUser, TeacherUser, User
 from .user import UserSerializer
 
 
-# pylint: disable-next=missing-class-docstring
+# pylint: disable-next=missing-class-docstring,too-many-ancestors
 class TestUserSerializer(ModelSerializerTestCase[User, User]):
     model_serializer_class = UserSerializer
 

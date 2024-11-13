@@ -21,6 +21,7 @@ class UserViewSet(ModelViewSet[RequestUser, User]):
     serializer_class = UserSerializer[User]
     filterset_class = UserFilterSet
 
+    # pylint: disable-next=missing-function-docstring
     def get_queryset(
         self,
         user_class: t.Type[AnyUser] = User,  # type: ignore[assignment]
@@ -67,6 +68,7 @@ class UserViewSet(ModelViewSet[RequestUser, User]):
 
         return queryset.filter(pk=user.pk)
 
+    # pylint: disable-next=missing-function-docstring
     def get_bulk_queryset(  # pragma: no cover
         self,
         lookup_values: t.Collection,

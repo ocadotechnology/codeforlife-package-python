@@ -5,6 +5,7 @@ Created on 08/02/2024 at 15:42:25(+00:00).
 
 import typing as t
 
+from django.contrib.auth.models import AbstractBaseUser
 from django.core.handlers.wsgi import WSGIRequest
 from rest_framework.parsers import (
     FileUploadParser,
@@ -14,43 +15,44 @@ from rest_framework.parsers import (
 )
 from rest_framework.test import APIRequestFactory as _APIRequestFactory
 
-from ..request import Request
-from ..user.models import AnyUser
+from ..request import BaseRequest, Request
+from ..types import get_arg
+
+# pylint: disable=duplicate-code
+if t.TYPE_CHECKING:
+    from ..user.models import User
+
+    AnyUser = t.TypeVar("AnyUser", bound=User)
+else:
+    AnyUser = t.TypeVar("AnyUser")
+
+AnyBaseRequest = t.TypeVar("AnyBaseRequest", bound=BaseRequest)
+AnyAbstractBaseUser = t.TypeVar("AnyAbstractBaseUser", bound=AbstractBaseUser)
+# pylint: enable=duplicate-code
 
 
-class APIRequestFactory(_APIRequestFactory, t.Generic[AnyUser]):
+class BaseAPIRequestFactory(
+    _APIRequestFactory, t.Generic[AnyBaseRequest, AnyAbstractBaseUser]
+):
     """Custom API request factory that returns DRF's Request object."""
 
-    def __init__(self, user_class: t.Type[AnyUser], *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.user_class = user_class
-
-    @classmethod
-    def get_user_class(cls) -> t.Type[AnyUser]:
-        """Get the user class.
-
-        Returns:
-            The user class.
-        """
-        # pylint: disable-next=no-member
-        return t.get_args(cls.__orig_bases__[0])[  # type: ignore[attr-defined]
-            0
-        ]
-
-    def request(self, user: t.Optional[AnyUser] = None, **kwargs):
-        wsgi_request = t.cast(WSGIRequest, super().request(**kwargs))
-
-        request = Request(
-            self.user_class,
-            wsgi_request,
-            parsers=[
-                JSONParser(),
-                FormParser(),
-                MultiPartParser(),
-                FileUploadParser(),
-            ],
+    def _init_request(self, wsgi_request: WSGIRequest):
+        return t.cast(
+            AnyBaseRequest,
+            BaseRequest(
+                wsgi_request,
+                parsers=[
+                    JSONParser(),
+                    FormParser(),
+                    MultiPartParser(),
+                    FileUploadParser(),
+                ],
+            ),
         )
 
+    def request(self, user: t.Optional[AnyAbstractBaseUser] = None, **kwargs):
+        wsgi_request = t.cast(WSGIRequest, super().request(**kwargs))
+        request = self._init_request(wsgi_request)
         if user:
             # pylint: disable-next=attribute-defined-outside-init
             request.user = user
@@ -65,11 +67,11 @@ class APIRequestFactory(_APIRequestFactory, t.Generic[AnyUser]):
         data: t.Optional[str] = None,
         content_type: t.Optional[str] = None,
         secure: bool = True,
-        user: t.Optional[AnyUser] = None,
+        user: t.Optional[AnyAbstractBaseUser] = None,
         **extra
     ):
         return t.cast(
-            Request[AnyUser],
+            AnyBaseRequest,
             super().generic(
                 method,
                 path or "/",
@@ -85,11 +87,11 @@ class APIRequestFactory(_APIRequestFactory, t.Generic[AnyUser]):
         self,
         path: t.Optional[str] = None,
         data: t.Any = None,
-        user: t.Optional[AnyUser] = None,
+        user: t.Optional[AnyAbstractBaseUser] = None,
         **extra
     ):
         return t.cast(
-            Request[AnyUser],
+            AnyBaseRequest,
             super().get(
                 path or "/",
                 data,
@@ -106,14 +108,14 @@ class APIRequestFactory(_APIRequestFactory, t.Generic[AnyUser]):
         # pylint: disable-next=redefined-builtin
         format: t.Optional[str] = None,
         content_type: t.Optional[str] = None,
-        user: t.Optional[AnyUser] = None,
+        user: t.Optional[AnyAbstractBaseUser] = None,
         **extra
     ):
         if format is None and content_type is None:
             format = "json"
 
         return t.cast(
-            Request[AnyUser],
+            AnyBaseRequest,
             super().post(
                 path or "/",
                 data,
@@ -132,14 +134,14 @@ class APIRequestFactory(_APIRequestFactory, t.Generic[AnyUser]):
         # pylint: disable-next=redefined-builtin
         format: t.Optional[str] = None,
         content_type: t.Optional[str] = None,
-        user: t.Optional[AnyUser] = None,
+        user: t.Optional[AnyAbstractBaseUser] = None,
         **extra
     ):
         if format is None and content_type is None:
             format = "json"
 
         return t.cast(
-            Request[AnyUser],
+            AnyBaseRequest,
             super().put(
                 path or "/",
                 data,
@@ -158,14 +160,14 @@ class APIRequestFactory(_APIRequestFactory, t.Generic[AnyUser]):
         # pylint: disable-next=redefined-builtin
         format: t.Optional[str] = None,
         content_type: t.Optional[str] = None,
-        user: t.Optional[AnyUser] = None,
+        user: t.Optional[AnyAbstractBaseUser] = None,
         **extra
     ):
         if format is None and content_type is None:
             format = "json"
 
         return t.cast(
-            Request[AnyUser],
+            AnyBaseRequest,
             super().patch(
                 path or "/",
                 data,
@@ -184,14 +186,14 @@ class APIRequestFactory(_APIRequestFactory, t.Generic[AnyUser]):
         # pylint: disable-next=redefined-builtin
         format: t.Optional[str] = None,
         content_type: t.Optional[str] = None,
-        user: t.Optional[AnyUser] = None,
+        user: t.Optional[AnyAbstractBaseUser] = None,
         **extra
     ):
         if format is None and content_type is None:
             format = "json"
 
         return t.cast(
-            Request[AnyUser],
+            AnyBaseRequest,
             super().delete(
                 path or "/",
                 data,
@@ -210,14 +212,14 @@ class APIRequestFactory(_APIRequestFactory, t.Generic[AnyUser]):
         # pylint: disable-next=redefined-builtin
         format: t.Optional[str] = None,
         content_type: t.Optional[str] = None,
-        user: t.Optional[AnyUser] = None,
+        user: t.Optional[AnyAbstractBaseUser] = None,
         **extra
     ):
         if format is None and content_type is None:
             format = "json"
 
         return t.cast(
-            Request[AnyUser],
+            AnyBaseRequest,
             super().options(
                 path or "/",
                 data or {},
@@ -226,4 +228,36 @@ class APIRequestFactory(_APIRequestFactory, t.Generic[AnyUser]):
                 user=user,
                 **extra,
             ),
+        )
+
+
+class APIRequestFactory(
+    BaseAPIRequestFactory[Request[AnyUser], AnyUser],
+    t.Generic[AnyUser],
+):
+    """Custom API request factory that returns DRF's Request object."""
+
+    def __init__(self, user_class: t.Type[AnyUser], *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.user_class = user_class
+
+    @classmethod
+    def get_user_class(cls) -> t.Type[AnyUser]:
+        """Get the user class.
+
+        Returns:
+            The user class.
+        """
+        return get_arg(cls, 0)
+
+    def _init_request(self, wsgi_request):
+        return Request[AnyUser](
+            self.user_class,
+            wsgi_request,
+            parsers=[
+                JSONParser(),
+                FormParser(),
+                MultiPartParser(),
+                FileUploadParser(),
+            ],
         )

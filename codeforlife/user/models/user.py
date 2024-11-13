@@ -6,6 +6,7 @@ Created on 05/02/2024 at 09:50:04(+00:00).
 """
 import string
 import typing as t
+from datetime import datetime
 
 from common.models import TotalActivity, UserProfile
 
@@ -18,6 +19,7 @@ from django.utils.crypto import get_random_string
 from pyotp import TOTP
 
 from ... import mail
+from ...models import AbstractBaseUser
 from .klass import Class
 from .school import School
 
@@ -33,7 +35,16 @@ else:
     TypedModelMeta = object
 
 
-class User(_User):
+# TODO: remove in new schema
+class _AbstractBaseUser(AbstractBaseUser):
+    password: str = None  # type: ignore[assignment]
+    last_login: datetime = None  # type: ignore[assignment]
+
+    class Meta(TypedModelMeta):
+        abstract = True
+
+
+class User(_AbstractBaseUser, _User):
     """A proxy to Django's user class."""
 
     _password: t.Optional[str]
@@ -51,16 +62,12 @@ class User(_User):
 
     @property
     def is_authenticated(self):
-        """
-        Check if the user has any pending auth factors.
-        """
-        # pylint: disable-next=import-outside-toplevel
-        from .session import Session
-
-        try:
-            return self.is_active and not self.session.auth_factors.exists()
-        except Session.DoesNotExist:
-            return False
+        return (
+            not self.session.auth_factors.exists()
+            and self.userprofile.is_verified
+            if super().is_authenticated
+            else False
+        )
 
     @property
     def student(self) -> t.Optional["Student"]:
@@ -181,6 +188,7 @@ class ContactableUserManager(UserManager[AnyUser], t.Generic[AnyUser]):
         return queryset.exclude(email__isnull=True).exclude(email="")
 
 
+# pylint: disable-next=too-many-ancestors
 class ContactableUser(User):
     """A user that can be contacted."""
 
@@ -264,6 +272,7 @@ class TeacherUserManager(ContactableUserManager[AnyUser], t.Generic[AnyUser]):
         return super().get_queryset().prefetch_related("new_teacher")
 
 
+# pylint: disable-next=too-many-ancestors
 class TeacherUser(ContactableUser):
     """A user that is a teacher."""
 
@@ -477,6 +486,7 @@ class StudentUserManager(UserManager["StudentUser"]):
         return super().get_queryset().prefetch_related("new_student")
 
 
+# pylint: disable-next=too-many-ancestors
 class StudentUser(User):
     """A user that is a student."""
 
@@ -591,6 +601,7 @@ class IndependentUserManager(ContactableUserManager["IndependentUser"]):
         return user
 
 
+# pylint: disable-next=too-many-ancestors
 class IndependentUser(ContactableUser):
     """A user that is an independent learner."""
 

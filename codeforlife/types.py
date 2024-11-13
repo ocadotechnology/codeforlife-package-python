@@ -16,3 +16,17 @@ JsonValue = t.Union[None, int, str, bool, JsonList, JsonDict]
 
 DataDict = t.Dict[str, t.Any]
 OrderedDataDict = t.OrderedDict[str, t.Any]
+
+
+def get_arg(cls: t.Type[t.Any], index: int, orig_base: int = 0):
+    """Get a type arg from a class.
+
+    Args:
+        cls: The class to get the type arg from.
+        index: The index of the type arg to get.
+        orig_base: The base class to get the type arg from.
+
+    Returns:
+        The type arg from the class.
+    """
+    return t.get_args(cls.__orig_bases__[orig_base])[index]

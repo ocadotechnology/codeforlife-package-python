@@ -7,6 +7,7 @@ Base model for all Django models.
 
 import typing as t
 
+from django.db.models import Manager
 from django.db.models import Model as _Model
 
 if t.TYPE_CHECKING:
@@ -14,16 +15,12 @@ if t.TYPE_CHECKING:
 else:
     TypedModelMeta = object
 
-Id = t.TypeVar("Id")
 
+class Model(_Model):
+    """Base for all models."""
 
-class Model(_Model, t.Generic[Id]):
-    """A base class for all Django models."""
+    objects: Manager[t.Self]
 
-    id: Id
-    pk: Id
-
-    # pylint: disable-next=missing-class-docstring,too-few-public-methods
     class Meta(TypedModelMeta):
         abstract = True
 

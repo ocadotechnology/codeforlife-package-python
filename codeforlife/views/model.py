@@ -14,16 +14,26 @@ from rest_framework.serializers import ListSerializer
 from rest_framework.viewsets import ModelViewSet as DrfModelViewSet
 
 from ..permissions import Permission
-from ..request import Request
-from ..types import KwArgs
-from ..user.models import AnyUser as RequestUser
-from .api import APIView
+from ..request import BaseRequest, Request
+from ..types import KwArgs, get_arg
+from .api import APIView, BaseAPIView
 from .decorators import action
 
 AnyModel = t.TypeVar("AnyModel", bound=Model)
 
+# pylint: disable=duplicate-code
 if t.TYPE_CHECKING:  # pragma: no cover
-    from ..serializers import ModelListSerializer, ModelSerializer
+    from ..serializers import (
+        BaseModelSerializer,
+        ModelListSerializer,
+        ModelSerializer,
+    )
+    from ..user.models import User
+
+    RequestUser = t.TypeVar("RequestUser", bound=User)
+    AnyBaseModelSerializer = t.TypeVar(
+        "AnyBaseModelSerializer", bound=BaseModelSerializer
+    )
 
     # NOTE: This raises an error during runtime.
     # pylint: disable-next=too-few-public-methods
@@ -31,22 +41,28 @@ if t.TYPE_CHECKING:  # pragma: no cover
         pass
 
 else:
+    RequestUser = t.TypeVar("RequestUser")
+    AnyBaseModelSerializer = t.TypeVar("AnyBaseModelSerializer")
+
     # pylint: disable-next=too-many-ancestors
     class _ModelViewSet(DrfModelViewSet, t.Generic[AnyModel]):
         pass
 
 
+AnyBaseRequest = t.TypeVar("AnyBaseRequest", bound=BaseRequest)
+
+# pylint: enable=duplicate-code
+
+
 # pylint: disable-next=too-many-ancestors
-class ModelViewSet(
-    APIView[RequestUser],
+class BaseModelViewSet(
+    BaseAPIView[AnyBaseRequest],
     _ModelViewSet[AnyModel],
-    t.Generic[RequestUser, AnyModel],
+    t.Generic[AnyBaseRequest, AnyBaseModelSerializer, AnyModel],
 ):
     """Base model view set for all model view sets."""
 
-    serializer_class: t.Optional[
-        t.Type["ModelSerializer[RequestUser, AnyModel]"]
-    ]
+    serializer_class: t.Optional[t.Type[AnyBaseModelSerializer]]
 
     @classmethod
     def get_model_class(cls) -> t.Type[AnyModel]:
@@ -55,10 +71,7 @@ class ModelViewSet(
         Returns:
             The model view set's class.
         """
-        # pylint: disable-next=no-member
-        return t.get_args(cls.__orig_bases__[0])[  # type: ignore[attr-defined]
-            0
-        ]
+        return get_arg(cls, 0)
 
     @cached_property
     def lookup_field_name(self):
@@ -109,47 +122,52 @@ class ModelViewSet(
 
         return serializer
 
-    # --------------------------------------------------------------------------
-    # View Set Actions
-    # --------------------------------------------------------------------------
-
     # pylint: disable=useless-parent-delegation
 
     def destroy(  # type: ignore[override] # pragma: no cover
-        self, request: Request[RequestUser], *args, **kwargs
+        self, request: AnyBaseRequest, *args, **kwargs
     ):
         return super().destroy(request, *args, **kwargs)
 
     def create(  # type: ignore[override] # pragma: no cover
-        self, request: Request[RequestUser], *args, **kwargs
+        self, request: AnyBaseRequest, *args, **kwargs
     ):
         return super().create(request, *args, **kwargs)
 
     def list(  # type: ignore[override] # pragma: no cover
-        self, request: Request[RequestUser], *args, **kwargs
+        self, request: AnyBaseRequest, *args, **kwargs
     ):
         return super().list(request, *args, **kwargs)
 
     def retrieve(  # type: ignore[override] # pragma: no cover
-        self, request: Request[RequestUser], *args, **kwargs
+        self, request: AnyBaseRequest, *args, **kwargs
     ):
         return super().retrieve(request, *args, **kwargs)
 
     def update(  # type: ignore[override] # pragma: no cover
-        self, request: Request[RequestUser], *args, **kwargs
+        self, request: AnyBaseRequest, *args, **kwargs
     ):
         return super().update(request, *args, **kwargs)
 
     def partial_update(  # type: ignore[override] # pragma: no cover
-        self, request: Request[RequestUser], *args, **kwargs
+        self, request: AnyBaseRequest, *args, **kwargs
     ):
         return super().partial_update(request, *args, **kwargs)
 
     # pylint: enable=useless-parent-delegation
 
-    # --------------------------------------------------------------------------
-    # Bulk Actions
-    # --------------------------------------------------------------------------
+
+# pylint: disable-next=too-many-ancestors
+class ModelViewSet(
+    BaseModelViewSet[
+        Request[RequestUser],
+        "ModelSerializer[RequestUser, AnyModel]",
+        AnyModel,
+    ],
+    APIView[RequestUser],
+    t.Generic[RequestUser, AnyModel],
+):
+    """Base model view set for all model view sets."""
 
     def get_bulk_queryset(self, lookup_values: t.Collection):
         """Get the queryset for a bulk action.
