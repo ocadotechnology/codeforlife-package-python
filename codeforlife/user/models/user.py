@@ -64,6 +64,7 @@ class User(_AbstractBaseUser, _User):
     def is_authenticated(self):
         return (
             not self.session.auth_factors.exists()
+            and self.userprofile.is_verified
             if super().is_authenticated
             else False
         )
