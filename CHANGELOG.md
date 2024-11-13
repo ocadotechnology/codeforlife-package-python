@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.21.0 (2024-11-13)
+
+### Feature
+
+* Contributor backend 21 ([#144](https://github.com/ocadotechnology/codeforlife-package-python/issues/144)) ([`bb617bf`](https://github.com/ocadotechnology/codeforlife-package-python/commit/bb617bfe628fef5f58694324dd8457c615ebcf29))
+
 ## v0.20.0 (2024-11-01)
 
 ### Feature
