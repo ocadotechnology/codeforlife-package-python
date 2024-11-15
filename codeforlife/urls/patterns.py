@@ -11,7 +11,7 @@ from django.urls import URLPattern, URLResolver, include, path, re_path
 from rest_framework import status
 
 from ..settings import SERVICE_IS_ROOT, SERVICE_NAME
-from ..views import CsrfCookieView, LogoutView
+from ..views import CsrfCookieView, HealthCheckView, LogoutView
 
 UrlPatterns = t.List[t.Union[URLResolver, URLPattern]]
 
@@ -75,10 +75,18 @@ def get_urlpatterns(
             )
         )
 
+    health_check_path = path(
+        "health-check/",
+        HealthCheckView.as_view(),
+        name="health-check",
+    )
+
     if SERVICE_IS_ROOT:
+        urlpatterns.append(health_check_path)
         return urlpatterns
 
     return [
+        health_check_path,
         path(
             f"{SERVICE_NAME}/",
             include(urlpatterns),
