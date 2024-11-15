@@ -7,4 +7,5 @@ from .api import APIView, BaseAPIView
 from .base_login import BaseLoginView
 from .common import CsrfCookieView, LogoutView
 from .decorators import action, cron_job
+from .health_check import HealthCheckView
 from .model import BaseModelViewSet, ModelViewSet

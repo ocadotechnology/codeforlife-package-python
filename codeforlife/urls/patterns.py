@@ -11,7 +11,7 @@ from django.urls import URLPattern, URLResolver, include, path, re_path
 from rest_framework import status
 
 from ..settings import SERVICE_IS_ROOT, SERVICE_NAME
-from ..views import CsrfCookieView, LogoutView
+from ..views import CsrfCookieView, HealthCheckView, LogoutView
 
 UrlPatterns = t.List[t.Union[URLResolver, URLPattern]]
 
@@ -35,6 +35,11 @@ def get_urlpatterns(
             "admin/",
             admin.site.urls,
             name="admin",
+        ),
+        path(
+            "health-check/",
+            HealthCheckView.as_view(),
+            name="health-check",
         ),
         path(
             "api/csrf/cookie/",

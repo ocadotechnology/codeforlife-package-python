@@ -40,3 +40,7 @@ MAIL_ENABLED = bool(int(os.getenv("MAIL_ENABLED", "0")))
 
 # The name of the session metadata cookie.
 SESSION_METADATA_COOKIE_NAME = "session_metadata"
+
+# App deployment details.
+APP_ID = os.getenv("APP_ID", "REPLACE_ME")
+APP_VERSION = os.getenv("APP_VERSION", "REPLACE_ME")
