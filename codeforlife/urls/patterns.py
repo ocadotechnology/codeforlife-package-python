@@ -37,11 +37,6 @@ def get_urlpatterns(
             name="admin",
         ),
         path(
-            "health-check/",
-            HealthCheckView.as_view(),
-            name="health-check",
-        ),
-        path(
             "api/csrf/cookie/",
             CsrfCookieView.as_view(),
             name="get-csrf-cookie",
@@ -80,10 +75,18 @@ def get_urlpatterns(
             )
         )
 
+    health_check_path = path(
+        "health-check/",
+        HealthCheckView.as_view(),
+        name="health-check",
+    )
+
     if SERVICE_IS_ROOT:
+        urlpatterns.append(health_check_path)
         return urlpatterns
 
     return [
+        health_check_path,
         path(
             f"{SERVICE_NAME}/",
             include(urlpatterns),
