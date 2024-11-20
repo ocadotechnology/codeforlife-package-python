@@ -6,8 +6,8 @@ Created on 12/12/2023 at 13:55:47(+00:00).
 
 import typing as t
 
-from ..models import User
 from ...permissions import IsAuthenticated
+from ..models import User
 
 
 class IsIndependent(IsAuthenticated):

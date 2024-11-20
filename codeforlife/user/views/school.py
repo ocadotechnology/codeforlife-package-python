@@ -7,7 +7,7 @@ from ...permissions import OR, AllowNone
 from ...views import ModelViewSet
 from ..models import School
 from ..models import User as RequestUser
-from ..permissions import IsStudent, IsTeacher, IsIndependent
+from ..permissions import IsIndependent, IsStudent, IsTeacher
 from ..serializers import SchoolSerializer
 
 
