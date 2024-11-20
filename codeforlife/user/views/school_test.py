@@ -75,14 +75,6 @@ class TestSchoolViewSet(ModelViewSetTestCase[RequestUser, School]):
         user = IndependentUser.objects.get(username="indy.requester@email.com")
         assert user
 
-        # klass = Class.objects.first()
-        # assert klass
-
-        # user.student.pending_class_request = klass
-        # user.student.save()
-
-        # assert user.student.pending_class_request is not None
-
         self.assert_get_queryset(
             values=[user.student.pending_class_request.teacher.school],
             request=self.client.request_factory.get(user=user),
