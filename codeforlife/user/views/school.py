@@ -32,16 +32,15 @@ class SchoolViewSet(ModelViewSet[RequestUser, School]):
     def get_queryset(self):
         user = self.request.auth_user
         if user.student:
-            if user.student.class_field:
-                return School.objects.filter(
-                    # TODO: should be user.student.school_id
-                    id=user.student.class_field.teacher.school_id
-                )
             if user.student.pending_class_request:
                 return School.objects.filter(
                     # TODO: should be user.requesting_to_join_class.school_id
                     id=user.student.pending_class_request.teacher.school_id
                 )
+            return School.objects.filter(
+                # TODO: should be user.student.school_id
+                id=user.student.class_field.teacher.school_id
+            )
 
         user = self.request.school_teacher_user
         return School.objects.filter(id=user.teacher.school_id)

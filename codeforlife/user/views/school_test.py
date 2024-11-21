@@ -72,7 +72,9 @@ class TestSchoolViewSet(ModelViewSetTestCase[RequestUser, School]):
         An independent-user can only target the school they are requesting
         to join.
         """
-        user = IndependentUser.objects.get(username="indy.requester@email.com")
+        user = IndependentUser.objects.filter(
+            new_student__pending_class_request__isnull=False
+        ).first()
         assert user
 
         self.assert_get_queryset(
