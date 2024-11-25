@@ -5,8 +5,14 @@ Created on 20/01/2024 at 09:47:30(+00:00).
 
 from ...permissions import OR, AllowNone
 from ...tests import ModelViewSetTestCase
-from ..models import School, SchoolTeacherUser, StudentUser, User
-from ..permissions import IsStudent, IsTeacher
+from ..models import (
+    IndependentUser,
+    School,
+    SchoolTeacherUser,
+    StudentUser,
+    User,
+)
+from ..permissions import IsIndependent, IsStudent, IsTeacher
 from ..views import SchoolViewSet
 
 RequestUser = User
@@ -16,6 +22,7 @@ RequestUser = User
 class TestSchoolViewSet(ModelViewSetTestCase[RequestUser, School]):
     basename = "school"
     model_view_set_class = SchoolViewSet
+    fixtures = ["school_1", "independent"]
 
     # test: get permissions
 
@@ -29,7 +36,12 @@ class TestSchoolViewSet(ModelViewSetTestCase[RequestUser, School]):
     def test_get_permissions__retrieve(self):
         """Only student and school-teachers can retrieve a school."""
         self.assert_get_permissions(
-            permissions=[OR(IsStudent(), IsTeacher(in_school=True))],
+            permissions=[
+                OR(
+                    OR(IsStudent(), IsTeacher(in_school=True)),
+                    IsIndependent(is_requesting_to_join_class=True),
+                )
+            ],
             action="retrieve",
         )
 
@@ -52,6 +64,21 @@ class TestSchoolViewSet(ModelViewSetTestCase[RequestUser, School]):
 
         self.assert_get_queryset(
             values=[user.student.class_field.teacher.school],
+            request=self.client.request_factory.get(user=user),
+        )
+
+    def test_get_queryset__independent(self):
+        """
+        An independent-user can only target the school they are requesting
+        to join.
+        """
+        user = IndependentUser.objects.filter(
+            new_student__pending_class_request__isnull=False
+        ).first()
+        assert user
+
+        self.assert_get_queryset(
+            values=[user.student.pending_class_request.teacher.school],
             request=self.client.request_factory.get(user=user),
         )
 

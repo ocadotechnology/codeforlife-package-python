@@ -7,7 +7,7 @@ from ...permissions import OR, AllowNone
 from ...views import ModelViewSet
 from ..models import School
 from ..models import User as RequestUser
-from ..permissions import IsStudent, IsTeacher
+from ..permissions import IsIndependent, IsStudent, IsTeacher
 from ..serializers import SchoolSerializer
 
 
@@ -21,12 +21,22 @@ class SchoolViewSet(ModelViewSet[RequestUser, School]):
         if self.action == "list":
             return [AllowNone()]
 
-        return [OR(IsStudent(), IsTeacher(in_school=True))]
+        return [
+            OR(
+                OR(IsStudent(), IsTeacher(in_school=True)),
+                IsIndependent(is_requesting_to_join_class=True),
+            )
+        ]
 
     # pylint: disable-next=missing-function-docstring
     def get_queryset(self):
         user = self.request.auth_user
         if user.student:
+            if user.student.pending_class_request:
+                return School.objects.filter(
+                    # TODO: should be user.requesting_to_join_class.school_id
+                    id=user.student.pending_class_request.teacher.school_id
+                )
             return School.objects.filter(
                 # TODO: should be user.student.school_id
                 id=user.student.class_field.teacher.school_id
