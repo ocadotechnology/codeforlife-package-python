@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.22.1 (2024-11-25)
+
+### Fix
+
+* Allow requester indies to retrieve school ([#147](https://github.com/ocadotechnology/codeforlife-package-python/issues/147)) ([`4cd6dca`](https://github.com/ocadotechnology/codeforlife-package-python/commit/4cd6dcae0fabf6349b3a4ec3e728e0fd747ba741))
+
 ## v0.22.0 (2024-11-15)
 
 ### Feature
