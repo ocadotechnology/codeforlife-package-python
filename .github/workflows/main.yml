@@ -18,11 +18,20 @@ jobs:
       # Cannot be set with an env var. Value must match in the release job.
       python-version: 3.12
 
+  # https://python-semantic-release.readthedocs.io/en/latest/automatic-releases/github-actions.html#common-workflow-example
   release:
     concurrency: release
     runs-on: ubuntu-latest
     needs: [test]
-    if: github.ref_name == 'main'
+    permissions:
+      id-token: write
+      contents: write
+    # Release if:
+    #  - the repo's owner is Ocado Tech.
+    #  - a change is made to the default branch.
+    if: |
+      github.repository_owner_id == 2088731 &&
+      github.ref_name == github.event.repository.default_branch
     env:
       # Value must match in the test job.
       PYTHON_VERSION: 3.12
@@ -32,21 +41,32 @@ jobs:
         with:
           token: ${{ secrets.CFL_BOT_GITHUB_TOKEN }}
           fetch-depth: 0
+          ref: ${{ github.sha }}
 
-      - name: 🐍 Set up Python ${{ env.PYTHON_VERSION }}
-        uses: actions/setup-python@v5
-        with:
-          python-version: ${{ env.PYTHON_VERSION }}
-
-      - name: 🛠 Install Dependencies
-        run: |
-          python -m pip install --upgrade pip
-          python -m pip install python-semantic-release~=7.33 setuptools==75.1.0
+      - name: 🛫 Checkout Branch on Workflow SHA
+        run: git checkout -B ${{ github.ref_name }} ${{ github.sha }}
 
       - name: 🤖 Set up cfl-bot as Git User
         uses: ocadotechnology/codeforlife-workspace/.github/actions/git/setup-bot@main
 
-      - name: 🚀 Publish Semantic Release
-        env:
-          GH_TOKEN: ${{ secrets.CFL_BOT_GITHUB_TOKEN }}
-        run: semantic-release publish --verbosity=INFO
+      - name: 🆕 Semantic Release
+        id: release
+        uses: python-semantic-release/python-semantic-release@v9
+        with:
+          github_token: ${{ secrets.CFL_BOT_GITHUB_TOKEN }}
+          git_committer_name: "cfl-bot"
+          git_committer_email: "codeforlife-bot@ocado.com"
+
+      - name: 🚀 Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@v1.12.2
+        if: steps.release.outputs.released == 'true'
+        with:
+          password: ${{ secrets.PYPI_API_TOKEN }}
+          repository-url: https://pypi.org/p/codeforlife
+
+      - name: 🚀 Publish to GitHub Releases
+        uses: python-semantic-release/publish-action@v9
+        if: steps.release.outputs.released == 'true'
+        with:
+          github_token: ${{ secrets.CFL_BOT_GITHUB_TOKEN }}
+          tag: ${{ steps.release.outputs.tag }}
