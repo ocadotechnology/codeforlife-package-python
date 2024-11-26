@@ -77,7 +77,6 @@ jobs:
 
       - name: 🚀 Publish to PyPI
         uses: pypa/gh-action-pypi-publish@v1.12.2
-        if: steps.release.outputs.released == 'true'
         with:
           password: ${{ secrets.PYPI_API_TOKEN }}
           repository-url: https://pypi.org/p/codeforlife
