@@ -1,6 +1,14 @@
 # CHANGELOG
 
 
+## v0.22.4 (2024-11-26)
+
+### Bug Fixes
+
+- Publish to GH releases first
+  ([`91bd502`](https://github.com/ocadotechnology/codeforlife-package-python/commit/91bd502759130d76e4375a149a2db536b9762698))
+
+
 ## v0.22.3 (2024-11-26)
 
 ### Bug Fixes
