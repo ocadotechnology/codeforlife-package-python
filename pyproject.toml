@@ -1,9 +1,10 @@
-# https://python-semantic-release.readthedocs.io/en/latest/#setting-up-version-numbering
+# https://github.com/python-semantic-release/python-semantic-release/blob/v7.33.0/docs/configuration.rst#distributions
 [tool.semantic_release]
 version_variable = "codeforlife/version.py:__version__"
 branch = "main"
 upload_to_repository = false
 upload_to_release = true
+remove_dist = false
 
 [tool.black]
 line-length = 80
