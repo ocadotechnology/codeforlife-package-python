@@ -1,6 +1,14 @@
 # CHANGELOG
 
 
+## v0.22.3 (2024-11-26)
+
+### Bug Fixes
+
+- Test
+  ([`f208784`](https://github.com/ocadotechnology/codeforlife-package-python/commit/f20878427dc154e768c5be226018f7755c6813eb))
+
+
 ## v0.22.2 (2024-11-26)
 
 ### Bug Fixes
