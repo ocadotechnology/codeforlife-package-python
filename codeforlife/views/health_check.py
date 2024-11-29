@@ -3,6 +3,8 @@
 Created on 14/11/2024 at 16:31:56(+00:00).
 """
 
+import json
+import logging
 import typing as t
 from dataclasses import dataclass
 from datetime import datetime
@@ -83,23 +85,30 @@ class HealthCheckView(APIView):
         """Return a health check for the current service."""
         health_check = self.get_health_check(request)
 
+        data = {
+            "appId": settings.APP_ID,
+            "healthStatus": health_check.health_status,
+            "lastCheckedTimestamp": datetime.now().isoformat(),
+            "additionalInformation": health_check.additional_info,
+            "startupTimestamp": self.startup_timestamp,
+            "appVersion": settings.APP_VERSION,
+            "details": [
+                {
+                    "name": detail.name,
+                    "description": detail.description,
+                    "health": detail.health,
+                }
+                for detail in (health_check.details or [])
+            ],
+        }
+
+        if health_check.health_status != "healthy":
+            data_str = json.dumps(data)
+            print(f"(print) health check: {data_str}")
+            logging.warning("(log) health check: %s", data_str)
+
         return Response(
-            data={
-                "appId": settings.APP_ID,
-                "healthStatus": health_check.health_status,
-                "lastCheckedTimestamp": datetime.now().isoformat(),
-                "additionalInformation": health_check.additional_info,
-                "startupTimestamp": self.startup_timestamp,
-                "appVersion": settings.APP_VERSION,
-                "details": [
-                    {
-                        "name": detail.name,
-                        "description": detail.description,
-                        "health": detail.health,
-                    }
-                    for detail in (health_check.details or [])
-                ],
-            },
+            data,
             status={
                 # The app is running normally.
                 "healthy": status.HTTP_200_OK,
