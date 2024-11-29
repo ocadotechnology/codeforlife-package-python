@@ -65,10 +65,12 @@ class HealthCheckView(APIView):
 
             host = request.get_host()
             if not Site.objects.filter(domain=host).exists():
-                return HealthCheck(
-                    health_status="unhealthy",
-                    additional_info=f'Site "{host}" does not exist.',
-                )
+                # TODO: figure out how to dynamically get and set site.
+                # return HealthCheck(
+                #     health_status="unhealthy",
+                #     additional_info=f'Site "{host}" does not exist.',
+                # )
+                logging.warning('Site "%s" does not exist.', host)
 
             return HealthCheck(
                 health_status="healthy",
@@ -103,9 +105,7 @@ class HealthCheckView(APIView):
         }
 
         if health_check.health_status != "healthy":
-            data_str = json.dumps(data)
-            print(f"(print) health check: {data_str}")
-            logging.warning("(log) health check: %s", data_str)
+            logging.warning("health check: %s", json.dumps(data))
 
         return Response(
             data,
