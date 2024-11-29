@@ -3,12 +3,21 @@ This file contains all the settings Django supports out of the box.
 https://docs.djangoproject.com/en/3.2/ref/settings/
 """
 
+import json
 import os
+import typing as t
 from pathlib import Path
 
+import boto3
 from django.utils.translation import gettext_lazy as _
 
+from ..types import JsonDict
 from .custom import SERVICE_API_URL, SERVICE_NAME
+from .otp import APP_ID, AWS_S3_APP_BUCKET, AWS_S3_APP_FOLDER
+
+if t.TYPE_CHECKING:
+    from mypy_boto3_s3.client import S3Client
+
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = bool(int(os.getenv("DEBUG", "1")))
@@ -21,17 +30,58 @@ ALLOWED_HOSTS = ["*"]
 # Database
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
 
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.postgresql",
-        "NAME": os.getenv("DB_NAME", SERVICE_NAME),
-        "HOST": os.getenv("DB_HOST", "localhost"),
-        "PORT": int(os.getenv("DB_PORT", "5432")),
-        "USER": os.getenv("DB_USER", "root"),
-        "PASSWORD": os.getenv("DB_PASSWORD", "password"),
-        "ATOMIC_REQUESTS": True,
+
+def get_databases():
+    """Get the databases depending on the the available settings.
+
+    Raises:
+        ConnectionAbortedError: If the engine is not postgres.
+
+    Returns:
+        The database configs.
+    """
+
+    if AWS_S3_APP_BUCKET and AWS_S3_APP_FOLDER and APP_ID:
+        # Get the dbdata object.
+        s3: "S3Client" = boto3.client("s3")
+        db_data_object = s3.get_object(
+            Bucket=AWS_S3_APP_BUCKET,
+            Key=f"{AWS_S3_APP_FOLDER}/dbMetadata/{APP_ID}/app.dbdata",
+        )
+
+        # Load the object as a JSON dict.
+        db_data: JsonDict = json.loads(
+            db_data_object["Body"].read().decode("utf-8")
+        )
+        if not db_data or db_data["DBEngine"] != "postgres":
+            raise ConnectionAbortedError("Invalid database data.")
+
+        name = db_data["Database"]
+        user = db_data["user"]
+        password = db_data["password"]
+        host = db_data["Endpoint"]
+        port = db_data["Port"]
+    else:
+        name = os.getenv("DB_NAME", SERVICE_NAME)
+        user = os.getenv("DB_USER", "root")
+        password = os.getenv("DB_PASSWORD", "password")
+        host = os.getenv("DB_HOST", "localhost")
+        port = int(os.getenv("DB_PORT", "5432"))
+
+    return {
+        "default": {
+            "ENGINE": "django.db.backends.postgresql",
+            "NAME": name,
+            "USER": user,
+            "PASSWORD": password,
+            "HOST": host,
+            "PORT": port,
+            "ATOMIC_REQUESTS": True,
+        }
     }
-}
+
+
+DATABASES = get_databases()
 
 # Application definition
 

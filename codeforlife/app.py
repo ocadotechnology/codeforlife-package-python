@@ -19,13 +19,13 @@ class StandaloneApplication(BaseApplication):
     https://docs.gunicorn.org/en/stable/custom.html
     """
 
-    def __init__(self, app: t.Callable):
+    def __init__(self, app: t.Callable, workers: int = 0):
         call_command("migrate", interactive=False)
 
         self.options = {
             "bind": "0.0.0.0:8080",
             # https://docs.gunicorn.org/en/stable/design.html#how-many-workers
-            "workers": (multiprocessing.cpu_count() * 2) + 1,
+            "workers": workers or (multiprocessing.cpu_count() * 2) + 1,
             "worker_class": "uvicorn.workers.UvicornWorker",
         }
         self.application = app
