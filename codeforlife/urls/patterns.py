@@ -18,12 +18,14 @@ UrlPatterns = t.List[t.Union[URLResolver, URLPattern]]
 
 def get_urlpatterns(
     api_url_patterns: UrlPatterns,
+    health_check_view: t.Type[HealthCheckView] = HealthCheckView,
     include_user_urls: bool = True,
 ) -> UrlPatterns:
     """Generate standard url patterns for each service.
 
     Args:
         api_urls_path: The path to the api's urls.
+        health_check_view: The health check view to use.
         include_user_urls: Whether or not to include the CFL's user urls.
 
     Returns:
@@ -77,7 +79,7 @@ def get_urlpatterns(
 
     health_check_path = path(
         "health-check/",
-        HealthCheckView.as_view(),
+        health_check_view.as_view(),
         name="health-check",
     )
 
