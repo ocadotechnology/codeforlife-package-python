@@ -10,9 +10,6 @@ from io import StringIO
 from pathlib import Path
 from types import SimpleNamespace
 
-import boto3
-from dotenv import dotenv_values, load_dotenv
-
 from .types import Env
 from .version import __version__
 
@@ -75,6 +72,9 @@ def set_up_settings(service_base_dir: Path, service_name: str):
             "You must set up the CFL settings before importing them."
         )
 
+    # pylint: disable-next=import-outside-toplevel
+    from dotenv import dotenv_values, load_dotenv
+
     # Set required environment variables.
     os.environ["SERVICE_BASE_DIR"] = str(service_base_dir)
     os.environ["SERVICE_NAME"] = service_name
@@ -109,6 +109,9 @@ def set_up_settings(service_base_dir: Path, service_name: str):
 
         secrets = dotenv_values(secrets_path)
     else:
+        # pylint: disable-next=import-outside-toplevel
+        import boto3
+
         s3: "S3Client" = boto3.client("s3")
         secrets_object = s3.get_object(
             Bucket=os.environ["aws_s3_app_bucket"],
