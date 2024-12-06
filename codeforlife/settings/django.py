@@ -6,7 +6,6 @@ https://docs.djangoproject.com/en/3.2/ref/settings/
 import json
 import os
 import typing as t
-from pathlib import Path
 
 import boto3
 from django.utils.translation import gettext_lazy as _
@@ -51,7 +50,7 @@ def get_databases():
         # Get the dbdata object.
         s3: "S3Client" = boto3.client("s3")
         db_data_object = s3.get_object(
-            Bucket=AWS_S3_APP_BUCKET,
+            Bucket=t.cast(str, AWS_S3_APP_BUCKET),
             Key=f"{AWS_S3_APP_FOLDER}/dbMetadata/{APP_ID}/app.dbdata",
         )
 
@@ -62,11 +61,11 @@ def get_databases():
         if not db_data or db_data["DBEngine"] != "postgres":
             raise ConnectionAbortedError("Invalid database data.")
 
-        name = db_data["Database"]
-        user = db_data["user"]
-        password = db_data["password"]
-        host = db_data["Endpoint"]
-        port = db_data["Port"]
+        name = t.cast(str, db_data["Database"])
+        user = t.cast(str, db_data["user"])
+        password = t.cast(str, db_data["password"])
+        host = t.cast(str, db_data["Endpoint"])
+        port = t.cast(int, db_data["Port"])
 
     return {
         "default": {
