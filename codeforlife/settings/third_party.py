@@ -2,6 +2,7 @@
 This file contains custom settings defined by third party extensions.
 """
 
+import json
 import os
 
 from .django import DEBUG
@@ -30,7 +31,9 @@ REST_FRAMEWORK = {
 # https://django-storages.readthedocs.io/en/latest/backends/amazon-S3.html#settings
 
 AWS_STORAGE_BUCKET_NAME = os.getenv("AWS_STORAGE_BUCKET_NAME")
-AWS_S3_OBJECT_PARAMETERS = os.getenv("AWS_S3_OBJECT_PARAMETERS", {})
+AWS_S3_OBJECT_PARAMETERS = json.loads(
+    os.getenv("AWS_S3_OBJECT_PARAMETERS", "{}")
+)
 AWS_DEFAULT_ACL = os.getenv("AWS_DEFAULT_ACL")
 AWS_QUERYSTRING_AUTH = bool(int(os.getenv("AWS_QUERYSTRING_AUTH", "1")))
 AWS_S3_MAX_MEMORY_SIZE = int(os.getenv("AWS_S3_MAX_MEMORY_SIZE", "0"))
