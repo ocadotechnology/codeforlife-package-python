@@ -12,7 +12,7 @@ import boto3
 from django.utils.translation import gettext_lazy as _
 
 from ..types import JsonDict
-from .custom import SERVICE_API_URL, SERVICE_NAME
+from .custom import ENV, SERVICE_API_URL, SERVICE_BASE_DIR, SERVICE_NAME
 from .otp import APP_ID, AWS_S3_APP_BUCKET, AWS_S3_APP_FOLDER
 
 if t.TYPE_CHECKING:
@@ -41,7 +41,13 @@ def get_databases():
         The database configs.
     """
 
-    if AWS_S3_APP_BUCKET and AWS_S3_APP_FOLDER and APP_ID:
+    if ENV == "local":
+        name = os.getenv("DB_NAME", SERVICE_NAME)
+        user = os.getenv("DB_USER", "root")
+        password = os.getenv("DB_PASSWORD", "password")
+        host = os.getenv("DB_HOST", "localhost")
+        port = int(os.getenv("DB_PORT", "5432"))
+    else:
         # Get the dbdata object.
         s3: "S3Client" = boto3.client("s3")
         db_data_object = s3.get_object(
@@ -61,12 +67,6 @@ def get_databases():
         password = db_data["password"]
         host = db_data["Endpoint"]
         port = db_data["Port"]
-    else:
-        name = os.getenv("DB_NAME", SERVICE_NAME)
-        user = os.getenv("DB_USER", "root")
-        password = os.getenv("DB_PASSWORD", "password")
-        host = os.getenv("DB_HOST", "localhost")
-        port = int(os.getenv("DB_PORT", "5432"))
 
     return {
         "default": {
@@ -243,25 +243,14 @@ INSTALLED_APPS = [
     "corsheaders",
     "rest_framework",
     "django_filters",
+    "storages",
 ]
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.2/howto/static-files/
 
-
-def get_static_root(base_dir: Path):
-    """Get the static root for the Django project.
-
-    Args:
-        base_dir: The base directory of the Django project.
-
-    Returns:
-        The static root for the django project.
-    """
-    return base_dir / "static"
-
-
-STATIC_URL = "/static/"
+STATIC_ROOT = SERVICE_BASE_DIR / "static"
+STATIC_URL = os.getenv("STATIC_URL", "/static/")
 
 # Templates
 # https://docs.djangoproject.com/en/3.2/ref/templates/
@@ -281,3 +270,12 @@ TEMPLATES = [
         },
     },
 ]
+
+# File storage
+# https://docs.djangoproject.com/en/3.2/topics/files/#file-storage
+
+DEFAULT_FILE_STORAGE = (
+    "django.core.files.storage.FileSystemStorage"
+    if ENV == "local"
+    else "storages.backends.s3.S3Storage"
+)

@@ -3,9 +3,18 @@ This file contains all of our custom settings we define for our own purposes.
 """
 
 import os
+from pathlib import Path
+
+from ..types import Env
+
+# The name of the current environment.
+ENV: Env = os.environ["ENV"]
+
+# The base directory of the current service.
+SERVICE_BASE_DIR = Path(os.environ["SERVICE_BASE_DIR"])
 
 # The name of the current service.
-SERVICE_NAME = os.getenv("SERVICE_NAME", "REPLACE_ME")
+SERVICE_NAME = os.environ["SERVICE_NAME"]
 
 # If the current service the root service. This will only be true for portal.
 SERVICE_IS_ROOT = bool(int(os.getenv("SERVICE_IS_ROOT", "0")))
