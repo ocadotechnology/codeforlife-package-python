@@ -4,6 +4,7 @@ Created on 28/10/2024 at 16:19:47(+00:00).
 """
 
 import multiprocessing
+import os
 import typing as t
 
 from django.core.management import call_command
@@ -19,7 +20,9 @@ class StandaloneApplication(BaseApplication):
     https://docs.gunicorn.org/en/stable/custom.html
     """
 
-    def __init__(self, app: t.Callable, workers: int = 0):
+    def __init__(
+        self, app: t.Callable, workers: int = int(os.getenv("WORKERS", "0"))
+    ):
         call_command("migrate", interactive=False)
 
         self.options = {
