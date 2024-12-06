@@ -7,6 +7,8 @@ Reusable type hints.
 
 import typing as t
 
+Env = t.Literal["local", "development", "staging", "production"]
+
 Args = t.Tuple[t.Any, ...]
 KwArgs = t.Dict[str, t.Any]
 

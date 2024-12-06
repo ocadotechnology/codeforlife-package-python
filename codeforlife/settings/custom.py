@@ -3,12 +3,19 @@ This file contains all of our custom settings we define for our own purposes.
 """
 
 import os
+import typing as t
+from pathlib import Path
+
+from ..types import Env
+
+# The name of the current environment.
+ENV = t.cast(Env, os.getenv("ENV", "local"))
+
+# The base directory of the current service.
+SERVICE_BASE_DIR = Path(os.getenv("SERVICE_BASE_DIR", "/"))
 
 # The name of the current service.
 SERVICE_NAME = os.getenv("SERVICE_NAME", "REPLACE_ME")
-
-# If the current service the root service. This will only be true for portal.
-SERVICE_IS_ROOT = bool(int(os.getenv("SERVICE_IS_ROOT", "0")))
 
 # The protocol, domain and port of the current service.
 SERVICE_PROTOCOL = os.getenv("SERVICE_PROTOCOL", "http")
@@ -18,18 +25,9 @@ SERVICE_PORT = int(os.getenv("SERVICE_PORT", "8000"))
 # The base url of the current service.
 # The root service does not need its name included in the base url.
 SERVICE_BASE_URL = f"{SERVICE_PROTOCOL}://{SERVICE_DOMAIN}:{SERVICE_PORT}"
-if not SERVICE_IS_ROOT:
-    SERVICE_BASE_URL += f"/{SERVICE_NAME}"
 
-# The api url of the current service.
-SERVICE_API_URL = f"{SERVICE_BASE_URL}/api"
-
-# The website url of the current service.
-SERVICE_SITE_URL = (
-    "http://localhost:5173"
-    if SERVICE_DOMAIN == "localhost"
-    else SERVICE_BASE_URL
-)
+# The frontend url of the current service.
+SERVICE_SITE_URL = os.getenv("SERVICE_SITE_URL", "http://localhost:5173")
 
 # The authorization bearer token used to authenticate with Dotdigital.
 MAIL_AUTH = os.getenv("MAIL_AUTH", "REPLACE_ME")
