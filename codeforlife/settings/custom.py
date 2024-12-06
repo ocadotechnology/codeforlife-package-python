@@ -3,12 +3,13 @@ This file contains all of our custom settings we define for our own purposes.
 """
 
 import os
+import typing as t
 from pathlib import Path
 
 from ..types import Env
 
 # The name of the current environment.
-ENV: Env = os.environ["ENV"]
+ENV = t.cast(Env, os.environ["ENV"])
 
 # The base directory of the current service.
 SERVICE_BASE_DIR = Path(os.environ["SERVICE_BASE_DIR"])
