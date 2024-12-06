@@ -44,7 +44,17 @@ AWS_LOCATION = os.getenv("AWS_LOCATION", "")
 AWS_IS_GZIPPED = bool(int(os.getenv("AWS_IS_GZIPPED", "0")))
 GZIP_CONTENT_TYPES = os.getenv(
     "GZIP_CONTENT_TYPES",
-    "(text/css,text/javascript,application/javascript,application/x-javascript,image/svg+xml)",
+    "("
+    + ",".join(
+        [
+            "text/css",
+            "text/javascript",
+            "application/javascript",
+            "application/x-javascript",
+            "image/svg+xml",
+        ]
+    )
+    + ")",
 )
 AWS_S3_REGION_NAME = os.getenv("AWS_S3_REGION_NAME")
 AWS_S3_USE_SSL = bool(int(os.getenv("AWS_S3_USE_SSL", "1")))
