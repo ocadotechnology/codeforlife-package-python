@@ -12,7 +12,7 @@ import boto3
 from django.utils.translation import gettext_lazy as _
 
 from ..types import JsonDict
-from .custom import ENV, SERVICE_API_URL, SERVICE_BASE_DIR, SERVICE_NAME
+from .custom import ENV, SERVICE_BASE_DIR, SERVICE_BASE_URL, SERVICE_NAME
 from .otp import APP_ID, AWS_S3_APP_BUCKET, AWS_S3_APP_FOLDER
 
 if t.TYPE_CHECKING:
@@ -104,7 +104,7 @@ SECRET_KEY = os.getenv("SECRET_KEY", "replace-me")
 # Auth
 # https://docs.djangoproject.com/en/3.2/topics/auth/default/
 
-LOGIN_URL = f"{SERVICE_API_URL}/session/expired/"
+LOGIN_URL = f"{SERVICE_BASE_URL}/session/expired/"
 
 # Authentication backends
 # https://docs.djangoproject.com/en/3.2/ref/settings/#authentication-backends
