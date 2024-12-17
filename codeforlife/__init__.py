@@ -84,12 +84,12 @@ def set_up_settings(service_base_dir: Path, service_name: str):
     env = t.cast(Env, os.environ["ENV"])
 
     # Load environment variables.
-    load_dotenv(f".env/.env.{env}", override=False)
-    load_dotenv(".env/.env", override=False)
+    load_dotenv(service_base_dir / f".env/.env.{env}", override=False)
+    load_dotenv(service_base_dir / ".env/.env", override=False)
 
     # Get secrets.
     if env == "local":
-        secrets_path = ".env/.env.local.secrets"
+        secrets_path = service_base_dir / ".env/.env.local.secrets"
         # TODO: move this to the dev container setup script.
         if not os.path.exists(secrets_path):
             # pylint: disable=line-too-long
