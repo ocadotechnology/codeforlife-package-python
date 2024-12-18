@@ -5,6 +5,7 @@ This file contains custom settings defined by third party extensions.
 import json
 import os
 
+from .custom import SERVICE_SITE_URL
 from .django import DEBUG
 
 # CORS
@@ -12,7 +13,7 @@ from .django import DEBUG
 
 CORS_ALLOW_ALL_ORIGINS = DEBUG
 CORS_ALLOW_CREDENTIALS = True
-CORS_ALLOWED_ORIGINS = ["https://www.codeforlife.education"]
+CORS_ALLOWED_ORIGINS = [SERVICE_SITE_URL]
 
 # REST framework
 # https://www.django-rest-framework.org/api-guide/settings/#settings
