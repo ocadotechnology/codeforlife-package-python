@@ -12,7 +12,7 @@ from django.utils.translation import gettext_lazy as _
 
 from ..types import JsonDict
 from .custom import ENV, SERVICE_BASE_DIR, SERVICE_BASE_URL, SERVICE_NAME
-from .otp import APP_ID, AWS_S3_APP_BUCKET, AWS_S3_APP_FOLDER
+from .otp import AWS_S3_APP_BUCKET, AWS_S3_APP_FOLDER
 
 if t.TYPE_CHECKING:
     from mypy_boto3_s3.client import S3Client
@@ -51,7 +51,7 @@ def get_databases():
         s3: "S3Client" = boto3.client("s3")
         db_data_object = s3.get_object(
             Bucket=t.cast(str, AWS_S3_APP_BUCKET),
-            Key=f"{AWS_S3_APP_FOLDER}/dbMetadata/{APP_ID}/db.dbdata",
+            Key=f"{AWS_S3_APP_FOLDER}/dbMetadata/codeforlife/db.dbdata",
         )
 
         # Load the object as a JSON dict.
