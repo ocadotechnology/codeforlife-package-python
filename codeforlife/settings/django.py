@@ -51,7 +51,7 @@ def get_databases():
         s3: "S3Client" = boto3.client("s3")
         db_data_object = s3.get_object(
             Bucket=t.cast(str, AWS_S3_APP_BUCKET),
-            Key=f"{AWS_S3_APP_FOLDER}/dbMetadata/{APP_ID}/app.dbdata",
+            Key=f"{AWS_S3_APP_FOLDER}/dbMetadata/{APP_ID}/db.dbdata",
         )
 
         # Load the object as a JSON dict.
