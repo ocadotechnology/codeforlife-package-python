@@ -167,7 +167,11 @@ LOGGING = {
     "disable_existing_loggers": False,
     "formatters": {
         "default": {
-            "class": "codeforlife.logging.JsonFormatter",
+            **(
+                {"format": "[%(asctime)s][%(name)s][%(levelname)s] %(message)s"}
+                if ENV == "local"
+                else {"class": "codeforlife.logging.JsonFormatter"}
+            ),
             "style": "%",
         },
     },
