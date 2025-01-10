@@ -7,6 +7,8 @@ Reusable type hints.
 
 import typing as t
 
+CookieSamesite = t.Optional[t.Literal["Lax", "Strict", "None", False]]
+
 Env = t.Literal["local", "development", "staging", "production"]
 
 Args = t.Tuple[t.Any, ...]

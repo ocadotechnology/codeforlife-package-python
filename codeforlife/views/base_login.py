@@ -16,7 +16,7 @@ from rest_framework import status
 from ..forms import BaseLoginForm
 from ..models import AbstractBaseUser
 from ..request import BaseHttpRequest
-from ..types import JsonDict
+from ..types import CookieSamesite, JsonDict
 
 AnyBaseHttpRequest = t.TypeVar("AnyBaseHttpRequest", bound=BaseHttpRequest)
 AnyAbstractBaseUser = t.TypeVar("AnyAbstractBaseUser", bound=AbstractBaseUser)
@@ -84,17 +84,17 @@ class BaseLoginView(
                     indent=None,
                 )
             ),
-            max_age=(
+            max_age=(  # Expires when the session cookie expires.
                 None
                 if settings.SESSION_EXPIRE_AT_BROWSER_CLOSE
                 else settings.SESSION_COOKIE_AGE
             ),
+            path=settings.SESSION_METADATA_COOKIE_PATH,
             secure=settings.SESSION_COOKIE_SECURE,
             samesite=t.cast(
-                t.Optional[t.Literal["Lax", "Strict", "None", False]],
-                settings.SESSION_COOKIE_SAMESITE,
+                CookieSamesite, settings.SESSION_METADATA_COOKIE_SAMESITE
             ),
-            domain=settings.SESSION_COOKIE_DOMAIN,
+            domain=settings.SESSION_METADATA_COOKIE_DOMAIN,
             httponly=False,
         )
 

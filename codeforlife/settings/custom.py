@@ -6,7 +6,7 @@ import os
 import typing as t
 from pathlib import Path
 
-from ..types import Env
+from ..types import CookieSamesite, Env
 
 # The name of the current environment.
 ENV = t.cast(Env, os.getenv("ENV", "local"))
@@ -36,5 +36,11 @@ MAIL_AUTH = os.getenv("MAIL_AUTH", "REPLACE_ME")
 # If disabled, emails will be logged to the console instead.
 MAIL_ENABLED = bool(int(os.getenv("MAIL_ENABLED", "0")))
 
-# The name of the session metadata cookie.
+# The session metadata cookie settings.
+# These work the same as Django's session cookie settings.
 SESSION_METADATA_COOKIE_NAME = "session_metadata"
+SESSION_METADATA_COOKIE_PATH = "/"
+SESSION_METADATA_COOKIE_DOMAIN = os.getenv(
+    "SESSION_METADATA_COOKIE_DOMAIN", "localhost"
+)
+SESSION_METADATA_COOKIE_SAMESITE: CookieSamesite = "Strict"

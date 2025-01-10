@@ -125,8 +125,8 @@ SESSION_COOKIE_NAME = "session_key"
 SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_AGE = 60 * 60
 SESSION_COOKIE_SECURE = True
-SESSION_COOKIE_SAMESITE = "None"
-SESSION_COOKIE_DOMAIN = "localhost" if DEBUG else "codeforlife.education"
+SESSION_COOKIE_SAMESITE = "Lax"
+SESSION_COOKIE_DOMAIN = os.getenv("SESSION_COOKIE_DOMAIN", "localhost")
 
 # Security
 # https://docs.djangoproject.com/en/3.2/topics/security/
@@ -153,11 +153,10 @@ DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
 # CSRF
 # https://docs.djangoproject.com/en/3.2/ref/csrf/
 
-# TODO: Decide on CSRF approach
 CSRF_COOKIE_NAME = f"{SERVICE_NAME}_csrftoken"
-CSRF_COOKIE_SAMESITE = "None"
+CSRF_COOKIE_DOMAIN = os.getenv("CSRF_COOKIE_DOMAIN", "localhost")
+CSRF_COOKIE_SAMESITE = "Strict"
 CSRF_COOKIE_SECURE = True
-# CSRF_USE_SESSION = True
 
 # Logging
 # https://docs.djangoproject.com/en/3.2/topics/logging/

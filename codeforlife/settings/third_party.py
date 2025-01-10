@@ -6,12 +6,12 @@ import json
 import os
 
 from .custom import SERVICE_SITE_URL
-from .django import DEBUG
+from .django import ENV
 
 # CORS
 # https://pypi.org/project/django-cors-headers/
 
-CORS_ALLOW_ALL_ORIGINS = DEBUG
+CORS_ALLOW_ALL_ORIGINS = ENV == "local"
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOWED_ORIGINS = [SERVICE_SITE_URL]
 

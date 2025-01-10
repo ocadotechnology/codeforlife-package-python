@@ -26,9 +26,9 @@ class SessionMiddleware(_SessionMiddleware):
         ):
             response.delete_cookie(
                 key=settings.SESSION_METADATA_COOKIE_NAME,
-                path=settings.SESSION_COOKIE_PATH,
-                domain=settings.SESSION_COOKIE_DOMAIN,
-                samesite=settings.SESSION_COOKIE_SAMESITE,
+                path=settings.SESSION_METADATA_COOKIE_PATH,
+                domain=settings.SESSION_METADATA_COOKIE_DOMAIN,
+                samesite=settings.SESSION_METADATA_COOKIE_SAMESITE,
             )
 
         return response
