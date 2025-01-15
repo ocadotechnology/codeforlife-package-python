@@ -5,7 +5,6 @@ Created on 23/02/2024 at 08:46:27(+00:00).
 
 import typing as t
 
-from ..types import get_arg
 from .api_client import APIClient, BaseAPIClient
 from .test import TestCase
 

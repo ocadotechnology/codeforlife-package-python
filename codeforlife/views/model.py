@@ -15,7 +15,7 @@ from rest_framework.viewsets import ModelViewSet as DrfModelViewSet
 
 from ..permissions import Permission
 from ..request import BaseRequest, Request
-from ..types import KwArgs, get_arg
+from ..types import KwArgs
 from .api import APIView, BaseAPIView
 from .decorators import action
 
@@ -102,7 +102,8 @@ class BaseModelViewSet(
                 # # pylint: disable-next=too-few-public-methods
                 # class _ModelListSerializer(
                 #     ModelListSerializer[
-                #         RequestUser, self.model_class  # type: ignore[valid-type]
+                #         RequestUser,
+                #         self.model_class,  # type: ignore[valid-type]
                 #     ]
                 # ):
                 #     pass

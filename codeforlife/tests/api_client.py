@@ -12,7 +12,7 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.test import APIClient as _APIClient
 
-from ..types import DataDict, JsonDict, get_arg
+from ..types import DataDict, JsonDict
 from .api_request_factory import APIRequestFactory, BaseAPIRequestFactory
 
 # pylint: disable=duplicate-code

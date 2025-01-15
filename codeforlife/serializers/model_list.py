@@ -12,7 +12,7 @@ from rest_framework.serializers import ListSerializer as _ListSerializer
 from rest_framework.serializers import ValidationError as _ValidationError
 
 from ..request import BaseRequest, Request
-from ..types import DataDict, OrderedDataDict, get_arg
+from ..types import DataDict, OrderedDataDict
 from .base import BaseSerializer
 
 # pylint: disable=duplicate-code
@@ -91,6 +91,7 @@ class BaseModelListSerializer(
         Returns:
             The models.
         """
+        # pylint: disable-next=line-too-long
         return self.model_class.objects.bulk_create(  # type: ignore[attr-defined]
             objs=[self.model_class(**data) for data in validated_data],
             batch_size=self.batch_size,

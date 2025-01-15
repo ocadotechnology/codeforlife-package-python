@@ -9,7 +9,6 @@ from django.http import HttpRequest
 from rest_framework.views import APIView as _APIView
 
 from ..request import BaseRequest, Request
-from ..types import get_arg
 
 # pylint: disable=duplicate-code
 if t.TYPE_CHECKING:

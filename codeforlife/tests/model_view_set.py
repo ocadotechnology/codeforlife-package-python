@@ -13,10 +13,9 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Model
 from django.urls import reverse
 
-from ..models import AbstractBaseUser
 from ..permissions import Permission
 from ..serializers import BaseSerializer
-from ..types import DataDict, JsonDict, KwArgs, get_arg
+from ..types import DataDict, JsonDict, KwArgs
 from ..views import BaseModelViewSet, ModelViewSet
 from .api import APITestCase, BaseAPITestCase
 from .model_view_set_client import BaseModelViewSetClient, ModelViewSetClient
