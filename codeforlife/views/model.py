@@ -98,18 +98,16 @@ class BaseModelViewSet(
                 # pylint: disable-next=import-outside-toplevel
                 from ..serializers import ModelListSerializer
 
-                model_class = self.get_model_class()
-
-                # pylint: disable-next=too-few-public-methods
-                class _ModelListSerializer(
-                    ModelListSerializer[
-                        RequestUser, model_class  # type: ignore[valid-type]
-                    ]
-                ):
-                    pass
-
+                # TODO: delete this
+                # # pylint: disable-next=too-few-public-methods
+                # class _ModelListSerializer(
+                #     ModelListSerializer[
+                #         RequestUser, self.model_class  # type: ignore[valid-type]
+                #     ]
+                # ):
+                #     pass
                 # Set list_serializer_class to default if not set.
-                setattr(meta, "list_serializer_class", _ModelListSerializer)
+                setattr(meta, "list_serializer_class", ModelListSerializer)
 
                 # Get default list_serializer_class.
                 serializer = super().get_serializer(*args, **kwargs)

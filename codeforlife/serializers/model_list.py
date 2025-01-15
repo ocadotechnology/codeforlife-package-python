@@ -68,14 +68,10 @@ class BaseModelListSerializer(
         """Casts the instance to not None."""
         return t.cast(t.List[AnyModel], self.instance)
 
-    @classmethod
-    def get_model_class(cls) -> t.Type[AnyModel]:
-        """Get the model view set's class.
-
-        Returns:
-            The model view set's class.
-        """
-        return get_arg(cls, 0)
+    @property
+    def model_class(self) -> t.Type[AnyModel]:
+        """Shorthand to model class."""
+        return self.view.model_class
 
     def __init__(self, *args, **kwargs):
         instance = args[0] if args else kwargs.pop("instance", None)
@@ -95,9 +91,8 @@ class BaseModelListSerializer(
         Returns:
             The models.
         """
-        model_class = self.get_model_class()
-        return model_class.objects.bulk_create(  # type: ignore[attr-defined]
-            objs=[model_class(**data) for data in validated_data],
+        return self.model_class.objects.bulk_create(  # type: ignore[attr-defined]
+            objs=[self.model_class(**data) for data in validated_data],
             batch_size=self.batch_size,
         )
 
@@ -122,8 +117,7 @@ class BaseModelListSerializer(
             for field, value in data.items():
                 setattr(model, field, value)
 
-        model_class = self.get_model_class()
-        model_class.objects.bulk_update(  # type: ignore[attr-defined]
+        self.model_class.objects.bulk_update(  # type: ignore[attr-defined]
             objs=instance,
             fields={field for data in validated_data for field in data.keys()},
             batch_size=self.batch_size,

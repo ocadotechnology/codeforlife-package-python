@@ -54,7 +54,7 @@ class BaseModelViewSetTestCase(
 
     @property
     def model_class(self) -> t.Type[AnyModel]:
-        """Shorthand to request-user class."""
+        """Shorthand to model class."""
         return self.model_view_set_class.model_class
 
     @property
