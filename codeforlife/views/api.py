@@ -31,10 +31,10 @@ class BaseAPIView(_APIView, t.Generic[AnyBaseRequest]):
     REQUIRED_ATTRS: t.Set[str] = {"request_class"}
 
     def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
         for attr in self.REQUIRED_ATTRS:
             assert hasattr(self, attr), f'Attribute "{attr}" must be set.'
-
-        super().__init__(*args, **kwargs)
 
     def _initialize_request(self, request: HttpRequest, **kwargs):
         kwargs["request"] = request

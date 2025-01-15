@@ -28,11 +28,12 @@ class BaseAPITestCase(TestCase, t.Generic[AnyBaseAPIClient]):
 
     REQUIRED_ATTRS: t.Set[str] = {"client_class"}
 
-    def __init__(self, *args, **kwargs):
-        for attr in self.REQUIRED_ATTRS:
-            assert hasattr(self, attr), f'Attribute "{attr}" must be set.'
+    @classmethod
+    def setUpClass(cls):
+        for attr in cls.REQUIRED_ATTRS:
+            assert hasattr(cls, attr), f'Attribute "{attr}" must be set.'
 
-        super().__init__(*args, **kwargs)
+        return super().setUpClass()
 
     def _pre_setup(self):
         # pylint: disable-next=protected-access

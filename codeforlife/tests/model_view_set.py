@@ -61,13 +61,6 @@ class BaseModelViewSetTestCase(
         """Shorthand to request-user class."""
         return get_user_model()
 
-    @classmethod
-    def setUpClass(cls):
-        for attr in cls.REQUIRED_ATTRS:
-            assert hasattr(cls, attr), f'Attribute "{attr}" must be set.'
-
-        return super().setUpClass()
-
     def reverse_action(
         self,
         name: str,
