@@ -46,26 +46,21 @@ class BaseModelViewSetTestCase(
     basename: str
     model_view_set_class: t.Type[AnyBaseModelViewSet]
 
-    REQUIRED_ATTRS: t.Set[str] = {"model_view_set_class", "basename"}
+    REQUIRED_ATTRS: t.Set[str] = {
+        "client_class",
+        "basename",
+        "model_view_set_class",
+    }
 
-    @classmethod
-    def get_request_user_class(cls):
-        """Get the request's user class.
+    @property
+    def model_class(self) -> t.Type[AnyModel]:
+        """Shorthand to request-user class."""
+        return self.model_view_set_class.model_class
 
-        Returns:
-            The request's user class.
-        """
-        return t.cast(AbstractBaseUser, get_user_model())
-
-    @classmethod
-    def get_model_class(cls) -> t.Type[AnyModel]:
-        """Get the model view set's class.
-
-        Returns:
-            The model view set's class.
-        """
-        # pylint: disable-next=no-member
-        return get_arg(cls, 2)
+    @property
+    def request_user_class(self):
+        """Shorthand to request-user class."""
+        return get_user_model()
 
     @classmethod
     def setUpClass(cls):
@@ -134,7 +129,7 @@ class BaseModelViewSetTestCase(
         """
         # Get the logged-in user.
         try:
-            user = self.get_request_user_class().objects.get(
+            user = self.request_user_class.objects.get(
                 session=self.client.session.session_key
             )
         except ObjectDoesNotExist:
@@ -263,33 +258,13 @@ class ModelViewSetTestCase(
 
     client_class = ModelViewSetClient
 
-    @classmethod
-    def get_request_user_class(cls) -> t.Type[RequestUser]:
-        """Get the request's user class.
+    REQUIRED_ATTRS: t.Set[str] = {
+        "client_class",
+        "basename",
+        "model_view_set_class",
+    }
 
-        Returns:
-            The request's user class.
-        """
-        return get_arg(cls, 0)
-
-    @classmethod
-    def get_model_class(cls) -> t.Type[AnyModel]:
-        """Get the model view set's class.
-
-        Returns:
-            The model view set's class.
-        """
-        return get_arg(cls, 1)
-
-    def _get_client_class(self):
-        # TODO: unpack type args in index after moving to python 3.11
-        # pylint: disable-next=too-few-public-methods
-        class _Client(
-            self.client_class[  # type: ignore[misc]
-                self.get_request_user_class(),
-                self.get_model_class(),
-            ]
-        ):
-            _test_case = self
-
-        return _Client
+    @property
+    def request_user_class(self):
+        """Shorthand to request-user class."""
+        return self.model_view_set_class.request_user_class

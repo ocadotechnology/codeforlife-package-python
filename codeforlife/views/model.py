@@ -62,22 +62,16 @@ class BaseModelViewSet(
 ):
     """Base model view set for all model view sets."""
 
+    model_class: t.Type[AnyModel]
     serializer_class: t.Optional[t.Type[AnyBaseModelSerializer]]
 
-    @classmethod
-    def get_model_class(cls) -> t.Type[AnyModel]:
-        """Get the model view set's class.
-
-        Returns:
-            The model view set's class.
-        """
-        return get_arg(cls, 0)
+    REQUIRED_ATTRS: t.Set[str] = {"request_class", "model_class"}
 
     @cached_property
     def lookup_field_name(self):
         """The name of the lookup field."""
         return (
-            self.get_model_class()._meta.pk.attname  # type: ignore[union-attr]
+            self.model_class._meta.pk.attname  # type: ignore[union-attr]
             if self.lookup_field == "pk"
             else self.lookup_field
         )
@@ -168,6 +162,12 @@ class ModelViewSet(
     t.Generic[RequestUser, AnyModel],
 ):
     """Base model view set for all model view sets."""
+
+    REQUIRED_ATTRS: t.Set[str] = {
+        "request_class",
+        "request_user_class",
+        "model_class",
+    }
 
     def get_bulk_queryset(self, lookup_values: t.Collection):
         """Get the queryset for a bulk action.

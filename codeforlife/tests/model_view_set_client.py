@@ -52,7 +52,7 @@ class BaseModelViewSetClient(
     @property
     def _model_class(self):
         """Shortcut to get model class."""
-        return self._test_case.get_model_class()
+        return self._test_case.model_class
 
     @property
     def _model_view_set_class(self):

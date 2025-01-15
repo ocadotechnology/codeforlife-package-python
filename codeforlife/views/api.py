@@ -29,6 +29,14 @@ class BaseAPIView(_APIView, t.Generic[AnyBaseRequest]):
     request: AnyBaseRequest
     request_class: t.Type[AnyBaseRequest]
 
+    REQUIRED_ATTRS: t.Set[str] = {"request_class"}
+
+    def __init__(self, *args, **kwargs):
+        for attr in self.REQUIRED_ATTRS:
+            assert hasattr(self, attr), f'Attribute "{attr}" must be set.'
+
+        super().__init__(*args, **kwargs)
+
     def _initialize_request(self, request: HttpRequest, **kwargs):
         kwargs["request"] = request
         kwargs.setdefault("parsers", self.get_parsers())
@@ -48,16 +56,10 @@ class BaseAPIView(_APIView, t.Generic[AnyBaseRequest]):
 # pylint: disable-next=missing-class-docstring
 class APIView(BaseAPIView[Request[RequestUser]], t.Generic[RequestUser]):
     request_class = Request
+    request_user_class: t.Type[RequestUser]
 
-    @classmethod
-    def get_request_user_class(cls) -> t.Type[RequestUser]:
-        """Get the request's user class.
-
-        Returns:
-            The request's user class.
-        """
-        return get_arg(cls, 0)
+    REQUIRED_ATTRS: t.Set[str] = {"request_class", "request_user_class"}
 
     def _initialize_request(self, request, **kwargs):
-        kwargs["user_class"] = self.get_request_user_class()
+        kwargs["user_class"] = self.request_user_class
         return super()._initialize_request(request, **kwargs)

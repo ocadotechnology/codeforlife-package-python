@@ -27,6 +27,14 @@ class BaseAPITestCase(TestCase, t.Generic[AnyBaseAPIClient]):
     client: AnyBaseAPIClient
     client_class: t.Type[AnyBaseAPIClient]
 
+    REQUIRED_ATTRS: t.Set[str] = {"client_class"}
+
+    def __init__(self, *args, **kwargs):
+        for attr in self.REQUIRED_ATTRS:
+            assert hasattr(self, attr), f'Attribute "{attr}" must be set.'
+
+        super().__init__(*args, **kwargs)
+
     def _pre_setup(self):
         # pylint: disable-next=protected-access
         self.client_class._test_case = self
@@ -40,27 +48,6 @@ class APITestCase(
     """Base API test case to be inherited by all other API test cases."""
 
     client_class = APIClient
+    request_user_class: t.Type[RequestUser]
 
-    @classmethod
-    def get_request_user_class(cls) -> t.Type[RequestUser]:
-        """Get the request's user class.
-
-        Returns:
-            The request's user class.
-        """
-        return get_arg(cls, 0)
-
-    def _get_client_class(self):
-        # pylint: disable-next=too-few-public-methods
-        class _Client(
-            self.client_class[  # type: ignore[misc]
-                self.get_request_user_class()
-            ]
-        ):
-            pass
-
-        return _Client
-
-    def _pre_setup(self):
-        self.client_class = self._get_client_class()
-        super()._pre_setup()
+    REQUIRED_ATTRS: t.Set[str] = {"client_class", "request_user_class"}

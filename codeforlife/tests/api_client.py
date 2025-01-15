@@ -315,21 +315,17 @@ class APIClient(
 
     request_factory_class = APIRequestFactory
 
+    @property
+    def request_user_class(self) -> t.Type[RequestUser]:
+        """Shorthand to access generic user class."""
+        return self._test_case.request_user_class
+
     def _initialize_request_factory(self, enforce_csrf_checks, **defaults):
         return self.request_factory_class(
-            self.get_request_user_class(),
+            self.request_user_class,
             enforce_csrf_checks,
             **defaults,
         )
-
-    @classmethod
-    def get_request_user_class(cls) -> t.Type[RequestUser]:
-        """Get the request's user class.
-
-        Returns:
-            The request's user class.
-        """
-        return get_arg(cls, 0)
 
     # --------------------------------------------------------------------------
     # Login Helpers

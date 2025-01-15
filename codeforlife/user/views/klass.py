@@ -6,14 +6,15 @@ Created on 24/01/2024 at 13:47:53(+00:00).
 from ...permissions import OR
 from ...views import ModelViewSet
 from ..filters import ClassFilterSet
-from ..models import Class
-from ..models import User as RequestUser
+from ..models import Class, User
 from ..permissions import IsStudent, IsTeacher
 from ..serializers import ClassSerializer
 
 
 # pylint: disable-next=missing-class-docstring,too-many-ancestors
-class ClassViewSet(ModelViewSet[RequestUser, Class]):
+class ClassViewSet(ModelViewSet[User, Class]):
+    request_user_class = User
+    model_class = Class
     http_method_names = ["get"]
     lookup_field = "access_code"
     serializer_class = ClassSerializer
