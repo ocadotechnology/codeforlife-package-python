@@ -44,6 +44,7 @@ class _AbstractBaseUser(AbstractBaseUser):
         abstract = True
 
 
+# pylint: disable-next=too-many-ancestors
 class User(_AbstractBaseUser, _User):
     """A proxy to Django's user class."""
 

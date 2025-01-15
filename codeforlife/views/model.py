@@ -36,7 +36,7 @@ if t.TYPE_CHECKING:  # pragma: no cover
     )
 
     # NOTE: This raises an error during runtime.
-    # pylint: disable-next=too-few-public-methods
+    # pylint: disable-next=too-few-public-methods,too-many-ancestors
     class _ModelViewSet(DrfModelViewSet[AnyModel], t.Generic[AnyModel]):
         pass
 
