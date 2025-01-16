@@ -17,7 +17,7 @@ if t.TYPE_CHECKING:  # pragma: no cover
 class Session(AbstractBaseSession):
     """
     A custom session model to support querying a user's session.
-    https://docs.djangoproject.com/en/3.2/topics/http/sessions/#example
+    https://docs.djangoproject.com/en/4.2/topics/http/sessions/#example
     """
 
     auth_factors: QuerySet["SessionAuthFactor"]
@@ -35,7 +35,7 @@ class SessionStore(BaseSessionStore[Session, User]):
     1. creating only one session per user;
     2. setting a session's auth factors;
     3. clearing a user's expired sessions.
-    https://docs.djangoproject.com/en/3.2/topics/http/sessions/#example
+    https://docs.djangoproject.com/en/4.2/topics/http/sessions/#example
     """
 
     def associate_session_to_user(self, session, user_id):

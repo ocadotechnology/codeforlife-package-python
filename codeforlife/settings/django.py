@@ -1,6 +1,6 @@
 """
 This file contains all the settings Django supports out of the box.
-https://docs.djangoproject.com/en/3.2/ref/settings/
+https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
 import json
@@ -28,12 +28,12 @@ if t.TYPE_CHECKING:
 DEBUG = bool(int(os.getenv("DEBUG", "1")))
 
 # Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/3.2/howto/deployment/checklist/
+# See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 ALLOWED_HOSTS = ["*"]
 
 # Database
-# https://docs.djangoproject.com/en/3.2/ref/settings/#databases
+# https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
 
 def get_databases():
@@ -106,12 +106,12 @@ MIDDLEWARE = [
 SECRET_KEY = os.getenv("SECRET_KEY", "replace-me")
 
 # Auth
-# https://docs.djangoproject.com/en/3.2/topics/auth/default/
+# https://docs.djangoproject.com/en/4.2/topics/auth/default/
 
 LOGIN_URL = f"{SERVICE_BASE_URL}/session/expired/"
 
 # Authentication backends
-# https://docs.djangoproject.com/en/3.2/ref/settings/#authentication-backends
+# https://docs.djangoproject.com/en/4.2/ref/settings/#authentication-backends
 
 AUTHENTICATION_BACKENDS = [
     "codeforlife.user.auth.backends.EmailBackend",
@@ -122,7 +122,7 @@ AUTHENTICATION_BACKENDS = [
 ]
 
 # Sessions
-# https://docs.djangoproject.com/en/3.2/topics/http/sessions/
+# https://docs.djangoproject.com/en/4.2/topics/http/sessions/
 
 SESSION_ENGINE = "codeforlife.user.models.session"
 SESSION_SAVE_EVERY_REQUEST = True
@@ -135,14 +135,14 @@ SESSION_COOKIE_SAMESITE = "Lax"
 SESSION_COOKIE_DOMAIN = os.getenv("SESSION_COOKIE_DOMAIN", "localhost")
 
 # Security
-# https://docs.djangoproject.com/en/3.2/topics/security/
+# https://docs.djangoproject.com/en/4.2/topics/security/
 
 SECURE_CONTENT_TYPE_NOSNIFF = True
 SECURE_BROWSER_XSS_FILTER = True
 SECURE_REFERRER_POLICY = "strict-origin-when-cross-origin"
 
 # Internationalization
-# https://docs.djangoproject.com/en/3.2/topics/i18n/
+# https://docs.djangoproject.com/en/4.2/topics/i18n/
 
 LANGUAGE_CODE = "en-gb"
 LANGUAGES = [("en-gb", _("English"))]
@@ -152,12 +152,12 @@ USE_L10N = True
 USE_TZ = True
 
 # Default primary key field type
-# https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
+# https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
 
 # CSRF
-# https://docs.djangoproject.com/en/3.2/ref/csrf/
+# https://docs.djangoproject.com/en/4.2/ref/csrf/
 
 CSRF_COOKIE_NAME = f"{SERVICE_NAME}_csrftoken"
 CSRF_COOKIE_DOMAIN = os.getenv("CSRF_COOKIE_DOMAIN", "localhost")
@@ -166,7 +166,7 @@ CSRF_COOKIE_SAMESITE = "Strict"
 CSRF_COOKIE_SECURE = True
 
 # Logging
-# https://docs.djangoproject.com/en/3.2/topics/logging/
+# https://docs.djangoproject.com/en/4.2/topics/logging/
 
 LOGGING = {
     "version": 1,
@@ -194,17 +194,17 @@ LOGGING = {
 }
 
 # URLs
-# https://docs.djangoproject.com/en/3.2/ref/settings/#root-urlconf
+# https://docs.djangoproject.com/en/4.2/ref/settings/#root-urlconf
 
 ROOT_URLCONF = "api.urls"
 
 # App
-# https://docs.djangoproject.com/en/3.2/ref/settings/#wsgi-application
+# https://docs.djangoproject.com/en/4.2/ref/settings/#wsgi-application
 
 WSGI_APPLICATION = "application.app"
 
 # Password validation
-# https://docs.djangoproject.com/en/3.2/ref/settings/#auth-password-validators
+# https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
 
 # TODO: compare Django's default common password validator with our own and
 #  decide which to keep
@@ -232,7 +232,7 @@ AUTH_PASSWORD_VALIDATORS = [
 # pylint: enable=line-too-long
 
 # Installed Apps
-# https://docs.djangoproject.com/en/3.2/ref/settings/#installed-apps
+# https://docs.djangoproject.com/en/4.2/ref/settings/#installed-apps
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -255,13 +255,13 @@ INSTALLED_APPS = [
 ]
 
 # Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/3.2/howto/static-files/
+# https://docs.djangoproject.com/en/4.2/howto/static-files/
 
 STATIC_ROOT = SERVICE_BASE_DIR / "static"
 STATIC_URL = os.getenv("STATIC_URL", "/static/")
 
 # Templates
-# https://docs.djangoproject.com/en/3.2/ref/templates/
+# https://docs.djangoproject.com/en/4.2/ref/templates/
 
 TEMPLATES = [
     {
@@ -280,7 +280,7 @@ TEMPLATES = [
 ]
 
 # File storage
-# https://docs.djangoproject.com/en/3.2/topics/files/#file-storage
+# https://docs.djangoproject.com/en/4.2/topics/files/#file-storage
 
 DEFAULT_FILE_STORAGE = (
     "django.core.files.storage.FileSystemStorage"

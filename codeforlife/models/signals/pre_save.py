@@ -3,7 +3,7 @@
 Created on 14/03/2024 at 13:08:13(+00:00).
 
 Helpers for module "django.db.models.signals.pre_save".
-https://docs.djangoproject.com/en/3.2/ref/signals/#pre-save
+https://docs.djangoproject.com/en/4.2/ref/signals/#pre-save
 """
 
 import typing as t

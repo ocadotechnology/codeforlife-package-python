@@ -3,7 +3,7 @@
 Created on 20/06/2024 at 11:46:02(+01:00).
 
 Helpers for module "django.db.models.signals.post_save".
-https://docs.djangoproject.com/en/3.2/ref/signals/#post-save
+https://docs.djangoproject.com/en/4.2/ref/signals/#post-save
 """
 
 import typing as t

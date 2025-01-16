@@ -5,7 +5,7 @@ Created on 16/09/2024 at 15:19:54(+01:00).
 Custom error handlers which override django's default behavior to render a
 template.
 
-https://docs.djangoproject.com/en/3.2/ref/urls/#module-django.conf.urls
+https://docs.djangoproject.com/en/4.2/ref/urls/#module-django.conf.urls
 """
 
 from django.http import (
