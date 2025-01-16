@@ -11,7 +11,13 @@ import boto3
 from django.utils.translation import gettext_lazy as _
 
 from ..types import JsonDict
-from .custom import ENV, SERVICE_BASE_DIR, SERVICE_BASE_URL, SERVICE_NAME
+from .custom import (
+    ENV,
+    SERVICE_BASE_DIR,
+    SERVICE_BASE_URL,
+    SERVICE_NAME,
+    SERVICE_SITE_URL,
+)
 from .otp import AWS_S3_APP_BUCKET, RDS_DB_DATA_PATH
 
 if t.TYPE_CHECKING:
@@ -155,6 +161,7 @@ DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
 
 CSRF_COOKIE_NAME = f"{SERVICE_NAME}_csrftoken"
 CSRF_COOKIE_DOMAIN = os.getenv("CSRF_COOKIE_DOMAIN", "localhost")
+CSRF_TRUSTED_ORIGINS = [SERVICE_SITE_URL]
 CSRF_COOKIE_SAMESITE = "Strict"
 CSRF_COOKIE_SECURE = True
 
