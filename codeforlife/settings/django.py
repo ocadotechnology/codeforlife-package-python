@@ -279,11 +279,29 @@ TEMPLATES = [
     },
 ]
 
-# File storage
-# https://docs.djangoproject.com/en/4.2/topics/files/#file-storage
+# Storages
+# https://docs.djangoproject.com/en/4.2/ref/settings/#storages
 
-DEFAULT_FILE_STORAGE = (
-    "django.core.files.storage.FileSystemStorage"
-    if ENV == "local"
-    else "storages.backends.s3.S3Storage"
-)
+STORAGES: t.Dict[str, t.Any] = {
+    "default": (
+        {
+            "BACKEND": "django.core.files.storage.FileSystemStorage",
+        }
+        if ENV == "local"
+        else {
+            "BACKEND": "storages.backends.s3.S3Storage",
+            # https://django-storages.readthedocs.io/en/latest/backends/amazon-S3.html#settings
+            "OPTIONS": {
+                "bucket_name": os.getenv("S3_STORAGE_BUCKET_NAME"),
+                "default_acl": os.getenv("S3_STORAGE_DEFAULT_ACL"),
+                "location": os.getenv("S3_STORAGE_LOCATION"),
+                "region_name": os.getenv("S3_STORAGE_REGION_NAME"),
+                "custom_domain": os.getenv("S3_STORAGE_CUSTOM_DOMAIN"),
+                "addressing_style": os.getenv("S3_STORAGE_ADDRESSING_STYLE"),
+            },
+        }
+    ),
+    "staticfiles": {
+        "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+    },
+}
