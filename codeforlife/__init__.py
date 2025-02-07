@@ -49,7 +49,7 @@ def set_up_settings(service_base_dir: Path, service_name: str):
         from codeforlife import set_up_settings
 
         # Must set up settings before importing them!
-        secrets = set_up_settings("my-service")
+        secrets = set_up_settings(BASE_DIR, service_name="my-service")
 
         from codeforlife.settings import *
 
