@@ -284,24 +284,49 @@ TEMPLATES = [
 
 STORAGES: t.Dict[str, t.Any] = {
     "default": (
-        {
-            "BACKEND": "django.core.files.storage.FileSystemStorage",
-        }
+        {"BACKEND": "django.core.files.storage.FileSystemStorage"}
         if ENV == "local"
         else {
             "BACKEND": "storages.backends.s3.S3Storage",
             # https://django-storages.readthedocs.io/en/latest/backends/amazon-S3.html#settings
             "OPTIONS": {
-                "bucket_name": os.getenv("S3_STORAGE_BUCKET_NAME"),
-                "default_acl": os.getenv("S3_STORAGE_DEFAULT_ACL"),
-                "location": os.getenv("S3_STORAGE_LOCATION"),
-                "region_name": os.getenv("S3_STORAGE_REGION_NAME"),
-                "custom_domain": os.getenv("S3_STORAGE_CUSTOM_DOMAIN"),
-                "addressing_style": os.getenv("S3_STORAGE_ADDRESSING_STYLE"),
+                "bucket_name": os.getenv("STORAGES_DEFAULT_S3_BUCKET_NAME"),
+                "default_acl": os.getenv("STORAGES_DEFAULT_S3_DEFAULT_ACL"),
+                "location": os.getenv("STORAGES_DEFAULT_S3_LOCATION", ""),
+                "region_name": os.getenv("STORAGES_DEFAULT_S3_REGION_NAME"),
+                "querystring_auth": bool(
+                    int(os.getenv("STORAGES_DEFAULT_S3_QUERYSTRING_AUTH", "1"))
+                ),
+                "querystring_expire": int(
+                    os.getenv("STORAGES_DEFAULT_S3_QUERYSTRING_EXPIRE", "3600")
+                ),
             },
         }
     ),
-    "staticfiles": {
-        "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
-    },
+    "staticfiles": (
+        {"BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage"}
+        if ENV == "local"
+        else {
+            "BACKEND": "storages.backends.s3.S3Storage",
+            # https://django-storages.readthedocs.io/en/latest/backends/amazon-S3.html#settings
+            "OPTIONS": {
+                "bucket_name": os.getenv("STORAGES_STATICFILES_S3_BUCKET_NAME"),
+                "default_acl": os.getenv("STORAGES_STATICFILES_S3_DEFAULT_ACL"),
+                "location": os.getenv("STORAGES_STATICFILES_S3_LOCATION", ""),
+                "region_name": os.getenv("STORAGES_STATICFILES_S3_REGION_NAME"),
+                "querystring_auth": bool(
+                    int(
+                        os.getenv(
+                            "STORAGES_STATICFILES_S3_QUERYSTRING_AUTH", "1"
+                        )
+                    )
+                ),
+                "querystring_expire": int(
+                    os.getenv(
+                        "STORAGES_STATICFILES_S3_QUERYSTRING_EXPIRE", "3600"
+                    )
+                ),
+            },
+        }
+    ),
 }
