@@ -7,6 +7,7 @@ import typing as t
 from pathlib import Path
 
 from ..types import CookieSamesite, Env
+from .otp import AWS_S3_APP_FOLDER, AWS_S3_STATIC_FOLDER
 
 # The name of the current environment.
 ENV = t.cast(Env, os.getenv("ENV", "local"))
@@ -28,6 +29,10 @@ SERVICE_BASE_URL = f"{SERVICE_PROTOCOL}://{SERVICE_DOMAIN}:{SERVICE_PORT}"
 
 # The frontend url of the current service.
 SERVICE_SITE_URL = os.getenv("SERVICE_SITE_URL", "http://localhost:5173")
+
+# The location of the service's folder in the s3 buckets.
+SERVICE_S3_APP_LOCATION = f"{AWS_S3_APP_FOLDER}/{SERVICE_NAME}"
+SERVICE_S3_STATIC_LOCATION = f"{AWS_S3_STATIC_FOLDER}/{SERVICE_NAME}"
 
 # The authorization bearer token used to authenticate with Dotdigital.
 MAIL_AUTH = os.getenv("MAIL_AUTH", "REPLACE_ME")

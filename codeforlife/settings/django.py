@@ -16,9 +16,24 @@ from .custom import (
     SERVICE_BASE_DIR,
     SERVICE_BASE_URL,
     SERVICE_NAME,
+    SERVICE_S3_APP_LOCATION,
+    SERVICE_S3_STATIC_LOCATION,
     SERVICE_SITE_URL,
 )
-from .otp import AWS_S3_APP_BUCKET, RDS_DB_DATA_PATH
+from .otp import (
+    AWS_REGION,
+    AWS_S3_APP_BUCKET,
+    AWS_S3_APP_DEFAULT_ACL,
+    AWS_S3_APP_DOMAIN,
+    AWS_S3_APP_QUERYSTRING_AUTH,
+    AWS_S3_APP_QUERYSTRING_EXPIRE,
+    AWS_S3_STATIC_BUCKET,
+    AWS_S3_STATIC_DEFAULT_ACL,
+    AWS_S3_STATIC_DOMAIN,
+    AWS_S3_STATIC_QUERYSTRING_AUTH,
+    AWS_S3_STATIC_QUERYSTRING_EXPIRE,
+    RDS_DB_DATA_PATH,
+)
 
 if t.TYPE_CHECKING:
     from mypy_boto3_s3.client import S3Client
@@ -258,7 +273,21 @@ INSTALLED_APPS = [
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
 STATIC_ROOT = SERVICE_BASE_DIR / "static"
-STATIC_URL = os.getenv("STATIC_URL", "/static/")
+STATIC_URL = (
+    f"https://{AWS_S3_STATIC_DOMAIN}/{SERVICE_S3_STATIC_LOCATION}/"
+    if ENV != "local"
+    else "/static/"
+)
+
+# User-uploaded files
+# https://docs.djangoproject.com/en/4.2/topics/files/
+
+MEDIA_ROOT = SERVICE_BASE_DIR / "media"
+MEDIA_URL = (
+    f"https://{AWS_S3_APP_DOMAIN}/{SERVICE_S3_APP_LOCATION}/"
+    if ENV != "local"
+    else "/media/"
+)
 
 # Templates
 # https://docs.djangoproject.com/en/4.2/ref/templates/
@@ -290,16 +319,12 @@ STORAGES: t.Dict[str, t.Any] = {
             "BACKEND": "storages.backends.s3.S3Storage",
             # https://django-storages.readthedocs.io/en/latest/backends/amazon-S3.html#settings
             "OPTIONS": {
-                "bucket_name": os.getenv("STORAGES_DEFAULT_S3_BUCKET_NAME"),
-                "default_acl": os.getenv("STORAGES_DEFAULT_S3_DEFAULT_ACL"),
-                "location": os.getenv("STORAGES_DEFAULT_S3_LOCATION", ""),
-                "region_name": os.getenv("STORAGES_DEFAULT_S3_REGION_NAME"),
-                "querystring_auth": bool(
-                    int(os.getenv("STORAGES_DEFAULT_S3_QUERYSTRING_AUTH", "1"))
-                ),
-                "querystring_expire": int(
-                    os.getenv("STORAGES_DEFAULT_S3_QUERYSTRING_EXPIRE", "3600")
-                ),
+                "bucket_name": AWS_S3_APP_BUCKET,
+                "location": SERVICE_S3_APP_LOCATION,
+                "region_name": AWS_REGION,
+                "default_acl": AWS_S3_APP_DEFAULT_ACL,
+                "querystring_auth": AWS_S3_APP_QUERYSTRING_AUTH,
+                "querystring_expire": AWS_S3_APP_QUERYSTRING_EXPIRE,
             },
         }
     ),
@@ -310,22 +335,12 @@ STORAGES: t.Dict[str, t.Any] = {
             "BACKEND": "storages.backends.s3.S3Storage",
             # https://django-storages.readthedocs.io/en/latest/backends/amazon-S3.html#settings
             "OPTIONS": {
-                "bucket_name": os.getenv("STORAGES_STATICFILES_S3_BUCKET_NAME"),
-                "default_acl": os.getenv("STORAGES_STATICFILES_S3_DEFAULT_ACL"),
-                "location": os.getenv("STORAGES_STATICFILES_S3_LOCATION", ""),
-                "region_name": os.getenv("STORAGES_STATICFILES_S3_REGION_NAME"),
-                "querystring_auth": bool(
-                    int(
-                        os.getenv(
-                            "STORAGES_STATICFILES_S3_QUERYSTRING_AUTH", "1"
-                        )
-                    )
-                ),
-                "querystring_expire": int(
-                    os.getenv(
-                        "STORAGES_STATICFILES_S3_QUERYSTRING_EXPIRE", "3600"
-                    )
-                ),
+                "bucket_name": AWS_S3_STATIC_BUCKET,
+                "location": SERVICE_S3_STATIC_LOCATION,
+                "region_name": AWS_REGION,
+                "default_acl": AWS_S3_STATIC_DEFAULT_ACL,
+                "querystring_auth": AWS_S3_STATIC_QUERYSTRING_AUTH,
+                "querystring_expire": AWS_S3_STATIC_QUERYSTRING_EXPIRE,
             },
         }
     ),

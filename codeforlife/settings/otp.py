@@ -10,17 +10,39 @@ NOTE: All variables should be retrieved like so: `os.getenv("key")`.
 
 import os
 
-# App configuration.
+# App.
 
 APP_ID = os.getenv("APP_ID")
 APP_VERSION = os.getenv("APP_VERSION")
 
-# AWS S3 configuration.
+# AWS.
+
+AWS_REGION = os.getenv("aws_region")
+
+# AWS S3.
 
 AWS_S3_APP_BUCKET = os.getenv("aws_s3_app_bucket")
 AWS_S3_APP_FOLDER = os.getenv("aws_s3_app_folder")
+AWS_S3_APP_DOMAIN = f"{AWS_S3_APP_BUCKET}.s3.{AWS_REGION}.amazonaws.com"
+AWS_S3_APP_DEFAULT_ACL = os.getenv("AWS_S3_APP_DEFAULT_ACL")
+AWS_S3_APP_QUERYSTRING_AUTH = bool(
+    int(os.getenv("AWS_S3_APP_QUERYSTRING_AUTH", "1"))
+)
+AWS_S3_APP_QUERYSTRING_EXPIRE = int(
+    os.getenv("AWS_S3_APP_QUERYSTRING_EXPIRE", "3600")
+)
+AWS_S3_STATIC_BUCKET = os.getenv("AWS_S3_STATIC_BUCKET")
+AWS_S3_STATIC_FOLDER = os.getenv("AWS_S3_STATIC_FOLDER")
+AWS_S3_STATIC_DOMAIN = f"{AWS_S3_STATIC_BUCKET}.s3.{AWS_REGION}.amazonaws.com"
+AWS_S3_STATIC_DEFAULT_ACL = os.getenv("AWS_S3_STATIC_DEFAULT_ACL")
+AWS_S3_STATIC_QUERYSTRING_AUTH = bool(
+    int(os.getenv("AWS_S3_STATIC_QUERYSTRING_AUTH", "1"))
+)
+AWS_S3_STATIC_QUERYSTRING_EXPIRE = int(
+    os.getenv("AWS_S3_STATIC_QUERYSTRING_EXPIRE", "3600")
+)
 
-# RDS configuration.
+# RDS.
 
 RDS_DB_NAME = os.getenv("RDS_DB_NAME")
 RDS_SCHEMA_NAME = os.getenv("RDS_SCHEMA_NAME")
