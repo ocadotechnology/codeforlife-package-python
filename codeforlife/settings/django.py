@@ -1,4 +1,7 @@
 """
+© Ocado Group
+Created on 12/02/2025 at 16:49:05(+00:00).
+
 This file contains all the settings Django supports out of the box.
 https://docs.djangoproject.com/en/4.2/ref/settings/
 """

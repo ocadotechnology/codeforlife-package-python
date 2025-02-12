@@ -1,4 +1,7 @@
 """
+© Ocado Group
+Created on 12/02/2025 at 16:49:16(+00:00).
+
 This file contains all of our custom settings we define for our own purposes.
 """
 
