@@ -3,6 +3,7 @@ This file contains all of our custom settings we define for our own purposes.
 """
 
 import os
+import re
 import typing as t
 from pathlib import Path
 
@@ -27,6 +28,17 @@ SERVICE_PORT = int(os.getenv("SERVICE_PORT", "8000"))
 # The root service does not need its name included in the base url.
 SERVICE_BASE_URL = f"{SERVICE_PROTOCOL}://{SERVICE_DOMAIN}:{SERVICE_PORT}"
 
+# The domain without the last level and a preceding dot.
+# If the domain does not contain multiple levels, then it remains the same.
+# Examples:
+#   - domain: "www.example.com" -> external domain: ".example.com".
+#   - domain: "localhost" -> external domain: "localhost".
+SERVICE_EXTERNAL_DOMAIN = (
+    t.cast(re.Match, re.match(r".+?(\..+)", SERVICE_DOMAIN)).group(1)
+    if "." in SERVICE_DOMAIN
+    else SERVICE_DOMAIN
+)
+
 # The frontend url of the current service.
 SERVICE_SITE_URL = os.getenv("SERVICE_SITE_URL", "http://localhost:5173")
 
@@ -45,7 +57,5 @@ MAIL_ENABLED = bool(int(os.getenv("MAIL_ENABLED", "0")))
 # These work the same as Django's session cookie settings.
 SESSION_METADATA_COOKIE_NAME = "session_metadata"
 SESSION_METADATA_COOKIE_PATH = "/"
-SESSION_METADATA_COOKIE_DOMAIN = os.getenv(
-    "SESSION_METADATA_COOKIE_DOMAIN", "localhost"
-)
+SESSION_METADATA_COOKIE_DOMAIN = SERVICE_EXTERNAL_DOMAIN
 SESSION_METADATA_COOKIE_SAMESITE: CookieSamesite = "Strict"
