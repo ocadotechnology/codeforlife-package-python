@@ -23,7 +23,7 @@ AWS_REGION = os.getenv("aws_region")
 
 AWS_S3_APP_BUCKET = os.getenv("aws_s3_app_bucket")
 AWS_S3_APP_FOLDER = os.getenv("aws_s3_app_folder")
-AWS_S3_APP_DOMAIN = f"{AWS_S3_APP_BUCKET}.s3.{AWS_REGION}.amazonaws.com"
+AWS_S3_APP_DOMAIN = f"{AWS_S3_APP_BUCKET}.s3.amazonaws.com"
 AWS_S3_APP_DEFAULT_ACL = os.getenv("AWS_S3_APP_DEFAULT_ACL")
 AWS_S3_APP_QUERYSTRING_AUTH = bool(
     int(os.getenv("AWS_S3_APP_QUERYSTRING_AUTH", "1"))
@@ -33,7 +33,7 @@ AWS_S3_APP_QUERYSTRING_EXPIRE = int(
 )
 AWS_S3_STATIC_BUCKET = os.getenv("AWS_S3_STATIC_BUCKET")
 AWS_S3_STATIC_FOLDER = os.getenv("AWS_S3_STATIC_FOLDER")
-AWS_S3_STATIC_DOMAIN = f"{AWS_S3_STATIC_BUCKET}.s3.{AWS_REGION}.amazonaws.com"
+AWS_S3_STATIC_DOMAIN = f"{AWS_S3_STATIC_BUCKET}.s3.amazonaws.com"
 AWS_S3_STATIC_DEFAULT_ACL = os.getenv("AWS_S3_STATIC_DEFAULT_ACL")
 AWS_S3_STATIC_QUERYSTRING_AUTH = bool(
     int(os.getenv("AWS_S3_STATIC_QUERYSTRING_AUTH", "1"))
