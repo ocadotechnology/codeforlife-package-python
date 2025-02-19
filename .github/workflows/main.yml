@@ -12,7 +12,7 @@ on:
 
 jobs:
   test:
-    uses: ocadotechnology/codeforlife-workspace/.github/workflows/test-python-code.yaml@snyk
+    uses: ocadotechnology/codeforlife-workspace/.github/workflows/test-python-code.yaml@main
     secrets: inherit
     with:
       python-version: 3.12
