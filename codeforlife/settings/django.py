@@ -123,7 +123,9 @@ MIDDLEWARE = [
 ]
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.getenv("SECRET_KEY", "replace-me")
+SECRET_KEY = os.getenv(
+    "SECRET_KEY", "XTgWqMlZCMI_E5BvCArkif9nrJIIhe_6Ic6Q_UcWJDk="
+)
 
 # Auth
 # https://docs.djangoproject.com/en/4.2/topics/auth/default/
