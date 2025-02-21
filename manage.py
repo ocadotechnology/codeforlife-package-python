@@ -8,6 +8,8 @@ This file manages Django but also acts a settings file.
 # pylint: disable-next=wildcard-import,unused-wildcard-import
 from codeforlife.settings import *
 
+SECRET_KEY = "XTgWqMlZCMI_E5BvCArkif9nrJIIhe_6Ic6Q_UcWJDk="
+
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",

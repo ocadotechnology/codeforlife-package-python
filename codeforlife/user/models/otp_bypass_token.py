@@ -6,7 +6,8 @@ Created on 29/01/2024 at 16:46:24(+00:00).
 import string
 import typing as t
 
-from django.contrib.auth.hashers import check_password, make_password
+from cryptography.fernet import Fernet
+from django.conf import settings
 from django.db import models
 from django.db.utils import IntegrityError
 from django.utils.crypto import get_random_string
@@ -23,7 +24,7 @@ else:
 class OtpBypassToken(models.Model):
     """A single use token to bypass a user's OTP authentication factor."""
 
-    _token: t.Optional[str]  # The raw token.
+    _fernet = Fernet(settings.SECRET_KEY)
 
     length = 8
     allowed_chars = string.ascii_lowercase
@@ -53,10 +54,12 @@ class OtpBypassToken(models.Model):
             for token in tokens:
                 otp_bypass_token = OtpBypassToken(
                     user=user,
-                    token=make_password(token),
+                    # pylint: disable-next=protected-access
+                    token=OtpBypassToken._fernet.encrypt(
+                        token.encode()
+                    ).decode(),
                 )
-                # pylint: disable-next=protected-access
-                otp_bypass_token._token = token
+
                 otp_bypass_tokens.append(otp_bypass_token)
 
             user.otp_bypass_tokens.all().delete()
@@ -73,8 +76,8 @@ class OtpBypassToken(models.Model):
 
     token = models.CharField(
         _("token"),
-        max_length=88,
-        help_text=_("The hashed equivalent of the token."),
+        max_length=100,
+        help_text=_("The encrypted equivalent of the token."),
     )
 
     class Meta(TypedModelMeta):
@@ -83,6 +86,11 @@ class OtpBypassToken(models.Model):
 
     def save(self, *args, **kwargs):
         raise IntegrityError("Cannot create or update a single instance.")
+
+    @property
+    def decrypted_token(self):
+        """The decrypted value of the token."""
+        return self._fernet.decrypt(self.token).decode()
 
     def check_token(self, token: str):
         """Check if the token matches.
@@ -93,7 +101,7 @@ class OtpBypassToken(models.Model):
         Returns:
             A boolean designating if the token matches.
         """
-        if check_password(token.lower(), self.token):
+        if self.decrypted_token == token.lower():
             self.delete()
             return True
 
