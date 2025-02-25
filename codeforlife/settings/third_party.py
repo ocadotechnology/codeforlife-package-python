@@ -29,6 +29,7 @@ REST_FRAMEWORK = {
         "django_filters.rest_framework.DjangoFilterBackend"
     ],
     "DEFAULT_PAGINATION_CLASS": "codeforlife.pagination.LimitOffsetPagination",
+    "NON_FIELD_ERRORS_KEY": "__all__",
 }
 
 # Django storages
