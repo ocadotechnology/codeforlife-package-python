@@ -57,7 +57,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.CFL_BOT_GITHUB_TOKEN }}
         run: |
-          PYTHON_SCRIPT="from codeforlife.version import __version__; print(__version__)"
+          PYTHON_SCRIPT="from codeforlife import __version__; print(__version__)"
           echo OLD_VERSION=$(python -c "$PYTHON_SCRIPT") >> $GITHUB_ENV
           semantic-release version
           echo NEW_VERSION=$(python -c "$PYTHON_SCRIPT") >> $GITHUB_ENV
