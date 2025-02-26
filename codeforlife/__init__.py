@@ -11,7 +11,10 @@ from pathlib import Path
 from types import SimpleNamespace
 
 from .types import Env
-from .version import __version__
+
+# Do NOT set manually!
+# This is auto-updated by python-semantic-release in the pipeline.
+__version__ = "0.25.7"
 
 BASE_DIR = Path(__file__).resolve().parent
 DATA_DIR = BASE_DIR.joinpath("data")
