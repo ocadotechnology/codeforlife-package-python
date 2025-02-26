@@ -1,6 +1,14 @@
 # CHANGELOG
 
 
+## v0.25.8 (2025-02-26)
+
+### Bug Fixes
+
+- Remove version module
+  ([`f6671d4`](https://github.com/ocadotechnology/codeforlife-package-python/commit/f6671d4cc2a231a9b8ecd91a01e2dc22321780cb))
+
+
 ## v0.25.7 (2025-02-26)
 
 ### Bug Fixes
