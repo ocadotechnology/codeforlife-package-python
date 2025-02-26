@@ -1,6 +1,14 @@
 # CHANGELOG
 
 
+## v0.25.7 (2025-02-26)
+
+### Bug Fixes
+
+- Commit message and author
+  ([`e10023b`](https://github.com/ocadotechnology/codeforlife-package-python/commit/e10023bb9c4700f763ba6c2ee7d085f4e200f889))
+
+
 ## v0.25.6 (2025-02-26)
 
 ### Bug Fixes
