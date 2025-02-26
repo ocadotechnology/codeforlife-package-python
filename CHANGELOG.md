@@ -1,6 +1,14 @@
 # CHANGELOG
 
 
+## v0.25.9 (2025-02-26)
+
+### Bug Fixes
+
+- Version import
+  ([`8e15d80`](https://github.com/ocadotechnology/codeforlife-package-python/commit/8e15d803c80ce5720847e4e74b40448a78512cd4))
+
+
 ## v0.25.8 (2025-02-26)
 
 ### Bug Fixes
