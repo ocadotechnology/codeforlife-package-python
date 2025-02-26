@@ -1,6 +1,8 @@
 # https://github.com/python-semantic-release/python-semantic-release/blob/v9/docs/configuration.rst
 [tool.semantic_release]
 version_variables = ["codeforlife/version.py:__version__"]
+commit_message = "v{version}"
+commit_author = "cfl-bot <codeforlife-bot@ocado.com>"
 
 [tool.black]
 line-length = 80
