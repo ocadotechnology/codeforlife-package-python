@@ -1,6 +1,356 @@
 # CHANGELOG
 
 
+## v0.25.5 (2025-02-26)
+
+### Bug Fixes
+
+- Python semantic release v9
+  ([`42b1a93`](https://github.com/ocadotechnology/codeforlife-package-python/commit/42b1a93ea1f39b3d97e495827500bf0775025813))
+
+
+## v0.25.4 (2025-02-25)
+
+### Bug Fixes
+
+- New version
+  ([`3b9294e`](https://github.com/ocadotechnology/codeforlife-package-python/commit/3b9294e2d3caf01d2ba7ca5aa8f45934de6cb09c))
+
+- Portal frontend 40
+  ([#152](https://github.com/ocadotechnology/codeforlife-package-python/pull/152),
+  [`cbcd443`](https://github.com/ocadotechnology/codeforlife-package-python/commit/cbcd44305787dd4daee24bdb8ab33eccfa4e9e14))
+
+* fix: fernet encrypt
+
+* fix: don't get secret key from env var
+
+* fix: add secret key
+
+* Merge branch 'main' into portal-frontend-40
+
+* add comment [skip ci]
+
+
+## v0.25.3 (2025-02-25)
+
+### Bug Fixes
+
+- Drf non field errors key
+  ([`11b5204`](https://github.com/ocadotechnology/codeforlife-package-python/commit/11b5204f0a3913aa601bdff27acf67ba3edac4b8))
+
+
+## v0.25.2 (2025-02-13)
+
+### Bug Fixes
+
+- Remove region from s3 domain
+  ([`3171bf2`](https://github.com/ocadotechnology/codeforlife-package-python/commit/3171bf2724315f7c287df38394cbc7ba58993466))
+
+
+## v0.25.1 (2025-02-12)
+
+### Bug Fixes
+
+- Domains
+  ([`c29744c`](https://github.com/ocadotechnology/codeforlife-package-python/commit/c29744c7955dbbd4d8692cc2268f6b214efe2cd0))
+
+
+## v0.25.0 (2025-02-11)
+
+### Features
+
+- Media and static support
+  ([`6c88b30`](https://github.com/ocadotechnology/codeforlife-package-python/commit/6c88b30a310332590733fbaca37a5dc72ff60429))
+
+
+## v0.24.18 (2025-02-10)
+
+### Bug Fixes
+
+- Storages
+  ([`c45d53b`](https://github.com/ocadotechnology/codeforlife-package-python/commit/c45d53b82366ffb1567b04c34f413dfd4cbf669d))
+
+
+## v0.24.17 (2025-02-07)
+
+### Bug Fixes
+
+- New django-cors-headers
+  ([`449c09f`](https://github.com/ocadotechnology/codeforlife-package-python/commit/449c09ff0d27fe09d7f48e5272b954b416a6e1da))
+
+
+## v0.24.16 (2025-02-07)
+
+### Bug Fixes
+
+- Django storages
+  ([`12c527e`](https://github.com/ocadotechnology/codeforlife-package-python/commit/12c527e5f51cf1d967173afeb50ba8a56b912b0d))
+
+
+## v0.24.15 (2025-01-20)
+
+### Bug Fixes
+
+- Portal backend 376
+  ([#150](https://github.com/ocadotechnology/codeforlife-package-python/pull/150),
+  [`406a7ff`](https://github.com/ocadotechnology/codeforlife-package-python/commit/406a7ffb43f127a7016c9520a5c91a30cdfacd45))
+
+* fix: new otp secret
+
+
+## v0.24.14 (2025-01-16)
+
+### Bug Fixes
+
+- Csrf trusted origins
+  ([`a7306c4`](https://github.com/ocadotechnology/codeforlife-package-python/commit/a7306c48200a0f507d6c9ce105d413ba1536adad))
+
+
+## v0.24.13 (2025-01-15)
+
+### Bug Fixes
+
+- Attr assertions
+  ([`f748ffd`](https://github.com/ocadotechnology/codeforlife-package-python/commit/f748ffdf3033e5b3f417fafd51d1d9b2be9b1ebb))
+
+- Django v4
+  ([`611fbee`](https://github.com/ocadotechnology/codeforlife-package-python/commit/611fbee99eef8d30a13aae3704139014440ba296))
+
+- Get type args
+  ([`cc0dd32`](https://github.com/ocadotechnology/codeforlife-package-python/commit/cc0dd32d5252085320f6d7f8e689af57ca0221c9))
+
+- Linting errors
+  ([`1bac0c2`](https://github.com/ocadotechnology/codeforlife-package-python/commit/1bac0c2017ae3d81071857190290b679e9e11e71))
+
+- Linting errors
+  ([`3aeb5da`](https://github.com/ocadotechnology/codeforlife-package-python/commit/3aeb5da6910bcb0ea8c9a333a72aa2703f7f6226))
+
+- Type hints
+  ([`6efdffa`](https://github.com/ocadotechnology/codeforlife-package-python/commit/6efdffa60a621caec90c27d44222c0f2854b85c9))
+
+
+## v0.24.12 (2025-01-10)
+
+### Bug Fixes
+
+- Session and csrf cookies
+  ([`4d7380c`](https://github.com/ocadotechnology/codeforlife-package-python/commit/4d7380c37f535c9d8c0e9173e00e006b2d1328c9))
+
+
+## v0.24.11 (2025-01-09)
+
+### Bug Fixes
+
+- Local log format
+  ([`7fee4da`](https://github.com/ocadotechnology/codeforlife-package-python/commit/7fee4dafc939fa2f46edf242b2918a3612e1dfde))
+
+
+## v0.24.10 (2025-01-02)
+
+### Bug Fixes
+
+- Logging json formatter
+  ([`c86e0aa`](https://github.com/ocadotechnology/codeforlife-package-python/commit/c86e0aa4b591a494c3754909f560ee1a200f4b21))
+
+
+## v0.24.9 (2024-12-31)
+
+### Bug Fixes
+
+- Rds
+  ([`e740808`](https://github.com/ocadotechnology/codeforlife-package-python/commit/e740808231cdbac2b221f6e288f0d077fae01b26))
+
+
+## v0.24.8 (2024-12-31)
+
+### Bug Fixes
+
+- Data path
+  ([`1fbb0dc`](https://github.com/ocadotechnology/codeforlife-package-python/commit/1fbb0dc4d835625d1c7266dadd0bef8233f623fe))
+
+
+## v0.24.7 (2024-12-31)
+
+### Bug Fixes
+
+- Float
+  ([`13abc94`](https://github.com/ocadotechnology/codeforlife-package-python/commit/13abc94117ae5835830610f7860c43c0e5ba6719))
+
+
+## v0.24.6 (2024-12-31)
+
+### Bug Fixes
+
+- Db key
+  ([`f274ac1`](https://github.com/ocadotechnology/codeforlife-package-python/commit/f274ac11e3ca4771bac984a96cc2c04601bd895b))
+
+
+## v0.24.5 (2024-12-31)
+
+### Bug Fixes
+
+- Db schema name
+  ([`5ae4b6b`](https://github.com/ocadotechnology/codeforlife-package-python/commit/5ae4b6b159f5777bdf013e222647b78a3c174877))
+
+
+## v0.24.4 (2024-12-18)
+
+### Bug Fixes
+
+- Point to env folder
+  ([`41896ae`](https://github.com/ocadotechnology/codeforlife-package-python/commit/41896ae1c4ac4759747be4d7374b3c356214adc6))
+
+
+## v0.24.3 (2024-12-18)
+
+### Bug Fixes
+
+- Allowed origins
+  ([`b16fcf5`](https://github.com/ocadotechnology/codeforlife-package-python/commit/b16fcf545b83ba3f38d218ca379128f71f92cad1))
+
+
+## v0.24.2 (2024-12-17)
+
+### Bug Fixes
+
+- Paths
+  ([`7e8587e`](https://github.com/ocadotechnology/codeforlife-package-python/commit/7e8587edc7d4763b8473c6b496f4a07110335784))
+
+
+## v0.24.1 (2024-12-06)
+
+### Bug Fixes
+
+- Workers env var
+  ([`99e242d`](https://github.com/ocadotechnology/codeforlife-package-python/commit/99e242ddb1e19819220b3e874fb498505df95e91))
+
+
+## v0.24.0 (2024-12-06)
+
+### Features
+
+- Secrets and storages
+  ([#148](https://github.com/ocadotechnology/codeforlife-package-python/pull/148),
+  [`b960b60`](https://github.com/ocadotechnology/codeforlife-package-python/commit/b960b6007fdea104d25d154d8bf3dcc716276d9f))
+
+* feat: secrets and storages
+
+* cast env
+
+* fix: key errors
+
+* fix: urls
+
+* AWS_S3_OBJECT_PARAMETERS
+
+* fix: types
+
+* fix: linting
+
+* refresh pipfile.lock
+
+* fix: imports
+
+
+## v0.23.1 (2024-12-02)
+
+### Bug Fixes
+
+- Custom health check view
+  ([`67bdd18`](https://github.com/ocadotechnology/codeforlife-package-python/commit/67bdd18040e4e3dd2cfd5b942045a18e47dd3df9))
+
+
+## v0.23.0 (2024-11-29)
+
+### Features
+
+- Connect to db
+  ([`c5ebe57`](https://github.com/ocadotechnology/codeforlife-package-python/commit/c5ebe57f6ddd1e03967592e939e35b1ff3b16d97))
+
+
+## v0.22.14 (2024-11-29)
+
+### Bug Fixes
+
+- Don't check site
+  ([`0e7e147`](https://github.com/ocadotechnology/codeforlife-package-python/commit/0e7e147386a9d751c9304608d3f025dfb86941fb))
+
+
+## v0.22.13 (2024-11-29)
+
+### Bug Fixes
+
+- Log health check
+  ([`07875b5`](https://github.com/ocadotechnology/codeforlife-package-python/commit/07875b5cfe9bf6ae5d223a1e5b18fe4822ee6b1c))
+
+
+## v0.22.12 (2024-11-26)
+
+### Bug Fixes
+
+- Remove token
+  ([`95f66e3`](https://github.com/ocadotechnology/codeforlife-package-python/commit/95f66e3efb6cf6834835a49664fa474ec082e390))
+
+
+## v0.22.11 (2024-11-26)
+
+### Bug Fixes
+
+- Tidy up
+  ([`5d70d7c`](https://github.com/ocadotechnology/codeforlife-package-python/commit/5d70d7c1610915fc66cb64087733637740e04be7))
+
+
+## v0.22.10 (2024-11-26)
+
+### Bug Fixes
+
+- Remove repo url
+  ([`fd86054`](https://github.com/ocadotechnology/codeforlife-package-python/commit/fd860540ff3b8f8ecf4a081eab88968ca327c778))
+
+
+## v0.22.9 (2024-11-26)
+
+### Bug Fixes
+
+- Legacy url
+  ([`1b17dd8`](https://github.com/ocadotechnology/codeforlife-package-python/commit/1b17dd895a213349b16fde7e318d3420336c55f9))
+
+
+## v0.22.8 (2024-11-26)
+
+### Bug Fixes
+
+- Trailing slash
+  ([`41e2090`](https://github.com/ocadotechnology/codeforlife-package-python/commit/41e2090264da13ab91352934c1faa2700c2fc65a))
+
+
+## v0.22.7 (2024-11-26)
+
+### Bug Fixes
+
+- Do not remove dist
+  ([`4160ae8`](https://github.com/ocadotechnology/codeforlife-package-python/commit/4160ae886dbc7706e724cbc9aba45bc37b7db70b))
+
+
+## v0.22.6 (2024-11-26)
+
+### Bug Fixes
+
+- If
+  ([`d38b81d`](https://github.com/ocadotechnology/codeforlife-package-python/commit/d38b81dd10652a491ff8caebcb19b571ce17d6d8))
+
+
+## v0.22.5 (2024-11-26)
+
+### Bug Fixes
+
+- Original approach with pypi
+  ([`b44fc28`](https://github.com/ocadotechnology/codeforlife-package-python/commit/b44fc2816426e278fc7c1073f53a72d262c0013f))
+
+- Version
+  ([`7e19805`](https://github.com/ocadotechnology/codeforlife-package-python/commit/7e19805184c625542144e9dae1e949e3f1119f5f))
+
+
 ## v0.22.4 (2024-11-26)
 
 ### Bug Fixes
@@ -77,8 +427,6 @@
 
 * fix: imports
 
-* fix: imports
-
 * base request
 
 * fix: types
@@ -90,8 +438,6 @@
 * split request objects
 
 * session param
-
-* disable duplicate code
 
 * fix: abstract api request factory
 
@@ -123,15 +469,9 @@
 
 * # pylint: disable-next=too-many-ancestors
 
-* split code
-
 * abstract user and session
 
 * fix: type hints
-
-* fix types
-
-* fix types
 
 * disable too-many-ancestors
 
@@ -158,8 +498,6 @@
 * disable no-member
 
 * model serializer type arg
-
-* AnyBaseModelViewSet
 
 * AnyBaseModelViewSet
 
@@ -297,22 +635,22 @@
 
 ### Bug Fixes
 
-- Dummy commit, bump version again
-  ([`eba6db5`](https://github.com/ocadotechnology/codeforlife-package-python/commit/eba6db59b9e18a3db4c9e94a743cb9888094a8e8))
-
 - Dummy commit, bump version
   ([`e54a2ba`](https://github.com/ocadotechnology/codeforlife-package-python/commit/e54a2bafe27093f905401f22e1df2fe7417d228e))
+
+- Dummy commit, bump version again
+  ([`eba6db5`](https://github.com/ocadotechnology/codeforlife-package-python/commit/eba6db59b9e18a3db4c9e94a743cb9888094a8e8))
 
 
 ## v0.18.10 (2024-09-18)
 
 ### Bug Fixes
 
-- Update markers in lockfile
-  ([`c1e8ad9`](https://github.com/ocadotechnology/codeforlife-package-python/commit/c1e8ad9abd9c8e05c5658edb61ca8efd90e8e3d5))
-
 - Install setuptools in pipeline
   ([`e112451`](https://github.com/ocadotechnology/codeforlife-package-python/commit/e1124512472800daa3abcdb8eedf6f2d82ecee84))
+
+- Update markers in lockfile
+  ([`c1e8ad9`](https://github.com/ocadotechnology/codeforlife-package-python/commit/c1e8ad9abd9c8e05c5658edb61ca8efd90e8e3d5))
 
 
 ## v0.18.9 (2024-09-18)
@@ -336,8 +674,6 @@
 * pylint
 
 * Feedback
-
-* Black
 
 * fix: tests
 
@@ -545,8 +881,6 @@ Co-Authored-By: SKairinos <stefan.kairinos@ocado.com>
 
 * fix: previous_values_are_unequal
 
-* fix: previous_values_are_unequal
-
 * add none check
 
 * previous_values_are_unequal
@@ -653,75 +987,6 @@ Co-Authored-By: SKairinos <stefan.kairinos@ocado.com>
 
 * Merge branch 'main' into clean_settings2
 
-- Polish tests ([#114](https://github.com/ocadotechnology/codeforlife-package-python/pull/114),
-  [`be81148`](https://github.com/ocadotechnology/codeforlife-package-python/commit/be81148996a51269ff25c245f4ba945e279afa8d))
-
-* fix: add test coverage
-
-* use xml
-
-* rename codecov yaml
-
-* add yml path
-
-* ignore codeforlife test helpers
-
-* reset pipeline
-
-* reset pipeline
-
-* use updated workflow
-
-* polish_test
-
-* add todo
-
-* Merge branch 'main' into polish_tests
-
-* fix: test job
-
-* use new test workflow
-
-* add some small tests and don't cover some lines
-
-* no cov when debugging tests
-
-* test get queryset
-
-* update config
-
-* merge from main
-
-* use main
-
-* add test file
-
-* Merge branch 'main' into polish_tests
-
-* change
-
-* echo repo owner id
-
-* test if
-
-* only assert project
-
-* test user serializer and view
-
-* fix remaining view tests
-
-* test actions
-
-* use correct test job
-
-* remove unused imports
-
-* Merge branch 'main' into polish_tests
-
-* don't allow code coverage to drop
-
-* fix: coverage settings
-
 - Clean settings ([#108](https://github.com/ocadotechnology/codeforlife-package-python/pull/108),
   [`7cf61ca`](https://github.com/ocadotechnology/codeforlife-package-python/commit/7cf61cac74a19c2334c73fa41e6509afb520cd13))
 
@@ -756,6 +1021,69 @@ Co-Authored-By: SKairinos <stefan.kairinos@ocado.com>
 * Merge branch 'clean_settings' of https://github.com/ocadotechnology/codeforlife-package-python
   into clean_settings
 
+- Polish tests ([#114](https://github.com/ocadotechnology/codeforlife-package-python/pull/114),
+  [`be81148`](https://github.com/ocadotechnology/codeforlife-package-python/commit/be81148996a51269ff25c245f4ba945e279afa8d))
+
+* fix: add test coverage
+
+* use xml
+
+* rename codecov yaml
+
+* add yml path
+
+* ignore codeforlife test helpers
+
+* reset pipeline
+
+* use updated workflow
+
+* polish_test
+
+* add todo
+
+* Merge branch 'main' into polish_tests
+
+* fix: test job
+
+* use new test workflow
+
+* add some small tests and don't cover some lines
+
+* no cov when debugging tests
+
+* test get queryset
+
+* update config
+
+* merge from main
+
+* use main
+
+* add test file
+
+* change
+
+* echo repo owner id
+
+* test if
+
+* only assert project
+
+* test user serializer and view
+
+* fix remaining view tests
+
+* test actions
+
+* use correct test job
+
+* remove unused imports
+
+* don't allow code coverage to drop
+
+* fix: coverage settings
+
 
 ## v0.16.5 (2024-04-18)
 
@@ -773,8 +1101,6 @@ Co-Authored-By: SKairinos <stefan.kairinos@ocado.com>
 * add yml path
 
 * ignore codeforlife test helpers
-
-* reset pipeline
 
 * reset pipeline
 
@@ -822,8 +1148,6 @@ Co-Authored-By: SKairinos <stefan.kairinos@ocado.com>
 
 * reset pipeline
 
-* reset pipeline
-
 * use updated workflow
 
 * polish_test
@@ -851,8 +1175,6 @@ Co-Authored-By: SKairinos <stefan.kairinos@ocado.com>
 * add yml path
 
 * ignore codeforlife test helpers
-
-* reset pipeline
 
 * reset pipeline
 
@@ -951,18 +1273,18 @@ Co-Authored-By: SKairinos <stefan.kairinos@ocado.com>
 
 ### Features
 
-- Fix tests
-  ([`220fe14`](https://github.com/ocadotechnology/codeforlife-package-python/commit/220fe14313354613d08ee0d861b16d3934544a9b))
-
-- Run Black to fix version bump
-  ([`37c3cad`](https://github.com/ocadotechnology/codeforlife-package-python/commit/37c3cad7cd3ccb1c0332544a86456f150f698cc5))
-
 - Create indy user ([#106](https://github.com/ocadotechnology/codeforlife-package-python/pull/106),
   [`510dc4c`](https://github.com/ocadotechnology/codeforlife-package-python/commit/510dc4c002bf16592b9c569a87311b9c9e731f31))
 
 * feat: Create indy user
 
 * Feedback
+
+- Fix tests
+  ([`220fe14`](https://github.com/ocadotechnology/codeforlife-package-python/commit/220fe14313354613d08ee0d861b16d3934544a9b))
+
+- Run Black to fix version bump
+  ([`37c3cad`](https://github.com/ocadotechnology/codeforlife-package-python/commit/37c3cad7cd3ccb1c0332544a86456f150f698cc5))
 
 
 ## v0.14.11 (2024-03-26)
@@ -1179,8 +1501,6 @@ Co-Authored-By: SKairinos <stefan.kairinos@ocado.com>
 
 * Update fixtures
 
-* Merge branch 'main' into join_requests
-
 * Remove unnecessary serializer field
 
 * Remove unnecessary fixture
@@ -1355,9 +1675,6 @@ Co-Authored-By: SKairinos <stefan.kairinos@ocado.com>
 
 ### Bug Fixes
 
-- Reverse_kwargs is None
-  ([`2064b82`](https://github.com/ocadotechnology/codeforlife-package-python/commit/2064b82774a1838c53ca3eee5f4ea75eefeec8b4))
-
 - Copy validated data dicts
   ([#82](https://github.com/ocadotechnology/codeforlife-package-python/pull/82),
   [`7d899ad`](https://github.com/ocadotechnology/codeforlife-package-python/commit/7d899ad2eb8fee2f609979ac86d271bca1e3f312))
@@ -1368,6 +1685,9 @@ Co-Authored-By: SKairinos <stefan.kairinos@ocado.com>
 
 - Reverse_kwargs ([#81](https://github.com/ocadotechnology/codeforlife-package-python/pull/81),
   [`04cc55e`](https://github.com/ocadotechnology/codeforlife-package-python/commit/04cc55e7cf82eda80d0863d7227c8f8b2622e8a1))
+
+- Reverse_kwargs is None
+  ([`2064b82`](https://github.com/ocadotechnology/codeforlife-package-python/commit/2064b82774a1838c53ca3eee5f4ea75eefeec8b4))
 
 
 ## v0.13.2 (2024-02-12)
@@ -1402,8 +1722,6 @@ Co-Authored-By: SKairinos <stefan.kairinos@ocado.com>
 * fix: custom api request factory
 
 * fix queries
-
-* fix: type hints
 
 * fix: type hints
 
@@ -1668,9 +1986,6 @@ This reverts commit 1134b8816d03b2bc2d73b3e127d39de0fb7aac42.
 
 ### Bug Fixes
 
-- Remove broken import
-  ([`9d5eff5`](https://github.com/ocadotechnology/codeforlife-package-python/commit/9d5eff5c1de41cd143e7301a4ef01f30db72fd92))
-
 - Model view set test case
   ([#62](https://github.com/ocadotechnology/codeforlife-package-python/pull/62),
   [`8288825`](https://github.com/ocadotechnology/codeforlife-package-python/commit/8288825d624383856a6e80b76ce6380c1f793bfc))
@@ -1688,6 +2003,9 @@ This reverts commit 1134b8816d03b2bc2d73b3e127d39de0fb7aac42.
 * add permissions
 
 * wxyz
+
+- Remove broken import
+  ([`9d5eff5`](https://github.com/ocadotechnology/codeforlife-package-python/commit/9d5eff5c1de41cd143e7301a4ef01f30db72fd92))
 
 
 ## v0.9.5 (2024-01-24)
@@ -1730,8 +2048,6 @@ This reverts commit 1134b8816d03b2bc2d73b3e127d39de0fb7aac42.
 * base model serializer
 
 * previous_values_are_unequal
-
-* feedback
 
 * feedback
 
@@ -1944,8 +2260,6 @@ Co-Authored-By: KamilPawel <kamilpawel@Kamil>
 
 * create backup token model
 
-* ci[setup]: sync dependencies [skip ci]
-
 * email and token backend
 
 * fix otp and backup token backends
@@ -2017,11 +2331,11 @@ Co-Authored-By: cfl-bot <codeforlife-bot@ocado.com>
 
 ### Bug Fixes
 
-- Formatting
-  ([`db5d384`](https://github.com/ocadotechnology/codeforlife-package-python/commit/db5d384a4c96a4a53d1da313bc8b077a9dada07e))
-
 - Django settings
   ([`0242b3b`](https://github.com/ocadotechnology/codeforlife-package-python/commit/0242b3b6586daa0ad4d7c2feb53e59c2e23a236e))
+
+- Formatting
+  ([`db5d384`](https://github.com/ocadotechnology/codeforlife-package-python/commit/db5d384a4c96a4a53d1da313bc8b077a9dada07e))
 
 
 ## v0.7.7 (2023-09-19)
@@ -2202,11 +2516,11 @@ Co-Authored-By: cfl-bot <codeforlife-bot@ocado.com>
 - Add kurono_badges response body
   ([`872e6fb`](https://github.com/ocadotechnology/codeforlife-package-python/commit/872e6fbe2518fc1816fc02cf72ee7630e0d38f04))
 
-- Test pt2
-  ([`e727c2f`](https://github.com/ocadotechnology/codeforlife-package-python/commit/e727c2f930a4c7f8b58739549246f5c726d49642))
-
 - Test new release
   ([`b675fc9`](https://github.com/ocadotechnology/codeforlife-package-python/commit/b675fc91d6850f7b57f19e7cbb928b9b9a9dd718))
+
+- Test pt2
+  ([`e727c2f`](https://github.com/ocadotechnology/codeforlife-package-python/commit/e727c2f930a4c7f8b58739549246f5c726d49642))
 
 
 ## v0.4.2 (2023-05-03)
@@ -2270,11 +2584,11 @@ Co-Authored-By: cfl-bot <codeforlife-bot@ocado.com>
 
 ### Bug Fixes
 
-- Install typing-extensions
-  ([`3027c05`](https://github.com/ocadotechnology/codeforlife-package-python/commit/3027c053ce4d9572de1c75553c7c2bee05115f95))
-
 - Format files
   ([`45c4670`](https://github.com/ocadotechnology/codeforlife-package-python/commit/45c4670b73d59754ca312d9e290df66babe8f496))
+
+- Install typing-extensions
+  ([`3027c05`](https://github.com/ocadotechnology/codeforlife-package-python/commit/3027c053ce4d9572de1c75553c7c2bee05115f95))
 
 ### Features
 
@@ -2313,11 +2627,11 @@ Co-Authored-By: cfl-bot <codeforlife-bot@ocado.com>
 
 ### Bug Fixes
 
-- Test one workflow
-  ([`38f1e0b`](https://github.com/ocadotechnology/codeforlife-package-python/commit/38f1e0be3635ca8315b9c7053576c8c6c4b9355f))
-
 - Author name 2
   ([`dbbd92a`](https://github.com/ocadotechnology/codeforlife-package-python/commit/dbbd92a15cdb72e6713efe53fca7ab6763270f8d))
+
+- Test one workflow
+  ([`38f1e0b`](https://github.com/ocadotechnology/codeforlife-package-python/commit/38f1e0be3635ca8315b9c7053576c8c6c4b9355f))
 
 
 ## v0.2.1 (2023-04-04)
@@ -2373,11 +2687,11 @@ Co-Authored-By: SKairinos <stefan.kairinos@ocado.com>
 
 ### Continuous Integration
 
-- Setup Python 3.11 second attempt
-  ([`fc79042`](https://github.com/ocadotechnology/codeforlife-package-python/commit/fc790423a8500a1ed2c9c9fbc200755c4131b673))
-
 - Setup Python 3.11
   ([`9c25150`](https://github.com/ocadotechnology/codeforlife-package-python/commit/9c251503d8a9fa28f427a2f2e55f828394b4a746))
+
+- Setup Python 3.11 second attempt
+  ([`fc79042`](https://github.com/ocadotechnology/codeforlife-package-python/commit/fc790423a8500a1ed2c9c9fbc200755c4131b673))
 
 
 ## v0.1.11 (2023-03-15)
@@ -2387,25 +2701,25 @@ Co-Authored-By: SKairinos <stefan.kairinos@ocado.com>
 
 ### Bug Fixes
 
-- Test install_requires format
-  ([`2546182`](https://github.com/ocadotechnology/codeforlife-package-python/commit/2546182a2be9a64efab782052e14e48f5ee0224c))
-
 - Setup git
   ([`dd2aea6`](https://github.com/ocadotechnology/codeforlife-package-python/commit/dd2aea6217c44e3cb4fde2d6d3b9487cf7e8b1c8))
 
 - Sync Pipfile to setup dependencies
   ([`eaaafe4`](https://github.com/ocadotechnology/codeforlife-package-python/commit/eaaafe42f3c0983a70af76605bcea37d186e69bf))
 
+- Test install_requires format
+  ([`2546182`](https://github.com/ocadotechnology/codeforlife-package-python/commit/2546182a2be9a64efab782052e14e48f5ee0224c))
+
 
 ## v0.1.9 (2023-03-15)
 
 ### Bug Fixes
 
-- Common import
-  ([`2a945ef`](https://github.com/ocadotechnology/codeforlife-package-python/commit/2a945efada6fd060b9c13bdbf3bb8da50c049a88))
-
 - Cleanup
   ([`2856305`](https://github.com/ocadotechnology/codeforlife-package-python/commit/28563059874f427a02d9f74af1f6169a7a2491af))
+
+- Common import
+  ([`2a945ef`](https://github.com/ocadotechnology/codeforlife-package-python/commit/2a945efada6fd060b9c13bdbf3bb8da50c049a88))
 
 
 ## v0.1.8 (2023-03-03)
@@ -2466,34 +2780,34 @@ Co-Authored-By: SKairinos <stefan.kairinos@ocado.com>
 
 ### Bug Fixes
 
-- **settings**: Cleanup
-  ([`7d3980a`](https://github.com/ocadotechnology/codeforlife-package-python/commit/7d3980a017b4cf0ddd4ae8697d92e519c8789214))
+- Format
+  ([`d5c9507`](https://github.com/ocadotechnology/codeforlife-package-python/commit/d5c950797081b0ab489971e1cbd3b835ed8d806f))
 
 - **release**: Publish
   ([`d3f9b48`](https://github.com/ocadotechnology/codeforlife-package-python/commit/d3f9b48dc6e9df1c3c7611f0ed198e3272f03e4b))
 
-- Format
-  ([`d5c9507`](https://github.com/ocadotechnology/codeforlife-package-python/commit/d5c950797081b0ab489971e1cbd3b835ed8d806f))
+- **settings**: Cleanup
+  ([`7d3980a`](https://github.com/ocadotechnology/codeforlife-package-python/commit/7d3980a017b4cf0ddd4ae8697d92e519c8789214))
 
 
 ## v0.1.0 (2023-02-28)
 
 ### Bug Fixes
 
-- **pipeline**: Use pat
-  ([`c9a133a`](https://github.com/ocadotechnology/codeforlife-package-python/commit/c9a133a9dcaad390414e587fcf8caad633c2fda2))
+- **pipeline**: Changelog
+  ([`5935adf`](https://github.com/ocadotechnology/codeforlife-package-python/commit/5935adfdb12f5ccbf936e1b2e13ae15d6ee24ddf))
 
 - **pipeline**: Publish
   ([`8d03510`](https://github.com/ocadotechnology/codeforlife-package-python/commit/8d035102b6a8d42507a996173c5327a6ca913ffa))
-
-- **pipeline**: Changelog
-  ([`5935adf`](https://github.com/ocadotechnology/codeforlife-package-python/commit/5935adfdb12f5ccbf936e1b2e13ae15d6ee24ddf))
 
 - **pipeline**: Test
   ([`3276de2`](https://github.com/ocadotechnology/codeforlife-package-python/commit/3276de2c845105f58e9f6757d3771b97e7c1fdd3))
 
 - **pipeline**: Test
   ([`81ca4c9`](https://github.com/ocadotechnology/codeforlife-package-python/commit/81ca4c962d095498e469153c0fc285c9d8077c95))
+
+- **pipeline**: Use pat
+  ([`c9a133a`](https://github.com/ocadotechnology/codeforlife-package-python/commit/c9a133a9dcaad390414e587fcf8caad633c2fda2))
 
 ### Features
 
