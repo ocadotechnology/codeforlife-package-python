@@ -1,6 +1,14 @@
 # CHANGELOG
 
 
+## v0.25.11 (2025-03-03)
+
+### Bug Fixes
+
+- Templates
+  ([`b66c5e5`](https://github.com/ocadotechnology/codeforlife-package-python/commit/b66c5e55ca8ec3101f0b554d40121f648570f536))
+
+
 ## v0.25.10 (2025-03-03)
 
 ### Bug Fixes
