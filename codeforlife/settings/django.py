@@ -9,6 +9,7 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 import json
 import os
 import typing as t
+from pathlib import Path
 
 import boto3
 from django.utils.translation import gettext_lazy as _
@@ -297,7 +298,11 @@ MEDIA_URL = (
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [],
+        "DIRS": [
+            # Generate relative path to "codeforlife/templates".
+            Path(os.path.relpath(__file__, SERVICE_BASE_DIR)).parent.parent
+            / "templates"
+        ],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
