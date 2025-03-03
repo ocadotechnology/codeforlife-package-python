@@ -35,6 +35,11 @@ def get_urlpatterns(
     """
 
     urlpatterns: UrlPatterns = [
+        # https://www.django-rest-framework.org/topics/browsable-api/#authentication
+        path(
+            "/",
+            include("rest_framework.urls", namespace="rest_framework"),
+        ),
         path(
             "health-check/",
             health_check_view.as_view(),
