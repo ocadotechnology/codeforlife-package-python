@@ -1,6 +1,14 @@
 # CHANGELOG
 
 
+## v0.25.10 (2025-03-03)
+
+### Bug Fixes
+
+- Api root view
+  ([`b06cf14`](https://github.com/ocadotechnology/codeforlife-package-python/commit/b06cf1452f3c062dea40f1ca8a8418027814e9ee))
+
+
 ## v0.25.9 (2025-02-26)
 
 ### Bug Fixes
