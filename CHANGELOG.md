@@ -1,6 +1,14 @@
 # CHANGELOG
 
 
+## v0.25.13 (2025-03-04)
+
+### Bug Fixes
+
+- Include template dirs in the data files
+  ([`7d07717`](https://github.com/ocadotechnology/codeforlife-package-python/commit/7d077174745972d76baf1ae99a522c3d264c44a3))
+
+
 ## v0.25.12 (2025-03-03)
 
 ### Bug Fixes
