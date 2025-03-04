@@ -9,11 +9,11 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 import json
 import os
 import typing as t
-from pathlib import Path
 
 import boto3
 from django.utils.translation import gettext_lazy as _
 
+from .. import TEMPLATES_DIR
 from ..types import JsonDict
 from .custom import (
     ENV,
@@ -300,8 +300,7 @@ TEMPLATES = [
         "BACKEND": "django.template.backends.django.DjangoTemplates",
         "DIRS": [
             # Generate relative path to "codeforlife/templates".
-            Path(os.path.relpath(__file__, SERVICE_BASE_DIR)).parent.parent
-            / "templates"
+            os.path.relpath(TEMPLATES_DIR, SERVICE_BASE_DIR)
         ],
         "APP_DIRS": True,
         "OPTIONS": {
