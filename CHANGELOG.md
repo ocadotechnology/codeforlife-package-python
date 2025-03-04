@@ -1,6 +1,14 @@
 # CHANGELOG
 
 
+## v0.25.14 (2025-03-04)
+
+### Bug Fixes
+
+- Resuse templates dir
+  ([`8cbc669`](https://github.com/ocadotechnology/codeforlife-package-python/commit/8cbc669d368a8d9cf780a7a0a2835d372396b778))
+
+
 ## v0.25.13 (2025-03-04)
 
 ### Bug Fixes
