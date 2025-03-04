@@ -18,6 +18,7 @@ __version__ = "0.25.12"
 
 BASE_DIR = Path(__file__).resolve().parent
 DATA_DIR = BASE_DIR.joinpath("data")
+TEMPLATES_DIR = BASE_DIR.joinpath("templates")
 USER_DIR = BASE_DIR.joinpath("user")
 
 

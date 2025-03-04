@@ -12,8 +12,9 @@ from pathlib import Path
 
 from setuptools import find_packages, setup  # type: ignore[import-untyped]
 
-from codeforlife import DATA_DIR, __version__
+from codeforlife import DATA_DIR, TEMPLATES_DIR, __version__
 from codeforlife.user import FIXTURES_DIR as USER_FIXTURES_DIR
+from codeforlife.user import TEMPLATES_DIR as USER_TEMPLATES_DIR
 
 # Get the absolute path of the package.
 PACKAGE_DIR = os.path.dirname(__file__)
@@ -91,7 +92,12 @@ setup(
     # TODO: exclude test files
     packages=find_packages(exclude=["tests", "tests.*"]),
     include_package_data=True,
-    data_files=[get_data_files(DATA_DIR), get_data_files(USER_FIXTURES_DIR)],
+    data_files=[
+        get_data_files(DATA_DIR),
+        get_data_files(USER_FIXTURES_DIR),
+        get_data_files(TEMPLATES_DIR),
+        get_data_files(USER_TEMPLATES_DIR),
+    ],
     package_data={"codeforlife": ["py.typed"]},
     python_requires="==3.12.*",
     install_requires=install_requires,
