@@ -1,6 +1,14 @@
 # CHANGELOG
 
 
+## v0.25.15 (2025-03-05)
+
+### Bug Fixes
+
+- Autoescape off
+  ([`e2395c0`](https://github.com/ocadotechnology/codeforlife-package-python/commit/e2395c0e596c3531cb5d7351026a937c1518b86d))
+
+
 ## v0.25.14 (2025-03-04)
 
 ### Bug Fixes
