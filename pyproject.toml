@@ -1,10 +1,8 @@
-# https://github.com/python-semantic-release/python-semantic-release/blob/v7.33.0/docs/configuration.rst#distributions
+# https://github.com/python-semantic-release/python-semantic-release/blob/v9/docs/configuration.rst
 [tool.semantic_release]
-version_variable = "codeforlife/version.py:__version__"
-branch = "main"
-upload_to_repository = false
-upload_to_release = true
-remove_dist = false
+version_variables = ["codeforlife/__init__.py:__version__"]
+commit_message = "v{version} [skip ci]"
+commit_author = "cfl-bot <codeforlife-bot@ocado.com>"
 
 [tool.black]
 line-length = 80

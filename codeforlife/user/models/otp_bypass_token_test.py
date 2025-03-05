@@ -3,7 +3,8 @@
 Created on 24/01/2024 at 16:17:22(+00:00).
 """
 
-from django.contrib.auth.hashers import check_password
+from cryptography.fernet import Fernet
+from django.conf import settings
 
 from ...tests import ModelTestCase
 from .otp_bypass_token import OtpBypassToken
@@ -15,6 +16,8 @@ class TestOtpBypassToken(ModelTestCase[OtpBypassToken]):
     fixtures = ["school_2"]
 
     def setUp(self):
+        self.fernet = Fernet(settings.SECRET_KEY)
+
         user = User.objects.filter(otp_bypass_tokens__isnull=False).first()
         assert user
         self.user = user
@@ -32,19 +35,25 @@ class TestOtpBypassToken(ModelTestCase[OtpBypassToken]):
         assert len(otp_bypass_tokens) == self.user.otp_bypass_tokens.count()
 
         for otp_bypass_token in otp_bypass_tokens:
-            # pylint: disable-next=protected-access
-            raw_token = otp_bypass_token._token
-            assert raw_token
-            assert len(raw_token) == OtpBypassToken.length
+            decrypted_token = otp_bypass_token.decrypted_token
+            assert len(decrypted_token) == OtpBypassToken.length
             assert all(
-                char in OtpBypassToken.allowed_chars for char in raw_token
+                char in OtpBypassToken.allowed_chars for char in decrypted_token
             )
-            assert check_password(raw_token, otp_bypass_token.token)
 
     def test_save(self):
         """Cannot create or update a single instance."""
         with self.assert_raises_integrity_error():
             OtpBypassToken().save()
+
+    def test_decrypted_token(self):
+        """Can get decrypted token as property."""
+        token = "test-decrypt"
+        otp_bypass_token = OtpBypassToken(
+            user=self.user,
+            token=self.fernet.encrypt(token.encode()).decode(),
+        )
+        assert otp_bypass_token.decrypted_token == token
 
     def test_check_token(self):
         """Can check a single token."""

@@ -11,10 +11,14 @@ from pathlib import Path
 from types import SimpleNamespace
 
 from .types import Env
-from .version import __version__
+
+# Do NOT set manually!
+# This is auto-updated by python-semantic-release in the pipeline.
+__version__ = "0.25.15"
 
 BASE_DIR = Path(__file__).resolve().parent
 DATA_DIR = BASE_DIR.joinpath("data")
+TEMPLATES_DIR = BASE_DIR.joinpath("templates")
 USER_DIR = BASE_DIR.joinpath("user")
 
 
@@ -54,7 +58,7 @@ def set_up_settings(service_base_dir: Path, service_name: str):
         from codeforlife.settings import *
 
         # Expose secret to django project.
-        MY_SECRET = secrets.MY_SECRET
+        SECRET_KEY = secrets.SECRET_KEY
         ```
 
     Args:
@@ -108,6 +112,11 @@ def set_up_settings(service_base_dir: Path, service_name: str):
                 secrets_file.write(secrets_file_comment)
 
         secrets = dotenv_values(secrets_path)
+        secrets.setdefault(
+            # NOTE: This is only used locally for testing purposes.
+            "SECRET_KEY",
+            "XTgWqMlZCMI_E5BvCArkif9nrJIIhe_6Ic6Q_UcWJDk=",
+        )
     else:
         # pylint: disable-next=import-outside-toplevel
         import boto3

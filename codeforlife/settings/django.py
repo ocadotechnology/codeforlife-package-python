@@ -13,6 +13,7 @@ import typing as t
 import boto3
 from django.utils.translation import gettext_lazy as _
 
+from .. import TEMPLATES_DIR
 from ..types import JsonDict
 from .custom import (
     ENV,
@@ -121,9 +122,6 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
-
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.getenv("SECRET_KEY", "replace-me")
 
 # Auth
 # https://docs.djangoproject.com/en/4.2/topics/auth/default/
@@ -300,7 +298,10 @@ MEDIA_URL = (
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [],
+        "DIRS": [
+            # Generate relative path to "codeforlife/templates".
+            os.path.relpath(TEMPLATES_DIR, SERVICE_BASE_DIR)
+        ],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [

@@ -1,0 +1,17 @@
+{# https://www.django-rest-framework.org/topics/browsable-api/#customizing #}
+
+{% extends "rest_framework/base.html" %}
+
+{% load static %}
+
+{% block bootstrap_theme %}
+  {{ block.super }}
+  {% autoescape off %}
+    <style>
+      body {
+        background: url("{% static "rest_framework/img/grid.png" %}") repeat-x;
+        background-attachment: fixed;
+      }
+    </style>
+  {% endautoescape %}
+{% endblock %}

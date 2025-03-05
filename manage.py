@@ -1,12 +1,15 @@
 """
 © Ocado Group
-Created on 12/04/2024 at 16:53:52(+01:00).
+Created on 12/04/2024 at 16:53:51(+01:00).
 
 This file manages Django but also acts a settings file.
 """
 
 # pylint: disable-next=wildcard-import,unused-wildcard-import
 from codeforlife.settings import *
+
+# NOTE: This is only used locally for testing purposes.
+SECRET_KEY = "XTgWqMlZCMI_E5BvCArkif9nrJIIhe_6Ic6Q_UcWJDk="
 
 INSTALLED_APPS = [
     "django.contrib.admin",
