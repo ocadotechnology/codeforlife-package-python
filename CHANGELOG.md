@@ -1,6 +1,22 @@
 # CHANGELOG
 
 
+## v0.25.16 (2025-03-05)
+
+### Bug Fixes
+
+- Upgrade Django ([#151](https://github.com/ocadotechnology/codeforlife-package-python/pull/151),
+  [`6a7d718`](https://github.com/ocadotechnology/codeforlife-package-python/commit/6a7d718915baf3b3b6df088a90d0514697b82c5d))
+
+* fix: Upgrade deps and test Snyk
+
+* Point back to main branch
+
+---------
+
+Co-authored-by: SKairinos <stefan.kairinos@ocado.com>
+
+
 ## v0.25.15 (2025-03-05)
 
 ### Bug Fixes
