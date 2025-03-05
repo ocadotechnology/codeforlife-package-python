@@ -6,10 +6,12 @@
 
 {% block bootstrap_theme %}
   {{ block.super }}
-  <style>
-    body {
-      background: url("{% static "rest_framework/img/grid.png" %}") repeat-x;
-      background-attachment: fixed;
-    }
-  </style>
+  {% autoescape off %}
+    <style>
+      body {
+        background: url("{% static "rest_framework/img/grid.png" %}") repeat-x;
+        background-attachment: fixed;
+      }
+    </style>
+  {% endautoescape %}
 {% endblock %}
