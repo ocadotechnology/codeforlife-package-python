@@ -1,6 +1,14 @@
 # CHANGELOG
 
 
+## v0.25.17 (2025-03-07)
+
+### Bug Fixes
+
+- Django v4.2.20 ([#153](https://github.com/ocadotechnology/codeforlife-package-python/pull/153),
+  [`8233f3f`](https://github.com/ocadotechnology/codeforlife-package-python/commit/8233f3f25489a01a3a5420be09f4e63dd7143a4e))
+
+
 ## v0.25.16 (2025-03-05)
 
 ### Bug Fixes
