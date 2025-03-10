@@ -33,7 +33,7 @@ jobs:
       - name: 🛫 Checkout
         uses: actions/checkout@v4
         with:
-          token: ${{ secrets.CFL_BOT_GITHUB_TOKEN }}
+          token: ${{ secrets.CFL_BOT_GH_TOKEN }}
           fetch-depth: 0
           ref: ${{ github.sha }}
 
@@ -55,7 +55,7 @@ jobs:
 
       - name: 📜 Detect Semantic Version
         env:
-          GH_TOKEN: ${{ secrets.CFL_BOT_GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.CFL_BOT_GH_TOKEN }}
         run: |
           PYTHON_SCRIPT="from codeforlife import __version__; print(__version__)"
           echo OLD_VERSION=$(python -c "$PYTHON_SCRIPT") >> $GITHUB_ENV
@@ -69,7 +69,7 @@ jobs:
       - name: 🚀 Publish to GitHub
         if: env.OLD_VERSION != env.NEW_VERSION
         env:
-          GH_TOKEN: ${{ secrets.CFL_BOT_GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.CFL_BOT_GH_TOKEN }}
         run: semantic-release publish
 
       - name: 🚀 Publish to PyPI
