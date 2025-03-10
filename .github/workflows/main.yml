@@ -75,3 +75,10 @@ jobs:
       - name: 🚀 Publish to PyPI
         if: env.OLD_VERSION != env.NEW_VERSION
         uses: pypa/gh-action-pypi-publish@release/v1
+
+  monitor:
+    uses: ocadotechnology/codeforlife-workspace/.github/workflows/monitor-python-release.yaml@main
+    secrets: inherit
+    needs: [release]
+    with:
+      python-version: 3.12
