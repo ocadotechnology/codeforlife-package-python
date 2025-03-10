@@ -1,6 +1,14 @@
 # CHANGELOG
 
 
+## v0.25.19 (2025-03-10)
+
+### Bug Fixes
+
+- Rename secret
+  ([`8140b84`](https://github.com/ocadotechnology/codeforlife-package-python/commit/8140b84e8eb7fac8d5e8df0240b7cdb0a1f72aff))
+
+
 ## v0.25.18 (2025-03-10)
 
 ### Bug Fixes
