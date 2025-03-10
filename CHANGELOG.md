@@ -1,6 +1,14 @@
 # CHANGELOG
 
 
+## v0.25.18 (2025-03-10)
+
+### Bug Fixes
+
+- Monitor release
+  ([`c4b3d64`](https://github.com/ocadotechnology/codeforlife-package-python/commit/c4b3d64c93bc0a90b22cdc4726cc11ad39cda58a))
+
+
 ## v0.25.17 (2025-03-07)
 
 ### Bug Fixes
