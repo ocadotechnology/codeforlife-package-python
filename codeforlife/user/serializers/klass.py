@@ -24,6 +24,7 @@ class ClassSerializer(ModelSerializer[RequestUser, Class]):
     name = serializers.CharField(
         validators=[AlphaCharSetValidator(spaces=True)],
         max_length=200,
+        read_only=True,
     )
 
     read_classmates_data = serializers.BooleanField(

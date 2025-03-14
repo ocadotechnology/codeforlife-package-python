@@ -19,6 +19,7 @@ class SchoolSerializer(ModelSerializer[RequestUser, School]):
     name = serializers.CharField(
         validators=[AlphaCharSetValidator(spaces=True)],
         max_length=200,
+        read_only=True,
     )
 
     uk_county = serializers.CharField(source="county", read_only=True)

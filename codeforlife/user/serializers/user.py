@@ -26,12 +26,14 @@ class BaseUserSerializer(
     first_name = serializers.CharField(
         validators=[AlphaCharSetValidator()],
         max_length=150,
+        read_only=True,
     )
 
     # TODO: add to model validators in new schema.
     last_name = serializers.CharField(
         validators=[AlphaCharSetValidator()],
         max_length=150,
+        read_only=True,
     )
 
     requesting_to_join_class = serializers.CharField(
