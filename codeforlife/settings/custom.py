@@ -28,7 +28,6 @@ SERVICE_DOMAIN = os.getenv("SERVICE_DOMAIN", "localhost")
 SERVICE_PORT = int(os.getenv("SERVICE_PORT", "8000"))
 
 # The base url of the current service.
-# The root service does not need its name included in the base url.
 SERVICE_BASE_URL = f"{SERVICE_PROTOCOL}://{SERVICE_DOMAIN}:{SERVICE_PORT}"
 
 # The domain without the last level and a preceding dot.
