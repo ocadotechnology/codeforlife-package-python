@@ -6,6 +6,7 @@ Created on 20/01/2024 at 11:28:29(+00:00).
 from rest_framework import serializers
 
 from ...serializers import ModelSerializer
+from ...validators import AlphaCharSetValidator
 from ..models import Class
 from ..models import User as RequestUser
 
@@ -17,6 +18,12 @@ class ClassSerializer(ModelSerializer[RequestUser, Class]):
     id = serializers.CharField(
         source="access_code",
         read_only=True,
+    )
+
+    # TODO: add to model validators in new schema.
+    name = serializers.CharField(
+        validators=[AlphaCharSetValidator(spaces=True)],
+        max_length=200,
     )
 
     read_classmates_data = serializers.BooleanField(

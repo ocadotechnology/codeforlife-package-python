@@ -17,6 +17,7 @@ class SchoolViewSet(ModelViewSet[User, School]):
     http_method_names = ["get"]
     serializer_class = SchoolSerializer
 
+    # pylint: disable-next=missing-function-docstring
     def get_permissions(self):
         # No one is allowed to list schools.
         if self.action == "list":

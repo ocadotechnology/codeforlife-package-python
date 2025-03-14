@@ -8,6 +8,7 @@ import typing as t
 from rest_framework import serializers
 
 from ...serializers import ModelSerializer
+from ...validators import AlphaCharSetValidator
 from ..models import AnyUser, Student, Teacher, User
 from .student import StudentSerializer
 from .teacher import TeacherSerializer
@@ -21,6 +22,18 @@ RequestUser = User
 class BaseUserSerializer(
     ModelSerializer[RequestUser, AnyUser], t.Generic[AnyUser]
 ):
+    # TODO: add to model validators in new schema.
+    first_name = serializers.CharField(
+        validators=[AlphaCharSetValidator()],
+        max_length=150,
+    )
+
+    # TODO: add to model validators in new schema.
+    last_name = serializers.CharField(
+        validators=[AlphaCharSetValidator()],
+        max_length=150,
+    )
+
     requesting_to_join_class = serializers.CharField(
         source="new_student.pending_class_request",
         read_only=True,
