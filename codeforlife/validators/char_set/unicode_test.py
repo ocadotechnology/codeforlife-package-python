@@ -16,12 +16,11 @@ from .unicode import (
     UppercaseUnicodeAlphanumericCharSetValidator,
 )
 
-# Use arabic to create unicode character set.
 # pylint: disable=invalid-name
-unicode_lowercase = ascii_lowercase + "ابت"
-unicode_uppercase = ascii_uppercase + "صضط"
+unicode_lowercase = ascii_lowercase + "αβγδεζηθικλμνξοπρστυφχψω"  # greek
+unicode_uppercase = ascii_uppercase + "ΑΒΓΔΕΖΗΘΙΚΛΜΝΞΟΠΡΣΤΥΦΧΨΩ"  # greek
 unicode_letters = unicode_lowercase + unicode_uppercase
-unicode_numbers = digits + "٠١٢٣٤٥٦٧٨٩"
+unicode_numbers = digits + "٠١٢٣٤٥٦٧٨٩"  # arabic
 # pylint: enable=invalid-name
 
 

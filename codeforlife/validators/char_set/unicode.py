@@ -54,7 +54,7 @@ class UnicodeAlphaCharSetValidator(UnicodeCharSetValidatorBuilder):
         special_chars: str = "",
     ):
         super().__init__(
-            char_set="\p{L}",
+            char_set="\\p{L}",
             description="unicode alpha characters",
             code=code,
             inverse_match=inverse_match,
@@ -76,7 +76,7 @@ class LowercaseUnicodeAlphaCharSetValidator(UnicodeCharSetValidatorBuilder):
         special_chars: str = "",
     ):
         super().__init__(
-            char_set="\p{Ll}",
+            char_set="\\p{Ll}",
             description="lowercase unicode alpha characters",
             code=code,
             inverse_match=inverse_match,
@@ -98,7 +98,7 @@ class UppercaseUnicodeAlphaCharSetValidator(UnicodeCharSetValidatorBuilder):
         special_chars: str = "",
     ):
         super().__init__(
-            char_set="\p{Lu}",
+            char_set="\\p{Lu}",
             description="uppercase unicode alpha characters",
             code=code,
             inverse_match=inverse_match,
@@ -120,7 +120,7 @@ class UnicodeNumericCharSetValidator(UnicodeCharSetValidatorBuilder):
         special_chars: str = "",
     ):
         super().__init__(
-            char_set="\p{N}",
+            char_set="\\p{N}",
             description="unicode numbers",
             code=code,
             inverse_match=inverse_match,
@@ -142,7 +142,7 @@ class UnicodeAlphanumericCharSetValidator(UnicodeCharSetValidatorBuilder):
         special_chars: str = "",
     ):
         super().__init__(
-            char_set="\p{L}\p{N}",
+            char_set="\\p{L}\\p{N}",
             description="unicode alphanumeric characters",
             code=code,
             inverse_match=inverse_match,
@@ -168,7 +168,7 @@ class LowercaseUnicodeAlphanumericCharSetValidator(
         special_chars: str = "",
     ):
         super().__init__(
-            char_set="\p{Ll}\p{N}",
+            char_set="\\p{Ll}\\p{N}",
             description="lowercase unicode alphanumeric characters",
             code=code,
             inverse_match=inverse_match,
@@ -194,7 +194,7 @@ class UppercaseUnicodeAlphanumericCharSetValidator(
         special_chars: str = "",
     ):
         super().__init__(
-            char_set="\p{Lu}\p{N}",
+            char_set="\\p{Lu}\\p{N}",
             description="uppercase unicode alphanumeric characters",
             code=code,
             inverse_match=inverse_match,
