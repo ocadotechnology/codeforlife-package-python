@@ -11,7 +11,7 @@ from django.db.models.query import QuerySet
 from django.utils.translation import gettext_lazy as _
 
 from ...types import Validators
-from ...validators import NumericCharSetValidator
+from ...validators import AsciiNumericCharSetValidator
 from .user import User
 
 if t.TYPE_CHECKING:  # pragma: no cover
@@ -24,7 +24,7 @@ class AuthFactor(models.Model):
     sessions: QuerySet["SessionAuthFactor"]
 
     otp_validators: Validators = [
-        NumericCharSetValidator(),
+        AsciiNumericCharSetValidator(),
         MinLengthValidator(6),
         MaxLengthValidator(6),
     ]

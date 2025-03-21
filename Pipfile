@@ -18,6 +18,7 @@ django-storages = {version = "==1.14.4", extras = ["s3"]}
 pyotp = "==2.9.0"
 python-dotenv = "==1.0.1"
 psycopg2-binary = "==2.9.9"
+regex = "==2024.11.6"
 requests = "==2.32.2"
 gunicorn = "==23.0.0"
 uvicorn-worker = "==0.2.0"
