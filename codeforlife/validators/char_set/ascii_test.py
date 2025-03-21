@@ -3,7 +3,8 @@
 Created on 21/03/2025 at 16:28:39(+00:00).
 """
 
-from string import ascii_letters, ascii_lowercase, ascii_uppercase, digits
+from string import ascii_letters, ascii_lowercase, ascii_uppercase
+from string import digits as ascii_numbers
 
 from ...tests import ValidatorTestCase
 from .ascii import (
@@ -31,7 +32,7 @@ class TestAsciiAlphaCharSetValidator(
     def test_ascii_numbers(self):
         """ASCII numbers are not in the set."""
         with self.assert_raises_validation_error():
-            self.validator_class()(digits)
+            self.validator_class()(ascii_numbers)
 
 
 class TestLowercaseAsciiAlphaCharSetValidator(
@@ -51,7 +52,7 @@ class TestLowercaseAsciiAlphaCharSetValidator(
     def test_ascii_numbers(self):
         """ASCII numbers are not in the set."""
         with self.assert_raises_validation_error():
-            self.validator_class()(digits)
+            self.validator_class()(ascii_numbers)
 
 
 class TestUppercaseAsciiAlphaCharSetValidator(
@@ -71,7 +72,7 @@ class TestUppercaseAsciiAlphaCharSetValidator(
     def test_ascii_numbers(self):
         """ASCII numbers are not in the set."""
         with self.assert_raises_validation_error():
-            self.validator_class()(digits)
+            self.validator_class()(ascii_numbers)
 
 
 class TestAsciiNumericCharSetValidator(
@@ -86,7 +87,7 @@ class TestAsciiNumericCharSetValidator(
 
     def test_ascii_numbers(self):
         """ASCII numbers are in the set."""
-        self.validator_class()(digits)
+        self.validator_class()(ascii_numbers)
 
 
 class TestAsciiAlphanumericCharSetValidator(
@@ -100,7 +101,7 @@ class TestAsciiAlphanumericCharSetValidator(
 
     def test_ascii_numbers(self):
         """ASCII numbers are in the set."""
-        self.validator_class()(digits)
+        self.validator_class()(ascii_numbers)
 
 
 class TestLowercaseAsciiAlphanumericCharSetValidator(
@@ -119,7 +120,7 @@ class TestLowercaseAsciiAlphanumericCharSetValidator(
 
     def test_ascii_numbers(self):
         """ASCII numbers are in the set."""
-        self.validator_class()(digits)
+        self.validator_class()(ascii_numbers)
 
 
 class TestUppercaseAsciiAlphanumericCharSetValidator(
@@ -138,4 +139,4 @@ class TestUppercaseAsciiAlphanumericCharSetValidator(
 
     def test_ascii_numbers(self):
         """ASCII numbers are in the set."""
-        self.validator_class()(digits)
+        self.validator_class()(ascii_numbers)

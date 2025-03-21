@@ -8,7 +8,7 @@ import typing as t
 from rest_framework import serializers
 
 from ...serializers import ModelSerializer
-from ...validators import AlphaCharSetValidator
+from ...validators import UnicodeAlphaCharSetValidator
 from ..models import AnyUser, Student, Teacher, User
 from .student import StudentSerializer
 from .teacher import TeacherSerializer
@@ -24,14 +24,14 @@ class BaseUserSerializer(
 ):
     # TODO: add to model validators in new schema.
     first_name = serializers.CharField(
-        validators=[AlphaCharSetValidator()],
+        validators=[UnicodeAlphaCharSetValidator()],
         max_length=150,
         read_only=True,
     )
 
     # TODO: add to model validators in new schema.
     last_name = serializers.CharField(
-        validators=[AlphaCharSetValidator()],
+        validators=[UnicodeAlphaCharSetValidator()],
         max_length=150,
         read_only=True,
     )

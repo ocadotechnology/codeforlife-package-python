@@ -6,7 +6,7 @@ Created on 20/01/2024 at 11:28:29(+00:00).
 from rest_framework import serializers
 
 from ...serializers import ModelSerializer
-from ...validators import AlphaCharSetValidator
+from ...validators import UnicodeAlphaCharSetValidator
 from ..models import Class
 from ..models import User as RequestUser
 
@@ -22,7 +22,7 @@ class ClassSerializer(ModelSerializer[RequestUser, Class]):
 
     # TODO: add to model validators in new schema.
     name = serializers.CharField(
-        validators=[AlphaCharSetValidator(spaces=True)],
+        validators=[UnicodeAlphaCharSetValidator(spaces=True)],
         max_length=200,
         read_only=True,
     )
