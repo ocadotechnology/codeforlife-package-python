@@ -17,10 +17,12 @@ from .unicode import (
 )
 
 # Use arabic to create unicode character set.
+# pylint: disable=invalid-name
 unicode_lowercase = ascii_lowercase + "ابت"
 unicode_uppercase = ascii_uppercase + "صضط"
 unicode_letters = unicode_lowercase + unicode_uppercase
 unicode_numbers = digits + "٠١٢٣٤٥٦٧٨٩"
+# pylint: enable=invalid-name
 
 
 # pylint: disable=missing-class-docstring
