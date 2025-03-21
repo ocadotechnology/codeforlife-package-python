@@ -3,9 +3,13 @@
 Created on 21/03/2025 at 16:29:12(+00:00).
 """
 
-from string import ascii_lowercase, ascii_uppercase, digits
-
 from ...tests import ValidatorTestCase
+from ._test import (
+    unicode_letters,
+    unicode_lowercase,
+    unicode_numbers,
+    unicode_uppercase,
+)
 from .unicode import (
     LowercaseUnicodeAlphaCharSetValidator,
     LowercaseUnicodeAlphanumericCharSetValidator,
@@ -15,14 +19,6 @@ from .unicode import (
     UppercaseUnicodeAlphaCharSetValidator,
     UppercaseUnicodeAlphanumericCharSetValidator,
 )
-
-# pylint: disable=invalid-name
-unicode_lowercase = ascii_lowercase + "αβγδεζηθικλμνξοπρστυφχψω"  # greek
-unicode_uppercase = ascii_uppercase + "ΑΒΓΔΕΖΗΘΙΚΛΜΝΞΟΠΡΣΤΥΦΧΨΩ"  # greek
-unicode_letters = unicode_lowercase + unicode_uppercase
-unicode_numbers = digits + "٠١٢٣٤٥٦٧٨٩"  # arabic
-# pylint: enable=invalid-name
-
 
 # pylint: disable=missing-class-docstring
 

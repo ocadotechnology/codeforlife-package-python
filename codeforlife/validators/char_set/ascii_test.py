@@ -7,6 +7,12 @@ from string import ascii_letters, ascii_lowercase, ascii_uppercase
 from string import digits as ascii_numbers
 
 from ...tests import ValidatorTestCase
+from ._test import (
+    unicode_letters,
+    unicode_lowercase,
+    unicode_numbers,
+    unicode_uppercase,
+)
 from .ascii import (
     AsciiAlphaCharSetValidator,
     AsciiAlphanumericCharSetValidator,
@@ -29,10 +35,20 @@ class TestAsciiAlphaCharSetValidator(
         """ASCII alpha characters are in the set."""
         self.validator_class()(ascii_letters)
 
+    def test_unicode_alpha(self):
+        """Unicode alpha characters are not in the set."""
+        with self.assert_raises_validation_error():
+            self.validator_class()(unicode_letters)
+
     def test_ascii_numbers(self):
         """ASCII numbers are not in the set."""
         with self.assert_raises_validation_error():
             self.validator_class()(ascii_numbers)
+
+    def test_unicode_numbers(self):
+        """Unicode numbers are not in the set."""
+        with self.assert_raises_validation_error():
+            self.validator_class()(unicode_numbers)
 
 
 class TestLowercaseAsciiAlphaCharSetValidator(
@@ -44,15 +60,30 @@ class TestLowercaseAsciiAlphaCharSetValidator(
         """Lowercase ASCII alpha characters are in the set."""
         self.validator_class()(ascii_lowercase)
 
+    def test_lowercase_unicode_alpha(self):
+        """Lowercase unicode alpha characters are not in the set."""
+        with self.assert_raises_validation_error():
+            self.validator_class()(unicode_lowercase)
+
     def test_uppercase_ascii_alpha(self):
         """Uppercase ASCII alpha characters are not in the set."""
         with self.assert_raises_validation_error():
             self.validator_class()(ascii_uppercase)
 
+    def test_uppercase_unicode_alpha(self):
+        """Uppercase unicode alpha characters are not in the set."""
+        with self.assert_raises_validation_error():
+            self.validator_class()(unicode_uppercase)
+
     def test_ascii_numbers(self):
         """ASCII numbers are not in the set."""
         with self.assert_raises_validation_error():
             self.validator_class()(ascii_numbers)
+
+    def test_unicode_numbers(self):
+        """Unicode numbers are not in the set."""
+        with self.assert_raises_validation_error():
+            self.validator_class()(unicode_numbers)
 
 
 class TestUppercaseAsciiAlphaCharSetValidator(
@@ -65,14 +96,29 @@ class TestUppercaseAsciiAlphaCharSetValidator(
         with self.assert_raises_validation_error():
             self.validator_class()(ascii_lowercase)
 
+    def test_lowercase_unicode_alpha(self):
+        """Lowercase unicode alpha characters are not in the set."""
+        with self.assert_raises_validation_error():
+            self.validator_class()(unicode_lowercase)
+
     def test_uppercase_ascii_alpha(self):
         """Uppercase ASCII alpha characters are in the set."""
         self.validator_class()(ascii_uppercase)
+
+    def test_uppercase_unicode_alpha(self):
+        """Uppercase unicode alpha characters are not in the set."""
+        with self.assert_raises_validation_error():
+            self.validator_class()(unicode_uppercase)
 
     def test_ascii_numbers(self):
         """ASCII numbers are not in the set."""
         with self.assert_raises_validation_error():
             self.validator_class()(ascii_numbers)
+
+    def test_unicode_numbers(self):
+        """Unicode numbers are not in the set."""
+        with self.assert_raises_validation_error():
+            self.validator_class()(unicode_numbers)
 
 
 class TestAsciiNumericCharSetValidator(
@@ -85,9 +131,19 @@ class TestAsciiNumericCharSetValidator(
         with self.assert_raises_validation_error():
             self.validator_class()(ascii_letters)
 
+    def test_unicode_alpha(self):
+        """Unicode alpha characters are not in the set."""
+        with self.assert_raises_validation_error():
+            self.validator_class()(unicode_letters)
+
     def test_ascii_numbers(self):
         """ASCII numbers are in the set."""
         self.validator_class()(ascii_numbers)
+
+    def test_unicode_numbers(self):
+        """Unicode numbers are not in the set."""
+        with self.assert_raises_validation_error():
+            self.validator_class()(unicode_numbers)
 
 
 class TestAsciiAlphanumericCharSetValidator(
@@ -99,9 +155,19 @@ class TestAsciiAlphanumericCharSetValidator(
         """ASCII alpha characters are in the set."""
         self.validator_class()(ascii_letters)
 
+    def test_unicode_alpha(self):
+        """Unicode alpha characters are not in the set."""
+        with self.assert_raises_validation_error():
+            self.validator_class()(unicode_letters)
+
     def test_ascii_numbers(self):
         """ASCII numbers are in the set."""
         self.validator_class()(ascii_numbers)
+
+    def test_unicode_numbers(self):
+        """Unicode numbers are not in the set."""
+        with self.assert_raises_validation_error():
+            self.validator_class()(unicode_numbers)
 
 
 class TestLowercaseAsciiAlphanumericCharSetValidator(
@@ -113,14 +179,29 @@ class TestLowercaseAsciiAlphanumericCharSetValidator(
         """Lowercase ASCII alpha characters are in the set."""
         self.validator_class()(ascii_lowercase)
 
+    def test_lowercase_unicode_alpha(self):
+        """Lowercase unicode alpha characters are not in the set."""
+        with self.assert_raises_validation_error():
+            self.validator_class()(unicode_lowercase)
+
     def test_uppercase_ascii_alpha(self):
         """Uppercase ASCII alpha characters are not in the set."""
         with self.assert_raises_validation_error():
             self.validator_class()(ascii_uppercase)
 
+    def test_uppercase_unicode_alpha(self):
+        """Uppercase unicode alpha characters are not in the set."""
+        with self.assert_raises_validation_error():
+            self.validator_class()(unicode_uppercase)
+
     def test_ascii_numbers(self):
         """ASCII numbers are in the set."""
         self.validator_class()(ascii_numbers)
+
+    def test_unicode_numbers(self):
+        """Unicode numbers are not in the set."""
+        with self.assert_raises_validation_error():
+            self.validator_class()(unicode_numbers)
 
 
 class TestUppercaseAsciiAlphanumericCharSetValidator(
@@ -133,10 +214,25 @@ class TestUppercaseAsciiAlphanumericCharSetValidator(
         with self.assert_raises_validation_error():
             self.validator_class()(ascii_lowercase)
 
+    def test_lowercase_unicode_alpha(self):
+        """Lowercase unicode alpha characters are not in the set."""
+        with self.assert_raises_validation_error():
+            self.validator_class()(unicode_lowercase)
+
     def test_uppercase_ascii_alpha(self):
         """Uppercase ASCII alpha characters are in the set."""
         self.validator_class()(ascii_uppercase)
 
+    def test_uppercase_unicode_alpha(self):
+        """Uppercase unicode alpha characters are not in the set."""
+        with self.assert_raises_validation_error():
+            self.validator_class()(unicode_uppercase)
+
     def test_ascii_numbers(self):
         """ASCII numbers are in the set."""
         self.validator_class()(ascii_numbers)
+
+    def test_unicode_numbers(self):
+        """Unicode numbers are not in the set."""
+        with self.assert_raises_validation_error():
+            self.validator_class()(unicode_numbers)
