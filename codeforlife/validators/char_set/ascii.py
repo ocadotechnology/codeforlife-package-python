@@ -48,7 +48,7 @@ class AsciiAlphaCharSetValidator(AsciiCharSetValidatorBuilder):
         self,
         code: t.Optional[str] = None,
         inverse_match: t.Optional[bool] = None,
-        flags: t.Optional[re.RegexFlag] = None,
+        flags: re.RegexFlag = re.ASCII,
         spaces: bool = False,
         special_chars: str = "",
     ):
@@ -72,7 +72,7 @@ class LowercaseAsciiAlphaCharSetValidator(AsciiCharSetValidatorBuilder):
         self,
         code: t.Optional[str] = None,
         inverse_match: t.Optional[bool] = None,
-        flags: t.Optional[re.RegexFlag] = None,
+        flags: re.RegexFlag = re.ASCII,
         spaces: bool = False,
         special_chars: str = "",
     ):
@@ -96,7 +96,7 @@ class UppercaseAsciiAlphaCharSetValidator(AsciiCharSetValidatorBuilder):
         self,
         code: t.Optional[str] = None,
         inverse_match: t.Optional[bool] = None,
-        flags: t.Optional[re.RegexFlag] = None,
+        flags: re.RegexFlag = re.ASCII,
         spaces: bool = False,
         special_chars: str = "",
     ):
@@ -118,7 +118,7 @@ class AsciiNumericCharSetValidator(AsciiCharSetValidatorBuilder):
         self,
         code: t.Optional[str] = None,
         inverse_match: t.Optional[bool] = None,
-        flags: t.Optional[re.RegexFlag] = None,
+        flags: re.RegexFlag = re.ASCII,
         spaces: bool = False,
         special_chars: str = "",
     ):
@@ -143,7 +143,7 @@ class AsciiAlphanumericCharSetValidator(AsciiCharSetValidatorBuilder):
         self,
         code: t.Optional[str] = None,
         inverse_match: t.Optional[bool] = None,
-        flags: t.Optional[re.RegexFlag] = None,
+        flags: re.RegexFlag = re.ASCII,
         spaces: bool = False,
         special_chars: str = "",
     ):
@@ -168,7 +168,7 @@ class LowercaseAsciiAlphanumericCharSetValidator(AsciiCharSetValidatorBuilder):
         self,
         code: t.Optional[str] = None,
         inverse_match: t.Optional[bool] = None,
-        flags: t.Optional[re.RegexFlag] = None,
+        flags: re.RegexFlag = re.ASCII,
         spaces: bool = False,
         special_chars: str = "",
     ):
@@ -193,7 +193,7 @@ class UppercaseAsciiAlphanumericCharSetValidator(AsciiCharSetValidatorBuilder):
         self,
         code: t.Optional[str] = None,
         inverse_match: t.Optional[bool] = None,
-        flags: t.Optional[re.RegexFlag] = None,
+        flags: re.RegexFlag = re.ASCII,
         spaces: bool = False,
         special_chars: str = "",
     ):

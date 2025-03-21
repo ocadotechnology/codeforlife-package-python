@@ -7,8 +7,14 @@ import re
 import typing as t
 
 import regex
-from django.core.validators import RegexValidator, _ErrorMessage, _Regex
+from django.core.validators import RegexValidator
 from django.utils.functional import SimpleLazyObject
+
+if t.TYPE_CHECKING:
+    from django.core.validators import (  # type: ignore[attr-defined]
+        _ErrorMessage,
+        _Regex,
+    )
 
 
 def _lazy_re_compile(pattern, flags: int = 0):
@@ -27,13 +33,16 @@ def _lazy_re_compile(pattern, flags: int = 0):
     return SimpleLazyObject(_compile)
 
 
+# pylint: disable-next=too-few-public-methods
 class EnhancedRegexValidator(RegexValidator):
     """Extends Django's default regex validator to support enhanced patterns."""
 
+    # pylint: disable-next=too-many-arguments
     def __init__(
         self,
-        regex: t.Optional[_Regex] = None,
-        message: t.Optional[_ErrorMessage] = None,
+        # pylint: disable-next=redefined-outer-name
+        regex: t.Optional["_Regex"] = None,
+        message: t.Optional["_ErrorMessage"] = None,
         code: t.Optional[str] = None,
         inverse_match: t.Optional[bool] = None,
         flags: t.Optional[re.RegexFlag] = None,
@@ -46,4 +55,4 @@ class EnhancedRegexValidator(RegexValidator):
             flags=flags,
         )
 
-        self.regex = _lazy_re_compile(self.regex, self.flags)
+        self.regex = _lazy_re_compile(regex, self.flags)

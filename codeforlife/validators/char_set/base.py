@@ -26,7 +26,7 @@ class CharSetValidator(EnhancedRegexValidator):
         flags: t.Optional[re.RegexFlag] = None,
     ):
         super().__init__(
-            regex=rf"^[{char_set}]*$",
+            regex=f"^[{char_set}]*$",
             message=message,
             code=code,
             inverse_match=inverse_match,
