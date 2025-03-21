@@ -12,7 +12,7 @@ from .base import CharSetValidatorBuilder
 
 # pylint: disable=too-few-public-methods
 # pylint: disable=too-many-arguments
-# pylint: disable=anomalous-backslash-in-string
+# pylint: disable=duplicate-code
 
 
 class UnicodeCharSetValidatorBuilder(CharSetValidatorBuilder):
