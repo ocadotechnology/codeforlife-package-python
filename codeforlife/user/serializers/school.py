@@ -6,9 +6,9 @@ Created on 20/01/2024 at 11:28:19(+00:00).
 from rest_framework import serializers
 
 from ...serializers import ModelSerializer
-from ...validators import UnicodeAlphaCharSetValidator
 from ..models import School
 from ..models import User as RequestUser
+from ..models import school_name_validators
 
 # pylint: disable=missing-class-docstring
 # pylint: disable=too-many-ancestors
@@ -17,7 +17,7 @@ from ..models import User as RequestUser
 class SchoolSerializer(ModelSerializer[RequestUser, School]):
     # TODO: add to model validators in new schema.
     name = serializers.CharField(
-        validators=[UnicodeAlphaCharSetValidator(spaces=True)],
+        validators=school_name_validators,
         max_length=200,
         read_only=True,
     )
