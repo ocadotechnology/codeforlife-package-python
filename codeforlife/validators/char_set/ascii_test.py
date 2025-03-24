@@ -6,7 +6,7 @@ Created on 21/03/2025 at 16:28:39(+00:00).
 from string import ascii_letters, ascii_lowercase, ascii_uppercase
 from string import digits as ascii_numbers
 
-from ...tests import ValidatorTestCase
+from ...tests import RegexValidatorTestCase
 from ._test import (
     unicode_letters,
     unicode_lowercase,
@@ -24,10 +24,11 @@ from .ascii import (
 )
 
 # pylint: disable=missing-class-docstring
+# pylint: disable=too-many-ancestors
 
 
 class TestAsciiAlphaCharSetValidator(
-    ValidatorTestCase[AsciiAlphaCharSetValidator]
+    RegexValidatorTestCase[AsciiAlphaCharSetValidator]
 ):
     validator_class = AsciiAlphaCharSetValidator
 
@@ -52,7 +53,7 @@ class TestAsciiAlphaCharSetValidator(
 
 
 class TestLowercaseAsciiAlphaCharSetValidator(
-    ValidatorTestCase[LowercaseAsciiAlphaCharSetValidator]
+    RegexValidatorTestCase[LowercaseAsciiAlphaCharSetValidator]
 ):
     validator_class = LowercaseAsciiAlphaCharSetValidator
 
@@ -87,7 +88,7 @@ class TestLowercaseAsciiAlphaCharSetValidator(
 
 
 class TestUppercaseAsciiAlphaCharSetValidator(
-    ValidatorTestCase[UppercaseAsciiAlphaCharSetValidator]
+    RegexValidatorTestCase[UppercaseAsciiAlphaCharSetValidator]
 ):
     validator_class = UppercaseAsciiAlphaCharSetValidator
 
@@ -122,7 +123,7 @@ class TestUppercaseAsciiAlphaCharSetValidator(
 
 
 class TestAsciiNumericCharSetValidator(
-    ValidatorTestCase[AsciiNumericCharSetValidator]
+    RegexValidatorTestCase[AsciiNumericCharSetValidator]
 ):
     validator_class = AsciiNumericCharSetValidator
 
@@ -147,7 +148,7 @@ class TestAsciiNumericCharSetValidator(
 
 
 class TestAsciiAlphanumericCharSetValidator(
-    ValidatorTestCase[AsciiAlphanumericCharSetValidator]
+    RegexValidatorTestCase[AsciiAlphanumericCharSetValidator]
 ):
     validator_class = AsciiAlphanumericCharSetValidator
 
@@ -171,7 +172,7 @@ class TestAsciiAlphanumericCharSetValidator(
 
 
 class TestLowercaseAsciiAlphanumericCharSetValidator(
-    ValidatorTestCase[LowercaseAsciiAlphanumericCharSetValidator]
+    RegexValidatorTestCase[LowercaseAsciiAlphanumericCharSetValidator]
 ):
     validator_class = LowercaseAsciiAlphanumericCharSetValidator
 
@@ -205,7 +206,7 @@ class TestLowercaseAsciiAlphanumericCharSetValidator(
 
 
 class TestUppercaseAsciiAlphanumericCharSetValidator(
-    ValidatorTestCase[UppercaseAsciiAlphanumericCharSetValidator]
+    RegexValidatorTestCase[UppercaseAsciiAlphanumericCharSetValidator]
 ):
     validator_class = UppercaseAsciiAlphanumericCharSetValidator
 

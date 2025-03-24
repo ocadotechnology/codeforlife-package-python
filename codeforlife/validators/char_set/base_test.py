@@ -5,13 +5,14 @@ Created on 21/03/2025 at 16:29:17(+00:00).
 
 from string import ascii_letters, digits, punctuation
 
-from ...tests import ValidatorTestCase
+from ...tests import RegexValidatorTestCase
 from .base import CharSetValidator, CharSetValidatorBuilder
 
 # pylint: disable=missing-class-docstring
+# pylint: disable=too-many-ancestors
 
 
-class TestCharSetValidator(ValidatorTestCase[CharSetValidator]):
+class TestCharSetValidator(RegexValidatorTestCase[CharSetValidator]):
     validator_class = CharSetValidator
 
     def setUp(self):
@@ -34,7 +35,9 @@ class TestCharSetValidator(ValidatorTestCase[CharSetValidator]):
             self.validator(punctuation)
 
 
-class TestCharSetValidatorBuilder(ValidatorTestCase[CharSetValidatorBuilder]):
+class TestCharSetValidatorBuilder(
+    RegexValidatorTestCase[CharSetValidatorBuilder]
+):
     validator_class = CharSetValidatorBuilder
 
     def setUp(self):

@@ -3,7 +3,7 @@
 Created on 21/03/2025 at 16:29:12(+00:00).
 """
 
-from ...tests import ValidatorTestCase
+from ...tests import RegexValidatorTestCase
 from ._test import (
     unicode_letters,
     unicode_lowercase,
@@ -21,10 +21,11 @@ from .unicode import (
 )
 
 # pylint: disable=missing-class-docstring
+# pylint: disable=too-many-ancestors
 
 
 class TestUnicodeAlphaCharSetValidator(
-    ValidatorTestCase[UnicodeAlphaCharSetValidator]
+    RegexValidatorTestCase[UnicodeAlphaCharSetValidator]
 ):
     validator_class = UnicodeAlphaCharSetValidator
 
@@ -39,7 +40,7 @@ class TestUnicodeAlphaCharSetValidator(
 
 
 class TestLowercaseUnicodeAlphaCharSetValidator(
-    ValidatorTestCase[LowercaseUnicodeAlphaCharSetValidator]
+    RegexValidatorTestCase[LowercaseUnicodeAlphaCharSetValidator]
 ):
     validator_class = LowercaseUnicodeAlphaCharSetValidator
 
@@ -59,7 +60,7 @@ class TestLowercaseUnicodeAlphaCharSetValidator(
 
 
 class TestUppercaseUnicodeAlphaCharSetValidator(
-    ValidatorTestCase[UppercaseUnicodeAlphaCharSetValidator]
+    RegexValidatorTestCase[UppercaseUnicodeAlphaCharSetValidator]
 ):
     validator_class = UppercaseUnicodeAlphaCharSetValidator
 
@@ -79,7 +80,7 @@ class TestUppercaseUnicodeAlphaCharSetValidator(
 
 
 class TestUnicodeNumericCharSetValidator(
-    ValidatorTestCase[UnicodeNumericCharSetValidator]
+    RegexValidatorTestCase[UnicodeNumericCharSetValidator]
 ):
     validator_class = UnicodeNumericCharSetValidator
 
@@ -94,7 +95,7 @@ class TestUnicodeNumericCharSetValidator(
 
 
 class TestUnicodeAlphanumericCharSetValidator(
-    ValidatorTestCase[UnicodeAlphanumericCharSetValidator]
+    RegexValidatorTestCase[UnicodeAlphanumericCharSetValidator]
 ):
     validator_class = UnicodeAlphanumericCharSetValidator
 
@@ -108,7 +109,7 @@ class TestUnicodeAlphanumericCharSetValidator(
 
 
 class TestLowercaseUnicodeAlphanumericCharSetValidator(
-    ValidatorTestCase[LowercaseUnicodeAlphanumericCharSetValidator]
+    RegexValidatorTestCase[LowercaseUnicodeAlphanumericCharSetValidator]
 ):
     validator_class = LowercaseUnicodeAlphanumericCharSetValidator
 
@@ -127,7 +128,7 @@ class TestLowercaseUnicodeAlphanumericCharSetValidator(
 
 
 class TestUppercaseUnicodeAlphanumericCharSetValidator(
-    ValidatorTestCase[UppercaseUnicodeAlphanumericCharSetValidator]
+    RegexValidatorTestCase[UppercaseUnicodeAlphanumericCharSetValidator]
 ):
     validator_class = UppercaseUnicodeAlphanumericCharSetValidator
 
