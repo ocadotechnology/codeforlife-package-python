@@ -1,6 +1,14 @@
 # CHANGELOG
 
 
+## v0.25.21 (2025-03-25)
+
+### Bug Fixes
+
+- Type hint
+  ([`a9cb860`](https://github.com/ocadotechnology/codeforlife-package-python/commit/a9cb8603dd5dd344a615b889afe9f9bdfe3f0805))
+
+
 ## v0.25.20 (2025-03-25)
 
 ### Bug Fixes
