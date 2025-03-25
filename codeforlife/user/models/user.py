@@ -20,6 +20,7 @@ from pyotp import TOTP
 
 from ... import mail
 from ...models import AbstractBaseUser
+from ...types import Validators
 from ...validators import UnicodeAlphanumericCharSetValidator
 from .klass import Class
 from .school import School
@@ -37,13 +38,13 @@ else:
 
 
 # TODO: add to model validators in new schema.
-user_first_name_validators = [
+user_first_name_validators: Validators = [
     UnicodeAlphanumericCharSetValidator(
         spaces=True,
         special_chars="-'",
     )
 ]
-user_last_name_validators = [
+user_last_name_validators: Validators = [
     UnicodeAlphanumericCharSetValidator(
         spaces=True,
         special_chars="-'",
