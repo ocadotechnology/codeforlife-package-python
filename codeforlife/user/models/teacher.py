@@ -158,6 +158,7 @@ class NonSchoolTeacher(Teacher):
     """A teacher that is not in a school."""
 
     school: None
+    is_admin: t.Literal[False]
 
     class Meta(TypedModelMeta):
         proxy = True
