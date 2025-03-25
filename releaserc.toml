@@ -1,0 +1,5 @@
+# https://github.com/python-semantic-release/python-semantic-release/blob/v9/docs/configuration.rst
+[semantic_release]
+version_variables = ["codeforlife/__init__.py:__version__"]
+commit_message = "v{version} [skip ci]"
+commit_author = "cfl-bot <codeforlife-bot@ocado.com>"

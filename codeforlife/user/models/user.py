@@ -20,6 +20,7 @@ from pyotp import TOTP
 
 from ... import mail
 from ...models import AbstractBaseUser
+from ...validators import UnicodeAlphanumericCharSetValidator
 from .klass import Class
 from .school import School
 
@@ -33,6 +34,21 @@ if t.TYPE_CHECKING:  # pragma: no cover
     from .teacher import Teacher
 else:
     TypedModelMeta = object
+
+
+# TODO: add to model validators in new schema.
+user_first_name_validators = [
+    UnicodeAlphanumericCharSetValidator(
+        spaces=True,
+        special_chars="-'",
+    )
+]
+user_last_name_validators = [
+    UnicodeAlphanumericCharSetValidator(
+        spaces=True,
+        special_chars="-'",
+    )
+]
 
 
 # TODO: remove in new schema

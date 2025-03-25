@@ -21,6 +21,8 @@ JsonValue = t.Union[None, int, float, str, bool, JsonList, JsonDict]
 DataDict = t.Dict[str, t.Any]
 OrderedDataDict = t.OrderedDict[str, t.Any]
 
+Validators = t.Sequence[t.Callable]
+
 
 def get_arg(cls: t.Type[t.Any], index: int, orig_base: int = 0):
     """Get a type arg from a class.

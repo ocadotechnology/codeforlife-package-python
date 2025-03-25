@@ -8,11 +8,14 @@ import typing as t
 
 from cryptography.fernet import Fernet
 from django.conf import settings
+from django.core.validators import MaxLengthValidator, MinLengthValidator
 from django.db import models
 from django.db.utils import IntegrityError
 from django.utils.crypto import get_random_string
 from django.utils.translation import gettext_lazy as _
 
+from ...types import Validators
+from ...validators import CharSetValidatorBuilder
 from .user import User
 
 if t.TYPE_CHECKING:
@@ -29,6 +32,14 @@ class OtpBypassToken(models.Model):
     length = 8
     allowed_chars = string.ascii_lowercase
     max_count = 10
+    validators: Validators = [
+        MinLengthValidator(length),
+        MaxLengthValidator(length),
+        CharSetValidatorBuilder(
+            allowed_chars,
+            "lowercase alpha characters (a-z)",
+        ),
+    ]
 
     # pylint: disable-next=missing-class-docstring,too-few-public-methods
     class Manager(models.Manager["OtpBypassToken"]):

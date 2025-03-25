@@ -21,3 +21,4 @@ from .model_serializer import (
 from .model_view_set import BaseModelViewSetTestCase, ModelViewSetTestCase
 from .model_view_set_client import BaseModelViewSetClient, ModelViewSetClient
 from .test import Client, TestCase
+from .validator import RegexValidatorTestCase, ValidatorTestCase

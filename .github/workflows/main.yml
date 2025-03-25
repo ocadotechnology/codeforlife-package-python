@@ -29,6 +29,8 @@ jobs:
     if: |
       github.repository_owner_id == 2088731 &&
       github.ref_name == github.event.repository.default_branch
+    env:
+      CONFIG: releaserc.toml
     steps:
       - name: 🛫 Checkout
         uses: actions/checkout@v4
@@ -59,7 +61,7 @@ jobs:
         run: |
           PYTHON_SCRIPT="from codeforlife import __version__; print(__version__)"
           echo OLD_VERSION=$(python -c "$PYTHON_SCRIPT") >> $GITHUB_ENV
-          semantic-release version
+          semantic-release --config=${{ env.CONFIG }} version
           echo NEW_VERSION=$(python -c "$PYTHON_SCRIPT") >> $GITHUB_ENV
 
       - name: 🏗️ Build Distributions
@@ -70,7 +72,7 @@ jobs:
         if: env.OLD_VERSION != env.NEW_VERSION
         env:
           GH_TOKEN: ${{ secrets.CFL_BOT_GH_TOKEN }}
-        run: semantic-release publish
+        run: semantic-release --config=${{ env.CONFIG }} publish
 
       - name: 🚀 Publish to PyPI
         if: env.OLD_VERSION != env.NEW_VERSION
