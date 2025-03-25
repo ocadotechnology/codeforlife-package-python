@@ -1,6 +1,47 @@
 # CHANGELOG
 
 
+## v0.25.20 (2025-03-25)
+
+### Bug Fixes
+
+- Char set validators
+  ([#154](https://github.com/ocadotechnology/codeforlife-package-python/pull/154),
+  [`ed7b3f7`](https://github.com/ocadotechnology/codeforlife-package-python/commit/ed7b3f7236cc0064db7bfa602cab68584c10ba1e))
+
+* add validators
+
+* validators
+
+* read only
+
+* delete unnecessary comment
+
+* clean up
+
+* delete codecov.yml
+
+* support unicode
+
+* fix regex validations
+
+* unicode tests
+
+* fix linting error
+
+* fix tests
+
+* fix linting errors
+
+* test ascii does not include unicode
+
+* feedback
+
+* class_access_code_validators
+
+* regex validator test case
+
+
 ## v0.25.19 (2025-03-10)
 
 ### Bug Fixes
