@@ -71,7 +71,7 @@ def get_databases():
         name = os.getenv("DB_NAME", SERVICE_NAME)
         user = os.getenv("DB_USER", "root")
         password = os.getenv("DB_PASSWORD", "password")
-        host = os.getenv("DB_HOST", "localhost")
+        host = os.getenv("DB_HOST", "db")
         port = int(os.getenv("DB_PORT", "5432"))
     else:
         # Get the dbdata object.
