@@ -5,6 +5,7 @@ Created on 28/10/2024 at 16:19:47(+00:00).
 
 import multiprocessing
 import os
+import sys
 
 from django import setup
 from django.core.asgi import get_asgi_application
@@ -14,7 +15,7 @@ from gunicorn.app.base import BaseApplication  # type: ignore[import-untyped]
 
 
 # pylint: disable-next=abstract-method
-class DjangoApplication(BaseApplication):
+class DjangoServer(BaseApplication):
     """A server for a Django app.
 
     Based off of:
@@ -22,12 +23,27 @@ class DjangoApplication(BaseApplication):
     https://docs.gunicorn.org/en/stable/custom.html
     """
 
-    def __init__(self, workers: int = int(os.getenv("WORKERS", "0"))):
+    def __init__(
+        self,
+        app: str = "application",
+        workers: int = int(os.getenv("WORKERS", "0")),
+    ):
         """Initialize a Django app.
 
         Before starting, all migrations will be applied.
 
+        Examples:
+            ```
+            from codeforlife.apps import DjangoServer
+
+            # Make sure to set up Django before initializing!
+            DjangoServer.setup()
+
+            django_app = DjangoServer().wsgi_app
+            ```
+
         Args:
+            app: The dot-path to the Django app.
             workers: The number of Gunicorn workers. 0 will auto-calculate.
         """
 
@@ -40,9 +56,15 @@ class DjangoApplication(BaseApplication):
             "worker_class": "uvicorn.workers.UvicornWorker",
         }
 
-        self.application = get_asgi_application()
+        self.asgi_app = get_asgi_application()
+        self.wsgi_app = get_wsgi_application()
 
         super().__init__()
+
+        # Auto-run if the entry script is the location of the Django app.
+        file_name = os.path.basename(sys.argv[0])
+        if os.path.splitext(file_name)[0] == app:
+            self.run()
 
     def load_config(self):
         config = {
@@ -54,7 +76,7 @@ class DjangoApplication(BaseApplication):
             self.cfg.set(key.lower(), value)
 
     def load(self):
-        return self.application
+        return self.asgi_app
 
     @staticmethod
     def setup(settings_module: str = "settings"):
@@ -67,30 +89,3 @@ class DjangoApplication(BaseApplication):
         os.environ.setdefault("DJANGO_SETTINGS_MODULE", settings_module)
 
         setup()
-
-    def handle_startup(self, name: str):
-        """Handle the startup procedure of a Django app.
-
-        Examples:
-            ```
-            from codeforlife.apps import DjangoApplication
-
-            # Make sure to set up Django before starting!
-            DjangoApplication.setup()
-
-            django_app = DjangoApplication().handle_startup(__name__)
-            ```
-
-        Args:
-            name: The name of the file calling this function.
-
-        Returns:
-            An instance of a WSGI app.
-        """
-
-        if name == "__main__":
-            self.run()
-        else:
-            return get_wsgi_application()
-
-        return None

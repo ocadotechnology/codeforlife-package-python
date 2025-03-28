@@ -8,14 +8,17 @@ Initializes our celery app.
 import atexit
 import os
 import subprocess
+import sys
 import typing as t
 
-from celery import Celery as _Celery
+import celery
 
 from ..types import LogLevel
 
+CELERY_MAIN_PATH = os.path.join(celery.__path__[0], "__main__.py")
 
-class CeleryApplication(_Celery):
+
+class CeleryServer(celery.Celery):
     """A server for a Celery app."""
 
     def __init__(
@@ -25,8 +28,18 @@ class CeleryApplication(_Celery):
     ):
         """Initialize a Celery app.
 
+        Examples:
+            ```
+            from codeforlife.servers import CeleryServer, DjangoServer
+
+            # Make sure to set up Django before initializing!
+            DjangoServer.setup()
+
+            celery_app = CeleryServer().app
+            ```
+
         Args:
-            app: The Celery app name.
+            app: The dot-path to the Celery app.
             debug: A flag designating whether to run the app in debug mode.
 
         Raises:
@@ -39,8 +52,8 @@ class CeleryApplication(_Celery):
             )
 
         super().__init__()
-
-        self.app = app
+        self.app = self
+        self._app = app
 
         # Using a string here means the worker doesn't have to serialize
         # the configuration object to child processes.
@@ -59,6 +72,10 @@ class CeleryApplication(_Celery):
 
                 print(f"Request: {self.request!r}")
 
+        if os.path.abspath(sys.argv[0]) != CELERY_MAIN_PATH:
+            self.start_background_workers()
+            self.start_background_beat()
+
     def start_background_workers(
         self,
         workers: t.Optional[t.Union[t.Set[str], t.Dict[str, int]]] = None,
@@ -74,8 +91,6 @@ class CeleryApplication(_Celery):
         """
         # pylint: enable=line-too-long
 
-        print("Starting all Celery workers.")
-
         commands: t.Dict[str, t.List[str]] = {}
 
         def build_command(worker: str, concurrency: int = 0):
@@ -84,7 +99,7 @@ class CeleryApplication(_Celery):
                 "multi",
                 "start",
                 worker,
-                f"--app={self.app}",
+                f"--app={self._app}",
                 f"--loglevel={log_level}",
             ]
 
@@ -106,20 +121,11 @@ class CeleryApplication(_Celery):
 
         for worker, command in commands.items():
             try:
-                process = subprocess.run(
-                    command,
-                    capture_output=True,
-                    text=True,
-                    check=True,
-                )
-                print(f"Successfully started Celery worker '{worker}'.")
-                print(process.stdout)
-
+                subprocess.run(command, check=True)
                 successfully_started_workers.add(worker)
 
-            except subprocess.CalledProcessError as e:
-                print(f"Error starting Celery worker '{worker}': {e}")
-                print(e.stderr)
+            except Exception as ex:  # pylint: disable=broad-exception-caught
+                print(f"Error starting Celery worker '{worker}': {ex}")
 
         if successfully_started_workers:
             atexit.register(
@@ -141,28 +147,21 @@ class CeleryApplication(_Celery):
             log_level: The log level.
         """
 
-        print("Stopping all Celery workers.")
-
         try:
-            process = subprocess.run(
+            subprocess.run(
                 [
                     "celery",
                     "multi",
                     "stopwait",
                     *workers,
-                    f"--app={self.app}",
+                    f"--app={self._app}",
                     f"--loglevel={log_level}",
                 ],
-                capture_output=True,
-                text=True,
                 check=True,
             )
-            print("Successfully stopped all Celery workers.")
-            print(process.stdout)
 
-        except subprocess.CalledProcessError as error:
-            print(f"Error stopping all Celery workers: {error}")
-            print(error.stderr)
+        except Exception as ex:  # pylint: disable=broad-exception-caught
+            print(f"Error stopping all Celery workers: {ex}")
 
     def start_background_beat(self, log_level: LogLevel = "INFO"):
         """Start Celery beat using the 'celery --app=app beat' command.
@@ -174,64 +173,23 @@ class CeleryApplication(_Celery):
             The background process running Celery beat.
         """
 
-        print("Starting Celery beat.")
-
         try:
             process = subprocess.Popen(  # pylint: disable=consider-using-with
                 [
                     "celery",
-                    f"--app={self.app}",
+                    f"--app={self._app}",
                     "beat",
                     f"--loglevel={log_level}",
                 ],
                 stdout=subprocess.DEVNULL,
                 stderr=subprocess.DEVNULL,
             )
-            print("Successfully started Celery beat.")
 
-            atexit.register(self.stop_background_beat, process)
+            atexit.register(process.terminate)
 
             return process
 
-        except subprocess.CalledProcessError as error:
-            print(f"Error starting Celery beat: {error}")
+        except Exception as ex:  # pylint: disable=broad-exception-caught
+            print(f"Error starting Celery beat: {ex}")
 
         return None
-
-    def stop_background_beat(self, process: subprocess.Popen):
-        """Stop a Celery beat process.
-
-        Args:
-            process: The process to stop.
-        """
-
-        print("Stopping Celery beat.")
-
-        try:
-            process.terminate()
-            print("Successfully stopped Celery beat.")
-
-        except Exception as ex:  # pylint: disable=broad-exception-caught
-            print(f"Error stopping Celery beat: {ex}")
-
-    def handle_startup(self):
-        """Handle the startup procedure of a Celery app.
-
-        Examples:
-            ```
-            from codeforlife.apps import CeleryApplication, DjangoApplication
-
-            # Make sure to set up Django before starting!
-            DjangoApplication.setup()
-
-            celery_app = CeleryApplication().handle_startup()
-            ```
-
-        Returns:
-            The Celery app instance for convenience.
-        """
-
-        self.start_background_workers()
-        self.start_background_beat()
-
-        return self
