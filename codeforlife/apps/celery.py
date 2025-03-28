@@ -164,31 +164,74 @@ class CeleryApplication(_Celery):
             print(f"Error stopping all Celery workers: {error}")
             print(error.stderr)
 
-    @classmethod
-    def handle_startup(cls, name: str):
+    def start_background_beat(self, log_level: LogLevel = "INFO"):
+        """Start Celery beat using the 'celery --app=app beat' command.
+
+        Args:
+            log_level: The log level.
+
+        Returns:
+            The background process running Celery beat.
+        """
+
+        print("Starting Celery beat.")
+
+        try:
+            process = subprocess.Popen(  # pylint: disable=consider-using-with
+                [
+                    "celery",
+                    f"--app={self.app}",
+                    "beat",
+                    f"--loglevel={log_level}",
+                ],
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+            )
+            print("Successfully started Celery beat.")
+
+            atexit.register(self.stop_background_beat, process)
+
+            return process
+
+        except subprocess.CalledProcessError as error:
+            print(f"Error starting Celery beat: {error}")
+
+        return None
+
+    def stop_background_beat(self, process: subprocess.Popen):
+        """Stop a Celery beat process.
+
+        Args:
+            process: The process to stop.
+        """
+
+        print("Stopping Celery beat.")
+
+        try:
+            process.terminate()
+            print("Successfully stopped Celery beat.")
+
+        except Exception as ex:  # pylint: disable=broad-exception-caught
+            print(f"Error stopping Celery beat: {ex}")
+
+    def handle_startup(self):
         """Handle the startup procedure of a Celery app.
 
         Examples:
             ```
-            import os
-            from codeforlife.apps import CeleryApplication
+            from codeforlife.apps import CeleryApplication, DjangoApplication
 
-            # Make sure to set this before starting the Celery app!
-            os.environ.setdefault("DJANGO_SETTINGS_MODULE", "settings")
+            # Make sure to set up Django before starting!
+            DjangoApplication.setup()
 
-            celery_app = CeleryApplication.handle_startup(__name__)
+            celery_app = CeleryApplication().handle_startup()
             ```
 
-        Args:
-            name: The name of the file calling this function.
-
         Returns:
-            An instance of a Celery app.
+            The Celery app instance for convenience.
         """
 
-        app = cls()
+        self.start_background_workers()
+        self.start_background_beat()
 
-        if name == "__main__":
-            app.start_background_workers()
-
-        return app
+        return self

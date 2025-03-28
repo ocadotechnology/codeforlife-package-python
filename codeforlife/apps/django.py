@@ -6,6 +6,7 @@ Created on 28/10/2024 at 16:19:47(+00:00).
 import multiprocessing
 import os
 
+from django import setup
 from django.core.asgi import get_asgi_application
 from django.core.management import call_command
 from django.core.wsgi import get_wsgi_application
@@ -55,30 +56,40 @@ class DjangoApplication(BaseApplication):
     def load(self):
         return self.application
 
-    @classmethod
-    def handle_startup(cls, name: str):
+    @staticmethod
+    def setup(settings_module: str = "settings"):
+        """Set up the Django app.
+
+        Args:
+            settings_module: The dot-path to the settings module.
+        """
+
+        os.environ.setdefault("DJANGO_SETTINGS_MODULE", settings_module)
+
+        setup()
+
+    def handle_startup(self, name: str):
         """Handle the startup procedure of a Django app.
 
         Examples:
             ```
-            import os
             from codeforlife.apps import DjangoApplication
 
-            # Make sure to set this before starting the Django app!
-            os.environ.setdefault("DJANGO_SETTINGS_MODULE", "settings")
+            # Make sure to set up Django before starting!
+            DjangoApplication.setup()
 
-            django_app = DjangoApplication.handle_startup(__name__)
+            django_app = DjangoApplication().handle_startup(__name__)
             ```
 
         Args:
             name: The name of the file calling this function.
 
         Returns:
-            An instance of a Django app.
+            An instance of a WSGI app.
         """
 
         if name == "__main__":
-            cls().run()
+            self.run()
         else:
             return get_wsgi_application()
 
