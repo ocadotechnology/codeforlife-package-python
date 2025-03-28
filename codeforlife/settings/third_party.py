@@ -5,10 +5,10 @@ Created on 12/02/2025 at 16:48:47(+00:00).
 This file contains custom settings defined by third party extensions.
 """
 
-# import json
-# import os
+import typing as t
 
-from .custom import SERVICE_SITE_URL
+from ..types import CeleryBeat
+from .custom import REDIS_URL, SERVICE_SITE_URL
 from .django import ENV
 
 # CORS
@@ -31,3 +31,10 @@ REST_FRAMEWORK = {
     "DEFAULT_PAGINATION_CLASS": "codeforlife.pagination.LimitOffsetPagination",
     "NON_FIELD_ERRORS_KEY": "__all__",
 }
+
+# Celery
+# https://docs.celeryq.dev/en/v5.4.0/userguide/configuration.html
+
+CELERY_BROKER_URL = REDIS_URL
+CELERY_TASK_TIME_LIMIT = 60 * 30
+CELERY_BEAT_SCHEDULE: t.Dict[str, t.Dict[str, CeleryBeat]] = {}

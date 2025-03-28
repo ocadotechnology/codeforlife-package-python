@@ -58,7 +58,7 @@ ALLOWED_HOSTS = ["*"]
 
 
 def get_databases():
-    """Get the databases depending on the the available settings.
+    """Get the databases for the current environment.
 
     Raises:
         ConnectionAbortedError: If the engine is not postgres.
@@ -219,7 +219,7 @@ ROOT_URLCONF = "api.urls"
 # App
 # https://docs.djangoproject.com/en/4.2/ref/settings/#wsgi-application
 
-WSGI_APPLICATION = "application.app"
+WSGI_APPLICATION = "application.django_app"
 
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators

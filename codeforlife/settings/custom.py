@@ -5,13 +5,25 @@ Created on 12/02/2025 at 16:49:16(+00:00).
 This file contains all of our custom settings we define for our own purposes.
 """
 
+import json
 import os
 import re
 import typing as t
 from pathlib import Path
 
-from ..types import CookieSamesite, Env
-from .otp import AWS_S3_APP_FOLDER, AWS_S3_STATIC_FOLDER
+import boto3
+
+from ..types import CookieSamesite, Env, JsonDict
+from .otp import (
+    AWS_S3_APP_BUCKET,
+    AWS_S3_APP_FOLDER,
+    AWS_S3_STATIC_FOLDER,
+    CACHE_REDIS_DB_DATA_PATH,
+)
+
+if t.TYPE_CHECKING:
+    from mypy_boto3_s3.client import S3Client
+
 
 # The name of the current environment.
 ENV = t.cast(Env, os.getenv("ENV", "local"))
@@ -61,3 +73,42 @@ SESSION_METADATA_COOKIE_NAME = "session_metadata"
 SESSION_METADATA_COOKIE_PATH = "/"
 SESSION_METADATA_COOKIE_DOMAIN = SERVICE_EXTERNAL_DOMAIN
 SESSION_METADATA_COOKIE_SAMESITE: CookieSamesite = "Strict"
+
+
+def get_redis_url():
+    """Get the Redis URL for the current environment.
+
+    Raises:
+        ConnectionAbortedError: If the engine is not Redis.
+
+    Returns:
+        The Redis URL.
+    """
+
+    if ENV == "local":
+        domain = os.getenv("REDIS_DOMAIN", "cache")
+        port = int(os.getenv("REDIS_PORT", "6379"))
+        path = os.getenv("REDIS_PATH", "0")
+        url = f"{domain}:{port}/{path}"
+    else:
+        # Get the dbdata object.
+        s3: "S3Client" = boto3.client("s3")
+        db_data_object = s3.get_object(
+            Bucket=t.cast(str, AWS_S3_APP_BUCKET), Key=CACHE_REDIS_DB_DATA_PATH
+        )
+
+        # Load the object as a JSON dict.
+        db_data: JsonDict = json.loads(
+            db_data_object["Body"].read().decode("utf-8")
+        )
+        if not db_data or db_data["Engine"] != "Redis":
+            raise ConnectionAbortedError("Invalid database data.")
+
+        endpoint = t.cast(dict, db_data["Endpoint"])
+        url = t.cast(str, endpoint["0001"])
+
+    return f"redis://{url}"
+
+
+# The URL to connect to the Redis cache.
+REDIS_URL = get_redis_url()
