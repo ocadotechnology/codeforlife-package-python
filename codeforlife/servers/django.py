@@ -24,7 +24,11 @@ class DjangoServer(BaseServer, BaseApplication):
     https://docs.gunicorn.org/en/stable/custom.html
     """
 
-    def __init__(self, workers: int = int(os.getenv("WORKERS", "0"))):
+    def __init__(
+        self,
+        auto_run: bool = True,
+        workers: int = int(os.getenv("WORKERS", "0")),
+    ):
         """Initialize a Django app.
 
         Before starting, all migrations will be applied.
@@ -40,8 +44,11 @@ class DjangoServer(BaseServer, BaseApplication):
             ```
 
         Args:
+            auto_run: A flag designating whether to auto-run the server.
             workers: The number of Gunicorn workers. 0 will auto-calculate.
         """
+
+        call_command("check", interactive=False)
 
         self.options = {
             "bind": "0.0.0.0:8080",
@@ -55,8 +62,7 @@ class DjangoServer(BaseServer, BaseApplication):
 
         super().__init__()
 
-        # Auto-run if in main process.
-        if self.in_main_process():
+        if auto_run and self.app_server_is_running():
             self.run()
 
     def load_config(self):
@@ -72,16 +78,23 @@ class DjangoServer(BaseServer, BaseApplication):
         return self.asgi_app
 
     @classmethod
-    def setup(cls, settings_module: str = "settings"):
+    def setup(
+        cls,
+        settings_module: str = "settings",
+        auto_migrate: bool = True,
+    ):
         """Set up the Django app.
 
         Args:
             settings_module: The dot-path to the settings module.
+            auto_migrate: A flag designating whether to auto-migrate the models.
         """
 
         os.environ.setdefault("DJANGO_SETTINGS_MODULE", settings_module)
 
         setup()
 
-        if cls.in_main_process():
+        if auto_migrate and (
+            cls.app_server_is_running() or cls.django_dev_server_is_running()
+        ):
             call_command("migrate", interactive=False)

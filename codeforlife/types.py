@@ -32,7 +32,6 @@ LogLevel = t.Literal[
     "FATAL",
     "ERROR",
     "WARNING",
-    "WARN",
     "INFO",
     "DEBUG",
 ]
