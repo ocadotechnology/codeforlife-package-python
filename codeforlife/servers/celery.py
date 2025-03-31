@@ -20,7 +20,8 @@ from .base import BaseServer
 class CeleryServer(BaseServer, Celery):
     """A server for a Celery app."""
 
-    def __init__(self, auto_run: bool = True):
+    def __init__(self, auto_run: bool = True, dump_request: bool = False):
+        # pylint: disable=line-too-long
         """Initialize a Celery app.
 
         Examples:
@@ -35,10 +36,12 @@ class CeleryServer(BaseServer, Celery):
 
         Args:
             auto_run: A flag designating whether to auto-run the server.
+            dump_request: A flag designating whether to add the dump_request task (useful for debugging).
 
         Raises:
             EnvironmentError: If "DJANGO_SETTINGS_MODULE" is not in os.environ.
         """
+        # pylint: enable=line-too-long
 
         call_django_command("check")
 
@@ -58,14 +61,14 @@ class CeleryServer(BaseServer, Celery):
         # Load task modules from all registered Django apps.
         self.autodiscover_tasks()
 
-        if self.django_dev_server_is_running():
+        if dump_request:
 
             @self.task(
                 name=f"{settings.SERVICE_NAME}.dump_request",
                 bind=True,
                 ignore_result=True,
             )
-            def dump_request(self, *args, **kwargs):
+            def _dump_request(self, *args, **kwargs):
                 """Dumps its own request information."""
 
                 logging.info("Request: %s", self.request)
