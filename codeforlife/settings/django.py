@@ -17,6 +17,7 @@ from .. import TEMPLATES_DIR
 from ..types import JsonDict
 from .custom import (
     ENV,
+    REDIS_URL,
     SERVICE_BASE_DIR,
     SERVICE_BASE_URL,
     SERVICE_DOMAIN,
@@ -350,4 +351,14 @@ STORAGES: t.Dict[str, t.Any] = {
             },
         }
     ),
+}
+
+# Caches
+# https://docs.djangoproject.com/en/4.2/topics/cache/
+
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.redis.RedisCache",
+        "LOCATION": REDIS_URL,
+    }
 }
