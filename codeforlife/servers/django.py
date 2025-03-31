@@ -56,7 +56,7 @@ class DjangoServer(BaseServer, BaseApplication):
         super().__init__()
 
         # Auto-run if in main process.
-        if self.in_main_process:
+        if self.in_main_process():
             self.run()
 
     def load_config(self):
@@ -71,8 +71,8 @@ class DjangoServer(BaseServer, BaseApplication):
     def load(self):
         return self.asgi_app
 
-    @staticmethod
-    def setup(settings_module: str = "settings"):
+    @classmethod
+    def setup(cls, settings_module: str = "settings"):
         """Set up the Django app.
 
         Args:
@@ -83,4 +83,5 @@ class DjangoServer(BaseServer, BaseApplication):
 
         setup()
 
-        call_command("migrate", interactive=False)
+        if cls.in_main_process():
+            call_command("migrate", interactive=False)

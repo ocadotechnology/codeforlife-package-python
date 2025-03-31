@@ -69,7 +69,7 @@ class CeleryServer(BaseServer, Celery):
 
                 print(f"Request: {self.request!r}")
 
-        if self.in_main_process:
+        if self.in_main_process():
             self.start_background_workers()
             self.start_background_beat()
 
