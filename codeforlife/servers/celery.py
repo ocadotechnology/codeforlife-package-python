@@ -8,22 +8,20 @@ Initializes our celery app.
 import atexit
 import os
 import subprocess
-import sys
 import typing as t
 
-import celery
+from celery import Celery
 
 from ..types import LogLevel
+from .base import BaseServer
 
-CELERY_MAIN_PATH = os.path.join(celery.__path__[0], "__main__.py")
 
-
-class CeleryServer(celery.Celery):
+class CeleryServer(BaseServer, Celery):
     """A server for a Celery app."""
 
     def __init__(
         self,
-        app: str = "application",
+        main_module: str = "application",
         debug: bool = bool(int(os.getenv("DEBUG", "1"))),
     ):
         """Initialize a Celery app.
@@ -39,7 +37,7 @@ class CeleryServer(celery.Celery):
             ```
 
         Args:
-            app: The dot-path to the Celery app.
+            main_module: The dot-path of the main module.
             debug: A flag designating whether to run the app in debug mode.
 
         Raises:
@@ -51,9 +49,9 @@ class CeleryServer(celery.Celery):
                 "Django's settings-module environment variable is required."
             )
 
-        super().__init__()
-        self.app = self
-        self._app = app
+        super().__init__(main_module)
+
+        self.app = self  # For readability: celery_app = `CeleryServer().app`.
 
         # Using a string here means the worker doesn't have to serialize
         # the configuration object to child processes.
@@ -66,13 +64,17 @@ class CeleryServer(celery.Celery):
 
         if debug:
 
-            @self.task(name=f"{app}.debug", bind=True, ignore_result=True)
+            @self.task(
+                name=f"{main_module}.debug",
+                bind=True,
+                ignore_result=True,
+            )
             def _debug(self, *args, **kwargs):
                 """Dumps its own request information."""
 
                 print(f"Request: {self.request!r}")
 
-        if os.path.abspath(sys.argv[0]) != CELERY_MAIN_PATH:
+        if self.in_main_process:
             self.start_background_workers()
             self.start_background_beat()
 
@@ -99,7 +101,7 @@ class CeleryServer(celery.Celery):
                 "multi",
                 "start",
                 worker,
-                f"--app={self._app}",
+                f"--app={self.main_module}",
                 f"--loglevel={log_level}",
             ]
 
@@ -154,7 +156,7 @@ class CeleryServer(celery.Celery):
                     "multi",
                     "stopwait",
                     *workers,
-                    f"--app={self._app}",
+                    f"--app={self.main_module}",
                     f"--loglevel={log_level}",
                 ],
                 check=True,
@@ -177,7 +179,7 @@ class CeleryServer(celery.Celery):
             process = subprocess.Popen(  # pylint: disable=consider-using-with
                 [
                     "celery",
-                    f"--app={self._app}",
+                    f"--app={self.main_module}",
                     "beat",
                     f"--loglevel={log_level}",
                 ],
