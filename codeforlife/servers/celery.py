@@ -6,7 +6,7 @@ Initializes our celery app.
 """
 
 import atexit
-import os
+import logging
 import subprocess
 import typing as t
 
@@ -20,11 +20,7 @@ from .base import BaseServer
 class CeleryServer(BaseServer, Celery):
     """A server for a Celery app."""
 
-    def __init__(
-        self,
-        auto_run: bool = True,
-        debug: bool = bool(int(os.getenv("DEBUG", "1"))),
-    ):
+    def __init__(self, auto_run: bool = True):
         """Initialize a Celery app.
 
         Examples:
@@ -39,7 +35,6 @@ class CeleryServer(BaseServer, Celery):
 
         Args:
             auto_run: A flag designating whether to auto-run the server.
-            debug: A flag designating whether to run the app in debug mode.
 
         Raises:
             EnvironmentError: If "DJANGO_SETTINGS_MODULE" is not in os.environ.
@@ -63,17 +58,17 @@ class CeleryServer(BaseServer, Celery):
         # Load task modules from all registered Django apps.
         self.autodiscover_tasks()
 
-        if debug:
+        if self.django_dev_server_is_running():
 
             @self.task(
-                name=f"{settings.SERVICE_NAME}.debug",
+                name=f"{settings.SERVICE_NAME}.dump_request",
                 bind=True,
                 ignore_result=True,
             )
-            def _debug(self, *args, **kwargs):
+            def dump_request(self, *args, **kwargs):
                 """Dumps its own request information."""
 
-                print(f"Request: {self.request!r}")
+                logging.info("Request: %s", self.request)
 
         if auto_run and (
             self.app_server_is_running() or self.django_dev_server_is_running()
