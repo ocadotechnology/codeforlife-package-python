@@ -129,7 +129,7 @@ class CeleryServer(BaseServer, Celery):
         return processes
 
     def start_heartbeat_as_subprocess(
-        self, log_level: t.Optional[LogLevel] = "WARNING"
+        self, log_level: t.Optional[LogLevel] = "INFO"
     ):
         """Start heartbeat using the 'celery beat' command.
 
