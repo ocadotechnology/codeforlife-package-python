@@ -32,7 +32,7 @@ class CeleryBeat(t.Dict[str, t.Any]):
         kwargs: t.Optional[KwArgs] = None,
     ):
         super().__init__()
-        self["task"] = task
+        self["task"] = f"{settings.SERVICE_NAME}.{task}"
         self["schedule"] = schedule
         if args:
             self["args"] = args
