@@ -7,7 +7,7 @@ This file contains custom settings defined by third party extensions.
 
 import typing as t
 
-from ..types import CeleryBeat
+from ..tasks import CeleryBeat
 from .custom import REDIS_URL, SERVICE_SITE_URL
 from .django import ENV
 

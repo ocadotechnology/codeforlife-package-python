@@ -7,10 +7,6 @@ Reusable type hints.
 
 import typing as t
 
-if t.TYPE_CHECKING:
-    from celery.schedules import crontab, solar
-
-
 CookieSamesite = t.Optional[t.Literal["Lax", "Strict", "None", False]]
 
 Env = t.Literal["local", "development", "staging", "production"]
@@ -35,18 +31,6 @@ LogLevel = t.Literal[
     "INFO",
     "DEBUG",
 ]
-
-
-class CeleryBeat(t.NamedTuple):
-    """A Celery beat schedule.
-
-    https://docs.celeryq.dev/en/v5.4.0/userguide/periodic-tasks.html
-    """
-
-    task: str
-    schedule: t.Union[int, "crontab", "solar"]
-    args: t.Optional[Args] = tuple()
-    kwargs: t.Optional[KwArgs] = {}
 
 
 def get_arg(cls: t.Type[t.Any], index: int, orig_base: int = 0):

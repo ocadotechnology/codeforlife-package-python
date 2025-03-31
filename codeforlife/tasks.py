@@ -10,6 +10,33 @@ import typing as t
 from celery import shared_task as _shared_task
 from django.conf import settings
 
+from .types import Args, KwArgs
+
+if t.TYPE_CHECKING:
+    from celery.schedules import crontab, solar
+
+
+class CeleryBeat(t.Dict[str, t.Any]):
+    """A Celery beat schedule.
+
+    https://docs.celeryq.dev/en/v5.4.0/userguide/periodic-tasks.html
+    """
+
+    def __init__(
+        self,
+        task: str,
+        schedule: t.Union[int, "crontab", "solar"],
+        args: t.Optional[Args] = None,
+        kwargs: t.Optional[KwArgs] = None,
+    ):
+        super().__init__()
+        self["task"] = task
+        self["schedule"] = schedule
+        if args:
+            self["args"] = args
+        if kwargs:
+            self["kwargs"] = kwargs
+
 
 def shared_task(*args, **kwargs):
     """
