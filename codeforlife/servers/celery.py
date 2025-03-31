@@ -19,11 +19,7 @@ from .base import BaseServer
 class CeleryServer(BaseServer, Celery):
     """A server for a Celery app."""
 
-    def __init__(
-        self,
-        main_module: str = "application",
-        debug: bool = bool(int(os.getenv("DEBUG", "1"))),
-    ):
+    def __init__(self, debug: bool = bool(int(os.getenv("DEBUG", "1")))):
         """Initialize a Celery app.
 
         Examples:
@@ -37,7 +33,6 @@ class CeleryServer(BaseServer, Celery):
             ```
 
         Args:
-            main_module: The dot-path of the main module.
             debug: A flag designating whether to run the app in debug mode.
 
         Raises:
@@ -49,7 +44,7 @@ class CeleryServer(BaseServer, Celery):
                 "Django's settings-module environment variable is required."
             )
 
-        super().__init__(main_module)
+        super().__init__()
 
         self.app = self  # For readability: celery_app = `CeleryServer().app`.
 
@@ -65,7 +60,7 @@ class CeleryServer(BaseServer, Celery):
         if debug:
 
             @self.task(
-                name=f"{main_module}.debug",
+                name=f"{self.main_module}.debug",
                 bind=True,
                 ignore_result=True,
             )

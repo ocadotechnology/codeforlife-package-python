@@ -12,13 +12,7 @@ from functools import cached_property
 class BaseServer:
     """The base server which all servers must inherit."""
 
-    def __init__(self, main_module: str = "application"):
-        """Initialize a base-server instance.
-
-        Args:
-            main_module: The dot-path of the main module.
-        """
-        self.main_module = main_module
+    main_module: str = "application"  # The dot-path of the main module.
 
     @cached_property
     def in_main_process(self):

@@ -24,11 +24,7 @@ class DjangoServer(BaseServer, BaseApplication):
     https://docs.gunicorn.org/en/stable/custom.html
     """
 
-    def __init__(
-        self,
-        main_module: str = "application",
-        workers: int = int(os.getenv("WORKERS", "0")),
-    ):
+    def __init__(self, workers: int = int(os.getenv("WORKERS", "0"))):
         """Initialize a Django app.
 
         Before starting, all migrations will be applied.
@@ -44,7 +40,6 @@ class DjangoServer(BaseServer, BaseApplication):
             ```
 
         Args:
-            main_module: The dot-path of the main module.
             workers: The number of Gunicorn workers. 0 will auto-calculate.
         """
 
@@ -58,7 +53,7 @@ class DjangoServer(BaseServer, BaseApplication):
         self.asgi_app = get_asgi_application()
         self.wsgi_app = get_wsgi_application()
 
-        super().__init__(main_module)
+        super().__init__()
 
         # Auto-run if in main process.
         if self.in_main_process:
