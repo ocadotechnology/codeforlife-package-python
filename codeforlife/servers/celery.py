@@ -45,7 +45,10 @@ class CeleryServer(BaseServer, Celery):
             EnvironmentError: If "DJANGO_SETTINGS_MODULE" is not in os.environ.
         """
 
-        call_django_command("check", interactive=False)
+        call_django_command("check")
+
+        # pylint: disable-next=import-outside-toplevel
+        from django.conf import settings
 
         super().__init__()
 
@@ -55,7 +58,7 @@ class CeleryServer(BaseServer, Celery):
         # the configuration object to child processes.
         # - namespace='CELERY' means all celery-related configuration keys
         #   should have a `CELERY_` prefix.
-        self.config_from_object("django.conf:settings", namespace="CELERY")
+        self.config_from_object(settings, namespace="CELERY")
 
         # Load task modules from all registered Django apps.
         self.autodiscover_tasks()
@@ -63,7 +66,7 @@ class CeleryServer(BaseServer, Celery):
         if debug:
 
             @self.task(
-                name=f"{self.app_module}.debug",
+                name=f"{settings.SERVICE_NAME}.debug",
                 bind=True,
                 ignore_result=True,
             )
@@ -101,15 +104,14 @@ class CeleryServer(BaseServer, Celery):
             workers = {worker: 0 for worker in workers}
 
         processes: t.Dict[str, subprocess.Popen[bytes]] = {}
-        stdout, stderr = (
-            (subprocess.STDOUT, subprocess.STDOUT)
-            if log_level
-            else (subprocess.DEVNULL, subprocess.DEVNULL)
-        )
         for worker, concurrency in workers.items():
             command = ["celery", f"--app={self.app_module}", "worker"]
             if log_level:
                 command.append(f"--loglevel={log_level}")
+
+                stdout, stderr = (None, None)  # Use defaults.
+            else:
+                stdout, stderr = (subprocess.DEVNULL, subprocess.DEVNULL)
             if concurrency > 0:
                 command.append(f"--concurrency={concurrency}")
 
@@ -144,7 +146,7 @@ class CeleryServer(BaseServer, Celery):
         if log_level:
             command.append(f"--loglevel={log_level}")
 
-            stdout, stderr = (subprocess.STDOUT, subprocess.STDOUT)
+            stdout, stderr = (None, None)  # Use defaults.
         else:
             stdout, stderr = (subprocess.DEVNULL, subprocess.DEVNULL)
 

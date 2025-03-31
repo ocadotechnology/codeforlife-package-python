@@ -48,7 +48,7 @@ class DjangoServer(BaseServer, BaseApplication):
             workers: The number of Gunicorn workers. 0 will auto-calculate.
         """
 
-        call_command("check", interactive=False)
+        call_command("check")
 
         self.options = {
             "bind": "0.0.0.0:8080",
