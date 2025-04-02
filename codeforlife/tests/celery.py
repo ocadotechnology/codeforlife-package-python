@@ -10,7 +10,7 @@ from unittest import TestCase
 from celery import Celery, Task
 from django.conf import settings
 
-from ..tasks import CeleryBeat
+from ..tasks import CeleryBeatSchedule
 from ..types import Args, KwArgs
 
 
@@ -35,7 +35,9 @@ class CeleryTestCase(TestCase):
         Args:
             beat_name: The name of the beat in the schedule.
         """
-        beat: CeleryBeat = self.app.conf.beat_schedule[beat_name]
+        beat = t.cast(CeleryBeatSchedule, self.app.conf.beat_schedule)[
+            beat_name
+        ]
 
         task_dot_path = (
             beat["task"].removeprefix(f"{settings.SERVICE_NAME}.").split(".")
