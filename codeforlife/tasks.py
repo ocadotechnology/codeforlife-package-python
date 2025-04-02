@@ -31,13 +31,30 @@ class CeleryBeat(t.TypedDict):
 CeleryBeatSchedule = t.Dict[str, CeleryBeat]
 
 
-def celery_beat_schedule(**beat_schedule: CeleryBeat) -> CeleryBeatSchedule:
-    """Create a beat schedule that's namespaced by the service it's in."""
+class CeleryBeatScheduleBuilder(CeleryBeatSchedule):
+    """Builds a celery beat schedule.
 
-    for beat in beat_schedule.values():
-        beat["task"] = namespace_task(beat["task"])
+    Examples:
+        ```
+        # settings.py
+        CELERY_BEAT_SCHEDULE = CeleryBeatScheduleBuilder(
+            every_5_minutes={
+                "task": "path.to.task",
+                "schedule": CeleryBeatScheduleBuilder.crontab(minute=5),
+            },
+        )
+        ```
+    """
 
-    return beat_schedule
+    # Shorthand for convenience.
+    crontab = crontab
+    solar = solar
+
+    def __init__(self, **beat_schedule: CeleryBeat):
+        for beat in beat_schedule.values():
+            beat["task"] = namespace_task(beat["task"])
+
+        super().__init__(beat_schedule)
 
 
 def namespace_task(task: t.Union[str, t.Callable]):
