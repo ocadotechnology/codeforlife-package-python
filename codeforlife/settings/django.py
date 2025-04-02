@@ -14,7 +14,6 @@ import boto3
 from django.utils.translation import gettext_lazy as _
 
 from .. import TEMPLATES_DIR
-from ..types import JsonDict
 from .custom import (
     ENV,
     REDIS_URL,
@@ -44,6 +43,8 @@ from .otp import (
 
 if t.TYPE_CHECKING:
     from mypy_boto3_s3.client import S3Client
+
+    from ..types import JsonDict
 
 
 # SECURITY WARNING: don't run with debug turned on in production!
@@ -82,7 +83,7 @@ def get_databases():
         )
 
         # Load the object as a JSON dict.
-        db_data: JsonDict = json.loads(
+        db_data: "JsonDict" = json.loads(
             db_data_object["Body"].read().decode("utf-8")
         )
         if not db_data or db_data["DBEngine"] != "postgres":

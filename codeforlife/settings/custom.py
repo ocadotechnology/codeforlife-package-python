@@ -13,7 +13,6 @@ from pathlib import Path
 
 import boto3
 
-from ..types import CookieSamesite, Env, JsonDict
 from .otp import (
     AWS_S3_APP_BUCKET,
     AWS_S3_APP_FOLDER,
@@ -24,9 +23,11 @@ from .otp import (
 if t.TYPE_CHECKING:
     from mypy_boto3_s3.client import S3Client
 
+    from ..types import CookieSamesite, Env, JsonDict
+
 
 # The name of the current environment.
-ENV = t.cast(Env, os.getenv("ENV", "local"))
+ENV = t.cast("Env", os.getenv("ENV", "local"))
 
 # The base directory of the current service.
 SERVICE_BASE_DIR = Path(os.getenv("SERVICE_BASE_DIR", "/"))
@@ -72,7 +73,7 @@ MAIL_ENABLED = bool(int(os.getenv("MAIL_ENABLED", "0")))
 SESSION_METADATA_COOKIE_NAME = "session_metadata"
 SESSION_METADATA_COOKIE_PATH = "/"
 SESSION_METADATA_COOKIE_DOMAIN = SERVICE_EXTERNAL_DOMAIN
-SESSION_METADATA_COOKIE_SAMESITE: CookieSamesite = "Strict"
+SESSION_METADATA_COOKIE_SAMESITE: "CookieSamesite" = "Strict"
 
 
 def get_redis_url():
@@ -98,7 +99,7 @@ def get_redis_url():
         )
 
         # Load the object as a JSON dict.
-        db_data: JsonDict = json.loads(
+        db_data: "JsonDict" = json.loads(
             db_data_object["Body"].read().decode("utf-8")
         )
         if not db_data or db_data["Engine"] != "Redis":
