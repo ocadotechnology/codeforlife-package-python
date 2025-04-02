@@ -3,6 +3,7 @@
 Created on 01/04/2025 at 16:57:19(+01:00).
 """
 
+import typing as t
 from importlib import import_module
 from unittest import TestCase
 
@@ -46,7 +47,12 @@ class CeleryTestCase(TestCase):
         args, kwargs = beat.get("args", tuple()), beat.get("kwargs", {})
         task.apply(*args, **kwargs)
 
-    def apply_task(self, name: str, args: Args, kwargs: KwArgs):
+    def apply_task(
+        self,
+        name: str,
+        args: t.Optional[Args] = None,
+        kwargs: t.Optional[KwArgs] = None,
+    ):
         """Apply a task.
 
         Args:
@@ -55,4 +61,4 @@ class CeleryTestCase(TestCase):
             kwargs: The keyword args to pass to the task.
         """
         task: Task = self.app.tasks[f"{settings.SERVICE_NAME}.{name}"]
-        task.apply(*args, **kwargs)
+        task.apply(*(args or tuple()), **(kwargs or {}))
