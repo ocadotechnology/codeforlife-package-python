@@ -28,28 +28,16 @@ class CeleryBeat(t.TypedDict):
     kwargs: t.NotRequired[KwArgs]
 
 
-class CeleryBeatSchedule(t.Dict[str, CeleryBeat]):
-    """A celery beat schedule.
+CeleryBeatSchedule = t.Dict[str, CeleryBeat]
 
-    https://docs.celeryq.dev/en/v5.4.0/userguide/periodic-tasks.html
-    """
 
-    def __init__(
-        self,
-        namespace_tasks: bool = True,
-        **beat_schedule: CeleryBeat,
-    ):
-        """Initialize a beat schedule.
+def celery_beat_schedule(**beat_schedule: CeleryBeat) -> CeleryBeatSchedule:
+    """Create a beat schedule that's namespaced by the service it's in."""
 
-        Args:
-            namespace_tasks: A flag designating whether to namespace beat tasks.
-        """
+    for beat in beat_schedule.values():
+        beat["task"] = namespace_task(beat["task"])
 
-        if namespace_tasks:
-            for beat in beat_schedule.values():
-                beat["task"] = namespace_task(beat["task"])
-
-        super().__init__(beat_schedule)
+    return beat_schedule
 
 
 def namespace_task(task: t.Union[str, t.Callable]):
