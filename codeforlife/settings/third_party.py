@@ -37,4 +37,4 @@ REST_FRAMEWORK = {
 
 CELERY_BROKER_URL = REDIS_URL
 CELERY_TASK_TIME_LIMIT = 60 * 30
-CELERY_BEAT_SCHEDULE: t.Dict[str, t.Dict[str, CeleryBeat]] = {}
+CELERY_BEAT_SCHEDULE: t.Dict[str, CeleryBeat] = {}

@@ -599,26 +599,6 @@ class BaseModelViewSetClient(
 
         return response
 
-    # --------------------------------------------------------------------------
-    # OTHER
-    # --------------------------------------------------------------------------
-
-    def cron_job(self, action: str):
-        """Call a CRON job.
-
-        Args:
-            action: The name of the action.
-
-        Returns:
-            The HTTP response.
-        """
-        response: Response = self.get(
-            self._test_case.reverse_action(action),
-            HTTP_X_APPENGINE_CRON="true",
-        )
-
-        return response
-
 
 # pylint: enable=no-member
 

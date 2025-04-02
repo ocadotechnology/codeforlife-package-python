@@ -7,37 +7,30 @@ Custom utilities for Celery tasks.
 
 import typing as t
 
-from celery import schedules
 from celery import shared_task as _shared_task
+from celery.schedules import crontab, solar
 from django.conf import settings
 
 from .types import Args, KwArgs
 
+Schedule = t.Union[int, crontab, solar]
 
-class CeleryBeat(t.Dict[str, t.Any]):
+
+class CeleryBeat(t.TypedDict):
     """A Celery beat schedule.
 
     https://docs.celeryq.dev/en/v5.4.0/userguide/periodic-tasks.html
     """
 
-    # Shorthand for convenience.
-    crontab = schedules.crontab
-    solar = schedules.solar
+    task: str
+    schedule: Schedule
+    args: t.NotRequired[Args]
+    kwargs: t.NotRequired[KwArgs]
 
-    def __init__(
-        self,
-        task: str,
-        schedule: t.Union[int, schedules.crontab, schedules.solar],
-        args: t.Optional[Args] = None,
-        kwargs: t.Optional[KwArgs] = None,
-    ):
-        super().__init__()
-        self["task"] = f"{settings.SERVICE_NAME}.{task}"
-        self["schedule"] = schedule
-        if args:
-            self["args"] = args
-        if kwargs:
-            self["kwargs"] = kwargs
+    def __init__(self, **kwargs):  # type: ignore[misc]
+        kwargs["task"] = f"{settings.SERVICE_NAME}.{kwargs['task']}"
+
+        super().__init__(**kwargs)
 
 
 def shared_task(*args, **kwargs):
