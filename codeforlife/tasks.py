@@ -27,10 +27,21 @@ class CeleryBeat(t.TypedDict):
     args: t.NotRequired[Args]
     kwargs: t.NotRequired[KwArgs]
 
-    def __init__(self, **kwargs):  # type: ignore[misc]
-        kwargs["task"] = f"{settings.SERVICE_NAME}.{kwargs['task']}"
 
-        super().__init__(**kwargs)
+def namespace_task(task: t.Union[str, t.Callable]):
+    """Namespace a task by the service it's in.
+
+    Args:
+        task: The name of the task.
+
+    Returns:
+        The name of the task in the format: "{SERVICE_NAME}.{TASK_NAME}".
+    """
+
+    if callable(task):
+        task = f"{task.__module__}.{task.__name__}"
+
+    return f"{settings.SERVICE_NAME}.{task}"
 
 
 def shared_task(*args, **kwargs):
@@ -39,21 +50,12 @@ def shared_task(*args, **kwargs):
     tasks to a specific service.
     """
 
-    def get_name(func: t.Callable):
-        return ".".join(
-            [
-                settings.SERVICE_NAME,
-                func.__module__,
-                func.__name__,
-            ]
-        )
-
     if len(args) == 1 and callable(args[0]):
         func = args[0]
-        return _shared_task(name=get_name(func))(func)
+        return _shared_task(name=namespace_task(func))(func)
 
     def wrapper(func: t.Callable):
         kwargs.pop("name", None)
-        return _shared_task(name=get_name(func), *args, **kwargs)(func)
+        return _shared_task(name=namespace_task(func), *args, **kwargs)(func)
 
     return wrapper

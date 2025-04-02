@@ -7,9 +7,12 @@ This file contains custom settings defined by third party extensions.
 
 import typing as t
 
-from ..tasks import CeleryBeat
 from .custom import REDIS_URL, SERVICE_SITE_URL
 from .django import ENV
+
+if t.TYPE_CHECKING:
+    from ..tasks import CeleryBeat
+
 
 # CORS
 # https://pypi.org/project/django-cors-headers/
@@ -37,4 +40,4 @@ REST_FRAMEWORK = {
 
 CELERY_BROKER_URL = REDIS_URL
 CELERY_TASK_TIME_LIMIT = 60 * 30
-CELERY_BEAT_SCHEDULE: t.Dict[str, CeleryBeat] = {}
+CELERY_BEAT_SCHEDULE: t.Dict[str, "CeleryBeat"] = {}
