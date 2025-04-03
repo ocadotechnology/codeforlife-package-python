@@ -10,16 +10,16 @@ NOTE: All variables should be retrieved like so: `os.getenv("key")`.
 
 import os
 
-# App.
+# App
 
 APP_ID = os.getenv("APP_ID")
 APP_VERSION = os.getenv("APP_VERSION")
 
-# AWS.
+# AWS
 
 AWS_REGION = os.getenv("aws_region")
 
-# AWS S3.
+# AWS S3
 
 AWS_S3_APP_BUCKET = os.getenv("aws_s3_app_bucket")
 AWS_S3_APP_FOLDER = os.getenv("aws_s3_app_folder")
@@ -42,7 +42,7 @@ AWS_S3_STATIC_QUERYSTRING_EXPIRE = int(
     os.getenv("AWS_S3_STATIC_QUERYSTRING_EXPIRE", "3600")
 )
 
-# RDS.
+# RDS
 
 RDS_DB_NAME = os.getenv("RDS_DB_NAME")
 RDS_SCHEMA_NAME = os.getenv("RDS_SCHEMA_NAME")
@@ -51,4 +51,11 @@ RDS_DB_DATA_PATH = (
     f"{AWS_S3_APP_FOLDER}/dbMetadata/"
     + (f"{RDS_INSTANCE_NAME}/" if RDS_INSTANCE_NAME else "")
     + f"{RDS_DB_NAME}/{RDS_SCHEMA_NAME}.dbdata"
+)
+
+# ElastiCache
+
+CACHE_REDIS_CLUSTER_ID = os.getenv("CACHE_REDIS_CLUSTER_ID")
+CACHE_REDIS_DB_DATA_PATH = (
+    f"{AWS_S3_APP_FOLDER}/elasticacheMetadata/{CACHE_REDIS_CLUSTER_ID}.dbdata"
 )

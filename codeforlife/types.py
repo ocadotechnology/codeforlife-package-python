@@ -23,6 +23,15 @@ OrderedDataDict = t.OrderedDict[str, t.Any]
 
 Validators = t.Sequence[t.Callable]
 
+LogLevel = t.Literal[
+    "CRITICAL",
+    "FATAL",
+    "ERROR",
+    "WARNING",
+    "INFO",
+    "DEBUG",
+]
+
 
 def get_arg(cls: t.Type[t.Any], index: int, orig_base: int = 0):
     """Get a type arg from a class.

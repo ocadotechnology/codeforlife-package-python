@@ -14,9 +14,9 @@ import boto3
 from django.utils.translation import gettext_lazy as _
 
 from .. import TEMPLATES_DIR
-from ..types import JsonDict
 from .custom import (
     ENV,
+    REDIS_URL,
     SERVICE_BASE_DIR,
     SERVICE_BASE_URL,
     SERVICE_DOMAIN,
@@ -44,6 +44,8 @@ from .otp import (
 if t.TYPE_CHECKING:
     from mypy_boto3_s3.client import S3Client
 
+    from ..types import JsonDict
+
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = bool(int(os.getenv("DEBUG", "1")))
@@ -58,7 +60,7 @@ ALLOWED_HOSTS = ["*"]
 
 
 def get_databases():
-    """Get the databases depending on the the available settings.
+    """Get the databases for the current environment.
 
     Raises:
         ConnectionAbortedError: If the engine is not postgres.
@@ -71,7 +73,7 @@ def get_databases():
         name = os.getenv("DB_NAME", SERVICE_NAME)
         user = os.getenv("DB_USER", "root")
         password = os.getenv("DB_PASSWORD", "password")
-        host = os.getenv("DB_HOST", "localhost")
+        host = os.getenv("DB_HOST", "db")
         port = int(os.getenv("DB_PORT", "5432"))
     else:
         # Get the dbdata object.
@@ -81,7 +83,7 @@ def get_databases():
         )
 
         # Load the object as a JSON dict.
-        db_data: JsonDict = json.loads(
+        db_data: "JsonDict" = json.loads(
             db_data_object["Body"].read().decode("utf-8")
         )
         if not db_data or db_data["DBEngine"] != "postgres":
@@ -219,7 +221,7 @@ ROOT_URLCONF = "api.urls"
 # App
 # https://docs.djangoproject.com/en/4.2/ref/settings/#wsgi-application
 
-WSGI_APPLICATION = "application.app"
+WSGI_APPLICATION = "application.django_app"
 
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
@@ -350,4 +352,14 @@ STORAGES: t.Dict[str, t.Any] = {
             },
         }
     ),
+}
+
+# Caches
+# https://docs.djangoproject.com/en/4.2/topics/cache/
+
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.redis.RedisCache",
+        "LOCATION": REDIS_URL,
+    }
 }

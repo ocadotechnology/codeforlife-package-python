@@ -52,19 +52,3 @@ def action(**kwargs):
         return _action(**kwargs)(handler)
 
     return wrapper
-
-
-def cron_job(handler: t.Callable):
-    # pylint: disable=line-too-long
-    """
-    Create an action that is meant to be called by Google as a CRON job.
-
-    See https://github.com/ocadotechnology/codeforlife-workspace/blob/main/cron.yaml.
-    """
-    # pylint: enable=line-too-long
-
-    return action(
-        detail=False,
-        methods=["get"],
-        url_path=f"cron/{_handler_name_to_url_path(handler)}",
-    )(handler)
