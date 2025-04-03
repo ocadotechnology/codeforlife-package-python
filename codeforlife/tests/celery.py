@@ -38,16 +38,13 @@ class CeleryTestCase(TestCase):
         beat = t.cast(CeleryBeatSchedule, self.app.conf.beat_schedule)[
             beat_name
         ]
-
         task_dot_path = (
             beat["task"].removeprefix(f"{settings.SERVICE_NAME}.").split(".")
         )
         task_module = ".".join(task_dot_path[:-1])
         task_name = task_dot_path[-1]
         task: Task = getattr(import_module(task_module), task_name)
-
-        args, kwargs = beat.get("args", tuple()), beat.get("kwargs", {})
-        task.apply(*args, **kwargs)
+        task.apply(args=beat.get("args"), kwargs=beat.get("kwargs"))
 
     def apply_task(
         self,
@@ -63,4 +60,4 @@ class CeleryTestCase(TestCase):
             kwargs: The keyword args to pass to the task.
         """
         task: Task = self.app.tasks[f"{settings.SERVICE_NAME}.{name}"]
-        task.apply(*(args or tuple()), **(kwargs or {}))
+        task.apply(args=args, kwargs=kwargs)
