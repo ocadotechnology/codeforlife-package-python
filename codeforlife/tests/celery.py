@@ -29,6 +29,8 @@ class CeleryTestCase(TestCase):
         if not hasattr(cls, "app"):
             cls.app = getattr(import_module(cls.app_module), cls.app_name)
 
+        return super().setUpClass()
+
     def apply_periodic_task(self, beat_name: str):
         """Apply a periodic task.
 
