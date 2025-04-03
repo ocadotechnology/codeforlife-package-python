@@ -5,13 +5,13 @@ Created on 01/04/2025 at 16:57:19(+01:00).
 
 import typing as t
 from importlib import import_module
-from unittest import TestCase
 
 from celery import Celery, Task
 from django.conf import settings
 
 from ..tasks import CeleryBeatSchedule
 from ..types import Args, KwArgs
+from .test import TestCase
 
 
 class CeleryTestCase(TestCase):
