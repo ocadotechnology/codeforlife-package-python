@@ -1,6 +1,14 @@
 # CHANGELOG
 
 
+## v0.26.1 (2025-04-04)
+
+### Bug Fixes
+
+- Rename domain to host
+  ([`19d65d6`](https://github.com/ocadotechnology/codeforlife-package-python/commit/19d65d6445db3686c5c2375ce46163b8683cdab5))
+
+
 ## v0.26.0 (2025-04-04)
 
 ### Bug Fixes
