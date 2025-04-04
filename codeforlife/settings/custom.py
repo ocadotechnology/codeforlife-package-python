@@ -87,10 +87,10 @@ def get_redis_url():
     """
 
     if ENV == "local":
-        domain = os.getenv("REDIS_DOMAIN", "cache")
+        host = os.getenv("REDIS_HOST", "cache")
         port = int(os.getenv("REDIS_PORT", "6379"))
         path = os.getenv("REDIS_PATH", "0")
-        url = f"{domain}:{port}/{path}"
+        url = f"{host}:{port}/{path}"
     else:
         # Get the dbdata object.
         s3: "S3Client" = boto3.client("s3")
