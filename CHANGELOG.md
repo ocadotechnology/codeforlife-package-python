@@ -1,6 +1,73 @@
 # CHANGELOG
 
 
+## v0.26.0 (2025-04-04)
+
+### Bug Fixes
+
+- Rename assertQuerySetEqual
+  ([`c42a230`](https://github.com/ocadotechnology/codeforlife-package-python/commit/c42a230d0a1874c8f093367421ca5a627a5f7fd1))
+
+- Update packages for django v5
+  ([`f0035c7`](https://github.com/ocadotechnology/codeforlife-package-python/commit/f0035c77df8bb3bc4769224bcfb26f343df09cfa))
+
+### Features
+
+- Django 5.1.8
+  ([`5300229`](https://github.com/ocadotechnology/codeforlife-package-python/commit/5300229a8d6e26872f91d7dadcec7294ab34ced2))
+
+- Workspace 194 ([#155](https://github.com/ocadotechnology/codeforlife-package-python/pull/155),
+  [`e299bc4`](https://github.com/ocadotechnology/codeforlife-package-python/commit/e299bc40022864f49db1910c59749ebf347fc633))
+
+* fix: default db host
+
+* fix: support celery
+
+* change codeforlife.app dir to codeforlife.apps
+
+* setup django
+
+* simplify
+
+* base server
+
+* fix: init
+
+* fix: in_main_process
+
+* fix: logging
+
+* fixes
+
+* tidy up
+
+* dump_request
+
+* default log level to info
+
+* relocate class CeleryBeat
+
+* fix paths
+
+* use redis as django cache
+
+* prefix all task names with service name
+
+* delete old cron approach
+
+* optional args and kwargs
+
+* fix types
+
+* CeleryBeatScheduleBuilder
+
+* django test case
+
+* fix: apply
+
+* fix: setUpClass
+
+
 ## v0.25.22 (2025-03-25)
 
 ### Bug Fixes
