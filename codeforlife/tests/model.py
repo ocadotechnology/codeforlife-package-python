@@ -93,4 +93,4 @@ class ModelTestCase(TestCase, t.Generic[AnyModel]):
         ).get_queryset()
         if ordered and not queryset.ordered:
             queryset = queryset.order_by("pk")
-        self.assertQuerysetEqual(queryset, values, ordered=ordered)
+        self.assertQuerySetEqual(queryset, values, ordered=ordered)

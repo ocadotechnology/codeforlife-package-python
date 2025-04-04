@@ -208,7 +208,7 @@ class BaseModelViewSetTestCase(
         queryset = model_view_set.get_queryset()
         if ordered and not queryset.ordered:
             queryset = queryset.order_by("pk")
-        self.assertQuerysetEqual(queryset, values, ordered=ordered)
+        self.assertQuerySetEqual(queryset, values, ordered=ordered)
 
     def assert_get_serializer_context(
         self,
