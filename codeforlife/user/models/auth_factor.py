@@ -29,6 +29,7 @@ class AuthFactor(models.Model):
         MaxLengthValidator(6),
     ]
 
+    # pylint: disable-next=too-many-ancestors
     class Type(models.TextChoices):
         """The type of authentication factor."""
 
