@@ -59,3 +59,7 @@ CACHE_REDIS_CLUSTER_ID = os.getenv("CACHE_REDIS_CLUSTER_ID")
 CACHE_REDIS_DB_DATA_PATH = (
     f"{AWS_S3_APP_FOLDER}/elasticacheMetadata/{CACHE_REDIS_CLUSTER_ID}.dbdata"
 )
+
+# SQS
+
+SQS_URL = os.getenv("SQS_URL")
