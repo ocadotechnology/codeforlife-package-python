@@ -5,11 +5,12 @@ Created on 12/02/2025 at 16:48:47(+00:00).
 This file contains custom settings defined by third party extensions.
 """
 
+import os
 import typing as t
 
 from .custom import SERVICE_NAME, SERVICE_SITE_URL
 from .django import ENV
-from .otp import SQS_URL
+from .otp import AWS_REGION, SQS_URL
 
 if t.TYPE_CHECKING:
     from ..tasks import CeleryBeatSchedule
@@ -40,28 +41,21 @@ REST_FRAMEWORK = {
 # https://docs.celeryq.dev/en/v5.4.0/userguide/configuration.html
 # https://docs.celeryq.dev/en/v5.4.0/getting-started/backends-and-brokers/sqs.html
 
-CELERY_BROKER_URL = "sqs://" + (
-    t.cast(str, SQS_URL)
-    if ENV != "local"
-    else (
-        "http://sqs.us-east-1.localhost.localstack.cloud:4566/000000000000/"
-        + SERVICE_NAME
-    )
-)
-# CELERY_BROKER_TRANSPORT_OPTIONS = {
-#     "predefined_queues": {
-#         SERVICE_NAME: {
-#             "url": (
-#                 SQS_URL
-#                 if ENV != "local"
-#                 else (
-#                     "http://sqs.us-east-1.localhost.localstack.cloud:4566"
-#                     f"/000000000000/{SERVICE_NAME}"
-#                 )
-#             )
-#         }
-#     }
-# }
-# CELERY_TASK_DEFAULT_QUEUE = SERVICE_NAME
+CELERY_BROKER_URL = "sqs://"
+CELERY_BROKER_TRANSPORT_OPTIONS = {
+    "region": AWS_REGION if ENV != "local" else os.environ["AWS_REGION"],
+    "predefined_queues": {
+        SERVICE_NAME: {
+            "url": (
+                SQS_URL
+                if ENV != "local"
+                else (
+                    "http://sqs.us-east-1.localhost.localstack.cloud:4566"
+                    f"/000000000000/{SERVICE_NAME}"
+                )
+            )
+        }
+    },
+}
+CELERY_TASK_DEFAULT_QUEUE = SERVICE_NAME
 CELERY_TASK_TIME_LIMIT = 60 * 30
-CELERY_BEAT_SCHEDULE: "CeleryBeatSchedule" = {}
