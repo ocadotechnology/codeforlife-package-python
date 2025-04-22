@@ -1,6 +1,22 @@
 # CHANGELOG
 
 
+## v0.26.2 (2025-04-22)
+
+### Bug Fixes
+
+- Aws sqs ([#156](https://github.com/ocadotechnology/codeforlife-package-python/pull/156),
+  [`1862f81`](https://github.com/ocadotechnology/codeforlife-package-python/commit/1862f818e354789a62458444460c24392eb96d40))
+
+* fix: connect celery to sqs queue
+
+* sqs queue
+
+* workspace-218
+
+* set to main
+
+
 ## v0.26.1 (2025-04-04)
 
 ### Bug Fixes
