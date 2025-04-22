@@ -10,7 +10,8 @@ import typing as t
 
 from .custom import SERVICE_NAME, SERVICE_SITE_URL
 from .django import ENV
-from .otp import AWS_REGION, SQS_URL
+from .otp import AWS_REGION as OTP_AWS_REGION
+from .otp import SQS_URL
 
 if t.TYPE_CHECKING:
     from ..tasks import CeleryBeatSchedule
@@ -37,20 +38,30 @@ REST_FRAMEWORK = {
     "NON_FIELD_ERRORS_KEY": "__all__",
 }
 
+# AWS CLI
+# https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-envvars.html
+# NOTE: These are set in the dev container:
+# https://github.com/ocadotechnology/codeforlife-workspace/blob/main/.devcontainer/docker-compose.yml
+
+AWS_REGION = os.getenv("AWS_REGION", "us-east-1")
+AWS_ACCESS_KEY_ID = os.getenv("AWS_ACCESS_KEY_ID", "test")
+AWS_SECRET_ACCESS_KEY = os.getenv("AWS_SECRET_ACCESS_KEY", "test")
+AWS_ENDPOINT_URL = os.getenv("AWS_ENDPOINT_URL", "http://aws:4566")
+
 # Celery
 # https://docs.celeryq.dev/en/v5.4.0/userguide/configuration.html
 # https://docs.celeryq.dev/en/v5.4.0/getting-started/backends-and-brokers/sqs.html
 
 CELERY_BROKER_URL = "sqs://"
 CELERY_BROKER_TRANSPORT_OPTIONS = {
-    "region": AWS_REGION if ENV != "local" else os.environ["AWS_REGION"],
+    "region": OTP_AWS_REGION if ENV != "local" else AWS_REGION,
     "predefined_queues": {
         SERVICE_NAME: {
             "url": (
                 SQS_URL
                 if ENV != "local"
                 else (
-                    "http://sqs.us-east-1.localhost.localstack.cloud:4566"
+                    f"http://sqs.{AWS_REGION}.localhost.localstack.cloud:4566"
                     f"/000000000000/{SERVICE_NAME}"
                 )
             )
