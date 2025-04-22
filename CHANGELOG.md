@@ -1,6 +1,14 @@
 # CHANGELOG
 
 
+## v0.26.4 (2025-04-22)
+
+### Bug Fixes
+
+- Install redis
+  ([`6ead8dd`](https://github.com/ocadotechnology/codeforlife-package-python/commit/6ead8ddece4b0f747595990392f320abd279af9c))
+
+
 ## v0.26.3 (2025-04-22)
 
 ### Bug Fixes
