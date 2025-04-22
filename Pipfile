@@ -19,6 +19,7 @@ django-storages = {version = "==1.14.4", extras = ["s3"]}
 pyotp = "==2.9.0"
 python-dotenv = "==1.0.1"
 psycopg2-binary = "==2.9.9"
+redis = {version = "==5.2.1", extras = ["hiredis"]}
 regex = "==2024.11.6"
 requests = "==2.32.3"
 gunicorn = "==23.0.0"
