@@ -1,6 +1,14 @@
 # CHANGELOG
 
 
+## v0.26.3 (2025-04-22)
+
+### Bug Fixes
+
+- Aws env vars
+  ([`fe2d660`](https://github.com/ocadotechnology/codeforlife-package-python/commit/fe2d6607954eb742a2ccafc83efd88cc0b326898))
+
+
 ## v0.26.2 (2025-04-22)
 
 ### Bug Fixes
