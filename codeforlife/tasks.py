@@ -8,69 +8,7 @@ Custom utilities for Celery tasks.
 import typing as t
 
 from celery import shared_task as _shared_task
-from celery.schedules import crontab, solar
 from django.conf import settings
-
-from .types import Args, KwArgs
-
-Schedule = t.Union[int, crontab, solar]
-
-
-class CeleryBeat(t.TypedDict):
-    """A Celery beat schedule.
-
-    https://docs.celeryq.dev/en/v5.4.0/userguide/periodic-tasks.html
-    """
-
-    task: str
-    schedule: Schedule
-    args: t.NotRequired[Args]
-    kwargs: t.NotRequired[KwArgs]
-
-
-CeleryBeatSchedule = t.Dict[str, CeleryBeat]
-
-
-class CeleryBeatScheduleBuilder(CeleryBeatSchedule):
-    """Builds a celery beat schedule.
-
-    Examples:
-        ```
-        # settings.py
-        CELERY_BEAT_SCHEDULE = CeleryBeatScheduleBuilder(
-            every_5_minutes={
-                "task": "path.to.task",
-                "schedule": CeleryBeatScheduleBuilder.crontab(minute=5),
-            },
-        )
-        ```
-    """
-
-    # Shorthand for convenience.
-    crontab = crontab
-    solar = solar
-
-    def __init__(self, **beat_schedule: CeleryBeat):
-        for beat in beat_schedule.values():
-            beat["task"] = namespace_task(beat["task"])
-
-        super().__init__(beat_schedule)
-
-
-def namespace_task(task: t.Union[str, t.Callable]):
-    """Namespace a task by the service it's in.
-
-    Args:
-        task: The name of the task.
-
-    Returns:
-        The name of the task in the format: "{SERVICE_NAME}.{TASK_NAME}".
-    """
-
-    if callable(task):
-        task = f"{task.__module__}.{task.__name__}"
-
-    return f"{settings.SERVICE_NAME}.{task}"
 
 
 def shared_task(*args, **kwargs):
@@ -79,12 +17,22 @@ def shared_task(*args, **kwargs):
     tasks to a specific service.
     """
 
-    if len(args) == 1 and callable(args[0]):
-        func = args[0]
-        return _shared_task(name=namespace_task(func))(func)
+    def get_task_name(task: t.Callable):
+        return f"{settings.SERVICE_NAME}.{task.__module__}.{task.__name__}"
 
-    def wrapper(func: t.Callable):
+    if len(args) == 1 and callable(args[0]):
+        task = args[0]
+        return _shared_task(name=get_task_name(task))(task)
+
+    def wrapper(task: t.Callable):
         kwargs.pop("name", None)
-        return _shared_task(name=namespace_task(func), *args, **kwargs)(func)
+        return _shared_task(name=get_task_name(task), *args, **kwargs)(task)
 
     return wrapper
+
+
+def get_local_sqs_url(aws_region: str, service_name: str):
+    return (
+        f"http://sqs.{aws_region}.localhost.localstack.cloud:4566"
+        f"/000000000000/{service_name}"
+    )
