@@ -38,7 +38,7 @@ class DjangoServer(BaseServer, BaseApplication):
         settings_module: str = "settings",
         auto_migrate: bool = True,
         auto_collect: bool = True,
-        auto_load_fixtures: t.Optional[t.Set[str]] = {"api"},
+        auto_load_fixtures: t.Optional[t.Set[str]] = {"src"},
     ):
         # pylint: disable=line-too-long
         """Initialize a Django app.

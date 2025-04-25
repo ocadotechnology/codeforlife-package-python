@@ -216,7 +216,7 @@ LOGGING = {
 # URLs
 # https://docs.djangoproject.com/en/4.2/ref/settings/#root-urlconf
 
-ROOT_URLCONF = "api.urls"
+ROOT_URLCONF = "src.urls"
 
 # App
 # https://docs.djangoproject.com/en/4.2/ref/settings/#wsgi-application
@@ -266,7 +266,7 @@ INSTALLED_APPS = [
     "game",  # TODO: remove
     "portal",  # TODO: remove
     "common",  # TODO: remove
-    "api",
+    "src",
     "codeforlife.user",
     "corsheaders",
     "rest_framework",
