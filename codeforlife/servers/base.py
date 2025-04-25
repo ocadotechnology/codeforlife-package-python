@@ -7,6 +7,7 @@ import os
 import sys
 
 
+# pylint: disable-next=too-few-public-methods
 class BaseServer:
     """The base server which all servers must inherit."""
 
