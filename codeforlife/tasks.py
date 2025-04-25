@@ -46,7 +46,7 @@ def shared_task(*args, **kwargs):
         return _shared_task(name=get_task_name(task))(task)
 
     def wrapper(task: t.Callable):
-        kwargs.pop("name", None)
+        task = kwargs.pop("name", task)
         return _shared_task(name=get_task_name(task), *args, **kwargs)(task)
 
     return wrapper
