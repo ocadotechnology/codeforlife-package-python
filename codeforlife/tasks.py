@@ -6,25 +6,33 @@ Custom utilities for Celery tasks.
 """
 
 import typing as t
+from importlib import import_module
+from types import ModuleType
 
 from celery import shared_task as _shared_task
-from django.conf import settings
 
 
-def get_task_name(task: t.Union[str, t.Callable]):
+def get_task_name(
+    task: t.Union[str, t.Callable],
+    settings_module: t.Union[str, ModuleType] = "settings",
+):
     """Namespace a task by the service it's in.
 
     Args:
         task: The name of the task.
+        settings_module: The settings module or the dot-path to it.
 
     Returns:
         The name of the task in the format: "{SERVICE_NAME}.{TASK_NAME}".
     """
 
+    if isinstance(settings_module, str):
+        settings_module = import_module(settings_module)
+
     if callable(task):
         task = f"{task.__module__}.{task.__name__}"
 
-    return f"{settings.SERVICE_NAME}.{task}"
+    return f"{settings_module.SERVICE_NAME}.{task}"
 
 
 def shared_task(*args, **kwargs):

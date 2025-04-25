@@ -5,39 +5,35 @@ Created on 27/03/2025 at 16:52:42(+00:00).
 Initializes our celery app.
 """
 
-import atexit
 import logging
 import subprocess
 import typing as t
 
 from celery import Celery
-from django.core.management import call_command as call_django_command
 
+from ..tasks import get_task_name
 from ..types import LogLevel
 from .base import BaseServer
-
-Workers = t.Union[t.Set[str], t.Dict[str, int]]
 
 
 class CeleryServer(BaseServer, Celery):
     """A server for a Celery app."""
 
+    # pylint: disable-next=too-many-arguments
     def __init__(
         self,
         auto_run: bool = True,
         dump_request: bool = False,
-        workers: t.Optional[Workers] = None,
+        concurrency: t.Optional[int] = None,
         log_level: t.Optional[LogLevel] = "INFO",
+        settings_module: str = "settings",
     ):
         # pylint: disable=line-too-long
         """Initialize a Celery app.
 
         Examples:
             ```
-            from codeforlife.servers import CeleryServer, DjangoServer
-
-            # Make sure to set up Django before initializing!
-            DjangoServer.setup()
+            from codeforlife.servers import CeleryServer
 
             celery_app = CeleryServer().app
             ```
@@ -45,18 +41,11 @@ class CeleryServer(BaseServer, Celery):
         Args:
             auto_run: A flag designating whether to auto-run the server.
             dump_request: A flag designating whether to add the dump_request task (useful for debugging).
-            workers: The names of the workers to start. A dict can be provided to set the concurrency per worker.
-            log_level: The log level. None will silence all logs.
-
-        Raises:
-            EnvironmentError: If "DJANGO_SETTINGS_MODULE" is not in os.environ.
+            concurrency: The concurrency of workers. None uses Celery's default.
+            log_level: The log level. None uses Celery's default.
+            settings_module: The dot-path to the settings module.
         """
         # pylint: enable=line-too-long
-
-        call_django_command("check")
-
-        # pylint: disable-next=import-outside-toplevel
-        from django.conf import settings
 
         super().__init__()
 
@@ -66,7 +55,7 @@ class CeleryServer(BaseServer, Celery):
         # the configuration object to child processes.
         # - namespace='CELERY' means all celery-related configuration keys
         #   should have a `CELERY_` prefix.
-        self.config_from_object(settings, namespace="CELERY")
+        self.config_from_object(settings_module, namespace="CELERY")
 
         # Load task modules from all registered Django apps.
         self.autodiscover_tasks()
@@ -74,7 +63,7 @@ class CeleryServer(BaseServer, Celery):
         if dump_request:
 
             @self.task(
-                name=f"{settings.SERVICE_NAME}.dump_request",
+                name=get_task_name("dump_request", settings_module),
                 bind=True,
                 ignore_result=True,
             )
@@ -83,54 +72,26 @@ class CeleryServer(BaseServer, Celery):
 
                 logging.info("Request: %s", self.request)
 
-        if auto_run and self.app_server_is_running():
-            self.start_workers_as_subprocesses(workers, log_level)
+        if auto_run and self.app_server_is_running:
+            self.start_worker_as_subprocess(concurrency, log_level)
 
-    def start_workers_as_subprocesses(
+    def start_worker_as_subprocess(
         self,
-        workers: t.Optional[Workers] = None,
+        concurrency: t.Optional[int] = None,
         log_level: t.Optional[LogLevel] = "INFO",
     ):
-        # pylint: disable=line-too-long
         """
-        Starts multiple workers using the 'celery worker' command.
+        Starts a worker using the 'celery worker' command.
 
         Args:
-            workers: The names of the workers to start. A dict can be provided to set the concurrency per worker.
-            log_level: The log level. None will silence all logs.
-
-        Returns:
-            The subprocesses running the workers.
+            concurrency: The concurrency of workers. None uses Celery's default.
+            log_level: The log level. None uses Celery's default.
         """
-        # pylint: enable=line-too-long
 
-        workers = workers or {"w1"}
-        if isinstance(workers, set):
-            workers = {worker: 0 for worker in workers}
+        command = ["celery", f"--app={self.app_module}", "worker"]
+        if log_level is not None:
+            command.append(f"--loglevel={log_level}")
+        if concurrency is not None:
+            command.append(f"--concurrency={concurrency}")
 
-        processes: t.Dict[str, subprocess.Popen[bytes]] = {}
-        for worker, concurrency in workers.items():
-            command = ["celery", f"--app={self.app_module}", "worker"]
-            if log_level:
-                command.append(f"--loglevel={log_level}")
-
-                stdout, stderr = (None, None)  # Use defaults.
-            else:
-                stdout, stderr = (subprocess.DEVNULL, subprocess.DEVNULL)
-            if concurrency > 0:
-                command.append(f"--concurrency={concurrency}")
-
-            try:
-                # pylint: disable-next=consider-using-with
-                process = subprocess.Popen(
-                    command, stdout=stdout, stderr=stderr
-                )
-
-                atexit.register(process.terminate)
-
-                processes[worker] = process
-
-            except Exception as ex:  # pylint: disable=broad-exception-caught
-                print(f"Error starting Celery worker '{worker}': {ex}")
-
-        return processes
+        subprocess.run(command, check=True)

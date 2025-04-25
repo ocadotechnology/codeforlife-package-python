@@ -5,6 +5,7 @@ Created on 31/03/2025 at 09:04:19(+01:00).
 
 import os
 import sys
+from functools import cached_property
 
 
 # pylint: disable-next=too-few-public-methods
@@ -16,10 +17,10 @@ class BaseServer:
     # The dot-path of the application module.
     app_module: str = "application"
 
-    @classmethod
-    def app_server_is_running(cls):
+    @cached_property
+    def app_server_is_running(self):
         """Whether or not the app server is running."""
         return (
-            cls.main_module == cls.app_module
-            and os.environ["SERVER"] == cls.__name__
+            self.main_module == self.app_module
+            and os.environ["SERVER"] == self.__class__.__name__
         )
