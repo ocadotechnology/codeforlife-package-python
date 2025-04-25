@@ -58,7 +58,7 @@ class CeleryServer(BaseServer, Celery):
         self.config_from_object(settings_module, namespace="CELERY")
 
         # Load task modules from all registered Django apps.
-        self.autodiscover_tasks()
+        self.autodiscover_tasks(["src"])
 
         if dump_request:
 
