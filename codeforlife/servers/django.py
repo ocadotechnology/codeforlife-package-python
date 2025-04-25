@@ -73,7 +73,7 @@ class DjangoServer(BaseServer, BaseApplication):
             call_command("load_fixtures", *auto_load_fixtures)
 
         if auto_collect and self.django_dev_server_is_running:
-            call_command("collectstatic", no_input=True, clear=True)
+            call_command("collectstatic", "--noinput", "--clear")
 
         self.options = {
             "bind": "0.0.0.0:8080",
