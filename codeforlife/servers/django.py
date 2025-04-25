@@ -5,6 +5,7 @@ Created on 28/10/2024 at 16:19:47(+00:00).
 
 import multiprocessing
 import os
+import sys
 
 from django import setup
 from django.core.asgi import get_asgi_application
@@ -23,6 +24,9 @@ class DjangoServer(BaseServer, BaseApplication):
     https://gist.github.com/Kludex/c98ed6b06f5c0f89fd78dd75ef58b424
     https://docs.gunicorn.org/en/stable/custom.html
     """
+
+    # The dot-path of Django's manage module.
+    django_manage_module: str = "manage"
 
     def __init__(
         self,
@@ -98,3 +102,11 @@ class DjangoServer(BaseServer, BaseApplication):
             cls.app_server_is_running() or cls.django_dev_server_is_running()
         ):
             call_command("migrate", interactive=False)
+
+    @classmethod
+    def django_dev_server_is_running(cls):
+        """Whether or not the Django development server is running."""
+        return (
+            cls.main_module == cls.django_manage_module
+            and sys.argv[1] == "runserver"
+        )

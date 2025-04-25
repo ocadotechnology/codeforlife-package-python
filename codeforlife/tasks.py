@@ -32,6 +32,15 @@ def shared_task(*args, **kwargs):
 
 
 def get_local_sqs_url(aws_region: str, service_name: str):
+    """Get the URL of an SQS queue in the local environment.
+
+    Args:
+        aws_region: The AWS region.
+        service_name: The service this SQS queue belongs to.
+
+    Returns:
+        The SQS queue's URL.
+    """
     return (
         f"http://sqs.{aws_region}.localhost.localstack.cloud:4566"
         f"/000000000000/{service_name}"

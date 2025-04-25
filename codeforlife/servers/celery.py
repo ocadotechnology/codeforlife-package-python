@@ -16,11 +16,19 @@ from django.core.management import call_command as call_django_command
 from ..types import LogLevel
 from .base import BaseServer
 
+Workers = t.Union[t.Set[str], t.Dict[str, int]]
+
 
 class CeleryServer(BaseServer, Celery):
     """A server for a Celery app."""
 
-    def __init__(self, auto_run: bool = True, dump_request: bool = False):
+    def __init__(
+        self,
+        auto_run: bool = True,
+        dump_request: bool = False,
+        workers: t.Optional[Workers] = None,
+        log_level: t.Optional[LogLevel] = "INFO",
+    ):
         # pylint: disable=line-too-long
         """Initialize a Celery app.
 
@@ -37,6 +45,8 @@ class CeleryServer(BaseServer, Celery):
         Args:
             auto_run: A flag designating whether to auto-run the server.
             dump_request: A flag designating whether to add the dump_request task (useful for debugging).
+            workers: The names of the workers to start. A dict can be provided to set the concurrency per worker.
+            log_level: The log level. None will silence all logs.
 
         Raises:
             EnvironmentError: If "DJANGO_SETTINGS_MODULE" is not in os.environ.
@@ -73,15 +83,12 @@ class CeleryServer(BaseServer, Celery):
 
                 logging.info("Request: %s", self.request)
 
-        if auto_run and (
-            self.app_server_is_running() or self.django_dev_server_is_running()
-        ):
-            self.start_workers_as_subprocesses()
-            self.start_heartbeat_as_subprocess()
+        if auto_run and self.app_server_is_running():
+            self.start_workers_as_subprocesses(workers, log_level)
 
     def start_workers_as_subprocesses(
         self,
-        workers: t.Optional[t.Union[t.Set[str], t.Dict[str, int]]] = None,
+        workers: t.Optional[Workers] = None,
         log_level: t.Optional[LogLevel] = "INFO",
     ):
         # pylint: disable=line-too-long
@@ -127,37 +134,3 @@ class CeleryServer(BaseServer, Celery):
                 print(f"Error starting Celery worker '{worker}': {ex}")
 
         return processes
-
-    def start_heartbeat_as_subprocess(
-        self, log_level: t.Optional[LogLevel] = "INFO"
-    ):
-        """Start heartbeat using the 'celery beat' command.
-
-        Args:
-            log_level: The log level. None will silence all logs.
-
-        Returns:
-            The subprocess running the heartbeat.
-        """
-
-        command = ["celery", f"--app={self.app_module}", "beat"]
-        if log_level:
-            command.append(f"--loglevel={log_level}")
-
-            stdout, stderr = (None, None)  # Use defaults.
-        else:
-            stdout, stderr = (subprocess.DEVNULL, subprocess.DEVNULL)
-
-        try:
-            process = subprocess.Popen(  # pylint: disable=consider-using-with
-                command, stdout=stdout, stderr=stderr
-            )
-
-            atexit.register(process.terminate)
-
-            return process
-
-        except Exception as ex:  # pylint: disable=broad-exception-caught
-            print(f"Error starting Celery beat: {ex}")
-
-        return None
