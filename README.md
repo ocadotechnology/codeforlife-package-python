@@ -3,6 +3,7 @@
 This repo contains CFL's python package. This will be installed into all backend services.
 
 ## LICENCE
+
 In accordance with the [Terms of Use](https://www.codeforlife.education/terms#terms)
 of the Code for Life website, all copyright, trademarks, and other
 intellectual property rights in and relating to Code for Life (including all
@@ -23,53 +24,56 @@ create any derivative work from these assets.
 
 To install this package, do one of the following options.
 
-*Ensure you're installing the package with the required python version. See [setup.py](setup.py).*
+Make sure to:
 
-*Remember to replace the version number ("0.0.0") with your [desired version](https://github.com/ocadotechnology/codeforlife-package-python/releases).*
+1. install the package with the required python version.
+1. replace the [package version number](https://pypi.org/project/codeforlife/#history) ("0.0.0") with the same value for both the production and development dependencies or you'll get conflict errors.
 
-**Option 1:** Run `pipenv install` command:
+**Option 1:** Run both `pipenv install` commands:
 
 ```bash
-pipenv install git+https://github.com/ocadotechnology/codeforlife-package-python.git@v0.0.0#egg=codeforlife
+# Install as a production dependency.
+pipenv install codeforlife==0.0.0
+
+# Install as a development dependency.
+pipenv install --dev codeforlife[dev]==0.0.0
 ```
 
-**Option 2:** Add a row to `[packages]` in `Pipfile`:
+**Option 2:** Add a row to `[packages]` and `[dev-packages]` in `Pipfile`:
 
 ```toml
 [packages]
-codeforlife = {ref = "v0.0.0", git = "https://github.com/ocadotechnology/codeforlife-package-python.git"}
+codeforlife = "==0.0.0"
+
+[dev-packages]
+codeforlife = {version = "==0.0.0", extras = ["dev"]}
 ```
 
-## Making Changes
-
-To make changes, you must:
-
-1. Branch off of main.
-1. Push your changes on your branch.
-1. Ensure the pipeline runs successfully on your branch.
-1. Have your changes reviewed and approved by a peer.
-1. Merge your branch into the `main` branch.
-1. [Manually trigger](https://github.com/ocadotechnology/codeforlife-package-python/actions/workflows/main.yml)
-the `Main` pipeline for the `main` branch.
-
-### Installing your branch
+### Installing a GitHub Branch
 
 You may wish to install and integrate your changes into a CFL backend before it's been peer-reviewed.
 
-*Remember to replace the branch name ("my-branch") with your
-[branch](https://github.com/ocadotechnology/codeforlife-package-python/branches)*.
+Make sure to:
+
+1. replace the branch name ("BRANCH_HERE") with the same value for both the production and development dependencies or you'll get conflict errors.
+1. replace the organization name ("ORG_HERE") with the same value for both the production and development dependencies or you'll get conflict errors.
 
 ```toml
 [packages]
-codeforlife = {ref = "my-branch", git = "https://github.com/ocadotechnology/codeforlife-package-python.git"}
+codeforlife = {ref = "BRANCH_HERE", git = "https://github.com/ORG_HERE/codeforlife-package-python.git"}
+
+[dev-packages]
+codeforlife = {ref = "BRANCH_HERE", git = "https://github.com/ORG_HERE/codeforlife-package-python.git", extras = ["dev"]}
 ```
 
 ## Version Release
 
-New versions of this package are automatically created via a GitHub Actions [workflow](.github/workflows/python-package.yml). Versions are determined using the [semantic-release commit message format](https://semantic-release.gitbook.io/semantic-release/#commit-message-format).
+New versions of this package are automatically created by [this](.github/workflows/main.yml) GitHub Actions workflow.
 
-A new package may only be released if:
+Versions are determined using the [semantic-release commit message format](https://semantic-release.gitbook.io/semantic-release/#commit-message-format).
 
-1. there are no formatting errors;
-1. all unit tests pass;
-1. (TODO) test/code coverage is acceptable.
+If a new version is successfully released, it will create:
+
+1. A new tag [on GitHub](https://github.com/ocadotechnology/codeforlife-package-python/tags).
+1. A new release [on GitHub](https://github.com/ocadotechnology/codeforlife-package-python/releases).
+1. A new release [on PyPI](https://pypi.org/project/codeforlife/#history).
