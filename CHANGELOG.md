@@ -1,6 +1,32 @@
 # CHANGELOG
 
 
+## v0.27.0 (2025-04-26)
+
+### Features
+
+- Workspace 220 ([#157](https://github.com/ocadotechnology/codeforlife-package-python/pull/157),
+  [`884cb98`](https://github.com/ocadotechnology/codeforlife-package-python/commit/884cb98f8a970e3ac9f32f6a864adb269c4cfeed))
+
+* fix: remove beat schedule
+
+* run servers independently
+
+* fix
+
+* fix linting errors
+
+* fix servers
+
+* fix args
+
+* auto-discover in src
+
+* api to src
+
+* allow custom names
+
+
 ## v0.26.4 (2025-04-22)
 
 ### Bug Fixes
