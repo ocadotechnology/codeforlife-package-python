@@ -6,16 +6,12 @@ This file contains custom settings defined by third party extensions.
 """
 
 import os
-import typing as t
 
-from .custom import SERVICE_NAME, SERVICE_SITE_URL
-from .django import ENV
+from ..tasks import get_local_sqs_url as _get_local_sqs_url
+from .custom import ENV, SERVICE_NAME, SERVICE_SITE_URL
+from .django import TIME_ZONE
 from .otp import AWS_REGION as OTP_AWS_REGION
 from .otp import SQS_URL
-
-if t.TYPE_CHECKING:
-    from ..tasks import CeleryBeatSchedule
-
 
 # CORS
 # https://pypi.org/project/django-cors-headers/
@@ -52,6 +48,7 @@ AWS_ENDPOINT_URL = os.getenv("AWS_ENDPOINT_URL", "http://aws:4566")
 # https://docs.celeryq.dev/en/v5.4.0/userguide/configuration.html
 # https://docs.celeryq.dev/en/v5.4.0/getting-started/backends-and-brokers/sqs.html
 
+CELERY_TIMEZONE = TIME_ZONE
 CELERY_BROKER_URL = "sqs://"
 CELERY_BROKER_TRANSPORT_OPTIONS = {
     "region": OTP_AWS_REGION if ENV != "local" else AWS_REGION,
@@ -60,10 +57,7 @@ CELERY_BROKER_TRANSPORT_OPTIONS = {
             "url": (
                 SQS_URL
                 if ENV != "local"
-                else (
-                    f"http://sqs.{AWS_REGION}.localhost.localstack.cloud:4566"
-                    f"/000000000000/{SERVICE_NAME}"
-                )
+                else _get_local_sqs_url(AWS_REGION, SERVICE_NAME)
             )
         }
     },

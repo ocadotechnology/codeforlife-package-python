@@ -7,9 +7,8 @@ import typing as t
 from importlib import import_module
 
 from celery import Celery, Task
-from django.conf import settings
 
-from ..tasks import CeleryBeatSchedule
+from ..tasks import get_task_name
 from ..types import Args, KwArgs
 from .test import TestCase
 
@@ -31,23 +30,6 @@ class CeleryTestCase(TestCase):
 
         return super().setUpClass()
 
-    def apply_periodic_task(self, beat_name: str):
-        """Apply a periodic task.
-
-        Args:
-            beat_name: The name of the beat in the schedule.
-        """
-        beat = t.cast(CeleryBeatSchedule, self.app.conf.beat_schedule)[
-            beat_name
-        ]
-        task_dot_path = (
-            beat["task"].removeprefix(f"{settings.SERVICE_NAME}.").split(".")
-        )
-        task_module = ".".join(task_dot_path[:-1])
-        task_name = task_dot_path[-1]
-        task: Task = getattr(import_module(task_module), task_name)
-        task.apply(args=beat.get("args"), kwargs=beat.get("kwargs"))
-
     def apply_task(
         self,
         name: str,
@@ -61,5 +43,5 @@ class CeleryTestCase(TestCase):
             args: The args to pass to the task.
             kwargs: The keyword args to pass to the task.
         """
-        task: Task = self.app.tasks[f"{settings.SERVICE_NAME}.{name}"]
+        task: Task = self.app.tasks[get_task_name(name)]
         task.apply(args=args, kwargs=kwargs)
