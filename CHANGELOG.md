@@ -1,6 +1,22 @@
 # CHANGELOG
 
 
+## v0.27.1 (2025-05-14)
+
+### Bug Fixes
+
+- Secrets ([#158](https://github.com/ocadotechnology/codeforlife-package-python/pull/158),
+  [`4f487d2`](https://github.com/ocadotechnology/codeforlife-package-python/commit/4f487d28b36a8f6b3a6c143f04636d10871f489a))
+
+* fix: secrets
+
+* fix: set service name
+
+* Upgrade Django, old system and setuptools
+
+Co-Authored-By: faucomte97 <f.aucomte@hotmail.co.uk>
+
+
 ## v0.27.0 (2025-04-26)
 
 ### Features
