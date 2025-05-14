@@ -5,7 +5,11 @@ Created on 14/03/2025 at 15:34:28(+00:00).
 The min settings required to manage the `codeforlife.user` Django app-module.
 """
 
-# pylint: disable-next=wildcard-import,unused-wildcard-import
+import os
+
+os.environ["SERVICE_NAME"] = "example-service"
+
+# pylint: disable-next=wildcard-import,unused-wildcard-import,wrong-import-position
 from codeforlife.settings import *
 
 # NOTE: This is only used locally for testing purposes.

@@ -124,7 +124,10 @@ def set_up_settings(service_base_dir: Path, service_name: str):
         s3: "S3Client" = boto3.client("s3")
         secrets_object = s3.get_object(
             Bucket=os.environ["aws_s3_app_bucket"],
-            Key=f"{os.environ['aws_s3_app_folder']}/secure/.env.secrets",
+            Key=(
+                os.environ["aws_s3_app_folder"]
+                + f"/secure/.env.secrets.{service_name}"
+            ),
         )
 
         secrets = dotenv_values(
