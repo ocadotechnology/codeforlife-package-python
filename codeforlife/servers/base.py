@@ -18,9 +18,14 @@ class BaseServer:
     app_module: str = "application"
 
     @cached_property
+    def name(self):
+        """The name of the server."""
+        return self.__class__.__name__.removesuffix("Server").lower()
+
+    @cached_property
     def app_server_is_running(self):
         """Whether or not the app server is running."""
         return (
             self.main_module == self.app_module
-            and os.environ["SERVER"] == self.__class__.__name__
+            and os.environ["SERVER"] == self.name
         )
