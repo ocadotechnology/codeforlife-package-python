@@ -1,6 +1,14 @@
 # CHANGELOG
 
 
+## v0.27.2 (2025-05-29)
+
+### Bug Fixes
+
+- Multiple servers ([#159](https://github.com/ocadotechnology/codeforlife-package-python/pull/159),
+  [`81ccc70`](https://github.com/ocadotechnology/codeforlife-package-python/commit/81ccc70ace089641cf8567f661b02afd7f1c7982))
+
+
 ## v0.27.1 (2025-05-14)
 
 ### Bug Fixes
