@@ -29,6 +29,8 @@ if t.TYPE_CHECKING:
 # The name of the current environment.
 ENV = t.cast("Env", os.getenv("ENV", "local"))
 
+SERVER = os.getenv("SERVER", "REPLACE_ME")
+
 # The base directory of the current service.
 SERVICE_BASE_DIR = Path(os.getenv("SERVICE_BASE_DIR", "/"))
 
@@ -58,8 +60,8 @@ SERVICE_EXTERNAL_DOMAIN = (
 SERVICE_SITE_URL = os.getenv("SERVICE_SITE_URL", "http://localhost:5173")
 
 # The location of the service's folder in the s3 buckets.
-SERVICE_S3_APP_LOCATION = f"{AWS_S3_APP_FOLDER}/{SERVICE_NAME}"
-SERVICE_S3_STATIC_LOCATION = f"{AWS_S3_STATIC_FOLDER}/{SERVICE_NAME}"
+SERVICE_S3_APP_LOCATION = f"{AWS_S3_APP_FOLDER}/{SERVICE_NAME}/{SERVER}"
+SERVICE_S3_STATIC_LOCATION = f"{AWS_S3_STATIC_FOLDER}/{SERVICE_NAME}/{SERVER}"
 
 # The authorization bearer token used to authenticate with Dotdigital.
 MAIL_AUTH = os.getenv("MAIL_AUTH", "REPLACE_ME")
