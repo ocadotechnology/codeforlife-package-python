@@ -7,7 +7,7 @@ name = "pypi"
 celery = {version = "==5.4.0", extras = ["sqs"]}
 cryptography = "==44.0.1"
 boto3 = "==1.34.162"
-django = "==5.1.9"
+django = "==5.1.10"
 djangorestframework = "==3.16.0"
 django-filter = "==25.1"
 django-countries = "==7.6.1"
@@ -28,9 +28,9 @@ importlib-metadata = "==4.13.0" # TODO: remove. needed by old portal
 django-formtools = "==2.5.1" # TODO: remove. needed by old portal
 django-otp = "==1.6.0" # TODO: remove. needed by old portal
 # https://pypi.org/user/codeforlife/
-cfl-common = "==8.6.9" # TODO: remove
-codeforlife-portal = "==8.6.9" # TODO: remove
-rapid-router = "==7.5.6" # TODO: remove
+cfl-common = "==8.7.3" # TODO: remove
+codeforlife-portal = "==8.7.3" # TODO: remove
+rapid-router = "==7.5.11" # TODO: remove
 phonenumbers = "==8.12.12" # TODO: remove
 
 [dev-packages]
