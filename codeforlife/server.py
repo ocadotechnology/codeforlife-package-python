@@ -11,6 +11,7 @@ import subprocess
 import sys
 import typing as t
 from functools import cached_property
+from importlib import import_module
 
 from celery import Celery
 from django import setup as setup_django
@@ -69,11 +70,7 @@ class Server(BaseApplication):
             ```
             from codeforlife.server import Server
 
-            server = Server()
-            # NOTE: Expose apps as global variables before running server.
-            django_wsgi_app = server.django_wsgi_app
-            celery_app = server.celery_app
-            server.run()
+            Server().run()
             ```
 
         Args:
@@ -89,7 +86,8 @@ class Server(BaseApplication):
         os.environ["SERVER_MODE"] = mode
         self.mode = mode
 
-        os.environ["LOG_LEVEL"] = log_level
+        if log_level:
+            os.environ["LOG_LEVEL"] = log_level
         self.log_level = log_level
 
         if mode == "django":
@@ -136,6 +134,11 @@ class Server(BaseApplication):
 
         super().__init__()
 
+        # Set the apps as global variables in the app module.
+        app = import_module(self.app_module)
+        app.django_wsgi = self.django_wsgi_app  # type: ignore[attr-defined]
+        app.celery = self.celery_app  # type: ignore[attr-defined]
+
     def load_config(self):
         config = {
             key: value
@@ -148,6 +151,7 @@ class Server(BaseApplication):
     def load(self):
         return self.django_asgi_app
 
+    # pylint: disable-next=dangerous-default-value
     def run(
         self,
         auto_migrate: bool = True,
