@@ -1,6 +1,14 @@
 # CHANGELOG
 
 
+## v0.27.5 (2025-06-06)
+
+### Bug Fixes
+
+- Celery app name
+  ([`35150d9`](https://github.com/ocadotechnology/codeforlife-package-python/commit/35150d98b865cf62f433732e16613c9c5f1134d1))
+
+
 ## v0.27.4 (2025-06-06)
 
 ### Bug Fixes
