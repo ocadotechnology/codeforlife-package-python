@@ -24,7 +24,7 @@ from .tasks import get_task_name
 from .types import DatabaseEngine, LogLevel
 
 
-# pylint: disable-next=abstract-method
+# pylint: disable-next=abstract-method,too-many-instance-attributes
 class Server(BaseApplication):
     """Serves a service in different modes."""
 
