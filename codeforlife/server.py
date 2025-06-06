@@ -3,6 +3,7 @@
 Created on 05/06/2025 at 17:33:56(+01:00).
 """
 
+import atexit
 import logging
 import multiprocessing
 import os
@@ -189,4 +190,15 @@ class Server(BaseApplication):
         if self.log_level:
             command.append(f"--loglevel={self.log_level}")
 
-        subprocess.run(command, check=True)
+            stdout, stderr = (None, None)  # Use defaults.
+        else:
+            stdout, stderr = (subprocess.DEVNULL, subprocess.DEVNULL)
+
+        try:
+            # pylint: disable-next=consider-using-with
+            process = subprocess.Popen(command, stdout=stdout, stderr=stderr)
+
+            atexit.register(process.terminate)
+
+        except Exception as ex:  # pylint: disable=broad-exception-caught
+            print(f"Error starting Celery worker: {ex}")
