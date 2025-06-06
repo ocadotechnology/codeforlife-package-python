@@ -16,6 +16,7 @@ from django.utils.translation import gettext_lazy as _
 from .. import TEMPLATES_DIR
 from .custom import (
     ENV,
+    LOG_LEVEL,
     REDIS_URL,
     SERVICE_BASE_DIR,
     SERVICE_BASE_URL,
@@ -208,7 +209,7 @@ LOGGING = {
         },
     },
     "root": {
-        "level": os.getenv("LOG_LEVEL", "INFO"),
+        "level": LOG_LEVEL,
         "handlers": ["console"],
     },
 }
@@ -221,7 +222,7 @@ ROOT_URLCONF = "src.urls"
 # App
 # https://docs.djangoproject.com/en/4.2/ref/settings/#wsgi-application
 
-WSGI_APPLICATION = "application.django_app"
+WSGI_APPLICATION = "application.django_wsgi_app"
 
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators

@@ -23,13 +23,18 @@ from .otp import (
 if t.TYPE_CHECKING:
     from mypy_boto3_s3.client import S3Client
 
+    from ..server import Server
     from ..types import CookieSamesite, Env, JsonDict
 
 
 # The name of the current environment.
 ENV = t.cast("Env", os.getenv("ENV", "local"))
 
-SERVER = os.getenv("SERVER", "REPLACE_ME")
+# The mode the service is being served in.
+SERVER_MODE = t.cast("Server.Mode", os.getenv("SERVER_MODE", "django"))
+
+# The level of the logs.
+LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO")
 
 # The base directory of the current service.
 SERVICE_BASE_DIR = Path(os.getenv("SERVICE_BASE_DIR", "/"))

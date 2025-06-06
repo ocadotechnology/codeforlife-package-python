@@ -5,6 +5,7 @@ Created on 12/04/2024 at 14:42:20(+01:00).
 
 import typing as t
 
+from django.conf import settings
 from django.contrib import admin
 from django.urls import URLPattern, URLResolver, include, path
 
@@ -35,15 +36,21 @@ def get_urlpatterns(
     """
 
     urlpatterns: UrlPatterns = [
-        # https://www.django-rest-framework.org/topics/browsable-api/#authentication
-        path(
-            "/",
-            include("rest_framework.urls", namespace="rest_framework"),
-        ),
         path(
             "health-check/",
             health_check_view.as_view(),
             name="health-check",
+        ),
+    ]
+
+    if settings.SERVER_MODE == "celery":
+        return urlpatterns
+
+    urlpatterns += [
+        # https://www.django-rest-framework.org/topics/browsable-api/#authentication
+        path(
+            "/",
+            include("rest_framework.urls", namespace="rest_framework"),
         ),
         path(
             "admin/",
