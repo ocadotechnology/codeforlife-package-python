@@ -65,8 +65,10 @@ SERVICE_EXTERNAL_DOMAIN = (
 SERVICE_SITE_URL = os.getenv("SERVICE_SITE_URL", "http://localhost:5173")
 
 # The location of the service's folder in the s3 buckets.
-SERVICE_S3_APP_LOCATION = f"{AWS_S3_APP_FOLDER}/{SERVICE_NAME}/{SERVER}"
-SERVICE_S3_STATIC_LOCATION = f"{AWS_S3_STATIC_FOLDER}/{SERVICE_NAME}/{SERVER}"
+SERVICE_S3_APP_LOCATION = f"{AWS_S3_APP_FOLDER}/{SERVICE_NAME}/{SERVER_MODE}"
+SERVICE_S3_STATIC_LOCATION = (
+    f"{AWS_S3_STATIC_FOLDER}/{SERVICE_NAME}/{SERVER_MODE}"
+)
 
 # The authorization bearer token used to authenticate with Dotdigital.
 MAIL_AUTH = os.getenv("MAIL_AUTH", "REPLACE_ME")
