@@ -11,6 +11,8 @@ CookieSamesite = t.Optional[t.Literal["Lax", "Strict", "None", False]]
 
 Env = t.Literal["local", "development", "staging", "production"]
 
+DatabaseEngine = t.Literal["postgresql", "sqlite"]
+
 Args = t.Tuple[t.Any, ...]
 KwArgs = t.Dict[str, t.Any]
 

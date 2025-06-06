@@ -24,11 +24,14 @@ if t.TYPE_CHECKING:
     from mypy_boto3_s3.client import S3Client
 
     from ..server import Server
-    from ..types import CookieSamesite, Env, JsonDict
+    from ..types import CookieSamesite, DatabaseEngine, Env, JsonDict
 
 
 # The name of the current environment.
 ENV = t.cast("Env", os.getenv("ENV", "local"))
+
+# The database's engine type.
+DB_ENGINE = t.cast("DatabaseEngine", os.getenv("DB_ENGINE", "postgresql"))
 
 # The mode the service is being served in.
 SERVER_MODE = t.cast("Server.Mode", os.getenv("SERVER_MODE", "django"))

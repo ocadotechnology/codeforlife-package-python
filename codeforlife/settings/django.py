@@ -15,6 +15,7 @@ from django.utils.translation import gettext_lazy as _
 
 from .. import TEMPLATES_DIR
 from .custom import (
+    DB_ENGINE,
     ENV,
     LOG_LEVEL,
     REDIS_URL,
@@ -69,6 +70,14 @@ def get_databases():
     Returns:
         The database configs.
     """
+
+    if DB_ENGINE == "sqlite":
+        return {
+            "default": {
+                "ENGINE": "django.db.backends.sqlite3",
+                "NAME": ":memory:",
+            }
+        }
 
     if ENV == "local":
         name = os.getenv("DB_NAME", SERVICE_NAME)

@@ -63,14 +63,15 @@ class HealthCheckView(APIView):
                     additional_info="Apps not ready.",
                 )
 
-            host = request.get_host()
-            if not Site.objects.filter(domain=host).exists():
-                # TODO: figure out how to dynamically get and set site.
-                # return HealthCheck(
-                #     health_status="unhealthy",
-                #     additional_info=f'Site "{host}" does not exist.',
-                # )
-                logging.warning('Site "%s" does not exist.', host)
+            if settings.DB_ENGINE == "postgresql":
+                host = request.get_host()
+                if not Site.objects.filter(domain=host).exists():
+                    # TODO: figure out how to dynamically get and set site.
+                    # return HealthCheck(
+                    #     health_status="unhealthy",
+                    #     additional_info=f'Site "{host}" does not exist.',
+                    # )
+                    logging.warning('Site "%s" does not exist.', host)
 
             return HealthCheck(
                 health_status="healthy",

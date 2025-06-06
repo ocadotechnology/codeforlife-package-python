@@ -21,7 +21,7 @@ from django.core.wsgi import get_wsgi_application as get_django_wsgi_app
 from gunicorn.app.base import BaseApplication  # type: ignore[import-untyped]
 
 from .tasks import get_task_name
-from .types import LogLevel
+from .types import DatabaseEngine, LogLevel
 
 
 # pylint: disable-next=abstract-method
@@ -54,6 +54,7 @@ class Server(BaseApplication):
             and sys.argv[1] == "runserver"
         )
 
+    # pylint: disable-next=too-many-arguments
     def __init__(
         self,
         mode: Mode = t.cast(Mode, os.getenv("SERVER_MODE", "django")),
@@ -61,6 +62,7 @@ class Server(BaseApplication):
         log_level: t.Optional[LogLevel] = t.cast(
             LogLevel, os.getenv("LOG_LEVEL", "INFO")
         ),
+        db_engine: DatabaseEngine = "postgresql",
         dump_request: bool = False,
     ):
         # pylint: disable=line-too-long
@@ -77,6 +79,7 @@ class Server(BaseApplication):
             mode: The mode to run in. Note, "celery" will start Django with only the health-check url.
             workers: The number of workers. 0 will auto-calculate. Note, "celery" will create 1 Django worker.
             log_level: The log level. None uses the default.
+            db_engine: The database's engine type.
             dump_request: A flag designating whether to add the dump_request Celery task (useful for debugging).
         """
         # pylint: enable=line-too-long
@@ -89,6 +92,9 @@ class Server(BaseApplication):
         if log_level:
             os.environ["LOG_LEVEL"] = log_level
         self.log_level = log_level
+
+        os.environ["DB_ENGINE"] = db_engine
+        self.db_engine = db_engine
 
         if mode == "django":
             # https://docs.gunicorn.org/en/stable/design.html#how-many-workers
@@ -154,30 +160,33 @@ class Server(BaseApplication):
     # pylint: disable-next=dangerous-default-value
     def run(
         self,
-        auto_migrate: bool = True,
-        auto_collect_static: bool = True,
-        auto_load_fixtures: t.Optional[t.Set[str]] = {src_module},
+        migrate: bool = True,
+        collect_static: bool = True,
+        load_fixtures: t.Optional[t.Set[str]] = {src_module},
     ):
-        # pylint: disable=line-too-long
         """Run the server in the set mode.
 
         Args:
-            auto_migrate: A flag designating whether to auto-migrate the models.
-            auto_collect_static: A flag designating whether to auto-collect static files.
-            auto_load_fixtures: An array of fixtures to auto-load. None to skip.
+            migrate: A flag designating whether to migrate the models.
+            collect_static: A flag designating whether to collect static files.
+            load_fixtures: An array of fixtures to load. None to skip.
         """
-        # pylint: enable=line-too-long
 
         if self.mode == "django":
-            if auto_migrate:
+            if self.db_engine == "sqlite":
+                migrate = False
+                load_fixtures = None
+
+            if not self.django_dev_server_is_running:
+                load_fixtures = None
+                collect_static = False
+
+            if migrate:
                 call_django_command("migrate", interactive=False)
-
-            if self.django_dev_server_is_running:
-                if auto_load_fixtures:
-                    call_django_command("load_fixtures", *auto_load_fixtures)
-
-                if auto_collect_static:
-                    call_django_command("collectstatic", "--noinput", "--clear")
+            if load_fixtures:
+                call_django_command("load_fixtures", *load_fixtures)
+            if collect_static:
+                call_django_command("collectstatic", "--noinput", "--clear")
 
         if self.app_server_is_running:
             if self.mode == "celery":
