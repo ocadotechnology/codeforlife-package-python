@@ -19,7 +19,7 @@ class CeleryTestCase(TestCase):
     # The dot-path of the module containing the Celery app.
     app_module: str = "application"
     # The name of the Celery app.
-    app_name: str = "celery_app"
+    app_name: str = "celery"
     # The Celery app instance. Auto-imported if not set.
     app: Celery
 
