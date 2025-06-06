@@ -1,6 +1,17 @@
 # CHANGELOG
 
 
+## v0.27.6 (2025-06-06)
+
+### Bug Fixes
+
+- Linting error
+  ([`a0d4123`](https://github.com/ocadotechnology/codeforlife-package-python/commit/a0d41239973c212b27ca34141197f3d93a75f84b))
+
+- Set db engine type
+  ([`e412e4f`](https://github.com/ocadotechnology/codeforlife-package-python/commit/e412e4fd61af519738a353878dd15084b83e64ed))
+
+
 ## v0.27.5 (2025-06-06)
 
 ### Bug Fixes
