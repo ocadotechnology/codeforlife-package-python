@@ -1,6 +1,22 @@
 # CHANGELOG
 
 
+## v0.27.4 (2025-06-06)
+
+### Bug Fixes
+
+- Servers ([#161](https://github.com/ocadotechnology/codeforlife-package-python/pull/161),
+  [`44689c1`](https://github.com/ocadotechnology/codeforlife-package-python/commit/44689c10913300b1f2e5ff870380430a6f3447af))
+
+* server
+
+* fix: server mode
+
+* start celery as subprocess
+
+* simplify
+
+
 ## v0.27.3 (2025-06-05)
 
 ### Bug Fixes
