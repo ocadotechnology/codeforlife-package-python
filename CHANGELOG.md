@@ -1,6 +1,17 @@
 # CHANGELOG
 
 
+## v0.27.7 (2025-06-09)
+
+### Bug Fixes
+
+- Django 5.1 docs and cache env vars
+  ([`9b0a046`](https://github.com/ocadotechnology/codeforlife-package-python/commit/9b0a046219e8bb89504b8223d8a4e53f82c2bbbd))
+
+- Only redis
+  ([`0eb6717`](https://github.com/ocadotechnology/codeforlife-package-python/commit/0eb671746d0aa674929ba69d01c0d6b8e4c13d41))
+
+
 ## v0.27.6 (2025-06-06)
 
 ### Bug Fixes
