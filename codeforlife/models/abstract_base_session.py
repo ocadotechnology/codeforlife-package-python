@@ -29,7 +29,7 @@ AnyAbstractBaseUser = t.TypeVar("AnyAbstractBaseUser", bound=AbstractBaseUser)
 class AbstractBaseSession(_AbstractBaseSession):
     """
     Base session class to be inherited by all session classes.
-    https://docs.djangoproject.com/en/4.2/topics/http/sessions/#example
+    https://docs.djangoproject.com/en/5.1/topics/http/sessions/#example
     """
 
     pk: str  # type: ignore[assignment]

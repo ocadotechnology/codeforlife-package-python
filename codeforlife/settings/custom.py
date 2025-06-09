@@ -17,7 +17,7 @@ from .otp import (
     AWS_S3_APP_BUCKET,
     AWS_S3_APP_FOLDER,
     AWS_S3_STATIC_FOLDER,
-    CACHE_REDIS_DB_DATA_PATH,
+    CACHE_DB_DATA_PATH,
 )
 
 if t.TYPE_CHECKING:
@@ -107,7 +107,7 @@ def get_redis_url():
         # Get the dbdata object.
         s3: "S3Client" = boto3.client("s3")
         db_data_object = s3.get_object(
-            Bucket=t.cast(str, AWS_S3_APP_BUCKET), Key=CACHE_REDIS_DB_DATA_PATH
+            Bucket=t.cast(str, AWS_S3_APP_BUCKET), Key=CACHE_DB_DATA_PATH
         )
 
         # Load the object as a JSON dict.
