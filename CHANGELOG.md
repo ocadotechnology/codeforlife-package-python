@@ -1,6 +1,14 @@
 # CHANGELOG
 
 
+## v0.27.8 (2025-06-10)
+
+### Bug Fixes
+
+- Requests 2.32.4
+  ([`54ce485`](https://github.com/ocadotechnology/codeforlife-package-python/commit/54ce485071f6d8544f501714db74591c91c77d79))
+
+
 ## v0.27.7 (2025-06-09)
 
 ### Bug Fixes
