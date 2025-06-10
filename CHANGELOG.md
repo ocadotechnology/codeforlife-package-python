@@ -1,6 +1,14 @@
 # CHANGELOG
 
 
+## v0.27.9 (2025-06-10)
+
+### Bug Fixes
+
+- Django-storages v1.14.6
+  ([`837c9a1`](https://github.com/ocadotechnology/codeforlife-package-python/commit/837c9a15eaeec69f636a28e15fff301f59e88d71))
+
+
 ## v0.27.8 (2025-06-10)
 
 ### Bug Fixes
