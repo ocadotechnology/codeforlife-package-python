@@ -21,16 +21,16 @@ python-dotenv = "==1.0.1"
 psycopg2-binary = "==2.9.9"
 redis = {version = "==5.2.1", extras = ["hiredis"]}
 regex = "==2024.11.6"
-requests = "==2.32.3"
+requests = "==2.32.4"
 gunicorn = "==23.0.0"
 uvicorn-worker = "==0.2.0"
 importlib-metadata = "==4.13.0" # TODO: remove. needed by old portal
 django-formtools = "==2.5.1" # TODO: remove. needed by old portal
 django-otp = "==1.6.0" # TODO: remove. needed by old portal
 # https://pypi.org/user/codeforlife/
-cfl-common = "==8.7.3" # TODO: remove
-codeforlife-portal = "==8.7.3" # TODO: remove
-rapid-router = "==7.5.11" # TODO: remove
+cfl-common = "==8.7.5" # TODO: remove
+codeforlife-portal = "==8.7.5" # TODO: remove
+rapid-router = "==7.5.13" # TODO: remove
 phonenumbers = "==8.12.12" # TODO: remove
 
 [dev-packages]
