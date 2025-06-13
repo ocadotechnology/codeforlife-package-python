@@ -24,6 +24,7 @@ regex = "==2024.11.6"
 requests = "==2.32.4"
 gunicorn = "==23.0.0"
 uvicorn-worker = "==0.2.0"
+psutil = "==7.0.0"
 importlib-metadata = "==4.13.0" # TODO: remove. needed by old portal
 django-formtools = "==2.5.1" # TODO: remove. needed by old portal
 django-otp = "==1.6.0" # TODO: remove. needed by old portal
@@ -53,6 +54,7 @@ mypy = "==1.6.1"
 django-stubs = {version = "==4.2.6", extras = ["compatible-mypy"]}
 djangorestframework-stubs = {version = "==3.14.4", extras = ["compatible-mypy"]}
 types-regex = "==2024.11.6.*"
+types-psutil = "==7.0.0.20250601"
 
 [requires]
 python_version = "3.12"

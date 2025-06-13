@@ -20,6 +20,11 @@ from rest_framework.views import APIView
 
 from ..permissions import AllowAny
 
+if t.TYPE_CHECKING:
+    from psutil import Process
+
+    from ..server import Server
+
 HealthStatus = t.Literal[
     "healthy",
     "startingUp",
@@ -39,11 +44,41 @@ class HealthCheck:
 
         name: str
         description: str
-        health: HealthStatus
+        health: t.Optional[HealthStatus]
 
     health_status: HealthStatus
     additional_info: str
     details: t.Optional[t.List[Detail]] = None
+
+
+class HealthCheckDetailList(t.List[HealthCheck.Detail]):
+    """Builds a list of health-check details with convenience utilities."""
+
+    def __init__(self, server_mode: "Server.Mode"):
+        super().__init__()
+        self.server_mode = server_mode
+
+    @property
+    def health_statuses(self):
+        """The health statuses of all the details."""
+        return t.cast(
+            t.FrozenSet[HealthStatus],
+            frozenset(detail.health for detail in self if detail.health),
+        )
+
+    def append(  # type: ignore[override]
+        self,
+        name: str,
+        description: str,
+        health: t.Optional[HealthStatus] = None,
+    ):
+        return super().append(
+            HealthCheck.Detail(
+                name=f"{self.server_mode}.{name}",
+                description=description,
+                health=health,
+            )
+        )
 
 
 class HealthCheckView(APIView):
@@ -54,28 +89,145 @@ class HealthCheckView(APIView):
     startup_timestamp = datetime.now().isoformat()
     cache_timeout: float = 30
 
+    def resolve_health_status(
+        self, *health_statuses: HealthStatus
+    ) -> HealthStatus:
+        """Given 1+ health statuses, resolve the final health status."""
+        if len(health_statuses) > 0:
+            search_health_statuses: t.List[HealthStatus] = [
+                "unhealthy",
+                "shuttingDown",
+                "startingUp",
+            ]
+            for search_health_status in search_health_statuses:
+                if search_health_status in health_statuses:
+                    return search_health_status
+
+            if all(
+                health_status == "healthy" for health_status in health_statuses
+            ):
+                return "healthy"
+
+        return "unknown"
+
+    def get_celery_worker_health_check(self, process: "Process") -> HealthCheck:
+        """Check the health of the celery worker process."""
+
+        health_check_details = HealthCheckDetailList("celery")
+
+        _status = process.status()
+        health_check_details.append(
+            name="status",
+            description=_status,
+            health=(
+                "healthy"
+                if _status in ["running", "sleeping", "waking", "idle"]
+                else "unhealthy"
+            ),
+        )
+
+        health_check_details.append(
+            name="cpu_percent",
+            description=str(process.cpu_percent()),
+        )
+
+        health_status = self.resolve_health_status(
+            *health_check_details.health_statuses
+        )
+
+        return HealthCheck(
+            health_status=health_status,
+            additional_info=(
+                "All healthy."
+                if health_status == "healthy"
+                else "Not healthy. See details for more info."
+            ),
+        )
+
+    def get_django_worker_health_check(self, request: Request) -> HealthCheck:
+        """Check the health of the django worker process."""
+
+        health_check_details = HealthCheckDetailList("django")
+
+        ready = apps.ready
+        health_check_details.append(
+            name="ready",
+            description=str(ready),
+            health="healthy" if ready else "startingUp",
+        )
+
+        apps_ready = apps.apps_ready
+        health_check_details.append(
+            name="apps_ready",
+            description=str(apps_ready),
+            health="healthy" if apps_ready else "startingUp",
+        )
+
+        models_ready = apps.models_ready
+        health_check_details.append(
+            name="models_ready",
+            description=str(models_ready),
+            health="healthy" if models_ready else "startingUp",
+        )
+
+        if settings.DB_ENGINE == "postgresql":
+            host = request.get_host()
+            if not Site.objects.filter(domain=host).exists():
+                # TODO: figure out how to dynamically get and set site.
+                # return HealthCheck(
+                #     health_status="unhealthy",
+                #     additional_info=f'Site "{host}" does not exist.',
+                # )
+                logging.warning('Site "%s" does not exist.', host)
+
+        health_status = self.resolve_health_status(
+            *health_check_details.health_statuses
+        )
+
+        return HealthCheck(
+            health_status=health_status,
+            additional_info=(
+                "All healthy."
+                if health_status == "healthy"
+                else "Not healthy. See details for more info."
+            ),
+        )
+
     def get_health_check(self, request: Request) -> HealthCheck:
         """Check the health of the current service."""
         try:
-            if not apps.ready or not apps.apps_ready or not apps.models_ready:
-                return HealthCheck(
-                    health_status="startingUp",
-                    additional_info="Apps not ready.",
+            celery_worker = t.cast(
+                t.Optional["Process"], settings.SERVER_CELERY_WORKER
+            )
+            celery_worker_health_check = (
+                self.get_celery_worker_health_check(celery_worker)
+                if celery_worker
+                else None
+            )
+
+            django_worker_health_check = self.get_django_worker_health_check(
+                request
+            )
+
+            additional_info = (
+                "[django] " + django_worker_health_check.additional_info
+            )
+
+            if celery_worker_health_check:
+                additional_info += (
+                    "[celery] " + celery_worker_health_check.additional_info
                 )
 
-            if settings.DB_ENGINE == "postgresql":
-                host = request.get_host()
-                if not Site.objects.filter(domain=host).exists():
-                    # TODO: figure out how to dynamically get and set site.
-                    # return HealthCheck(
-                    #     health_status="unhealthy",
-                    #     additional_info=f'Site "{host}" does not exist.',
-                    # )
-                    logging.warning('Site "%s" does not exist.', host)
+                health_status = self.resolve_health_status(
+                    celery_worker_health_check.health_status,
+                    django_worker_health_check.health_status,
+                )
+            else:
+                health_status = django_worker_health_check.health_status
 
             return HealthCheck(
-                health_status="healthy",
-                additional_info="All healthy.",
+                health_status=health_status,
+                additional_info=additional_info,
             )
         # pylint: disable-next=broad-exception-caught
         except Exception as ex:
