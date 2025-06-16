@@ -213,5 +213,7 @@ class Server(BaseApplication):
 
             atexit.register(process.terminate)
 
+            os.environ["SERVER_CELERY_WORKER_PID"] = str(process.pid)
+
         except Exception as ex:  # pylint: disable=broad-exception-caught
             print(f"Error starting Celery worker: {ex}")

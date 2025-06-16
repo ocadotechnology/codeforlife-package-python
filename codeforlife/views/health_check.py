@@ -137,11 +137,13 @@ class HealthCheckView(APIView):
 
         return HealthCheck(
             health_status=health_status,
-            additional_info=(
+            additional_info="[celery] "
+            + (
                 "All healthy."
                 if health_status == "healthy"
                 else "Not healthy. See details for more info."
             ),
+            details=health_check_details,
         )
 
     def get_django_worker_health_check(self, request: Request) -> HealthCheck:
@@ -186,54 +188,54 @@ class HealthCheckView(APIView):
 
         return HealthCheck(
             health_status=health_status,
-            additional_info=(
+            additional_info="[django] "
+            + (
                 "All healthy."
                 if health_status == "healthy"
                 else "Not healthy. See details for more info."
             ),
+            details=health_check_details,
         )
 
     def get_health_check(self, request: Request) -> HealthCheck:
         """Check the health of the current service."""
-        try:
-            celery_worker = t.cast(
-                t.Optional["Process"], settings.SERVER_CELERY_WORKER
-            )
-            celery_worker_health_check = (
-                self.get_celery_worker_health_check(celery_worker)
-                if celery_worker
-                else None
-            )
+        details: t.List[HealthCheck.Detail] = []
 
+        try:
             django_worker_health_check = self.get_django_worker_health_check(
                 request
             )
+            health_status = django_worker_health_check.health_status
+            additional_info = django_worker_health_check.additional_info
+            if django_worker_health_check.details:
+                details += django_worker_health_check.details
 
-            additional_info = (
-                "[django] " + django_worker_health_check.additional_info
+            celery_worker = t.cast(
+                t.Optional["Process"], settings.SERVER_CELERY_WORKER
             )
-
-            if celery_worker_health_check:
-                additional_info += (
-                    "[celery] " + celery_worker_health_check.additional_info
+            if celery_worker:
+                celery_worker_health_check = (
+                    self.get_celery_worker_health_check(celery_worker)
                 )
-
                 health_status = self.resolve_health_status(
+                    health_status,
                     celery_worker_health_check.health_status,
-                    django_worker_health_check.health_status,
                 )
-            else:
-                health_status = django_worker_health_check.health_status
+                additional_info += celery_worker_health_check.additional_info
+                if celery_worker_health_check.details:
+                    details += celery_worker_health_check.details
 
             return HealthCheck(
                 health_status=health_status,
                 additional_info=additional_info,
+                details=details,
             )
         # pylint: disable-next=broad-exception-caught
         except Exception as ex:
             return HealthCheck(
                 health_status="unknown",
                 additional_info=str(ex),
+                details=details,
             )
 
     def get(self, request: Request):
