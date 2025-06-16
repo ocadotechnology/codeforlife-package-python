@@ -5,14 +5,17 @@ Created on 14/11/2024 at 16:31:56(+00:00).
 
 import json
 import logging
+import os
 import typing as t
 from dataclasses import dataclass
 from datetime import datetime
+from functools import cached_property
 
 from django.apps import apps
 from django.conf import settings
 from django.contrib.sites.models import Site
 from django.views.decorators.cache import cache_page
+from psutil import Process
 from rest_framework import status
 from rest_framework.request import Request
 from rest_framework.response import Response
@@ -21,9 +24,8 @@ from rest_framework.views import APIView
 from ..permissions import AllowAny
 
 if t.TYPE_CHECKING:
-    from psutil import Process
-
     from ..server import Server
+    from ..types import JsonDict, JsonList
 
 HealthStatus = t.Literal[
     "healthy",
@@ -44,7 +46,7 @@ class HealthCheck:
 
         name: str
         description: str
-        health: t.Optional[HealthStatus]
+        health: t.Optional[HealthStatus] = None
 
     health_status: HealthStatus
     additional_info: str
@@ -110,12 +112,16 @@ class HealthCheckView(APIView):
 
         return "unknown"
 
-    def get_celery_worker_health_check(self, process: "Process") -> HealthCheck:
-        """Check the health of the celery worker process."""
+    @cached_property
+    def celery_worker(self):
+        """The celery worker started by the server."""
+        return Process(int(os.environ["SERVER_CELERY_WORKER_PID"]))
 
+    def get_celery_worker_health_check(self) -> HealthCheck:
+        """Check the health of the celery worker process."""
         health_check_details = HealthCheckDetailList("celery")
 
-        _status = process.status()
+        _status = self.celery_worker.status()
         health_check_details.append(
             name="status",
             description=_status,
@@ -128,7 +134,7 @@ class HealthCheckView(APIView):
 
         health_check_details.append(
             name="cpu_percent",
-            description=str(process.cpu_percent()),
+            description=str(self.celery_worker.cpu_percent()),
         )
 
         health_status = self.resolve_health_status(
@@ -148,7 +154,6 @@ class HealthCheckView(APIView):
 
     def get_django_worker_health_check(self, request: Request) -> HealthCheck:
         """Check the health of the django worker process."""
-
         health_check_details = HealthCheckDetailList("django")
 
         ready = apps.ready
@@ -210,12 +215,9 @@ class HealthCheckView(APIView):
             if django_worker_health_check.details:
                 details += django_worker_health_check.details
 
-            celery_worker = t.cast(
-                t.Optional["Process"], settings.SERVER_CELERY_WORKER
-            )
-            if celery_worker:
+            if t.cast("Server.Mode", settings.SERVER_MODE) == "celery":
                 celery_worker_health_check = (
-                    self.get_celery_worker_health_check(celery_worker)
+                    self.get_celery_worker_health_check()
                 )
                 health_status = self.resolve_health_status(
                     health_status,
@@ -242,22 +244,28 @@ class HealthCheckView(APIView):
         """Return a health check for the current service."""
         health_check = self.get_health_check(request)
 
-        data = {
+        data: JsonDict = {
             "appId": settings.APP_ID,
             "healthStatus": health_check.health_status,
             "lastCheckedTimestamp": datetime.now().isoformat(),
             "additionalInformation": health_check.additional_info,
             "startupTimestamp": self.startup_timestamp,
             "appVersion": settings.APP_VERSION,
-            "details": [
-                {
-                    "name": detail.name,
-                    "description": detail.description,
-                    "health": detail.health,
-                }
-                for detail in (health_check.details or [])
-            ],
         }
+
+        if health_check.details:
+            details: JsonList = []
+            for _detail in health_check.details:
+                detail: JsonDict = {
+                    "name": _detail.name,
+                    "description": _detail.description,
+                }
+                if _detail.health:
+                    detail["health"] = _detail.health
+
+                details.append(detail)
+
+            data["details"] = details
 
         if health_check.health_status != "healthy":
             logging.warning("health check: %s", json.dumps(data))

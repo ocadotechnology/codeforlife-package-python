@@ -12,7 +12,6 @@ import typing as t
 from pathlib import Path
 
 import boto3
-from psutil import Process
 
 from .otp import (
     AWS_S3_APP_BUCKET,
@@ -36,13 +35,6 @@ DB_ENGINE = t.cast("DatabaseEngine", os.getenv("DB_ENGINE", "postgresql"))
 
 # The mode the service is being served in.
 SERVER_MODE = t.cast("Server.Mode", os.getenv("SERVER_MODE", "django"))
-
-# The celery-worker process started by the server.
-SERVER_CELERY_WORKER = (
-    Process(int(os.environ["SERVER_CELERY_WORKER_PID"]))
-    if SERVER_MODE == "celery" and "SERVER_CELERY_WORKER_PID" in os.environ
-    else None
-)
 
 # The level of the logs.
 LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO")
