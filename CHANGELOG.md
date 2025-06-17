@@ -1,6 +1,14 @@
 # CHANGELOG
 
 
+## v0.27.10 (2025-06-17)
+
+### Bug Fixes
+
+- Assert to representation for model list serializer
+  ([`1bdd5b4`](https://github.com/ocadotechnology/codeforlife-package-python/commit/1bdd5b4592db6228eb483b5a3f9df591fc76240e))
+
+
 ## v0.27.9 (2025-06-10)
 
 ### Bug Fixes
