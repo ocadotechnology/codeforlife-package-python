@@ -1,6 +1,21 @@
 # CHANGELOG
 
 
+## v0.27.11 (2025-06-17)
+
+### Bug Fixes
+
+- Check celery worker's health
+  ([#163](https://github.com/ocadotechnology/codeforlife-package-python/pull/163),
+  [`bd7d8f5`](https://github.com/ocadotechnology/codeforlife-package-python/commit/bd7d8f59077107a3c679ce7fee2be8635e7777ca))
+
+* add celery health check
+
+* fix: health check
+
+* fix: celery health check
+
+
 ## v0.27.10 (2025-06-17)
 
 ### Bug Fixes
