@@ -135,6 +135,16 @@ class BaseModelSerializerTestCase(
         model_dict = model_to_dict(model)
         self.assertDictEqual(model_dict | data, model_dict)
 
+    def _assert_new_data_is_subset_of_data(self, new_data: DataDict, data):
+        assert isinstance(data, dict)
+
+        for field, new_value in new_data.items():
+            value = data[field]
+            if isinstance(new_value, dict):
+                self._assert_new_data_is_subset_of_data(new_value, value)
+            else:
+                assert new_value == value
+
     def _assert_many(
         self,
         validated_data: t.List[DataDict],
@@ -363,17 +373,7 @@ class BaseModelSerializerTestCase(
         serializer = self._init_model_serializer(*args, **kwargs)
         data = serializer.to_representation(instance)
 
-        def assert_new_data_is_subset_of_data(new_data: DataDict, data):
-            assert isinstance(data, dict)
-
-            for field, new_value in new_data.items():
-                value = data[field]
-                if isinstance(new_value, dict):
-                    assert_new_data_is_subset_of_data(new_value, value)
-                else:
-                    assert new_value == value
-
-        assert_new_data_is_subset_of_data(new_data, data)
+        self._assert_new_data_is_subset_of_data(new_data, data)
         data = self._get_data(data, None, non_model_fields)
         self._assert_data_is_subset_of_model(data, instance)
 

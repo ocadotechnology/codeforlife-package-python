@@ -15,6 +15,7 @@ from ..serializers import (
     ModelListSerializer,
     ModelSerializer,
 )
+from ..types import DataDict
 from .api_request_factory import APIRequestFactory, BaseAPIRequestFactory
 from .model_serializer import (
     BaseModelSerializerTestCase,
@@ -72,6 +73,24 @@ class BaseModelListSerializerTestCase(
             serializer.parent = parent
 
         return serializer
+
+    def assert_to_representation(
+        self,
+        instance: t.List[AnyModel],  # type: ignore[override]
+        new_data: t.List[DataDict],  # type: ignore[override]
+        *args,
+        non_model_fields=None,
+        **kwargs
+    ):
+        assert len(instance) == len(new_data)
+
+        serializer = self._init_model_serializer(*args, **kwargs)
+        data = serializer.to_representation(instance)
+
+        for model, _new_data, _data in zip(instance, new_data, data):
+            self._assert_new_data_is_subset_of_data(_new_data, _data)
+            _data = self._get_data(_data, None, non_model_fields)
+            self._assert_data_is_subset_of_model(_data, model)
 
 
 # pylint: disable-next=too-many-ancestors
