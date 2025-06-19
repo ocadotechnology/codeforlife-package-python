@@ -1,6 +1,14 @@
 # CHANGELOG
 
 
+## v0.27.13 (2025-06-19)
+
+### Bug Fixes
+
+- Boto3 stubs version
+  ([`3608c93`](https://github.com/ocadotechnology/codeforlife-package-python/commit/3608c9351f8dfc9d61ae33fd442bbff7ef1894e6))
+
+
 ## v0.27.12 (2025-06-19)
 
 ### Bug Fixes
