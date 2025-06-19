@@ -1,6 +1,14 @@
 # CHANGELOG
 
 
+## v0.27.12 (2025-06-19)
+
+### Bug Fixes
+
+- New versions for old system
+  ([`ca65568`](https://github.com/ocadotechnology/codeforlife-package-python/commit/ca655686d1541a3d46d772b62833e3178ebb41e0))
+
+
 ## v0.27.11 (2025-06-17)
 
 ### Bug Fixes
