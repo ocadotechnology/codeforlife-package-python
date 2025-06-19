@@ -1,6 +1,14 @@
 # CHANGELOG
 
 
+## v0.27.14 (2025-06-19)
+
+### Bug Fixes
+
+- New cfl versions
+  ([`20103c6`](https://github.com/ocadotechnology/codeforlife-package-python/commit/20103c6665de8c09bfbe8995d224fa065422b9e4))
+
+
 ## v0.27.13 (2025-06-19)
 
 ### Bug Fixes
