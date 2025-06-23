@@ -1,6 +1,19 @@
 # CHANGELOG
 
 
+## v0.28.0 (2025-06-23)
+
+### Features
+
+- Contributor backend 49
+  ([#164](https://github.com/ocadotechnology/codeforlife-package-python/pull/164),
+  [`d727935`](https://github.com/ocadotechnology/codeforlife-package-python/commit/d727935178a1a8d04b3d1c7fa38e88abe979081a))
+
+* feat: auth header has github oidc token permission
+
+* include import
+
+
 ## v0.27.14 (2025-06-19)
 
 ### Bug Fixes
