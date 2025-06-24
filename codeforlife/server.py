@@ -112,6 +112,7 @@ class Server(BaseApplication):
             "bind": "0.0.0.0:8080",
             "workers": 1 if mode == "celery" else workers,
             "worker_class": "uvicorn.workers.UvicornWorker",
+            "forwarded_allow_ips": "*",
         }
 
         if mode == "celery":
