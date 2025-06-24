@@ -1,6 +1,14 @@
 # CHANGELOG
 
 
+## v0.28.1 (2025-06-24)
+
+### Bug Fixes
+
+- Allow forwarded headers
+  ([`a70c126`](https://github.com/ocadotechnology/codeforlife-package-python/commit/a70c12663f06ae41f5e2dc97a3c1943e1b0bdd24))
+
+
 ## v0.28.0 (2025-06-23)
 
 ### Features
