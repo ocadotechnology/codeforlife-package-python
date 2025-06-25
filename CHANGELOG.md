@@ -1,6 +1,14 @@
 # CHANGELOG
 
 
+## v0.28.2 (2025-06-25)
+
+### Bug Fixes
+
+- Create sites and path not found
+  ([`f431619`](https://github.com/ocadotechnology/codeforlife-package-python/commit/f43161907fcefdcdf6a0730d1b01da8e40ff0e9e))
+
+
 ## v0.28.1 (2025-06-24)
 
 ### Bug Fixes
