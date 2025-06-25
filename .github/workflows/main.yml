@@ -7,9 +7,13 @@ on:
       - "**/*.md"
       - ".vscode/**"
       - ".*"
+  pull_request:
   workflow_dispatch:
 
 jobs:
+  contributor:
+    uses: ocadotechnology/codeforlife-contributor-backend/.github/workflows/check-pr-authors-signed-latest-agreement.yaml@main
+
   test:
     uses: ocadotechnology/codeforlife-workspace/.github/workflows/test-python-code.yaml@main
     secrets: inherit
@@ -20,7 +24,7 @@ jobs:
   release:
     concurrency: release
     runs-on: ubuntu-latest
-    needs: [test]
+    needs: [test] # TODO: add contributor
     permissions:
       id-token: write
     # Release if:
