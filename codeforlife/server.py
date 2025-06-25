@@ -21,7 +21,7 @@ from django.core.wsgi import get_wsgi_application as get_django_wsgi_app
 from gunicorn.app.base import BaseApplication  # type: ignore[import-untyped]
 
 from .tasks import get_task_name
-from .types import DatabaseEngine, LogLevel
+from .types import DatabaseEngine, Env, LogLevel
 
 
 # pylint: disable-next=abstract-method,too-many-instance-attributes
@@ -40,6 +40,8 @@ class Server(BaseApplication):
     django_manage_module: str = "manage"
     # The dot-path of the source-code module.
     src_module: str = "src"
+    # The port the app is served on.
+    app_port: int = 8080
 
     @cached_property
     def app_server_is_running(self):
@@ -101,6 +103,9 @@ class Server(BaseApplication):
             workers = workers or (multiprocessing.cpu_count() * 2) + 1
         self.workers = workers
 
+        if self.app_server_is_running:
+            os.environ["SERVICE_PORT"] = str(self.app_port)
+
         os.environ["DJANGO_SETTINGS_MODULE"] = self.settings_module
         setup_django()
 
@@ -109,7 +114,7 @@ class Server(BaseApplication):
         self.celery_app = Celery()
 
         self.options = {
-            "bind": "0.0.0.0:8080",
+            "bind": f"0.0.0.0:{self.app_port}",
             "workers": 1 if mode == "celery" else workers,
             "worker_class": "uvicorn.workers.UvicornWorker",
             "forwarded_allow_ips": "*",
@@ -163,6 +168,7 @@ class Server(BaseApplication):
         self,
         migrate: bool = True,
         collect_static: bool = True,
+        create_sites: bool = True,
         load_fixtures: t.Optional[t.Set[str]] = {src_module},
     ):
         """Run the server in the set mode.
@@ -170,12 +176,21 @@ class Server(BaseApplication):
         Args:
             migrate: A flag designating whether to migrate the models.
             collect_static: A flag designating whether to collect static files.
+            create_sites: A flag designating whether to create the django-sites.
             load_fixtures: An array of fixtures to load. None to skip.
         """
 
         if self.mode == "django":
+            # NOTE: Imports come after django setup in server initialization.
+            # pylint: disable=import-outside-toplevel
+            from django.conf import settings
+            from django.contrib.sites.models import Site
+
+            # pylint: enable=import-outside-toplevel
+
             if self.db_engine == "sqlite":
                 migrate = False
+                create_sites = False
                 load_fixtures = None
 
             if not self.django_dev_server_is_running:
@@ -188,6 +203,20 @@ class Server(BaseApplication):
                 call_django_command("load_fixtures", *load_fixtures)
             if collect_static:
                 call_django_command("collectstatic", "--noinput", "--clear")
+            if create_sites:
+
+                def create_site(domain: str):
+                    Site.objects.get_or_create(
+                        domain=domain,
+                        defaults={"name": settings.SERVICE_NAME},
+                    )
+
+                if t.cast(Env, settings.ENV) == "local":
+                    create_site(domain=f"localhost:{settings.SERVICE_PORT}")
+                    create_site(domain=f"127.0.0.1:{settings.SERVICE_PORT}")
+                else:
+                    create_site(domain=settings.SERVICE_DOMAIN)
+                    create_site(domain=settings.SERVICE_HOST)
 
         if self.app_server_is_running:
             if self.mode == "celery":

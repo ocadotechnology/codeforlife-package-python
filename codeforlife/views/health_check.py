@@ -25,7 +25,7 @@ from ..permissions import AllowAny
 
 if t.TYPE_CHECKING:
     from ..server import Server
-    from ..types import JsonDict, JsonList
+    from ..types import Env, JsonDict, JsonList
 
 HealthStatus = t.Literal[
     "healthy",
@@ -178,14 +178,33 @@ class HealthCheckView(APIView):
         )
 
         if settings.DB_ENGINE == "postgresql":
-            host = request.get_host()
-            if not Site.objects.filter(domain=host).exists():
-                # TODO: figure out how to dynamically get and set site.
-                # return HealthCheck(
-                #     health_status="unhealthy",
-                #     additional_info=f'Site "{host}" does not exist.',
-                # )
-                logging.warning('Site "%s" does not exist.', host)
+
+            def check_site_health(health_check_name: str, site_domain: str):
+                exists = Site.objects.filter(domain=site_domain).exists()
+                health_check_details.append(
+                    name=f"site_exists.{health_check_name}",
+                    description=str(exists),
+                    health="healthy" if exists else "unhealthy",
+                )
+
+            if t.cast("Env", settings.ENV) == "local":
+                check_site_health(
+                    health_check_name="localhost",
+                    site_domain=f"localhost:{settings.SERVICE_PORT}",
+                )
+                check_site_health(
+                    health_check_name="ip_address",
+                    site_domain=f"127.0.0.1:{settings.SERVICE_PORT}",
+                )
+            else:
+                check_site_health(
+                    health_check_name="domain",
+                    site_domain=settings.SERVICE_DOMAIN,
+                )
+                check_site_health(
+                    health_check_name="host",
+                    site_domain=settings.SERVICE_HOST,
+                )
 
         health_status = self.resolve_health_status(
             *health_check_details.health_statuses
