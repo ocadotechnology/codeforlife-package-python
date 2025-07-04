@@ -8,9 +8,15 @@ on:
       - ".vscode/**"
       - ".*"
   pull_request:
+  issues:
+  issue_comment:
   workflow_dispatch:
 
 jobs:
+  issue:
+    uses: ocadotechnology/codeforlife-workspace/.github/workflows/issues.yaml@main
+    secrets: inherit
+
   contributor:
     uses: ocadotechnology/codeforlife-contributor-backend/.github/workflows/check-pr-authors-signed-latest-agreement.yaml@main
 
