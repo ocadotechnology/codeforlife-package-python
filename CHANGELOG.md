@@ -1,6 +1,19 @@
 # CHANGELOG
 
 
+## v0.28.3 (2025-07-10)
+
+### Bug Fixes
+
+- Install latest common and RR
+  ([#165](https://github.com/ocadotechnology/codeforlife-package-python/pull/165),
+  [`293e4a2`](https://github.com/ocadotechnology/codeforlife-package-python/commit/293e4a2c9f1f5f360572500784e6863b41742224))
+
+* fix: Install latest common and RR
+
+* Full stop
+
+
 ## v0.28.2 (2025-06-25)
 
 ### Bug Fixes
