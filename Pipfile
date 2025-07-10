@@ -24,7 +24,7 @@ regex = "==2024.11.6"
 requests = "==2.32.4"
 gunicorn = "==23.0.0"
 uvicorn-worker = "==0.2.0"
-pyjwt = "==2.6.0" # TODO: upgrade to latest version
+pyjwt = "==2.6.0" # TODO: upgrade to latest version.
 psutil = "==7.0.0"
 importlib-metadata = "==4.13.0" # TODO: remove. needed by old portal
 django-formtools = "==2.5.1" # TODO: remove. needed by old portal
