@@ -7,13 +7,12 @@ import typing as t
 
 from django.conf import settings
 from django.contrib import admin
-from django.urls import URLPattern, URLResolver, include, path, re_path
+from django.urls import URLPattern, URLResolver, include, path
 
 from ..views import (
     CsrfCookieView,
     HealthCheckView,
     LogoutView,
-    path_not_found_view,
     session_expired_view,
 )
 
@@ -44,14 +43,7 @@ def get_urlpatterns(
         ),
     ]
 
-    path_not_found_pattern = re_path(
-        r"^(?P<path>.*)$",
-        path_not_found_view,
-        name="path-not-found",
-    )
-
     if settings.SERVER_MODE == "celery":
-        urlpatterns.append(path_not_found_pattern)
         return urlpatterns
 
     urlpatterns += [
@@ -92,5 +84,4 @@ def get_urlpatterns(
             )
         )
 
-    urlpatterns.append(path_not_found_pattern)
     return urlpatterns
