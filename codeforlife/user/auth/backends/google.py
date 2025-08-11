@@ -4,9 +4,11 @@ Created on 01/07/2025 at 12:48:13(+01:00).
 """
 
 import typing as t
+from datetime import timedelta
 
 import requests
 from django.conf import settings
+from django.utils import timezone
 
 from ....request import HttpRequest
 from ....types import JsonDict
@@ -44,6 +46,7 @@ class GoogleBackend(BaseBackend):
             },
             timeout=5,
         )
+        token_received_at = timezone.now()
         if not response.ok:
             return None
 
@@ -51,11 +54,13 @@ class GoogleBackend(BaseBackend):
         if "error" in token_data:
             return None
         access_token = t.cast(str, token_data["access_token"])
-        access_token_expires_in = t.cast(int, token_data["expires_in"])
+        expires_in = t.cast(int, token_data["expires_in"])
+        token_type = t.cast(str, token_data["token_type"])
+        google_auth = f"{token_type} {access_token}"
 
         response = requests.get(
             url="https://www.googleapis.com/oauth2/v3/userinfo",
-            headers={"Authorization": f"Bearer {access_token}"},
+            headers={"Authorization": google_auth},
             timeout=10,
         )
         if not response.ok:
@@ -76,12 +81,17 @@ class GoogleBackend(BaseBackend):
             UserProfile.objects.create(
                 user=user,
                 is_verified=user_data["email_verified"],
+                # TODO: save refresh_token
             )
 
         GoogleAccessToken.set(
             key=user.id,
-            value=access_token,
-            timeout=access_token_expires_in,
+            value=google_auth,
+            timeout=(
+                token_received_at
+                - timezone.now()
+                + timedelta(seconds=expires_in)
+            ).seconds,
         )
 
         return user

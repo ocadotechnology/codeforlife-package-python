@@ -213,6 +213,10 @@ class ContactableUser(User):
     class Meta(TypedModelMeta):
         proxy = True
 
+    objects: ContactableUserManager = (  # type: ignore[misc]
+        ContactableUserManager()
+    )
+
     def add_contact_to_dot_digital(self):
         """Add contact info to DotDigital."""
         mail.add_contact(self.email)
@@ -234,6 +238,24 @@ class ContactableUser(User):
             personalization_values=personalization_values,
             **kwargs,
         )
+
+
+# pylint: disable-next=missing-class-docstring,too-few-public-methods
+class GoogleUserManager(ContactableUserManager[AnyUser], t.Generic[AnyUser]):
+    def filter_users(self, queryset: QuerySet[User]):
+        return super().filter_users(queryset)  # TODO
+
+
+# pylint: disable-next=too-many-ancestors
+class GoogleUser(ContactableUser):
+    """A user that has linked their Google Account."""
+
+    class Meta(TypedModelMeta):
+        proxy = True
+
+    objects: GoogleUserManager[  # type: ignore[misc]
+        "GoogleUser"
+    ] = GoogleUserManager()  # type: ignore[assignment]
 
 
 # pylint: disable-next=missing-class-docstring,too-few-public-methods
