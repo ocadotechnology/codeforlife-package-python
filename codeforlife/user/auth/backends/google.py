@@ -13,15 +13,16 @@ from django.utils import timezone
 from ....request import HttpRequest
 from ....types import JsonDict
 from ...cache import GoogleAccessToken
-from ...models import ContactableUser, UserProfile
+from ...models import GoogleUser
 from .base import BaseBackend
 
 
 class GoogleBackend(BaseBackend):
     """Authenticate a user using the code returned by Google's callback URL."""
 
-    user_class = ContactableUser
+    user_class = GoogleUser
 
+    # pylint: disable-next=too-many-locals
     def authenticate(  # type: ignore[override]
         self,
         request: t.Optional[HttpRequest],
@@ -67,21 +68,19 @@ class GoogleBackend(BaseBackend):
             return None
 
         user_data: JsonDict = response.json()
-        email = t.cast(str, user_data["email"])
+        email = t.cast(str, user_data["email"]).lower()
+        email_verified = t.cast(bool, user_data["email_verified"])
+        given_name = t.cast(str, user_data["given_name"])
+        family_name = t.cast(str, user_data["family_name"])
 
-        user, user_was_created = ContactableUser.objects.get_or_create(
-            email=email.lower(),
-            defaults={
-                "first_name": user_data["given_name"],
-                "last_name": user_data["family_name"],
-            },
-        )
-
-        if user_was_created:
-            UserProfile.objects.create(
-                user=user,
-                is_verified=user_data["email_verified"],
-                # TODO: save refresh_token
+        try:
+            user = self.user_class.objects.get(email=email)
+        except self.user_class.DoesNotExist:
+            user = self.user_class.objects.create_user(
+                email=email,
+                first_name=given_name,
+                last_name=family_name,
+                is_verified=email_verified,
             )
 
         GoogleAccessToken.set(

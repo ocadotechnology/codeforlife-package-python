@@ -242,6 +242,31 @@ class ContactableUser(User):
 
 # pylint: disable-next=missing-class-docstring,too-few-public-methods
 class GoogleUserManager(ContactableUserManager[AnyUser], t.Generic[AnyUser]):
+    # pylint: disable-next=too-many-arguments
+    def create_user(  # type: ignore[override]
+        self,
+        first_name: str,
+        last_name: str,
+        email: str,
+        is_verified: bool,
+        **extra_fields,
+    ):
+        """Create a Google-user."""
+
+        email = email.lower()
+
+        user = super().create_user(
+            username=email,
+            email=email,
+            first_name=first_name,
+            last_name=last_name,
+            **extra_fields,
+        )
+
+        UserProfile.objects.create(user=user, is_verified=is_verified)
+
+        return user
+
     def filter_users(self, queryset: QuerySet[User]):
         return super().filter_users(queryset)  # TODO
 
