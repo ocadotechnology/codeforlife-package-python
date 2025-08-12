@@ -12,7 +12,7 @@ from django.utils import timezone
 
 from ....request import HttpRequest
 from ....types import JsonDict, OAuth2TokenFromCodeDict
-from ...cache import GoogleOAuth2TokenCache
+from ...caches import GoogleOAuth2TokenCache
 from ...models import GoogleUser
 from .base import BaseBackend
 
