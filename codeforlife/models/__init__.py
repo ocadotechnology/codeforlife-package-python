@@ -7,3 +7,4 @@ from .abstract_base_session import AbstractBaseSession
 from .abstract_base_user import AbstractBaseUser
 from .base import *
 from .base_session_store import BaseSessionStore
+from .encrypted_char_field import EncryptedCharField
