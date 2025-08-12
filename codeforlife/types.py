@@ -47,3 +47,24 @@ def get_arg(cls: t.Type[t.Any], index: int, orig_base: int = 0):
         The type arg from the class.
     """
     return t.get_args(cls.__orig_bases__[orig_base])[index]
+
+
+class OAuth2TokenFromRefreshDict(t.TypedDict):
+    """An OAuth 2.0 token given in exchange for a refresh token."""
+
+    access_token: str
+    token_type: str
+    scope: str
+    expires_in: int
+    error: t.NotRequired[dict]
+
+
+class OAuth2TokenFromCodeDict(t.TypedDict):
+    """An OAuth 2.0 token given in exchange for a code."""
+
+    access_token: str
+    token_type: str
+    scope: str
+    expires_in: int
+    refresh_token: str
+    error: t.NotRequired[dict]

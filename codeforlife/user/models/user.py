@@ -243,27 +243,45 @@ class ContactableUser(User):
 # pylint: disable-next=missing-class-docstring,too-few-public-methods
 class GoogleUserManager(ContactableUserManager[AnyUser], t.Generic[AnyUser]):
     # pylint: disable-next=too-many-arguments
-    def create_user(  # type: ignore[override]
+    def sync(  # type: ignore[override]
         self,
         first_name: str,
         last_name: str,
         email: str,
         is_verified: bool,
-        **extra_fields,
+        refresh_token: str,
     ):
-        """Create a Google-user."""
+        """Sync a Google-user."""
 
         email = email.lower()
 
-        user = super().create_user(
-            username=email,
-            email=email,
-            first_name=first_name,
-            last_name=last_name,
-            **extra_fields,
-        )
+        try:
+            user = super().get(email=email)
 
-        UserProfile.objects.create(user=user, is_verified=is_verified)
+            user.first_name = first_name
+            user.last_name = last_name
+            user.save(
+                update_fields=[
+                    "first_name",
+                    "last_name",
+                ]
+            )
+
+            user.userprofile.is_verified = is_verified
+            user.userprofile.save(update_fields=["is_verified"])
+        except GoogleUser.DoesNotExist:
+            user = super().create_user(
+                username=email,
+                email=email,
+                first_name=first_name,
+                last_name=last_name,
+            )
+
+            UserProfile.objects.create(
+                user=user,
+                is_verified=is_verified,
+                google_refresh_token=refresh_token,
+            )
 
         return user
 

@@ -11,8 +11,8 @@ from django.conf import settings
 from django.utils import timezone
 
 from ....request import HttpRequest
-from ....types import JsonDict
-from ...cache import GoogleAccessToken
+from ....types import JsonDict, OAuth2TokenFromCodeDict
+from ...cache import GoogleOAuth2TokenCache, GoogleOAuth2TokenCacheValue
 from ...models import GoogleUser
 from .base import BaseBackend
 
@@ -51,13 +51,16 @@ class GoogleBackend(BaseBackend):
         if not response.ok:
             return None
 
-        token_data: JsonDict = response.json()
-        if "error" in token_data:
+        token: OAuth2TokenFromCodeDict = response.json()
+        if "error" in token:
             return None
-        access_token = t.cast(str, token_data["access_token"])
-        expires_in = t.cast(int, token_data["expires_in"])
-        token_type = t.cast(str, token_data["token_type"])
-        google_auth = f"{token_type} {access_token}"
+
+        expires_in = token["expires_in"]
+        del token["expires_in"]  # type: ignore[misc]
+        refresh_token = token["refresh_token"]
+        del token["refresh_token"]  # type: ignore[misc]
+
+        google_auth = f"{token['token_type']} {token['access_token']}"
 
         response = requests.get(
             url="https://www.googleapis.com/oauth2/v3/userinfo",
@@ -73,19 +76,17 @@ class GoogleBackend(BaseBackend):
         given_name = t.cast(str, user_data["given_name"])
         family_name = t.cast(str, user_data["family_name"])
 
-        try:
-            user = self.user_class.objects.get(email=email)
-        except self.user_class.DoesNotExist:
-            user = self.user_class.objects.create_user(
-                email=email,
-                first_name=given_name,
-                last_name=family_name,
-                is_verified=email_verified,
-            )
+        user = self.user_class.objects.sync(
+            email=email,
+            first_name=given_name,
+            last_name=family_name,
+            is_verified=email_verified,
+            refresh_token=refresh_token,
+        )
 
-        GoogleAccessToken.set(
+        GoogleOAuth2TokenCache.set(
             key=user.id,
-            value=google_auth,
+            value=t.cast(GoogleOAuth2TokenCacheValue, token),
             timeout=(
                 token_received_at
                 - timezone.now()

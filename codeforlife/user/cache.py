@@ -8,13 +8,32 @@ import typing as t
 import requests
 from django.conf import settings
 
-from ..cache import BaseCacheDynamicKeyValue
-from ..types import JsonDict
+from ..cache import BaseDynamicKeyValueCache
+from ..types import OAuth2TokenFromRefreshDict
 from .models import GoogleUser
 
+GoogleOAuth2TokenCacheKey = int
 
-class GoogleAccessToken(BaseCacheDynamicKeyValue[int, str]):
-    """A user's Google-access-token. The key is the user's ID."""
+
+class GoogleOAuth2TokenCacheValue(t.TypedDict):
+    """A cache OAuth 2.0 token from Google."""
+
+    access_token: str
+    token_type: str
+    scope: str
+
+
+class GoogleOAuth2TokenCache(
+    BaseDynamicKeyValueCache[
+        GoogleOAuth2TokenCacheKey, GoogleOAuth2TokenCacheValue
+    ]
+):
+    """
+    Authorization to a user's Google account. The key is the user's ID. The
+    value is the user's access-token. If the user does not have a cached
+    access-token but does have a refresh-token stored in the database, an
+    access-token will automatically be retrieved and cached for the user.
+    """
 
     @staticmethod
     def make_key(key):
@@ -39,14 +58,25 @@ class GoogleAccessToken(BaseCacheDynamicKeyValue[int, str]):
                     timeout=10,
                 )
                 if response.ok:
-                    token_data: JsonDict = response.json()
-                    access_token = t.cast(str, token_data["access_token"])
-                    expires_in = t.cast(int, token_data["expires_in"])
-                    token_type = t.cast(str, token_data["token_type"])
-
-                    value = f"{token_type} {access_token}"
+                    token: OAuth2TokenFromRefreshDict = response.json()
+                    expires_in = token["expires_in"]
+                    del token["expires_in"]  # type: ignore[misc]
+                    value = t.cast(GoogleOAuth2TokenCacheValue, token)
 
                     # -3 seconds to reduce likeliness of using an expired token.
                     cls.set(key=key, value=value, timeout=expires_in - 3)
 
         return value
+
+    @classmethod
+    def get_auth_header(
+        cls, key: GoogleOAuth2TokenCacheKey, default=None, version=None
+    ):
+        """
+        Get a Google OAuth 2.0 token in the form of an Authorization header.
+        """
+        value = cls.get(key, default, version)
+        if value:
+            return f"{value['token_type']} {value['access_token']}"
+
+        return None

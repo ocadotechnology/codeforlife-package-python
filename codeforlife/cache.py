@@ -11,7 +11,7 @@ K = t.TypeVar("K")
 V = t.TypeVar("V")
 
 
-class BaseCacheValue(t.Generic[V]):
+class BaseValueCache(t.Generic[V]):
     """Base class which helps to get and set cache values."""
 
     @classmethod
@@ -51,7 +51,7 @@ class BaseCacheValue(t.Generic[V]):
         )
 
 
-class BaseCacheFixedKeyValue(BaseCacheValue[V], t.Generic[V]):
+class BaseFixedKeyValueCache(BaseValueCache[V], t.Generic[V]):
     """Base class which helps to get and set cache values with a fixed key."""
 
     key: str
@@ -87,7 +87,7 @@ class BaseCacheFixedKeyValue(BaseCacheValue[V], t.Generic[V]):
     # pylint: enable=arguments-differ
 
 
-class BaseCacheDynamicKeyValue(BaseCacheValue[V], t.Generic[K, V]):
+class BaseDynamicKeyValueCache(BaseValueCache[V], t.Generic[K, V]):
     """Base class which helps to get and set cache values with a dynamic key."""
 
     @staticmethod
