@@ -8,15 +8,15 @@ import typing as t
 import requests
 from django.conf import settings
 
-from ..cache import BaseDynamicKeyValueCache
-from ..types import OAuth2TokenFromRefreshDict
-from .models import GoogleUser
+from ...cache import BaseDynamicKeyValueCache
+from ...types import OAuth2TokenFromRefreshDict
+from ..models import GoogleUser
 
 GoogleOAuth2TokenCacheKey = int
 
 
 class GoogleOAuth2TokenCacheValue(t.TypedDict):
-    """A cache OAuth 2.0 token from Google."""
+    """A cached OAuth 2.0 token from Google."""
 
     access_token: str
     token_type: str
@@ -34,6 +34,10 @@ class GoogleOAuth2TokenCache(
     access-token but does have a refresh-token stored in the database, an
     access-token will automatically be retrieved and cached for the user.
     """
+
+    # Shorthand for convenience.
+    Key = GoogleOAuth2TokenCacheKey
+    Value = GoogleOAuth2TokenCacheValue
 
     @staticmethod
     def make_key(key):

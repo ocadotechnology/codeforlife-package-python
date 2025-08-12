@@ -12,7 +12,7 @@ from django.utils import timezone
 
 from ....request import HttpRequest
 from ....types import JsonDict, OAuth2TokenFromCodeDict
-from ...cache import GoogleOAuth2TokenCache, GoogleOAuth2TokenCacheValue
+from ...cache import GoogleOAuth2TokenCache
 from ...models import GoogleUser
 from .base import BaseBackend
 
@@ -86,7 +86,7 @@ class GoogleBackend(BaseBackend):
 
         GoogleOAuth2TokenCache.set(
             key=user.id,
-            value=t.cast(GoogleOAuth2TokenCacheValue, token),
+            value=t.cast(GoogleOAuth2TokenCache.Value, token),
             timeout=(
                 token_received_at
                 - timezone.now()
