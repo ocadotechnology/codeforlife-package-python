@@ -74,7 +74,7 @@ class OtpBypassToken(models.Model):
 
     token = EncryptedCharField(
         _("token"),
-        max_length=100 + len(EncryptedCharField.prefix),
+        max_length=100,
         help_text=_("The encrypted equivalent of the token."),
     )
 

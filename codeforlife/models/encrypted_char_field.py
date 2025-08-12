@@ -17,7 +17,11 @@ class EncryptedCharField(models.CharField):
     """
 
     _fernet = Fernet(settings.SECRET_KEY)
-    prefix = "ENC:"
+    _prefix = "ENC:"
+
+    def __init__(self, *args, **kwargs):
+        kwargs["max_length"] += len(self._prefix)
+        super().__init__(*args, **kwargs)
 
     # pylint: disable-next=unused-argument
     def from_db_value(self, value: t.Optional[str], expression, connection):
@@ -56,13 +60,13 @@ class EncryptedCharField(models.CharField):
 
     def encrypt_value(self, value: str):
         """Encrypt the value if it's not encrypted."""
-        if not value.startswith(self.prefix):
-            return self.prefix + self._fernet.encrypt(value.encode()).decode()
+        if not value.startswith(self._prefix):
+            return self._prefix + self._fernet.encrypt(value.encode()).decode()
         return value
 
     def decrypt_value(self, value: str):
         """Decrpyt the value if it's encrypted.."""
-        if value.startswith(self.prefix):
-            value = value[len(self.prefix) :]
+        if value.startswith(self._prefix):
+            value = value[len(self._prefix) :]
             return self._fernet.decrypt(value).decode()
         return value
