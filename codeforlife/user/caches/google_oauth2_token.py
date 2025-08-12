@@ -8,7 +8,7 @@ import typing as t
 import requests
 from django.conf import settings
 
-from ...cache import BaseDynamicKeyValueCache
+from ...caches import BaseDynamicKeyValueCache
 from ...types import OAuth2TokenFromRefreshDict
 from ..models import GoogleUser
 
