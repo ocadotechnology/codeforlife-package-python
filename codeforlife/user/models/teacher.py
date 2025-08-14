@@ -42,7 +42,7 @@ class SchoolTeacher(Teacher):
     def student_users(self):
         """All student-users the teacher can query."""
         # pylint: disable-next=import-outside-toplevel
-        from .user import StudentUser
+        from .user.student import StudentUser
 
         return StudentUser.objects.filter(
             **(
@@ -72,7 +72,7 @@ class SchoolTeacher(Teacher):
     def indy_users(self):
         """All independent-users the teacher can query."""
         # pylint: disable-next=import-outside-toplevel
-        from .user import IndependentUser
+        from .user.independent import IndependentUser
 
         return IndependentUser.objects.filter(
             new_student__pending_class_request__in=self.classes
@@ -82,7 +82,7 @@ class SchoolTeacher(Teacher):
     def school_teacher_users(self):
         """All school-teacher-users the teacher can query."""
         # pylint: disable-next=import-outside-toplevel
-        from .user import SchoolTeacherUser
+        from .user.school_teacher import SchoolTeacherUser
 
         return SchoolTeacherUser.objects.filter(new_teacher__school=self.school)
 
@@ -95,7 +95,7 @@ class SchoolTeacher(Teacher):
     def school_users(self):
         """All users in the school the teacher can query."""
         # pylint: disable-next=import-outside-toplevel
-        from .user import User
+        from .user.user import User
 
         return User.objects.filter(
             Q(  # student-users

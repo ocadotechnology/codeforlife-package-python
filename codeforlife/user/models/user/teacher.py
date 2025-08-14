@@ -45,6 +45,7 @@ class TeacherUserManager(ContactableUserManager[AnyUser], t.Generic[AnyUser]):
 
         assert "username" not in extra_fields
 
+        # pylint: disable=duplicate-code
         user = super().create_user(
             username=email,
             email=email,
@@ -53,6 +54,7 @@ class TeacherUserManager(ContactableUserManager[AnyUser], t.Generic[AnyUser]):
             last_name=last_name,
             **extra_fields,
         )
+        # pylint: enable=duplicate-code
 
         Teacher.objects.create(
             school=school,

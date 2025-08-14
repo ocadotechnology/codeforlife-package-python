@@ -67,7 +67,7 @@ class SchoolTeacherUser(TeacherUser):
 
     @property
     def teacher(self):
-        # pylint: disable-next=import-outside-toplevel
+        # pylint: disable-next=import-outside-toplevel,cyclic-import
         from ..teacher import SchoolTeacher, teacher_as_type
 
         teacher = super().teacher
