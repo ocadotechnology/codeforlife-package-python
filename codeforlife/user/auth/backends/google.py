@@ -75,13 +75,15 @@ class GoogleBackend(BaseBackend):
         email_verified = t.cast(bool, user_data["email_verified"])
         given_name = t.cast(str, user_data["given_name"])
         family_name = t.cast(str, user_data["family_name"])
+        sub = t.cast(str, user_data["sub"])
 
         user = self.user_class.objects.sync(
             email=email,
             first_name=given_name,
             last_name=family_name,
             is_verified=email_verified,
-            refresh_token=refresh_token,
+            google_refresh_token=refresh_token,
+            google_sub=sub,
         )
 
         GoogleOAuth2TokenCache.set(
