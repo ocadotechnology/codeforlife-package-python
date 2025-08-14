@@ -36,3 +36,5 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = "codeforlife.user.urls"
+
+ENCRYPTION_KEY = "XTgWqMlZCMI_E5BvCArkif9nrJIIhe_6Ic6Q_UcWJDk="
