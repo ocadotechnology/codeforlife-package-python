@@ -36,8 +36,8 @@ class GoogleOAuth2TokenCache(
     """
 
     # Shorthand for convenience.
-    Key = GoogleOAuth2TokenCacheKey
-    Value = GoogleOAuth2TokenCacheValue
+    Key: t.TypeAlias = GoogleOAuth2TokenCacheKey
+    Value: t.TypeAlias = GoogleOAuth2TokenCacheValue
 
     @staticmethod
     def make_key(key):
