@@ -30,23 +30,19 @@ class GoogleUserManager(ContactableUserManager[AnyUser], t.Generic[AnyUser]):
         last_name: str,
         email: str,
         is_verified: bool,
-        refresh_token: str,
+        google_refresh_token: str,
+        google_sub: str,
     ):
         """Sync a Google-user."""
 
         email = email.lower()
 
         try:
-            user = super().get(email=email)
+            user = super().get(userprofile__google_sub=google_sub)
 
             user.first_name = first_name
             user.last_name = last_name
-            user.save(
-                update_fields=[
-                    "first_name",
-                    "last_name",
-                ]
-            )
+            user.save(update_fields=["first_name", "last_name"])
 
             user.userprofile.is_verified = is_verified
             user.userprofile.save(update_fields=["is_verified"])
@@ -61,13 +57,21 @@ class GoogleUserManager(ContactableUserManager[AnyUser], t.Generic[AnyUser]):
             UserProfile.objects.create(
                 user=user,
                 is_verified=is_verified,
-                google_refresh_token=refresh_token,
+                google_refresh_token=google_refresh_token,
+                google_sub=google_sub,
             )
 
         return user
 
     def filter_users(self, queryset: QuerySet[User]):
-        return super().filter_users(queryset)  # TODO
+        return (
+            super()
+            .filter_users(queryset)
+            .exclude(userprofile__google_refresh_token__isnull=True)
+            .exclude(userprofile__google_refresh_token="")
+            .exclude(userprofile__google_sub__isnull=True)
+            .exclude(userprofile__google_sub="")
+        )
 
 
 # pylint: disable-next=too-many-ancestors

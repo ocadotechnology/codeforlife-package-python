@@ -1,3 +1,5 @@
+# TODO: remove this in new system
+# mypy: disable-error-code="import-untyped"
 """
 © Ocado Group
 Created on 05/02/2024 at 09:50:04(+00:00).
@@ -7,7 +9,6 @@ import typing as t
 
 from django.db.models.query import QuerySet
 
-from ..school import School
 from .school_teacher import SchoolTeacherUser, SchoolTeacherUserManager
 from .user import User
 
