@@ -1,6 +1,46 @@
 # CHANGELOG
 
 
+## v0.29.0 (2025-08-15)
+
+### Features
+
+- Sso backend 34 ([#166](https://github.com/ocadotechnology/codeforlife-package-python/pull/166),
+  [`f72933b`](https://github.com/ocadotechnology/codeforlife-package-python/commit/f72933be155363b4e4366c3834bb979671b5d35c))
+
+* add google auth backend
+
+* fix
+
+* cache access token and create user
+
+* improve caching
+
+* update migrations
+
+* fix create user
+
+* BaseOAuth2LoginForm
+
+* cache token object
+
+* create cache folder
+
+* add encrypted char field
+
+* plural
+
+* auto increase max length
+
+* new common
+
+* split user proxies into separate files
+
+* fix linting errors
+
+* fix type aliases
+
+
 ## v0.28.4 (2025-07-21)
 
 ### Bug Fixes
