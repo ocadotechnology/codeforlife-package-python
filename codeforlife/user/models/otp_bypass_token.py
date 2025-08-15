@@ -6,14 +6,13 @@ Created on 29/01/2024 at 16:46:24(+00:00).
 import string
 import typing as t
 
-from cryptography.fernet import Fernet
-from django.conf import settings
 from django.core.validators import MaxLengthValidator, MinLengthValidator
 from django.db import models
 from django.db.utils import IntegrityError
 from django.utils.crypto import get_random_string
 from django.utils.translation import gettext_lazy as _
 
+from ...models import EncryptedCharField
 from ...types import Validators
 from ...validators import CharSetValidatorBuilder
 from .user import User
@@ -26,8 +25,6 @@ else:
 
 class OtpBypassToken(models.Model):
     """A single use token to bypass a user's OTP authentication factor."""
-
-    _fernet = Fernet(settings.SECRET_KEY)
 
     length = 8
     allowed_chars = string.ascii_lowercase
@@ -61,21 +58,11 @@ class OtpBypassToken(models.Model):
                     )
                 )
 
-            otp_bypass_tokens: t.List[OtpBypassToken] = []
-            for token in tokens:
-                otp_bypass_token = OtpBypassToken(
-                    user=user,
-                    # pylint: disable-next=protected-access
-                    token=OtpBypassToken._fernet.encrypt(
-                        token.encode()
-                    ).decode(),
-                )
-
-                otp_bypass_tokens.append(otp_bypass_token)
-
             user.otp_bypass_tokens.all().delete()
 
-            return super().bulk_create(otp_bypass_tokens)
+            return super().bulk_create(
+                [OtpBypassToken(user=user, token=token) for token in tokens]
+            )
 
     objects: Manager = Manager()
 
@@ -85,7 +72,7 @@ class OtpBypassToken(models.Model):
         on_delete=models.CASCADE,
     )
 
-    token = models.CharField(
+    token = EncryptedCharField(
         _("token"),
         max_length=100,
         help_text=_("The encrypted equivalent of the token."),
@@ -98,11 +85,6 @@ class OtpBypassToken(models.Model):
     def save(self, *args, **kwargs):
         raise IntegrityError("Cannot create or update a single instance.")
 
-    @property
-    def decrypted_token(self):
-        """The decrypted value of the token."""
-        return self._fernet.decrypt(self.token).decode()
-
     def check_token(self, token: str):
         """Check if the token matches.
 
@@ -112,7 +94,7 @@ class OtpBypassToken(models.Model):
         Returns:
             A boolean designating if the token matches.
         """
-        if self.decrypted_token == token.lower():
+        if self.token == token.lower():
             self.delete()
             return True
 

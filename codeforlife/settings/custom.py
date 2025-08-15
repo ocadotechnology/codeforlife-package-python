@@ -126,3 +126,11 @@ def get_redis_url():
 
 # The URL to connect to the Redis cache.
 REDIS_URL = get_redis_url()
+
+# Our Google OAuth 2.0 client credentials
+# https://console.cloud.google.com/auth/clients
+GOOGLE_CLIENT_ID = os.getenv(
+    "GOOGLE_CLIENT_ID",
+    "354656325390-o5n12nbaivhi4do8lalkh29q403uu9u4.apps.googleusercontent.com",
+)
+GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET", "REPLACE_ME")

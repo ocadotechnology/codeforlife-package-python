@@ -79,3 +79,19 @@ class BaseLoginForm(forms.Form, t.Generic[AnyAbstractBaseUser]):
             NotImplementedError: If message is not set.
         """
         raise NotImplementedError()
+
+
+class BaseOAuth2LoginForm(
+    BaseLoginForm[AnyAbstractBaseUser],
+    t.Generic[AnyAbstractBaseUser],
+):
+    """
+    Base login form that all other login forms using OAuth2.0 must inherit.
+    """
+
+    code = forms.CharField(min_length=1)
+    code_verifier = forms.CharField(min_length=43, max_length=128)
+    redirect_uri = forms.CharField(min_length=1)
+
+    def get_invalid_login_error_message(self):
+        return "Failed to exchange code for access token."

@@ -35,25 +35,16 @@ class TestOtpBypassToken(ModelTestCase[OtpBypassToken]):
         assert len(otp_bypass_tokens) == self.user.otp_bypass_tokens.count()
 
         for otp_bypass_token in otp_bypass_tokens:
-            decrypted_token = otp_bypass_token.decrypted_token
-            assert len(decrypted_token) == OtpBypassToken.length
+            assert len(otp_bypass_token.token) == OtpBypassToken.length
             assert all(
-                char in OtpBypassToken.allowed_chars for char in decrypted_token
+                char in OtpBypassToken.allowed_chars
+                for char in otp_bypass_token.token
             )
 
     def test_save(self):
         """Cannot create or update a single instance."""
         with self.assert_raises_integrity_error():
             OtpBypassToken().save()
-
-    def test_decrypted_token(self):
-        """Can get decrypted token as property."""
-        token = "test-decrypt"
-        otp_bypass_token = OtpBypassToken(
-            user=self.user,
-            token=self.fernet.encrypt(token.encode()).decode(),
-        )
-        assert otp_bypass_token.decrypted_token == token
 
     def test_check_token(self):
         """Can check a single token."""

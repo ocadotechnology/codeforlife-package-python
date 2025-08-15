@@ -149,6 +149,7 @@ AUTHENTICATION_BACKENDS = [
     "codeforlife.user.auth.backends.OtpBypassTokenBackend",
     "codeforlife.user.auth.backends.StudentBackend",
     "codeforlife.user.auth.backends.StudentAutoBackend",
+    "codeforlife.user.auth.backends.GoogleBackend",
 ]
 
 # Sessions
