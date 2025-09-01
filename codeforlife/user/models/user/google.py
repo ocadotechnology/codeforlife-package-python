@@ -41,8 +41,7 @@ class GoogleUserManager(ContactableUserManager[AnyUser], t.Generic[AnyUser]):
             headers={"Authorization": auth_header},
             timeout=10,
         )
-        if not response.ok:
-            raise HTTPError(response.json())
+        response.raise_for_status()
 
         user_data: JsonDict = response.json()
         email = t.cast(str, user_data["email"]).lower()
