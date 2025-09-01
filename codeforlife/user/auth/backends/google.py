@@ -11,7 +11,7 @@ from django.conf import settings
 from django.utils import timezone
 
 from ....request import HttpRequest
-from ....types import JsonDict, OAuth2TokenFromCodeDict
+from ....types import OAuth2TokenFromCodeDict
 from ...caches import GoogleOAuth2TokenCache
 from ...models import GoogleUser
 from .base import BaseBackend
@@ -60,30 +60,9 @@ class GoogleBackend(BaseBackend):
         refresh_token = token["refresh_token"]
         del token["refresh_token"]  # type: ignore[misc]
 
-        google_auth = f"{token['token_type']} {token['access_token']}"
-
-        response = requests.get(
-            url="https://www.googleapis.com/oauth2/v3/userinfo",
-            headers={"Authorization": google_auth},
-            timeout=10,
-        )
-        if not response.ok:
-            return None
-
-        user_data: JsonDict = response.json()
-        email = t.cast(str, user_data["email"]).lower()
-        email_verified = t.cast(bool, user_data["email_verified"])
-        given_name = t.cast(str, user_data["given_name"])
-        family_name = t.cast(str, user_data["family_name"])
-        sub = t.cast(str, user_data["sub"])
-
-        user = self.user_class.objects.sync(
-            email=email,
-            first_name=given_name,
-            last_name=family_name,
-            is_verified=email_verified,
-            google_refresh_token=refresh_token,
-            google_sub=sub,
+        user = self.user_class.objects.sync_or_create(
+            auth_header=f"{token['token_type']} {token['access_token']}",
+            refresh_token=refresh_token,
         )
 
         GoogleOAuth2TokenCache.set(

@@ -9,7 +9,10 @@ import typing as t
 
 from common.models import UserProfile
 from django.db.models.query import QuerySet
+from requests import HTTPError, Session
+from requests.adapters import HTTPAdapter, Retry
 
+from ....types import JsonDict
 from .contactable import ContactableUser, ContactableUserManager
 from .user import User
 
@@ -23,30 +26,53 @@ AnyUser = t.TypeVar("AnyUser", bound=User)
 
 # pylint: disable-next=missing-class-docstring,too-few-public-methods
 class GoogleUserManager(ContactableUserManager[AnyUser], t.Generic[AnyUser]):
-    # pylint: disable-next=too-many-arguments
-    def sync(  # type: ignore[override]
-        self,
-        first_name: str,
-        last_name: str,
-        email: str,
-        is_verified: bool,
-        google_refresh_token: str,
-        google_sub: str,
-    ):
-        """Sync a Google-user."""
+    def __init__(self):
+        super().__init__()
 
-        email = email.lower()
+        self.session = Session()
+        self.session.mount(
+            prefix="https://",
+            adapter=HTTPAdapter(max_retries=Retry(total=5, backoff_factor=0.1)),
+        )
+
+    def _sync(self, auth_header: str, refresh_token: t.Optional[str] = None):
+        response = self.session.get(
+            url="https://www.googleapis.com/oauth2/v3/userinfo",
+            headers={"Authorization": auth_header},
+            timeout=10,
+        )
+        if not response.ok:
+            raise HTTPError(response.json())
+
+        user_data: JsonDict = response.json()
+        email = t.cast(str, user_data["email"]).lower()
+        is_verified = t.cast(bool, user_data["email_verified"])
+        first_name = t.cast(str, user_data["given_name"])
+        last_name = t.cast(str, user_data["family_name"])
+        google_sub = t.cast(str, user_data["sub"])
 
         try:
             user = super().get(userprofile__google_sub=google_sub)
 
+            user.username = email
+            user.email = email
             user.first_name = first_name
             user.last_name = last_name
-            user.save(update_fields=["first_name", "last_name"])
+            user.save(
+                update_fields=[
+                    "username",
+                    "email",
+                    "first_name",
+                    "last_name",
+                ]
+            )
 
             user.userprofile.is_verified = is_verified
             user.userprofile.save(update_fields=["is_verified"])
-        except GoogleUser.DoesNotExist:
+        except GoogleUser.DoesNotExist as does_not_exist:
+            if not refresh_token:
+                raise does_not_exist
+
             user = super().create_user(
                 username=email,
                 email=email,
@@ -57,11 +83,26 @@ class GoogleUserManager(ContactableUserManager[AnyUser], t.Generic[AnyUser]):
             UserProfile.objects.create(
                 user=user,
                 is_verified=is_verified,
-                google_refresh_token=google_refresh_token,
+                google_refresh_token=refresh_token,
                 google_sub=google_sub,
             )
 
         return user
+
+    # pylint: disable-next=redefined-builtin
+    def sync(self, id: int):
+        """Syncs an existing Google-user."""
+        # NOTE: Avoids circular dependencies.
+        # pylint: disable-next=import-outside-toplevel
+        from ...caches import GoogleOAuth2TokenCache
+
+        return self._sync(
+            auth_header=GoogleOAuth2TokenCache.get_auth_header(id)
+        )
+
+    def sync_or_create(self, auth_header: str, refresh_token: str):
+        """Syncs an existing Google-user or creates a new one."""
+        return self._sync(auth_header=auth_header, refresh_token=refresh_token)
 
     def filter_users(self, queryset: QuerySet[User]):
         return (
@@ -84,3 +125,7 @@ class GoogleUser(ContactableUser):
     objects: GoogleUserManager[  # type: ignore[misc]
         "GoogleUser"
     ] = GoogleUserManager()  # type: ignore[assignment]
+
+    def sync(self):
+        """Syncs current user with Google."""
+        self.objects.sync(self.id)
