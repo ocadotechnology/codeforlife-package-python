@@ -9,7 +9,7 @@ import typing as t
 
 from common.models import UserProfile
 from django.db.models.query import QuerySet
-from requests import HTTPError, Session
+from requests import Session
 from requests.adapters import HTTPAdapter, Retry
 
 from ....types import JsonDict
@@ -92,7 +92,7 @@ class GoogleUserManager(ContactableUserManager[AnyUser], t.Generic[AnyUser]):
     def sync(self, id: int):
         """Syncs an existing Google-user."""
         # NOTE: Avoids circular dependencies.
-        # pylint: disable-next=import-outside-toplevel
+        # pylint: disable-next=import-outside-toplevel,cyclic-import
         from ...caches import GoogleOAuth2TokenCache
 
         return self._sync(
