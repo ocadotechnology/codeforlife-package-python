@@ -13,6 +13,7 @@ from rest_framework.response import Response
 from rest_framework.test import APIClient as _APIClient
 
 from ..types import DataDict, JsonDict
+from ..user.auth.backends import GoogleBackend
 from .api_request_factory import APIRequestFactory, BaseAPIRequestFactory
 
 # pylint: disable=duplicate-code
@@ -500,6 +501,24 @@ class APIClient(
             IndependentUser, email=email, password=password
         )
 
+    # pylint: disable-next=redefined-builtin
+    def login_google(self, id: int):
+        """Log in a user that syncs their account with Google.
+
+        Args:
+            id: The user's ID.
+
+        Returns:
+            The Google-user.
+        """
+        # pylint: disable-next=import-outside-toplevel
+        from ..user.models import GoogleUser
+
+        user = GoogleUser.objects.get(id=id)
+
+        with patch.object(GoogleBackend, "authenticate", return_value=user):
+            return self._login_user_type(GoogleUser)
+
     def login_as(self, user: "TypedUser", password: str = "password"):
         """Log in as a user. The user instance needs to be a user proxy in order
         to know which credentials are required.
@@ -511,6 +530,7 @@ class APIClient(
         # pylint: disable-next=import-outside-toplevel
         from ..user.models import (
             AdminSchoolTeacherUser,
+            GoogleUser,
             IndependentUser,
             NonAdminSchoolTeacherUser,
             NonSchoolTeacherUser,
@@ -541,5 +561,7 @@ class APIClient(
             )
         elif isinstance(user, IndependentUser):
             auth_user = self.login_indy(user.email, password)
+        elif isinstance(user, GoogleUser):
+            auth_user = self.login_google(user.id)
 
         assert user == auth_user

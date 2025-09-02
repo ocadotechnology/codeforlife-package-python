@@ -6,6 +6,7 @@ Custom Request which hints to our custom types.
 """
 
 import typing as t
+from functools import cached_property
 
 from django.contrib.auth.models import AbstractBaseUser, AnonymousUser
 from django.contrib.sessions.backends.db import SessionStore as DBStore
@@ -83,7 +84,7 @@ class Request(BaseRequest["SessionStore", AnyUser], t.Generic[AnyUser]):
         self._user = value
         self._request.user = value
 
-    @property
+    @cached_property
     def teacher_user(self):
         """The authenticated teacher-user that made the request."""
         # pylint: disable-next=import-outside-toplevel
@@ -91,7 +92,7 @@ class Request(BaseRequest["SessionStore", AnyUser], t.Generic[AnyUser]):
 
         return self.auth_user.as_type(TeacherUser)
 
-    @property
+    @cached_property
     def school_teacher_user(self):
         """The authenticated school-teacher-user that made the request."""
         # pylint: disable-next=import-outside-toplevel
@@ -99,7 +100,7 @@ class Request(BaseRequest["SessionStore", AnyUser], t.Generic[AnyUser]):
 
         return self.auth_user.as_type(SchoolTeacherUser)
 
-    @property
+    @cached_property
     def admin_school_teacher_user(self):
         """The authenticated admin-school-teacher-user that made the request."""
         # pylint: disable-next=import-outside-toplevel
@@ -107,7 +108,7 @@ class Request(BaseRequest["SessionStore", AnyUser], t.Generic[AnyUser]):
 
         return self.auth_user.as_type(AdminSchoolTeacherUser)
 
-    @property
+    @cached_property
     def non_admin_school_teacher_user(self):
         """
         The authenticated non-admin-school-teacher-user that made the request.
@@ -117,7 +118,7 @@ class Request(BaseRequest["SessionStore", AnyUser], t.Generic[AnyUser]):
 
         return self.auth_user.as_type(NonAdminSchoolTeacherUser)
 
-    @property
+    @cached_property
     def non_school_teacher_user(self):
         """The authenticated non-school-teacher-user that made the request."""
         # pylint: disable-next=import-outside-toplevel
@@ -125,7 +126,7 @@ class Request(BaseRequest["SessionStore", AnyUser], t.Generic[AnyUser]):
 
         return self.auth_user.as_type(NonSchoolTeacherUser)
 
-    @property
+    @cached_property
     def student_user(self):
         """The authenticated student-user that made the request."""
         # pylint: disable-next=import-outside-toplevel
@@ -133,7 +134,7 @@ class Request(BaseRequest["SessionStore", AnyUser], t.Generic[AnyUser]):
 
         return self.auth_user.as_type(StudentUser)
 
-    @property
+    @cached_property
     def indy_user(self):
         """The authenticated independent-user that made the request."""
         # pylint: disable-next=import-outside-toplevel
@@ -141,7 +142,7 @@ class Request(BaseRequest["SessionStore", AnyUser], t.Generic[AnyUser]):
 
         return self.auth_user.as_type(IndependentUser)
 
-    @property
+    @cached_property
     def google_user(self):
         """The authenticated Google-user that made the request."""
         # pylint: disable-next=import-outside-toplevel

@@ -44,6 +44,7 @@ TypedUser = t.Union[
     NonSchoolTeacherUser,
     StudentUser,
     IndependentUser,
+    GoogleUser,
 ]
 
 AnyTypedUser = t.TypeVar("AnyTypedUser", bound=TypedUser)

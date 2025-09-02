@@ -51,7 +51,7 @@ class GoogleUserManager(ContactableUserManager[AnyUser], t.Generic[AnyUser]):
         google_sub = t.cast(str, user_data["sub"])
 
         try:
-            user = super().get(userprofile__google_sub=google_sub)
+            user = self.get(userprofile__google_sub=google_sub)
 
             user.username = email
             user.email = email
@@ -72,7 +72,7 @@ class GoogleUserManager(ContactableUserManager[AnyUser], t.Generic[AnyUser]):
             if not refresh_token:
                 raise does_not_exist
 
-            user = super().create_user(
+            user = self.create_user(
                 username=email,
                 email=email,
                 first_name=first_name,
@@ -127,4 +127,5 @@ class GoogleUser(ContactableUser):
 
     def sync(self):
         """Syncs current user with Google."""
-        self.objects.sync(self.id)
+        GoogleUser.objects.sync(self.id)
+        self.refresh_from_db()
