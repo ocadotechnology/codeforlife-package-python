@@ -7,7 +7,7 @@ Created on 12/12/2023 at 13:55:22(+00:00).
 import typing as t
 
 from ...permissions import IsAuthenticated
-from ..models import User
+from ..models import TeacherUser, User
 
 
 class IsTeacher(IsAuthenticated):
@@ -47,12 +47,16 @@ class IsTeacher(IsAuthenticated):
 
     def has_permission(self, request, view):
         user = request.user
+        if (
+            not super().has_permission(request, view)
+            or not isinstance(user, User)
+            or not TeacherUser.objects.filter(id=user.id).exists()
+        ):
+            return False
+
+        user = user.as_type(TeacherUser)
         return (
-            super().has_permission(request, view)
-            and isinstance(user, User)
-            and user.student is None
-            and user.teacher is not None
-            and (
+            (
                 self.in_school is None
                 or (self.in_school and user.teacher.school_id is not None)
                 or (not self.in_school and user.teacher.school_id is None)

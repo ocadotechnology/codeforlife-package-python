@@ -140,3 +140,11 @@ class Request(BaseRequest["SessionStore", AnyUser], t.Generic[AnyUser]):
         from ..user.models import IndependentUser
 
         return self.auth_user.as_type(IndependentUser)
+
+    @property
+    def google_user(self):
+        """The authenticated Google-user that made the request."""
+        # pylint: disable-next=import-outside-toplevel
+        from ..user.models import GoogleUser
+
+        return self.auth_user.as_type(GoogleUser)

@@ -1,20 +1,19 @@
-# pylint: disable=duplicate-code
 """
 © Ocado Group
-Created on 12/12/2023 at 13:55:40(+00:00).
+Created on 02/09/2025 at 10:48:07(+01:00).
 """
 
 from ...permissions import IsAuthenticated
-from ..models import StudentUser, User
+from ..models import GoogleUser, User
 
 
-class IsStudent(IsAuthenticated):
-    """Request's user must be a student."""
+class SyncedWithGoogle(IsAuthenticated):
+    """Request's user must be synced with Google."""
 
     def has_permission(self, request, view):
         user = request.user
         return (
             super().has_permission(request, view)
             and isinstance(user, User)
-            and StudentUser.objects.filter(id=user.id).exists()
+            and GoogleUser.objects.filter(id=user.id).exists()
         )
