@@ -173,6 +173,15 @@ class User(_AbstractBaseUser, _User):
             ]
         )
 
+        self.userprofile.google_refresh_token = None
+        self.userprofile.google_sub = None
+        self.userprofile.save(
+            update_fields=[
+                "google_refresh_token",
+                "google_sub",
+            ]
+        )
+
 
 AnyUser = t.TypeVar("AnyUser", bound=User)
 

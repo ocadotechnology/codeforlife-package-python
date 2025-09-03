@@ -7,7 +7,7 @@ Created on 12/12/2023 at 13:55:47(+00:00).
 import typing as t
 
 from ...permissions import IsAuthenticated
-from ..models import User
+from ..models import IndependentUser, User
 
 
 class IsIndependent(IsAuthenticated):
@@ -31,21 +31,22 @@ class IsIndependent(IsAuthenticated):
 
     def has_permission(self, request, view):
         user = request.user
+        if (
+            not super().has_permission(request, view)
+            or not isinstance(user, User)
+            or not IndependentUser.objects.filter(id=user.id).exists()
+        ):
+            return False
+
+        user = user.as_type(IndependentUser)
         return (
-            super().has_permission(request, view)
-            and isinstance(user, User)
-            and user.teacher is None
-            and user.student is not None
-            and user.student.class_field is None
-            and (
-                self.is_requesting_to_join_class is None
-                or (
-                    self.is_requesting_to_join_class
-                    and user.student.pending_class_request is not None
-                )
-                or (
-                    not self.is_requesting_to_join_class
-                    and user.student.pending_class_request is None
-                )
+            self.is_requesting_to_join_class is None
+            or (
+                self.is_requesting_to_join_class
+                and user.student.pending_class_request is not None
+            )
+            or (
+                not self.is_requesting_to_join_class
+                and user.student.pending_class_request is None
             )
         )
