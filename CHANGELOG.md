@@ -1,6 +1,25 @@
 # CHANGELOG
 
 
+## v0.29.1 (2025-09-03)
+
+### Bug Fixes
+
+- Portal backend 404
+  ([#167](https://github.com/ocadotechnology/codeforlife-package-python/pull/167),
+  [`a1a3d26`](https://github.com/ocadotechnology/codeforlife-package-python/commit/a1a3d266500b8639e03ffbdf91b5e7892884970e))
+
+* fix: google user
+
+* house keeping
+
+* fix linting errors
+
+* dix permission and request
+
+* support google users
+
+
 ## v0.29.0 (2025-08-15)
 
 ### Features
