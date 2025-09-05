@@ -7,7 +7,7 @@ name = "pypi"
 celery = {version = "==5.4.0", extras = ["sqs"]}
 cryptography = "==44.0.1"
 boto3 = "==1.36.14"
-django = "==5.1.10"
+django = "==5.1.12"
 djangorestframework = "==3.16.0"
 django-filter = "==25.1"
 django-countries = "==7.6.1"
@@ -21,7 +21,7 @@ python-dotenv = "==1.0.1"
 psycopg2-binary = "==2.9.9"
 redis = {version = "==5.2.1", extras = ["hiredis"]}
 regex = "==2024.11.6"
-requests = "==2.32.4"
+requests = "==2.32.5"
 gunicorn = "==23.0.0"
 uvicorn-worker = "==0.2.0"
 pyjwt = "==2.6.0" # TODO: upgrade to latest version.
@@ -30,9 +30,9 @@ importlib-metadata = "==4.13.0" # TODO: remove. needed by old portal
 django-formtools = "==2.5.1" # TODO: remove. needed by old portal
 django-otp = "==1.6.1" # TODO: remove. needed by old portal
 # https://pypi.org/user/codeforlife/
-cfl-common = "==8.8.2" # TODO: remove
-codeforlife-portal = "==8.8.2" # TODO: remove
-rapid-router = "==7.5.21" # TODO: remove
+cfl-common = "==8.9.5" # TODO: remove
+codeforlife-portal = "==8.9.5" # TODO: remove
+rapid-router = "==7.6.4" # TODO: remove
 phonenumbers = "==8.12.12" # TODO: remove
 
 [dev-packages]
