@@ -3,7 +3,7 @@
     "-n=auto",
     "--cov=.",
     "--cov-report=html",
-    "-c=/codeforlife-workspace/configs/backend/pyproject.toml",
+    "-c=/workspace/backend/pyproject.toml",
     "."
   ]
 }
