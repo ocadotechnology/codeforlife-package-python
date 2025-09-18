@@ -43,7 +43,7 @@ jobs:
       CONFIG: releaserc.toml
     steps:
       - name: 🛫 Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           token: ${{ secrets.CFL_BOT_GH_TOKEN }}
           fetch-depth: 0
