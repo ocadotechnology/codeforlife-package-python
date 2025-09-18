@@ -5,6 +5,8 @@ Created on 11/12/2023 at 10:59:40(+00:00).
 Set up the Code for Life package during installation.
 """
 
+# isort:skip_file
+
 import json
 import os
 import typing as t
