@@ -2207,7 +2207,6 @@
                 "sha256:9a9d305af1eebf246b6d6195bf88902ff553fe5aa0a78e5f517817875339f5e4",
                 "sha256:eacf15c9164e56ecb86a76152adb414cf8f7f22b46cd80a843f6b7ef41a1cd8f"
             ],
-            "markers": "python_version >= '3.8'",
             "version": "==1.38.44"
         },
         "mypy-boto3-sqs": {
