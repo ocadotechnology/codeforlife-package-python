@@ -118,7 +118,7 @@ def shared_task__save_value_query_set_to_csv_in_gcs_bucket(
             # Upload CSV to GCS bucket.
 
         name = kwargs.pop("name", None)
-        name = get_task_name(name if isinstance(name, str) else task)
+        name = get_task_name(name if isinstance(name, str) else get_query_set)
 
         return _shared_task(
             *args,
