@@ -6,16 +6,19 @@ Custom utilities for Celery tasks.
 """
 
 import logging
+import re
 import typing as t
 
 from celery import shared_task as _shared_task
 from celery.exceptions import SoftTimeLimitExceeded
 from django.conf import settings
-from django.db.models.query import QuerySet, ValuesQuerySet
-from google.auth import default, impersonated_credentials
+from django.db.models.query import QuerySet
+from django.utils import timezone
+from google.auth import impersonated_credentials  # default
 from google.cloud import storage  # type: ignore[import-untyped]
 
 _BQ_TABLE_NAMES: t.Set[str] = set()
+BQ_CSV_DATETIME_FORMAT = "%Y-%m-%d_%H:%M:%S"
 
 
 def get_task_name(task: t.Union[str, t.Callable]):
@@ -52,6 +55,7 @@ def shared_task(*args, **kwargs):
     return wrapper
 
 
+# pylint: disable-next=too-many-arguments,too-many-statements
 def save_query_set_to_csv_in_gcs_bucket(
     *args,
     bq_table_name: str,
@@ -104,13 +108,19 @@ def save_query_set_to_csv_in_gcs_bucket(
     _BQ_TABLE_NAMES.add(bq_table_name)
     chunk_size_digits = len(str(chunk_size))
 
-    def wrapper(
-        get_query_set: t.Callable[..., QuerySet[t.Any, t.Tuple[t.Any, ...]]]
-    ):
+    def wrapper(get_query_set: t.Callable[..., QuerySet[t.Any]]):
         def task(*task_args, **task_kwargs):
+            # Get the current datetime.
+            now = timezone.now()
+
+            # Get the queryset and ensure it has values.
             query_set = get_query_set(*task_args, **task_kwargs)
             if query_set.count() == 0:
                 return
+
+            # If the queryset is not ordered, order it by ID by default.
+            if not query_set.ordered:
+                query_set = query_set.order_by("id")
 
             # Get the default credentials from the environment (Workload Identity Federation)
             # These are the short-lived credentials from the AWS IAM role.
@@ -136,31 +146,93 @@ def save_query_set_to_csv_in_gcs_bucket(
                 settings.GOOGLE_CLOUD_STORAGE_BUCKET_NAME
             )
 
-            # bucket.list_blobs(prefix=f"{bq_table_name}/")
+            # List all the existing blobs.
+            blobs = t.cast(
+                t.Iterator[storage.Blob],
+                bucket.list_blobs(prefix=f"{bq_table_name}/"),
+            )
 
-            # Track the current value-index and CSV.
-            value_index, csv = 0, ""
+            # If appending values, continue where we left off.
+            if bq_table_write_mode == "append":
+                last_blob: t.Optional[storage.Blob] = None
+                for blob in blobs:
+                    last_blob = blob
 
-            def upload_csv():
-                chunk_end = str(value_index)
-                if value_index == chunk_size:
-                    chunk_start = "1".zfill(chunk_size_digits)
-                elif value_index < chunk_size:
-                    chunk_start = "1".zfill(chunk_size_digits)
-                    chunk_end = chunk_end.zfill(chunk_size_digits)
-                else:  # value_index > chunk_size
-                    chunk_start = str(value_index - chunk_size)
+                if last_blob is not None:
+                    last_blob_name = t.cast(str, last_blob.name)
+                    name_match = re.match(
+                        now.strftime()(r"" r"_[0-9]+_[0-9]+" r"\.csv"),
+                        last_blob_name,
+                    )
+                    if not name_match:
+                        raise NameError("Failed to matcxh ")
 
-                csv_path = f"{bq_table_name}/{chunk_start}_{chunk_end}.csv"
-                logging.info(f"Uploading {csv_path} to bucket.")
+                    offset = 0
+                    query_set = query_set[offset:]
 
-                # Create a blob object for the destination path.
-                blob = bucket.blob(csv_path)
-                blob.upload_from_string(csv, content_type="text/csv")
+            # Else overwriting values - delete all previous values.
+            else:  # bq_table_write_mode == "overwrite"
+                for blob in blobs:
+                    logging.info('Deleting blob "%s"', blob.name)
+                    blob.delete()
+
+            if bq_table_write_mode == "append":
+                # Track the current value-index and CSV.
+                value_index, csv = 0, ""
+
+                last_run_at = now  # TODO: get real value from DB.
+
+                def upload_csv():
+                    chunk_end = str(value_index)
+                    if value_index == chunk_size:
+                        chunk_start = "1".zfill(chunk_size_digits)
+                    elif value_index < chunk_size:
+                        chunk_start = "1".zfill(chunk_size_digits)
+                        chunk_end = chunk_end.zfill(chunk_size_digits)
+                    else:  # value_index > chunk_size
+                        chunk_start = str(value_index - chunk_size)
+
+                    csv_path = (
+                        f"{bq_table_name}/"
+                        + "_".join(
+                            [
+                                last_run_at.strftime(BQ_CSV_DATETIME_FORMAT),
+                                now.strftime(BQ_CSV_DATETIME_FORMAT),
+                                chunk_start,
+                                chunk_end,
+                            ]
+                        )
+                        + ".csv"
+                    )
+                    logging.info("Uploading %s to bucket.", csv_path)
+
+                    # Create a blob object for the destination path.
+                    blob = bucket.blob(csv_path)
+                    blob.upload_from_string(csv, content_type="text/csv")
+
+                for value_index, values in enumerate(
+                    t.cast(
+                        t.Iterator[t.Tuple[t.Any, ...]],
+                        query_set.values_list(*fields).iterator(
+                            chunk_size=chunk_size
+                        ),
+                    )
+                ):
+                    if value_index % chunk_size == 0:
+                        if value_index != 0:
+                            upload_csv()
+
+                        csv = ",".join(fields)
+                    csv += "\n" + ",".join(values)
+
+                if value_index != 0 and value_index % chunk_size != 0:
+                    upload_csv()
+            else:  # bq_table_write_mode == "overwrite"
+                pass
 
             for value_index, values in enumerate(
                 t.cast(
-                    ValuesQuerySet[t.Any, t.Tuple[t.Any, ...]],
+                    "ValuesQuerySet[t.Any, t.Tuple[t.Any, ...]]",
                     query_set.values_list(*fields),
                 ).iterator(chunk_size=chunk_size)
             ):
