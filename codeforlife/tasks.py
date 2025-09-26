@@ -19,9 +19,6 @@ from google.auth import impersonated_credentials  # default
 from google.cloud import storage  # type: ignore[import-untyped]
 
 _BQ_TABLE_NAMES: t.Set[str] = set()
-BQ_CSV_NAME_DATETIME_FORMAT = "%Y-%m-%d_%H:%M:%S"
-# pylint: disable-next=line-too-long
-BQ_CSV_NAME_PATTERN = r"^\d{4}-\d{2}-\d{2}_\d{2}:\d{2}:\d{2}_\d{4}-\d{2}-\d{2}_\d{2}:\d{2}:\d{2}__\d+_\d+\.csv$"
 
 
 def get_task_name(task: t.Union[str, t.Callable]):
@@ -141,8 +138,10 @@ def save_query_set_to_csv_in_gcs_bucket(
 
         if bq_table_write_mode == "append":
 
+            blob_prefix_includes_datetime_range = True
+
             def handle_bq_table_write_mode(
-                now: datetime,
+                datetime_range: str,
                 query_set: QuerySet[t.Any],
                 blobs: t.Iterator[storage.Blob],
             ):
@@ -152,42 +151,25 @@ def save_query_set_to_csv_in_gcs_bucket(
                     last_blob = blob
 
                 if last_blob is not None:
-                    last_blob_name = t.cast(str, last_blob.name)
-                    name_match = re.match(BQ_CSV_NAME_PATTERN, last_blob_name)
+                    name_match = re.match(
+                        rf"^{datetime_range}__\d+_\d+\.csv$",
+                        t.cast(str, last_blob.name),
+                    )
                     if not name_match:
-                        raise NameError("Failed to matcxh ")
+                        raise NameError("Failed to match the")
 
                     offset = 0
                     query_set = query_set[offset:]
 
-                last_run_at = now  # TODO: get real value from DB.
-
-                def get_csv_name(object_index: int):
-                    chunk_end = str(object_index)
-                    if object_index == chunk_size:
-                        chunk_start = "1".zfill(chunk_size_digits)
-                    elif object_index < chunk_size:
-                        chunk_start = "1".zfill(chunk_size_digits)
-                        chunk_end = chunk_end.zfill(chunk_size_digits)
-                    else:  # object_index > chunk_size
-                        chunk_start = str(object_index - chunk_size)
-
-                    return (
-                        last_run_at.strftime(BQ_CSV_NAME_DATETIME_FORMAT)
-                        + "_"
-                        + now.strftime(BQ_CSV_NAME_DATETIME_FORMAT)
-                        + "__"
-                        + chunk_start
-                        + "_"
-                        + chunk_end
-                    )
-
-                return query_set, get_csv_name
+                return query_set
 
         else:  # bq_table_write_mode == "overwrite":
 
+            blob_prefix_includes_datetime_range = False
+
             def handle_bq_table_write_mode(
-                now: datetime,
+                # pylint: disable-next=unused-argument
+                datetime_range: str,
                 query_set: QuerySet[t.Any],
                 blobs: t.Iterator[storage.Blob],
             ):
@@ -196,10 +178,7 @@ def save_query_set_to_csv_in_gcs_bucket(
                     logging.info('Deleting blob "%s"', blob.name)
                     blob.delete()
 
-                def get_csv_name(object_index: int):
-                    return ""  # TODO
-
-                return query_set, get_csv_name
+                return query_set
 
         def task(*task_args, **task_kwargs):
             # Get the current datetime.
@@ -209,6 +188,17 @@ def save_query_set_to_csv_in_gcs_bucket(
             query_set = get_query_set(*task_args, **task_kwargs)
             if query_set.count() == 0:
                 return
+
+            # Get the last time this task successfully ran.
+            last_run_at = now  # TODO: get real value from DB.
+
+            # Get the range between the last run and now as a formatted string.
+            datetime_format = "%Y-%m-%dT%H:%M:%S"
+            datetime_range = (
+                last_run_at.strftime(datetime_format)
+                + "_"
+                + now.strftime(datetime_format)
+            )
 
             # If the queryset is not ordered, order it by ID by default.
             if not query_set.ordered:
@@ -241,22 +231,51 @@ def save_query_set_to_csv_in_gcs_bucket(
             )
 
             # List all the existing blobs.
+            blob_prefix = bq_table_folder
+            if blob_prefix_includes_datetime_range:
+                blob_prefix += datetime_range
             blobs = t.cast(
                 t.Iterator[storage.Blob],
-                bucket.list_blobs(prefix=bq_table_folder),
+                bucket.list_blobs(prefix=blob_prefix),
             )
 
-            query_set, get_csv_name = handle_bq_table_write_mode(
-                now, query_set, blobs
+            query_set = handle_bq_table_write_mode(
+                datetime_range, query_set, blobs
             )
 
+            # Check if there are any values in the queryset.
+            if query_set.count() == 0:
+                return
+
+            # Track the index of the current object and the current csv content.
             object_index, csv = -1, ""
 
+            # Uploads the current CSV file to the GCS bucket.
             def upload_csv():
-                csv_path = bq_table_folder + get_csv_name(object_index) + ".csv"
+                # Calculate the current chunk's start and end range.
+                chunk_end = str(object_index)
+                if object_index == chunk_size:
+                    chunk_start = "1".zfill(chunk_size_digits)
+                elif object_index < chunk_size:
+                    chunk_start = "1".zfill(chunk_size_digits)
+                    chunk_end = chunk_end.zfill(chunk_size_digits)
+                else:  # object_index > chunk_size
+                    chunk_start = str(object_index - chunk_size)
+
+                # Generate the name of the current CSV file based on the
+                # datetime range and chunk range.
+                csv_path = (
+                    bq_table_folder
+                    + datetime_range
+                    + "__"
+                    + chunk_start
+                    + "_"
+                    + chunk_end
+                    + ".csv"
+                )
                 logging.info("Uploading %s to bucket.", csv_path)
 
-                # Create a blob object for the destination path.
+                # Create a blob object for the CSV file's path and upload it.
                 blob = bucket.blob(csv_path)
                 blob.upload_from_string(csv, content_type="text/csv")
 
