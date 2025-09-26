@@ -8,6 +8,7 @@ Custom utilities for Celery tasks.
 import logging
 import re
 import typing as t
+from datetime import datetime
 
 from celery import shared_task as _shared_task
 from celery.exceptions import SoftTimeLimitExceeded
@@ -18,7 +19,9 @@ from google.auth import impersonated_credentials  # default
 from google.cloud import storage  # type: ignore[import-untyped]
 
 _BQ_TABLE_NAMES: t.Set[str] = set()
-BQ_CSV_DATETIME_FORMAT = "%Y-%m-%d_%H:%M:%S"
+BQ_CSV_NAME_DATETIME_FORMAT = "%Y-%m-%d_%H:%M:%S"
+# pylint: disable-next=line-too-long
+BQ_CSV_NAME_PATTERN = r"^\d{4}-\d{2}-\d{2}_\d{2}:\d{2}:\d{2}_\d{4}-\d{2}-\d{2}_\d{2}:\d{2}:\d{2}__\d+_\d+\.csv$"
 
 
 def get_task_name(task: t.Union[str, t.Callable]):
@@ -58,12 +61,12 @@ def shared_task(*args, **kwargs):
 # pylint: disable-next=too-many-arguments,too-many-statements
 def save_query_set_to_csv_in_gcs_bucket(
     *args,
-    bq_table_name: str,
     bq_table_write_mode: t.Literal["overwrite", "append"],
     chunk_size: int,
     fields: t.List[str],
     time_limit: int = 3600,
     soft_time_limit: int = 3570,
+    bq_table_name: t.Optional[str] = None,
     **kwargs,
 ):
     # pylint: disable=line-too-long
@@ -73,13 +76,24 @@ def save_query_set_to_csv_in_gcs_bucket(
     from the GCS bucket. Each task should be given a distinct table name and
     queryset.
 
+    Example:
+        ```
+        @save_query_set_to_csv_in_gcs_bucket(
+            bq_table_write_mode="append",
+            chunk_size=1000,
+            fields=["first_name", "joined_at", "is_active"],
+        )
+        def user(): # CSVs will be saved to a BQ table named "user"
+            return User.objects.all()
+        ```
+
     Args:
-        bq_table_name: The name of the BigQuery table where these CSV will ultimately be imported into.
         bq_table_write_mode: How the new values are written to the BigQuery table.
         chunk_size: The number of value-rows per CSV.
         fields: The model-fields to include in the CSV.
         time_limit: The maximum amount of time this task is allowed to take before it's hard-killed.
         soft_time_limit: The maximum amount of time this task is allowed to take before it's soft-killed.
+        bq_table_name: The name of the BigQuery table where these CSV will ultimately be imported into. If not provided, the name of the decorated function will be used instead.
 
     Returns:
         A wrapper function which expects to receive a callback that returns a
@@ -88,27 +102,105 @@ def save_query_set_to_csv_in_gcs_bucket(
     """
     # pylint: enable=line-too-long
 
-    if not bq_table_name:
-        raise ValueError("A blank BigQuery table names is not allowed.")
-    if bq_table_name in _BQ_TABLE_NAMES:
-        raise ValueError(
-            f'The BigQuery table name "{bq_table_name}" is already registered.'
-        )
+    # Validate args.
     if chunk_size <= 0:
-        raise ValueError("The chunk size must be greater than 0.")
+        raise ValueError("The chunk size must be > 0.")
     if not fields:
-        raise ValueError("Must provide at least 1 or more model fields.")
+        raise ValueError("Must provide at least 1 field.")
+    if len(fields) != len(set(fields)):
+        raise ValueError("Fields must be unique.")
     if time_limit <= 0:
-        raise ValueError("The time limit must be greater than 0.")
-    if soft_time_limit > time_limit:
-        raise ValueError("The soft time limit must be less than or equal to 0.")
+        raise ValueError("The time limit must be > 0.")
+    if time_limit > 3600:
+        raise ValueError("The time limit must be <= 3600 (1 hour).")
     if soft_time_limit <= 0:
-        raise ValueError("The soft time limit must be greater than 0.")
+        raise ValueError("The soft time limit must be > 0.")
+    if soft_time_limit > time_limit:
+        raise ValueError("The soft time limit must be <= the time limit.")
 
-    _BQ_TABLE_NAMES.add(bq_table_name)
+    # Count the number of digits in the chunk size number.
     chunk_size_digits = len(str(chunk_size))
 
+    # Ensure the ID field is always present.
+    if "id" not in fields:
+        fields.append("id")
+
+    # pylint: disable-next=too-many-statements
     def wrapper(get_query_set: t.Callable[..., QuerySet[t.Any]]):
+        # Get BigQuery table name and validate it's not already registered.
+        _bq_table_name = bq_table_name or get_query_set.__name__
+        if _bq_table_name in _BQ_TABLE_NAMES:
+            raise ValueError(
+                f'The BigQuery table name "{_bq_table_name}" is already'
+                "registered."
+            )
+        _BQ_TABLE_NAMES.add(_bq_table_name)
+
+        # Prefix all CSV files with a folder named after the BiqQuery table.
+        bq_table_folder = f"{_bq_table_name}/"
+
+        if bq_table_write_mode == "append":
+
+            def handle_bq_table_write_mode(
+                now: datetime,
+                query_set: QuerySet[t.Any],
+                blobs: t.Iterator[storage.Blob],
+            ):
+                # Continue where we left off.
+                last_blob: t.Optional[storage.Blob] = None
+                for blob in blobs:
+                    last_blob = blob
+
+                if last_blob is not None:
+                    last_blob_name = t.cast(str, last_blob.name)
+                    name_match = re.match(BQ_CSV_NAME_PATTERN, last_blob_name)
+                    if not name_match:
+                        raise NameError("Failed to matcxh ")
+
+                    offset = 0
+                    query_set = query_set[offset:]
+
+                last_run_at = now  # TODO: get real value from DB.
+
+                def get_csv_name(object_index: int):
+                    chunk_end = str(object_index)
+                    if object_index == chunk_size:
+                        chunk_start = "1".zfill(chunk_size_digits)
+                    elif object_index < chunk_size:
+                        chunk_start = "1".zfill(chunk_size_digits)
+                        chunk_end = chunk_end.zfill(chunk_size_digits)
+                    else:  # object_index > chunk_size
+                        chunk_start = str(object_index - chunk_size)
+
+                    return (
+                        last_run_at.strftime(BQ_CSV_NAME_DATETIME_FORMAT)
+                        + "_"
+                        + now.strftime(BQ_CSV_NAME_DATETIME_FORMAT)
+                        + "__"
+                        + chunk_start
+                        + "_"
+                        + chunk_end
+                    )
+
+                return query_set, get_csv_name
+
+        else:  # bq_table_write_mode == "overwrite":
+
+            def handle_bq_table_write_mode(
+                now: datetime,
+                query_set: QuerySet[t.Any],
+                blobs: t.Iterator[storage.Blob],
+            ):
+                # Delete all previous values
+                for blob in blobs:
+                    logging.info('Deleting blob "%s"', blob.name)
+                    blob.delete()
+
+                def get_csv_name(object_index: int):
+                    return ""  # TODO
+
+                return query_set, get_csv_name
+
         def task(*task_args, **task_kwargs):
             # Get the current datetime.
             now = timezone.now()
@@ -127,21 +219,23 @@ def save_query_set_to_csv_in_gcs_bucket(
             # creds, _ = default()
 
             # Create the impersonated credentials object
-            impersonated_creds = impersonated_credentials.Credentials(
-                # source_credentials=creds,
-                target_principal=(
-                    settings.GOOGLE_CLOUD_STORAGE_SERVICE_ACCOUNT_NAME
-                ),
-                # https://cloud.google.com/storage/docs/oauth-scopes
-                target_scopes=[
-                    "https://www.googleapis.com/auth/devstorage.full_control"
-                ],
-                # The lifetime of the impersonated credentials in seconds.
-                lifetime=time_limit,
-            )
+            # impersonated_creds = impersonated_credentials.Credentials(
+            #     source_credentials=creds,
+            #     target_principal=(
+            #         settings.GOOGLE_CLOUD_STORAGE_SERVICE_ACCOUNT_NAME
+            #     ),
+            #     # https://cloud.google.com/storage/docs/oauth-scopes
+            #     target_scopes=[
+            #         "https://www.googleapis.com/auth/devstorage.full_control"
+            #     ],
+            #     # The lifetime of the impersonated credentials in seconds.
+            #     lifetime=time_limit,
+            # )
 
             # Create a client with the impersonated credentials.
-            storage_client = storage.Client(credentials=impersonated_creds)
+            storage_client = (
+                storage.Client()
+            )  # (credentials=impersonated_creds)
             bucket = storage_client.bucket(
                 settings.GOOGLE_CLOUD_STORAGE_BUCKET_NAME
             )
@@ -149,101 +243,42 @@ def save_query_set_to_csv_in_gcs_bucket(
             # List all the existing blobs.
             blobs = t.cast(
                 t.Iterator[storage.Blob],
-                bucket.list_blobs(prefix=f"{bq_table_name}/"),
+                bucket.list_blobs(prefix=bq_table_folder),
             )
 
-            # If appending values, continue where we left off.
-            if bq_table_write_mode == "append":
-                last_blob: t.Optional[storage.Blob] = None
-                for blob in blobs:
-                    last_blob = blob
+            query_set, get_csv_name = handle_bq_table_write_mode(
+                now, query_set, blobs
+            )
 
-                if last_blob is not None:
-                    last_blob_name = t.cast(str, last_blob.name)
-                    name_match = re.match(
-                        now.strftime()(r"" r"_[0-9]+_[0-9]+" r"\.csv"),
-                        last_blob_name,
-                    )
-                    if not name_match:
-                        raise NameError("Failed to matcxh ")
+            object_index, csv = -1, ""
 
-                    offset = 0
-                    query_set = query_set[offset:]
+            def upload_csv():
+                csv_path = bq_table_folder + get_csv_name(object_index) + ".csv"
+                logging.info("Uploading %s to bucket.", csv_path)
 
-            # Else overwriting values - delete all previous values.
-            else:  # bq_table_write_mode == "overwrite"
-                for blob in blobs:
-                    logging.info('Deleting blob "%s"', blob.name)
-                    blob.delete()
+                # Create a blob object for the destination path.
+                blob = bucket.blob(csv_path)
+                blob.upload_from_string(csv, content_type="text/csv")
 
-            if bq_table_write_mode == "append":
-                # Track the current value-index and CSV.
-                value_index, csv = 0, ""
-
-                last_run_at = now  # TODO: get real value from DB.
-
-                def upload_csv():
-                    chunk_end = str(value_index)
-                    if value_index == chunk_size:
-                        chunk_start = "1".zfill(chunk_size_digits)
-                    elif value_index < chunk_size:
-                        chunk_start = "1".zfill(chunk_size_digits)
-                        chunk_end = chunk_end.zfill(chunk_size_digits)
-                    else:  # value_index > chunk_size
-                        chunk_start = str(value_index - chunk_size)
-
-                    csv_path = (
-                        f"{bq_table_name}/"
-                        + "_".join(
-                            [
-                                last_run_at.strftime(BQ_CSV_DATETIME_FORMAT),
-                                now.strftime(BQ_CSV_DATETIME_FORMAT),
-                                chunk_start,
-                                chunk_end,
-                            ]
-                        )
-                        + ".csv"
-                    )
-                    logging.info("Uploading %s to bucket.", csv_path)
-
-                    # Create a blob object for the destination path.
-                    blob = bucket.blob(csv_path)
-                    blob.upload_from_string(csv, content_type="text/csv")
-
-                for value_index, values in enumerate(
-                    t.cast(
-                        t.Iterator[t.Tuple[t.Any, ...]],
-                        query_set.values_list(*fields).iterator(
-                            chunk_size=chunk_size
-                        ),
-                    )
-                ):
-                    if value_index % chunk_size == 0:
-                        if value_index != 0:
-                            upload_csv()
-
-                        csv = ",".join(fields)
-                    csv += "\n" + ",".join(values)
-
-                if value_index != 0 and value_index % chunk_size != 0:
-                    upload_csv()
-            else:  # bq_table_write_mode == "overwrite"
-                pass
-
-            for value_index, values in enumerate(
+            for object_index, values in enumerate(
                 t.cast(
-                    "ValuesQuerySet[t.Any, t.Tuple[t.Any, ...]]",
-                    query_set.values_list(*fields),
-                ).iterator(chunk_size=chunk_size)
+                    t.Iterator[t.Tuple[t.Any, ...]],
+                    query_set.values_list(*fields).iterator(
+                        chunk_size=chunk_size
+                    ),
+                )
             ):
-                if value_index % chunk_size == 0:
-                    if value_index != 0:
+                # process_values(object_index, values)
+                if object_index % chunk_size == 0:
+                    if object_index != 0:
                         upload_csv()
 
+                    # Add 1st / headers row
                     csv = ",".join(fields)
+                # Add 2nd+ / values row
                 csv += "\n" + ",".join(values)
 
-            if value_index != 0 and value_index % chunk_size != 0:
+            if object_index != -1 and object_index % chunk_size != 0:
                 upload_csv()
 
         name = kwargs.pop("name", None)
