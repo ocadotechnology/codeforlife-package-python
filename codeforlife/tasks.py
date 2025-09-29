@@ -86,7 +86,7 @@ def save_query_set_to_csv_in_gcs_bucket(
 
     Args:
         bq_table_write_mode: How the new values are written to the BigQuery table.
-        chunk_size: The number of value-rows per CSV.
+        chunk_size: The number of value-rows per CSV. Must be a multiple of 10.
         fields: The model-fields to include in the CSV.
         time_limit: The maximum amount of time this task is allowed to take before it's hard-killed.
         soft_time_limit: The maximum amount of time this task is allowed to take before it's soft-killed.
@@ -99,11 +99,17 @@ def save_query_set_to_csv_in_gcs_bucket(
     """
     # pylint: enable=line-too-long
 
+    # Ensure the ID field is always present.
+    if "id" not in fields:
+        fields.append("id")
+
     # Validate args.
     if chunk_size <= 0:
         raise ValueError("The chunk size must be > 0.")
-    if not fields:
-        raise ValueError("Must provide at least 1 field.")
+    if chunk_size % 10 != 0:
+        raise ValueError("The chunk size must be a multiple of 10.")
+    if len(fields) <= 1:
+        raise ValueError('Must provide at least 1 field (not including "id").')
     if len(fields) != len(set(fields)):
         raise ValueError("Fields must be unique.")
     if time_limit <= 0:
@@ -117,10 +123,6 @@ def save_query_set_to_csv_in_gcs_bucket(
 
     # Count the number of digits in the chunk size number.
     chunk_size_digits = len(str(chunk_size))
-
-    # Ensure the ID field is always present.
-    if "id" not in fields:
-        fields.append("id")
 
     # pylint: disable-next=too-many-statements
     def wrapper(get_query_set: t.Callable[..., QuerySet[t.Any]]):
@@ -141,8 +143,7 @@ def save_query_set_to_csv_in_gcs_bucket(
             blob_prefix_includes_datetime_range = True
 
             def handle_bq_table_write_mode(
-                datetime_range: str,
-                query_set: QuerySet[t.Any],
+                start_datetime: str,
                 blobs: t.Iterator[storage.Blob],
             ):
                 # Continue where we left off.
@@ -152,16 +153,28 @@ def save_query_set_to_csv_in_gcs_bucket(
 
                 if last_blob is not None:
                     name_match = re.match(
-                        rf"^{datetime_range}__\d+_\d+\.csv$",
+                        rf"^{start_datetime}"
+                        + r"_(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2})"
+                        + r"__\d+_(\d+)\.csv$",
                         t.cast(str, last_blob.name),
                     )
                     if not name_match:
                         raise NameError("Failed to match the")
 
-                    offset = 0
-                    query_set = query_set[offset:]
+                    previous_end_datetime = name_match.group(1)
+                    previous_object_index = int(name_match.group(2))
 
-                return query_set
+                    logging.info(
+                        "Found chunks from previous run (%s - %s)."
+                        " Continuing from previous object index (%d).",
+                        start_datetime,
+                        previous_end_datetime,
+                        previous_object_index,
+                    )
+
+                    return previous_object_index
+
+                return 0
 
         else:  # bq_table_write_mode == "overwrite":
 
@@ -169,8 +182,7 @@ def save_query_set_to_csv_in_gcs_bucket(
 
             def handle_bq_table_write_mode(
                 # pylint: disable-next=unused-argument
-                datetime_range: str,
-                query_set: QuerySet[t.Any],
+                start_datetime: str,
                 blobs: t.Iterator[storage.Blob],
             ):
                 # Delete all previous values
@@ -178,7 +190,7 @@ def save_query_set_to_csv_in_gcs_bucket(
                     logging.info('Deleting blob "%s"', blob.name)
                     blob.delete()
 
-                return query_set
+                return 0
 
         def task(*task_args, **task_kwargs):
             # Get the current datetime.
@@ -194,11 +206,9 @@ def save_query_set_to_csv_in_gcs_bucket(
 
             # Get the range between the last run and now as a formatted string.
             datetime_format = "%Y-%m-%dT%H:%M:%S"
-            datetime_range = (
-                last_run_at.strftime(datetime_format)
-                + "_"
-                + now.strftime(datetime_format)
-            )
+            start_datetime = last_run_at.strftime(datetime_format)
+            end_datetime = now.strftime(datetime_format)
+            datetime_range = f"{start_datetime}_{end_datetime}"
 
             # If the queryset is not ordered, order it by ID by default.
             if not query_set.ordered:
@@ -239,16 +249,17 @@ def save_query_set_to_csv_in_gcs_bucket(
                 bucket.list_blobs(prefix=blob_prefix),
             )
 
-            query_set = handle_bq_table_write_mode(
-                datetime_range, query_set, blobs
-            )
+            # Get the starting object index. In case of a retry, the index will
+            # continue from the last successful upload.
+            object_index = handle_bq_table_write_mode(start_datetime, blobs)
 
             # Check if there are any values in the queryset.
+            query_set = query_set[object_index:]
             if query_set.count() == 0:
                 return
 
-            # Track the index of the current object and the current csv content.
-            object_index, csv = -1, ""
+            csv = ""  # Track content of the current CSV file.
+            csv_headers = ",".join(fields)  # Headers of each CSV file.
 
             # Uploads the current CSV file to the GCS bucket.
             def upload_csv():
@@ -279,6 +290,10 @@ def save_query_set_to_csv_in_gcs_bucket(
                 blob = bucket.blob(csv_path)
                 blob.upload_from_string(csv, content_type="text/csv")
 
+            # Iterate through the all the objects in the queryset. The objects
+            # are retrieved in chunks (no caching) to avoid OOM errors. For each
+            # object, a tuple of values is returned. The order of the values in
+            # the tuple is determined by the order of the fields.
             for object_index, values in enumerate(
                 t.cast(
                     t.Iterator[t.Tuple[t.Any, ...]],
@@ -287,19 +302,22 @@ def save_query_set_to_csv_in_gcs_bucket(
                     ),
                 )
             ):
-                # process_values(object_index, values)
+                # If we've successfully reached the end of the chunk...
                 if object_index % chunk_size == 0:
+                    # ...upload its CSV (except if it's the 1st object).
                     if object_index != 0:
                         upload_csv()
 
-                    # Add 1st / headers row
-                    csv = ",".join(fields)
-                # Add 2nd+ / values row
+                    # ...reset the CSV by adding the headers as the 1st row.
+                    csv = csv_headers
+                # Append the values on a new line.
                 csv += "\n" + ",".join(values)
 
-            if object_index != -1 and object_index % chunk_size != 0:
-                upload_csv()
+            # Upload the remaining values as a partial chunk.
+            upload_csv()
 
+        # Namespace the task with service's name. If the name is not explicitly
+        # provided, it defaults to the name of the decorated function.
         name = kwargs.pop("name", None)
         name = get_task_name(name if isinstance(name, str) else get_query_set)
 
