@@ -16,7 +16,7 @@ from django.conf import settings
 from django.db.models.query import QuerySet
 from django.utils import timezone
 from google.auth import impersonated_credentials  # default
-from google.cloud import storage  # type: ignore[import-untyped]
+from google.cloud import storage as gcs  # type: ignore[import-untyped]
 
 _BQ_TABLE_NAMES: t.Set[str] = set()
 
@@ -140,58 +140,52 @@ def save_query_set_to_csv_in_gcs_bucket(
 
         if bq_table_write_mode == "append":
 
-            blob_prefix_includes_datetime_range = True
+            only_list_blobs_after_last_run = True
 
-            def handle_bq_table_write_mode(
-                start_datetime: str,
-                blobs: t.Iterator[storage.Blob],
+            def process_blobs(
+                blobs: t.Iterator[gcs.Blob],
+                # pylint: disable-next=unused-argument
+                last_run_at_fstr: str,
             ):
-                # Continue where we left off.
-                last_blob: t.Optional[storage.Blob] = None
+                # Get the last blob (after the last run).
+                last_blob: t.Optional[gcs.Blob] = None
                 for blob in blobs:
                     last_blob = blob
 
+                # If a blob was found...
                 if last_blob is not None:
-                    name_match = re.match(
-                        rf"^{start_datetime}"
-                        + r"_(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2})"
-                        + r"__\d+_(\d+)\.csv$",
-                        t.cast(str, last_blob.name),
+                    # ...extract the object index from its name. For example:
+                    # "2025-01-01T00:00:00_2025-01-02T00:00:00__0001_1000.csv"
+                    return int(
+                        t.cast(str, last_blob.name)
+                        # "2025-01-01T00:00:00_2025-01-02T00:00:00__0001_1000"
+                        .removesuffix(".csv")
+                        # "1000"
+                        .split("_")[-1]
                     )
-                    if not name_match:
-                        raise NameError("Failed to match the")
-
-                    previous_end_datetime = name_match.group(1)
-                    previous_object_index = int(name_match.group(2))
-
-                    logging.info(
-                        "Found chunks from previous run (%s - %s)."
-                        " Continuing from previous object index (%d).",
-                        start_datetime,
-                        previous_end_datetime,
-                        previous_object_index,
-                    )
-
-                    return previous_object_index
 
                 return 0
 
         else:  # bq_table_write_mode == "overwrite":
 
-            blob_prefix_includes_datetime_range = False
+            only_list_blobs_after_last_run = False
 
-            def handle_bq_table_write_mode(
-                # pylint: disable-next=unused-argument
-                start_datetime: str,
-                blobs: t.Iterator[storage.Blob],
+            def process_blobs(
+                blobs: t.Iterator[gcs.Blob], last_run_at_fstr: str
             ):
-                # Delete all previous values
+                # Delete old blobs as we only want values from the latest run.
                 for blob in blobs:
-                    logging.info('Deleting blob "%s"', blob.name)
+                    # Stop deleting if blobs from the latest run are discovered.
+                    # This may happen in the case of a retry.
+                    if t.cast(str, blob.name).startswith(last_run_at_fstr):
+                        break
+
+                    logging.info('Deleting blob "%s".', blob.name)
                     blob.delete()
 
                 return 0
 
+        # pylint: disable-next=too-many-locals
         def task(*task_args, **task_kwargs):
             # Get the current datetime.
             now = timezone.now()
@@ -201,18 +195,17 @@ def save_query_set_to_csv_in_gcs_bucket(
             if query_set.count() == 0:
                 return
 
+            # If the queryset is not ordered, order it by ID by default.
+            if not query_set.ordered:
+                query_set = query_set.order_by("id")
+
             # Get the last time this task successfully ran.
             last_run_at = now  # TODO: get real value from DB.
 
             # Get the range between the last run and now as a formatted string.
             datetime_format = "%Y-%m-%dT%H:%M:%S"
-            start_datetime = last_run_at.strftime(datetime_format)
-            end_datetime = now.strftime(datetime_format)
-            datetime_range = f"{start_datetime}_{end_datetime}"
-
-            # If the queryset is not ordered, order it by ID by default.
-            if not query_set.ordered:
-                query_set = query_set.order_by("id")
+            last_run_at_fstr = last_run_at.strftime(datetime_format)
+            now_fstr = now.strftime(datetime_format)
 
             # Get the default credentials from the environment (Workload Identity Federation)
             # These are the short-lived credentials from the AWS IAM role.
@@ -233,30 +226,35 @@ def save_query_set_to_csv_in_gcs_bucket(
             # )
 
             # Create a client with the impersonated credentials.
-            storage_client = (
-                storage.Client()
-            )  # (credentials=impersonated_creds)
+            storage_client = gcs.Client()  # (credentials=impersonated_creds)
             bucket = storage_client.bucket(
                 settings.GOOGLE_CLOUD_STORAGE_BUCKET_NAME
             )
 
             # List all the existing blobs.
-            blob_prefix = bq_table_folder
-            if blob_prefix_includes_datetime_range:
-                blob_prefix += datetime_range
             blobs = t.cast(
-                t.Iterator[storage.Blob],
-                bucket.list_blobs(prefix=blob_prefix),
+                t.Iterator[gcs.Blob],
+                bucket.list_blobs(
+                    prefix=bq_table_folder
+                    + (
+                        last_run_at_fstr
+                        if only_list_blobs_after_last_run
+                        else ""
+                    )
+                ),
             )
 
             # Get the starting object index. In case of a retry, the index will
-            # continue from the last successful upload.
-            object_index = handle_bq_table_write_mode(start_datetime, blobs)
+            # continue from the index of the last successfully uploaded object.
+            object_index = process_blobs(blobs, last_run_at_fstr)
 
-            # Check if there are any values in the queryset.
-            query_set = query_set[object_index:]
-            if query_set.count() == 0:
-                return
+            # If the queryset is not starting with the first object, offset it
+            # and check there are still values in the queryset.
+            if object_index != 0:
+                logging.info("Offsetting queryset by %d objects.", object_index)
+                query_set = query_set[object_index:]
+                if query_set.count() == 0:
+                    return
 
             csv = ""  # Track content of the current CSV file.
             csv_headers = ",".join(fields)  # Headers of each CSV file.
@@ -277,11 +275,9 @@ def save_query_set_to_csv_in_gcs_bucket(
                 # datetime range and chunk range.
                 csv_path = (
                     bq_table_folder
-                    + datetime_range
+                    + f"{last_run_at_fstr}_{now_fstr}"
                     + "__"
-                    + chunk_start
-                    + "_"
-                    + chunk_end
+                    + f"{chunk_start}_{chunk_end}"
                     + ".csv"
                 )
                 logging.info("Uploading %s to bucket.", csv_path)
