@@ -6,7 +6,6 @@ Custom utilities for Celery tasks.
 """
 
 import logging
-import re
 import typing as t
 from datetime import datetime
 
@@ -173,11 +172,15 @@ def save_query_set_as_csvs_in_gcs_bucket(
                 query_set = query_set.order_by("id")
 
             # Get the last time this task successfully ran.
-            last_run_at = now  # TODO: get real value from DB.
+            last_run_at: t.Optional[datetime] = (
+                now  # TODO: get real value from DB.
+            )
 
             # Get the range between the last run and now as a formatted string.
             datetime_format = "%Y-%m-%dT%H:%M:%S"
-            last_run_at_fstr = last_run_at.strftime(datetime_format)
+            last_run_at_fstr = (
+                last_run_at.strftime(datetime_format) if last_run_at else None
+            )
             now_fstr = now.strftime(datetime_format)
 
             # Get the default credentials from the environment (Workload Identity Federation)
@@ -212,6 +215,7 @@ def save_query_set_as_csvs_in_gcs_bucket(
                     + (
                         last_run_at_fstr
                         if only_list_blobs_in_current_dt_span
+                        and last_run_at_fstr
                         else ""
                     )
                 ),
@@ -230,7 +234,9 @@ def save_query_set_as_csvs_in_gcs_bucket(
                 if found_first_blob_in_current_dt_span:
                     last_blob_name_in_current_dt_span = blob_name
                 # Check if found first blob in current datetime span.
-                elif blob_name.startswith(last_run_at_fstr):
+                elif last_run_at_fstr and blob_name.startswith(
+                    last_run_at_fstr
+                ):
                     last_blob_name_in_current_dt_span = blob_name
                 # Check if blob not in current datetime span should be deleted.
                 elif delete_blobs_not_in_current_dt_span:
@@ -282,7 +288,7 @@ def save_query_set_as_csvs_in_gcs_bucket(
                 # datetime range and chunk range.
                 csv_path = (
                     bq_table_folder
-                    + f"{last_run_at_fstr}_{now_fstr}"
+                    + f"{last_run_at_fstr or now_fstr}_{now_fstr}"
                     + "__"
                     + f"{chunk_start}_{chunk_end}"
                     + ".csv"
