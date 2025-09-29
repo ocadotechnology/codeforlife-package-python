@@ -56,7 +56,7 @@ def shared_task(*args, **kwargs):
 
 
 # pylint: disable-next=too-many-arguments,too-many-statements
-def save_query_set_to_csv_in_gcs_bucket(
+def save_query_set_as_csvs_in_gcs_bucket(
     *args,
     bq_table_write_mode: t.Literal["overwrite", "append"],
     chunk_size: int,
@@ -69,13 +69,25 @@ def save_query_set_to_csv_in_gcs_bucket(
     # pylint: disable=line-too-long
     """Create a Celery task that saves a queryset as CSV files in the GCS bucket.
 
-    Ultimately, these CSV files are imported into a BigQuery table and deleted
-    from the GCS bucket. Each task should be given a distinct table name and
-    queryset.
+    This decorator handles chunking a queryset to avoid out-of-memory (OOM)
+    errors. Each chunk is saved as a separate CSV file and follows a naming
+    convention that tracks 2 spans:
 
-    Example:
+    1. datetime (dt) - From when this task was last run successfully to now.
+    2. index (i) - The start and end index of the objects in the queryset.
+
+        **"{start_dt}\_{end_dt}\_\_{start_i}\_{end_i}.csv"**
+
+    Ultimately, these CSV files are imported into a BigQuery table, after which
+    they are deleted from the GCS bucket.
+
+    Each task *must* be given a distinct table name and queryset to avoid
+    unintended consequences.
+
+    Examples:
         ```
-        @save_query_set_to_csv_in_gcs_bucket(
+        @save_query_set_as_csvs_in_gcs_bucket(
+            # bq_table_name = "example", <- Alternatively, set the table name like so.
             bq_table_write_mode="append",
             chunk_size=1000,
             fields=["first_name", "joined_at", "is_active"],
@@ -85,16 +97,16 @@ def save_query_set_to_csv_in_gcs_bucket(
         ```
 
     Args:
-        bq_table_write_mode: How the new values are written to the BigQuery table.
-        chunk_size: The number of value-rows per CSV. Must be a multiple of 10.
-        fields: The model-fields to include in the CSV.
+        bq_table_write_mode: The BigQuery table's write-mode.
+        chunk_size: The number of objects/rows per CSV. Must be a multiple of 10.
+        fields: The [Django model] fields to include in the CSV.
         time_limit: The maximum amount of time this task is allowed to take before it's hard-killed.
         soft_time_limit: The maximum amount of time this task is allowed to take before it's soft-killed.
-        bq_table_name: The name of the BigQuery table where these CSV will ultimately be imported into. If not provided, the name of the decorated function will be used instead.
+        bq_table_name: The name of the BigQuery table where these CSV files will ultimately be imported into. If not provided, the name of the decorated function will be used instead.
 
     Returns:
-        A wrapper function which expects to receive a callback that returns a
-        queryset and creates a Celery task to save the queryset as CSV files in
+        A wrapper-function which expects to receive a callable that returns a
+        queryset and returns a Celery task to save the queryset as CSV files in
         the GCS bucket.
     """
     # pylint: enable=line-too-long
@@ -138,7 +150,7 @@ def save_query_set_to_csv_in_gcs_bucket(
         # Prefix all CSV files with a folder named after the BiqQuery table.
         bq_table_folder = f"{_bq_table_name}/"
 
-        # Get the runtime settings based on the BigQuery table-write mode.
+        # Get the runtime settings based on the BigQuery table's write-mode.
         if bq_table_write_mode == "append":
             only_list_blobs_in_current_dt_span = True
             delete_blobs_not_in_current_dt_span = False
