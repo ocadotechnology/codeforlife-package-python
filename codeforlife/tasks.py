@@ -138,52 +138,13 @@ def save_query_set_to_csv_in_gcs_bucket(
         # Prefix all CSV files with a folder named after the BiqQuery table.
         bq_table_folder = f"{_bq_table_name}/"
 
+        # Get the runtime settings based on the BigQuery table-write mode.
         if bq_table_write_mode == "append":
-
-            only_list_blobs_after_last_run = True
-
-            def process_blobs(
-                blobs: t.Iterator[gcs.Blob],
-                # pylint: disable-next=unused-argument
-                last_run_at_fstr: str,
-            ):
-                # Get the last blob (after the last run).
-                last_blob: t.Optional[gcs.Blob] = None
-                for blob in blobs:
-                    last_blob = blob
-
-                # If a blob was found...
-                if last_blob is not None:
-                    # ...extract the object index from its name. For example:
-                    # "2025-01-01T00:00:00_2025-01-02T00:00:00__0001_1000.csv"
-                    return int(
-                        t.cast(str, last_blob.name)
-                        # "2025-01-01T00:00:00_2025-01-02T00:00:00__0001_1000"
-                        .removesuffix(".csv")
-                        # "1000"
-                        .split("_")[-1]
-                    )
-
-                return 0
-
-        else:  # bq_table_write_mode == "overwrite":
-
-            only_list_blobs_after_last_run = False
-
-            def process_blobs(
-                blobs: t.Iterator[gcs.Blob], last_run_at_fstr: str
-            ):
-                # Delete old blobs as we only want values from the latest run.
-                for blob in blobs:
-                    # Stop deleting if blobs from the latest run are discovered.
-                    # This may happen in the case of a retry.
-                    if t.cast(str, blob.name).startswith(last_run_at_fstr):
-                        break
-
-                    logging.info('Deleting blob "%s".', blob.name)
-                    blob.delete()
-
-                return 0
+            only_list_blobs_in_current_dt_span = True
+            delete_blobs_not_in_current_dt_span = False
+        else:  # bq_table_write_mode == "overwrite"
+            only_list_blobs_in_current_dt_span = False
+            delete_blobs_not_in_current_dt_span = True
 
         # pylint: disable-next=too-many-locals
         def task(*task_args, **task_kwargs):
@@ -238,15 +199,49 @@ def save_query_set_to_csv_in_gcs_bucket(
                     prefix=bq_table_folder
                     + (
                         last_run_at_fstr
-                        if only_list_blobs_after_last_run
+                        if only_list_blobs_in_current_dt_span
                         else ""
                     )
                 ),
             )
 
+            # Track the name of the last blob in the current datetime span.
+            last_blob_name_in_current_dt_span: t.Optional[str] = None
+            # Track if found first blob in current datetime span. True by
+            # default if only blobs in current datetime are listed.
+            found_first_blob_in_current_dt_span = (
+                only_list_blobs_in_current_dt_span
+            )
+            for blob in blobs:
+                blob_name = t.cast(str, blob.name)
+                # Check if already found first blob in current datetime span.
+                if found_first_blob_in_current_dt_span:
+                    last_blob_name_in_current_dt_span = blob_name
+                # Check if found first blob in current datetime span.
+                elif blob_name.startswith(last_run_at_fstr):
+                    last_blob_name_in_current_dt_span = blob_name
+                # Check if blob not in current datetime span should be deleted.
+                elif delete_blobs_not_in_current_dt_span:
+                    logging.info('Deleting blob "%s".', blob_name)
+                    blob.delete()
+
             # Get the starting object index. In case of a retry, the index will
             # continue from the index of the last successfully uploaded object.
-            object_index = process_blobs(blobs, last_run_at_fstr)
+            object_index = (
+                # ...extract the starting object index from its name. E.g.:
+                int(
+                    # "2025-01-01T00:00:00_2025-01-02T00:00:00__0001_1000.csv"
+                    last_blob_name_in_current_dt_span
+                    # "2025-01-01T00:00:00_2025-01-02T00:00:00__0001_1000"
+                    .removesuffix(".csv")
+                    # "1000"
+                    .split("_")[-1]
+                )
+                # If a blob was found...
+                if last_blob_name_in_current_dt_span is not None
+                # ...else the start with 1st object.
+                else 0
+            )
 
             # If the queryset is not starting with the first object, offset it
             # and check there are still values in the queryset.
