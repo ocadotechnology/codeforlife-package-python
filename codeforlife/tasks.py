@@ -75,7 +75,13 @@ def save_query_set_as_csvs_in_gcs_bucket(
     1. datetime (dt) - From when this task was last run successfully to now.
     2. index (i) - The start and end index of the objects in the queryset.
 
-        **"{start_dt}\_{end_dt}\_\_{start_i}\_{end_i}.csv"**
+    The naming convention follows the format:
+        **"{dt_start}\_{dt_end}\_\_{i_start}\_{i_end}.csv"**
+    The datetime follows the format:
+        **"{YYYY}-{MM}-{DD}T{HH}:{MM}:{SS}"** (e.g. "2025-12-01T23:59:59")
+
+    NOTE: The index is padded with zeros to ensure sorting by name is
+    consistent. For example, the index span from 1 to 500 would be "001_500".
 
     Ultimately, these CSV files are imported into a BigQuery table, after which
     they are deleted from the GCS bucket.
@@ -160,7 +166,7 @@ def save_query_set_as_csvs_in_gcs_bucket(
         # pylint: disable-next=too-many-locals
         def task(*task_args, **task_kwargs):
             # Get the current datetime.
-            now = timezone.now()
+            dt_end = timezone.now()
 
             # Get the queryset and ensure it has values.
             query_set = get_query_set(*task_args, **task_kwargs)
@@ -172,17 +178,15 @@ def save_query_set_as_csvs_in_gcs_bucket(
                 query_set = query_set.order_by("id")
 
             # Get the last time this task successfully ran.
-            last_run_at: t.Optional[datetime] = (
-                now  # TODO: get real value from DB.
+            dt_start: t.Optional[datetime] = (
+                dt_end  # TODO: get real value from DB.
             )
 
             # Get the range between the last run and now as a formatted string.
-            datetime_format = "%Y-%m-%dT%H:%M:%S"
-            now_fstr = now.strftime(datetime_format)
-            last_run_at_fstr = (
-                last_run_at.strftime(datetime_format)
-                if last_run_at
-                else now_fstr
+            dt_format = "%Y-%m-%dT%H:%M:%S"
+            dt_end_fstr = dt_end.strftime(dt_format)
+            dt_start_fstr = (
+                dt_start.strftime(dt_format) if dt_start else dt_end_fstr
             )
 
             # Get the default credentials from the environment (Workload Identity Federation)
@@ -204,8 +208,8 @@ def save_query_set_as_csvs_in_gcs_bucket(
             # )
 
             # Create a client with the impersonated credentials.
-            storage_client = gcs.Client()  # (credentials=impersonated_creds)
-            bucket = storage_client.bucket(
+            gcs_client = gcs.Client()  # (credentials=impersonated_creds)
+            bucket = gcs_client.bucket(
                 settings.GOOGLE_CLOUD_STORAGE_BUCKET_NAME
             )
 
@@ -215,7 +219,7 @@ def save_query_set_as_csvs_in_gcs_bucket(
                 bucket.list_blobs(
                     prefix=bq_table_folder
                     + (
-                        last_run_at_fstr
+                        dt_start_fstr
                         if only_list_blobs_in_current_dt_span
                         else ""
                     )
@@ -235,7 +239,7 @@ def save_query_set_as_csvs_in_gcs_bucket(
                 if found_first_blob_in_current_dt_span:
                     last_blob_name_in_current_dt_span = blob_name
                 # Check if found first blob in current datetime span.
-                elif blob_name.startswith(last_run_at_fstr):
+                elif blob_name.startswith(dt_start_fstr):
                     last_blob_name_in_current_dt_span = blob_name
                 # Check if blob not in current datetime span should be deleted.
                 elif delete_blobs_not_in_current_dt_span:
@@ -244,7 +248,7 @@ def save_query_set_as_csvs_in_gcs_bucket(
 
             # Get the starting object index. In case of a retry, the index will
             # continue from the index of the last successfully uploaded object.
-            object_index = (
+            i = (
                 # ...extract the starting object index from its name. E.g.:
                 int(
                     # "2025-01-01T00:00:00_2025-01-02T00:00:00__0001_1000.csv"
@@ -262,9 +266,9 @@ def save_query_set_as_csvs_in_gcs_bucket(
 
             # If the queryset is not starting with the first object, offset it
             # and check there are still values in the queryset.
-            if object_index != 0:
-                logging.info("Offsetting queryset by %d objects.", object_index)
-                query_set = query_set[object_index:]
+            if i != 0:
+                logging.info("Offsetting queryset by %d objects.", i)
+                query_set = query_set[i:]
                 if query_set.count() == 0:
                     return
 
@@ -273,23 +277,30 @@ def save_query_set_as_csvs_in_gcs_bucket(
 
             # Uploads the current CSV file to the GCS bucket.
             def upload_csv():
-                # Calculate the current chunk's start and end range.
-                chunk_end = str(object_index)
-                if object_index == chunk_size:
-                    chunk_start = "1".zfill(chunk_size_digits)
-                elif object_index < chunk_size:
-                    chunk_start = "1".zfill(chunk_size_digits)
-                    chunk_end = chunk_end.zfill(chunk_size_digits)
-                else:  # object_index > chunk_size
-                    chunk_start = str(object_index - chunk_size)
+                # The current index is the end of the chunk.
+                i_end_fstr = str(i)
+                # If the index is the same as the chunk size...
+                if i == chunk_size:
+                    # ...this is the 1st chunk and the start is 1.
+                    i_start_fstr = "1".zfill(chunk_size_digits)
+                # ...else if the index is less than the chunk size...
+                elif i < chunk_size:
+                    # ...this is the 1st chunk and the start is 1...
+                    i_start_fstr = "1".zfill(chunk_size_digits)
+                    # ...and the end is not guaranteed to have enough digits.
+                    i_end_fstr = i_end_fstr.zfill(chunk_size_digits)
+                # ...else if the index is greater than the chunk size...
+                else:  # i > chunk_size
+                    # ...this is the 2nd+ chunk and the start is calculated.
+                    i_start_fstr = str(((i // chunk_size) * chunk_size) + 1)
 
                 # Generate the name of the current CSV file based on the
                 # datetime range and chunk range.
                 csv_path = (
                     bq_table_folder
-                    + f"{last_run_at_fstr}_{now_fstr}"
+                    + f"{dt_start_fstr}_{dt_end_fstr}"
                     + "__"
-                    + f"{chunk_start}_{chunk_end}"
+                    + f"{i_start_fstr}_{i_end_fstr}"
                     + ".csv"
                 )
                 logging.info("Uploading %s to bucket.", csv_path)
@@ -302,7 +313,7 @@ def save_query_set_as_csvs_in_gcs_bucket(
             # are retrieved in chunks (no caching) to avoid OOM errors. For each
             # object, a tuple of values is returned. The order of the values in
             # the tuple is determined by the order of the fields.
-            for object_index, values in enumerate(
+            for i, values in enumerate(
                 t.cast(
                     t.Iterator[t.Tuple[t.Any, ...]],
                     query_set.values_list(*fields).iterator(
@@ -311,9 +322,9 @@ def save_query_set_as_csvs_in_gcs_bucket(
                 )
             ):
                 # If we've successfully reached the end of the chunk...
-                if object_index % chunk_size == 0:
+                if i % chunk_size == 0:
                     # ...upload its CSV (except if it's the 1st object).
-                    if object_index != 0:
+                    if i != 0:
                         upload_csv()
 
                     # ...reset the CSV by adding the headers as the 1st row.
