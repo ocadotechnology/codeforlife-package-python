@@ -65,7 +65,7 @@ def save_query_set_as_csvs_in_gcs_bucket(
     retry_countdown: int = 10,
     **kwargs,
 ):
-    # pylint: disable=line-too-long
+    # pylint: disable=line-too-long,anomalous-backslash-in-string
     """Create a Celery task that saves a queryset as CSV files in the GCS
     bucket.
 
@@ -116,7 +116,7 @@ def save_query_set_as_csvs_in_gcs_bucket(
         queryset and returns a Celery task to save the queryset as CSV files in
         the GCS bucket.
     """
-    # pylint: enable=line-too-long
+    # pylint: enable=line-too-long,anomalous-backslash-in-string
 
     kwargs.setdefault("bind", True)
 
