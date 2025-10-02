@@ -9,8 +9,8 @@ import logging
 import typing as t
 from datetime import datetime
 
+from celery import Task
 from celery import shared_task as _shared_task
-from celery.exceptions import SoftTimeLimitExceeded
 from django.conf import settings
 from django.db.models.query import QuerySet
 from django.utils import timezone
@@ -56,17 +56,18 @@ def shared_task(*args, **kwargs):
 
 # pylint: disable-next=too-many-arguments,too-many-statements
 def save_query_set_as_csvs_in_gcs_bucket(
-    *args,
     bq_table_write_mode: t.Literal["overwrite", "append"],
     chunk_size: int,
     fields: t.List[str],
     time_limit: int = 3600,
-    soft_time_limit: int = 3570,
     bq_table_name: t.Optional[str] = None,
+    max_retries: int = 5,
+    retry_countdown: int = 10,
     **kwargs,
 ):
     # pylint: disable=line-too-long
-    """Create a Celery task that saves a queryset as CSV files in the GCS bucket.
+    """Create a Celery task that saves a queryset as CSV files in the GCS
+    bucket.
 
     This decorator handles chunking a queryset to avoid out-of-memory (OOM)
     errors. Each chunk is saved as a separate CSV file and follows a naming
@@ -106,8 +107,9 @@ def save_query_set_as_csvs_in_gcs_bucket(
         chunk_size: The number of objects/rows per CSV. Must be a multiple of 10.
         fields: The [Django model] fields to include in the CSV.
         time_limit: The maximum amount of time this task is allowed to take before it's hard-killed.
-        soft_time_limit: The maximum amount of time this task is allowed to take before it's soft-killed.
         bq_table_name: The name of the BigQuery table where these CSV files will ultimately be imported into. If not provided, the name of the decorated function will be used instead.
+        max_retries: The maximum number of retries allowed.
+        retry_countdown: The countdown before attempting the next retry.
 
     Returns:
         A wrapper-function which expects to receive a callable that returns a
@@ -115,6 +117,8 @@ def save_query_set_as_csvs_in_gcs_bucket(
         the GCS bucket.
     """
     # pylint: enable=line-too-long
+
+    kwargs.setdefault("bind", True)
 
     # Ensure the ID field is always present.
     if "id" not in fields:
@@ -133,10 +137,12 @@ def save_query_set_as_csvs_in_gcs_bucket(
         raise ValueError("The time limit must be > 0.")
     if time_limit > 3600:
         raise ValueError("The time limit must be <= 3600 (1 hour).")
-    if soft_time_limit <= 0:
-        raise ValueError("The soft time limit must be > 0.")
-    if soft_time_limit > time_limit:
-        raise ValueError("The soft time limit must be <= the time limit.")
+    if max_retries < 0:
+        raise ValueError("The max retries must be >= 0.")
+    if retry_countdown < 0:
+        raise ValueError("The retry countdown must be >= 0.")
+    if kwargs["bind"] is not True:
+        raise ValueError("The task must bound.")
 
     # Count the number of digits in the chunk size number.
     chunk_size_digits = len(str(chunk_size))
@@ -164,7 +170,7 @@ def save_query_set_as_csvs_in_gcs_bucket(
             delete_blobs_not_in_current_dt_span = True
 
         # pylint: disable-next=too-many-locals
-        def task(*task_args, **task_kwargs):
+        def _save_query_set_as_csvs_in_gcs_bucket(*task_args, **task_kwargs):
             # Get the current datetime.
             dt_end = timezone.now()
 
@@ -335,18 +341,27 @@ def save_query_set_as_csvs_in_gcs_bucket(
             # Upload the remaining values as a partial chunk.
             upload_csv()
 
+        # Wraps the task with retry logic.
+        def task(self: Task, *task_args, **task_kwargs):
+            try:
+                _save_query_set_as_csvs_in_gcs_bucket(*task_args, **task_kwargs)
+            except Exception as exc:
+                raise self.retry(exc=exc, countdown=retry_countdown)
+
         # Namespace the task with service's name. If the name is not explicitly
         # provided, it defaults to the name of the decorated function.
         name = kwargs.pop("name", None)
         name = get_task_name(name if isinstance(name, str) else get_query_set)
 
-        return _shared_task(
-            *args,
-            **kwargs,
-            name=name,
-            time_limit=time_limit,
-            soft_time_limit=soft_time_limit,
-        )(task)
+        return t.cast(
+            Task[..., t.Any],
+            _shared_task(
+                **kwargs,
+                name=name,
+                time_limit=time_limit,
+                max_retries=max_retries,
+            )(task),
+        )
 
     return wrapper
 
