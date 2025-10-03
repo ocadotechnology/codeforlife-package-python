@@ -14,8 +14,9 @@ from celery import shared_task as _shared_task
 from django.conf import settings
 from django.db.models.query import QuerySet
 from django.utils import timezone
-from google.auth import impersonated_credentials  # default
+from google.auth import default, impersonated_credentials
 from google.cloud import storage as gcs  # type: ignore[import-untyped]
+from google.oauth2 import service_account
 
 _BQ_TABLE_NAMES: t.Set[str] = set()
 
@@ -199,6 +200,12 @@ def save_query_set_as_csvs_in_gcs_bucket(
             # These are the short-lived credentials from the AWS IAM role.
             # creds, _ = default()
 
+            scopes = ["https://www.googleapis.com/auth/devstorage.full_control"]
+
+            creds = service_account.Credentials.from_service_account_file(
+                "/workspace/backend/package/service_account.json", scopes=scopes
+            )
+
             # Create the impersonated credentials object
             # impersonated_creds = impersonated_credentials.Credentials(
             #     source_credentials=creds,
@@ -206,21 +213,21 @@ def save_query_set_as_csvs_in_gcs_bucket(
             #         settings.GOOGLE_CLOUD_STORAGE_SERVICE_ACCOUNT_NAME
             #     ),
             #     # https://cloud.google.com/storage/docs/oauth-scopes
-            #     target_scopes=[
-            #         "https://www.googleapis.com/auth/devstorage.full_control"
-            #     ],
+            #     target_scopes=scopes,
             #     # The lifetime of the impersonated credentials in seconds.
             #     lifetime=time_limit,
             # )
 
             # Create a client with the impersonated credentials.
-            gcs_client = gcs.Client()  # (credentials=impersonated_creds)
+            gcs_client = gcs.Client(credentials=creds)
             bucket = gcs_client.bucket(
                 settings.GOOGLE_CLOUD_STORAGE_BUCKET_NAME
             )
 
+            # Track the name of the last blob in the current datetime span.
+            last_blob_name_in_current_dt_span: t.Optional[str] = None
             # List all the existing blobs.
-            blobs = t.cast(
+            for blob in t.cast(
                 t.Iterator[gcs.Blob],
                 bucket.list_blobs(
                     prefix=bq_table_folder
@@ -230,25 +237,17 @@ def save_query_set_as_csvs_in_gcs_bucket(
                         else ""
                     )
                 ),
-            )
-
-            # Track the name of the last blob in the current datetime span.
-            last_blob_name_in_current_dt_span: t.Optional[str] = None
-            # Track if found first blob in current datetime span. True by
-            # default if only blobs in current datetime are listed.
-            found_first_blob_in_current_dt_span = (
-                only_list_blobs_in_current_dt_span
-            )
-            for blob in blobs:
+            ):
                 blob_name = t.cast(str, blob.name)
-                # Check if already found first blob in current datetime span.
-                if found_first_blob_in_current_dt_span:
-                    last_blob_name_in_current_dt_span = blob_name
+
                 # Check if found first blob in current datetime span.
-                elif blob_name.startswith(dt_start_fstr):
+                if only_list_blobs_in_current_dt_span or blob_name.startswith(
+                    dt_start_fstr
+                ):
                     last_blob_name_in_current_dt_span = blob_name
+
                 # Check if blob not in current datetime span should be deleted.
-                elif delete_blobs_not_in_current_dt_span:
+                if delete_blobs_not_in_current_dt_span:
                     logging.info('Deleting blob "%s".', blob_name)
                     blob.delete()
 
@@ -298,7 +297,9 @@ def save_query_set_as_csvs_in_gcs_bucket(
                 # ...else if the index is greater than the chunk size...
                 else:  # i > chunk_size
                     # ...this is the 2nd+ chunk and the start is calculated.
-                    i_start_fstr = str(((i // chunk_size) * chunk_size) + 1)
+                    i_start_fstr = str(
+                        (((i // chunk_size) - 1) * chunk_size) + 1
+                    )
 
                 # Generate the name of the current CSV file based on the
                 # datetime range and chunk range.
@@ -325,18 +326,26 @@ def save_query_set_as_csvs_in_gcs_bucket(
                     query_set.values_list(*fields).iterator(
                         chunk_size=chunk_size
                     ),
-                )
+                ),
+                start=i,
             ):
                 # If we've successfully reached the end of the chunk...
                 if i % chunk_size == 0:
                     # ...upload its CSV (except if it's the 1st object).
-                    if i != 0:
+                    if csv:
                         upload_csv()
 
                     # ...reset the CSV by adding the headers as the 1st row.
                     csv = csv_headers
+
+                # Transform the values into their SQL representations.
+                sql_values = [
+                    int(value) if isinstance(value, bool) else value
+                    for value in values
+                ]
+
                 # Append the values on a new line.
-                csv += "\n" + ",".join(values)
+                csv += "\n" + ",".join(map(str, sql_values))
 
             # Upload the remaining values as a partial chunk.
             upload_csv()

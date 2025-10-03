@@ -16,7 +16,7 @@ from .user.models import User
 
 @save_query_set_as_csvs_in_gcs_bucket(
     bq_table_write_mode="append",
-    chunk_size=500,
+    chunk_size=10,
     fields=["first_name", "is_active"],
 )
 def users__append():
