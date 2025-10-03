@@ -198,6 +198,33 @@ def save_query_set_as_csvs_in_gcs_bucket(
                 obj_count_digits=len(obj_i_start_fstr),
             )
 
+    def get_gcs_bucket():
+        # Get the default credentials from the environment (Workload Identity Federation)
+        # These are the short-lived credentials from the AWS IAM role.
+        # creds, _ = default()
+
+        scopes = ["https://www.googleapis.com/auth/devstorage.full_control"]
+
+        creds = service_account.Credentials.from_service_account_file(
+            "/workspace/backend/package/service_account.json", scopes=scopes
+        )
+
+        # Create the impersonated credentials object
+        # impersonated_creds = impersonated_credentials.Credentials(
+        #     source_credentials=creds,
+        #     target_principal=(
+        #         settings.GOOGLE_CLOUD_STORAGE_SERVICE_ACCOUNT_NAME
+        #     ),
+        #     # https://cloud.google.com/storage/docs/oauth-scopes
+        #     target_scopes=scopes,
+        #     # The lifetime of the impersonated credentials in seconds.
+        #     lifetime=time_limit,
+        # )
+
+        # Create a client with the impersonated credentials.
+        gcs_client = gcs.Client(credentials=creds)
+        return gcs_client.bucket(settings.GOOGLE_CLOUD_STORAGE_BUCKET_NAME)
+
     # pylint: disable-next=too-many-statements
     def wrapper(get_query_set: t.Callable[..., QuerySet[t.Any]]):
         # Get BigQuery table name and validate it's not already registered.
@@ -244,6 +271,9 @@ def save_query_set_as_csvs_in_gcs_bucket(
             # digits in the count remains consistent.
             query_set = query_set[:obj_count]
 
+            # Impersonate the service account and get access to the GCS bucket.
+            bucket = get_gcs_bucket()
+
             # Get the last time this task successfully ran.
             dt_start: t.Optional[datetime] = (
                 dt_end  # TODO: get real value from DB.
@@ -253,34 +283,6 @@ def save_query_set_as_csvs_in_gcs_bucket(
             dt_end_fstr = dt_end.strftime(dt_format)
             dt_start_fstr = (
                 dt_start.strftime(dt_format) if dt_start else dt_end_fstr
-            )
-
-            # Get the default credentials from the environment (Workload Identity Federation)
-            # These are the short-lived credentials from the AWS IAM role.
-            # creds, _ = default()
-
-            scopes = ["https://www.googleapis.com/auth/devstorage.full_control"]
-
-            creds = service_account.Credentials.from_service_account_file(
-                "/workspace/backend/package/service_account.json", scopes=scopes
-            )
-
-            # Create the impersonated credentials object
-            # impersonated_creds = impersonated_credentials.Credentials(
-            #     source_credentials=creds,
-            #     target_principal=(
-            #         settings.GOOGLE_CLOUD_STORAGE_SERVICE_ACCOUNT_NAME
-            #     ),
-            #     # https://cloud.google.com/storage/docs/oauth-scopes
-            #     target_scopes=scopes,
-            #     # The lifetime of the impersonated credentials in seconds.
-            #     lifetime=time_limit,
-            # )
-
-            # Create a client with the impersonated credentials.
-            gcs_client = gcs.Client(credentials=creds)
-            bucket = gcs_client.bucket(
-                settings.GOOGLE_CLOUD_STORAGE_BUCKET_NAME
             )
 
             # The name of the last blob in the current datetime span.
@@ -304,14 +306,25 @@ def save_query_set_as_csvs_in_gcs_bucket(
                 if only_list_blobs_in_current_dt_span or blob_name.startswith(
                     dt_start_fstr
                 ):
-                    if (
-                        obj_count_digits
-                        != ChunkMetadata.from_blob_name(
-                            blob_name=blob_name,
-                            bq_table_folder=bq_table_folder,
-                        ).obj_count_digits
-                    ):
-                        pass  # TODO: handle renaming blobs
+                    chunk_metadata = ChunkMetadata.from_blob_name(
+                        blob_name=blob_name, bq_table_folder=bq_table_folder
+                    )
+
+                    # If the number of digits in the object count has changed...
+                    if obj_count_digits != chunk_metadata.obj_count_digits:
+                        # ...update the number of digits in the object count...
+                        chunk_metadata.obj_count_digits = obj_count_digits
+                        # ...and update the blob name...
+                        blob_name = chunk_metadata.to_blob_name()
+                        # ...and copy the blob with the updated name...
+                        bucket.copy_blob(
+                            blob=blob,
+                            destination_bucket=bucket,
+                            new_name=blob_name,
+                        )
+                        # ...and delete the old blob.
+                        logging.info('Deleting blob "%s".', blob.name)
+                        blob.delete()
 
                     last_blob_name_in_current_dt_span = blob_name
                 # Check if blob not in current datetime span should be deleted.
