@@ -155,18 +155,16 @@ def save_query_set_as_csvs_in_gcs_bucket(
         dt_end_fstr: str  # datetime span end as formatted string
         obj_i_start: int  # object index span start
         obj_i_end: int  # object index span end
-        query_set_count_digits: int  # number of digits in the queryset count
+        obj_count_digits: int  # number of digits in the object count
 
         def to_blob_name(self):
             """Convert this chunk metadata into a blob name."""
 
             # Left-pad the object indexes with zeros.
             obj_i_start_fstr = str(self.obj_i_start).zfill(
-                self.query_set_count_digits
+                self.obj_count_digits
             )
-            obj_i_end_fstr = str(self.obj_i_end).zfill(
-                self.query_set_count_digits
-            )
+            obj_i_end_fstr = str(self.obj_i_end).zfill(self.obj_count_digits)
 
             # E.g. "2025-01-01T00:00:00_2025-01-02T00:00:00__0001_1000.csv"
             return (
@@ -197,7 +195,7 @@ def save_query_set_as_csvs_in_gcs_bucket(
                 dt_end_fstr=dt_end_fstr,
                 obj_i_start=int(obj_i_start_fstr),
                 obj_i_end=int(obj_i_end_fstr),
-                query_set_count_digits=len(obj_i_start_fstr),
+                obj_count_digits=len(obj_i_start_fstr),
             )
 
     # pylint: disable-next=too-many-statements
@@ -230,16 +228,21 @@ def save_query_set_as_csvs_in_gcs_bucket(
             # Get the queryset.
             query_set = get_query_set(*task_args, **task_kwargs)
 
-            # Ensure there's at least 1 object in the queryset.
-            if not query_set.exists():
+            # Count the objects in the queryset and ensure there's at least 1.
+            obj_count = query_set.count()
+            if obj_count == 0:
                 return
 
-            # Get the number of digits in the object count within the queryset.
-            query_set_count_digits = len(str(query_set.count()))
+            # Get the number of digits in the object count.
+            obj_count_digits = len(str(obj_count))
 
             # If the queryset is not ordered, order it by ID by default.
             if not query_set.ordered:
                 query_set = query_set.order_by("id")
+
+            # Limit the queryset to the object count to ensure the number of
+            # digits in the count remains consistent.
+            query_set = query_set[:obj_count]
 
             # Get the last time this task successfully ran.
             dt_start: t.Optional[datetime] = (
@@ -302,11 +305,11 @@ def save_query_set_as_csvs_in_gcs_bucket(
                     dt_start_fstr
                 ):
                     if (
-                        query_set_count_digits
+                        obj_count_digits
                         != ChunkMetadata.from_blob_name(
                             blob_name=blob_name,
                             bq_table_folder=bq_table_folder,
-                        ).query_set_count_digits
+                        ).obj_count_digits
                     ):
                         pass  # TODO: handle renaming blobs
 
@@ -357,7 +360,7 @@ def save_query_set_as_csvs_in_gcs_bucket(
                         dt_end_fstr=dt_end_fstr,
                         obj_i_start=obj_i_start,
                         obj_i_end=obj_i_end,
-                        query_set_count_digits=query_set_count_digits,
+                        obj_count_digits=obj_count_digits,
                     ).to_blob_name()
                 )
                 logging.info("Uploading %s to bucket.", csv_path)
