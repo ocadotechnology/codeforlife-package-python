@@ -164,7 +164,7 @@ def save_query_set_as_csvs_in_gcs_bucket(
             obj_i_start_fstr = str(self.obj_i_start).zfill(
                 self.query_set_count_digits
             )
-            obj_i_end_fstr = str(self.obj_i_start).zfill(
+            obj_i_end_fstr = str(self.obj_i_end).zfill(
                 self.query_set_count_digits
             )
 
@@ -177,15 +177,16 @@ def save_query_set_as_csvs_in_gcs_bucket(
             )
 
         @classmethod
-        def from_blob_name(cls, blob_name: str):
+        def from_blob_name(cls, blob_name: str, bq_table_folder: str):
             """Extract the chunk metadata from a blob name."""
 
+            # "users/2025-01-01T00:00:00_2025-01-02T00:00:00__0001_1000.csv"
+            # "2025-01-01T00:00:00_2025-01-02T00:00:00__0001_1000.csv"
+            blob_name = blob_name.removeprefix(bq_table_folder)
             # "2025-01-01T00:00:00_2025-01-02T00:00:00__0001_1000"
             blob_name = blob_name.removesuffix(".csv")
-
             # "2025-01-01T00:00:00_2025-01-02T00:00:00", "0001_1000"
             dt_span_fstr, obj_i_span_fstr = blob_name.split("__")
-
             # "2025-01-01T00:00:00", "2025-01-02T00:00:00"
             dt_start_fstr, dt_end_fstr = dt_span_fstr.split("_")
             # "0001", "1000"
@@ -303,7 +304,8 @@ def save_query_set_as_csvs_in_gcs_bucket(
                     if (
                         query_set_count_digits
                         != ChunkMetadata.from_blob_name(
-                            blob_name
+                            blob_name=blob_name,
+                            bq_table_folder=bq_table_folder,
                         ).query_set_count_digits
                     ):
                         pass  # TODO: handle renaming blobs
@@ -318,7 +320,8 @@ def save_query_set_as_csvs_in_gcs_bucket(
             obj_i = obj_i_start = (
                 # ...extract the starting object index from its name.
                 ChunkMetadata.from_blob_name(
-                    last_blob_name_in_current_dt_span
+                    blob_name=last_blob_name_in_current_dt_span,
+                    bq_table_folder=bq_table_folder,
                 ).obj_i_end
                 + 1
                 # If found a blob in the current datetime span...
@@ -393,7 +396,7 @@ def save_query_set_as_csvs_in_gcs_bucket(
                 # Append the values on a new line.
                 csv += "\n" + ",".join(map(str, sql_values))
 
-            upload_csv(obj_i_end=obj_i)  # Upload final (partial) chunk.
+            upload_csv(obj_i_end=obj_i)  # Upload final (maybe partial) chunk.
 
         # Wraps the task with retry logic.
         def task(self: Task, *task_args, **task_kwargs):
