@@ -176,7 +176,7 @@ def save_query_set_as_csvs_in_gcs_bucket(
 
             # Get the queryset and ensure it has values.
             query_set = get_query_set(*task_args, **task_kwargs)
-            if query_set.count() == 0:
+            if not query_set.exists():
                 return
 
             # If the queryset is not ordered, order it by ID by default.
@@ -275,7 +275,7 @@ def save_query_set_as_csvs_in_gcs_bucket(
             if i != 0:
                 logging.info("Offsetting queryset by %d objects.", i)
                 query_set = query_set[i:]
-                if query_set.count() == 0:
+                if not query_set.exists():
                     return
 
             csv = ""  # Track content of the current CSV file.
@@ -354,7 +354,7 @@ def save_query_set_as_csvs_in_gcs_bucket(
         name = get_task_name(name if isinstance(name, str) else get_query_set)
 
         return t.cast(
-            Task[..., t.Any],
+            "Task[..., t.Any]",
             _shared_task(
                 **kwargs,
                 name=name,
