@@ -55,8 +55,8 @@ def shared_task(*args, **kwargs):
     return wrapper
 
 
-# pylint: disable-next=too-many-arguments,too-many-statements
-def save_query_set_as_csvs_in_gcs_bucket(
+# pylint: disable-next=too-many-arguments,too-many-statements,too-many-locals
+def shared_data_warehouse_task(
     bq_table_write_mode: t.Literal["overwrite", "append"],
     chunk_size: int,
     fields: t.List[str],
@@ -93,7 +93,7 @@ def save_query_set_as_csvs_in_gcs_bucket(
 
     Examples:
         ```
-        @save_query_set_as_csvs_in_gcs_bucket(
+        @shared_data_warehouse_task(
             # bq_table_name = "example", <- Alternatively, set the table name like so.
             bq_table_write_mode="append",
             chunk_size=1000,
@@ -148,9 +148,21 @@ def save_query_set_as_csvs_in_gcs_bucket(
     # The datetime format used in a CSV name.
     dt_format = "%Y-%m-%dT%H:%M:%S"  # E.g. "2025-01-01T00:00:00"
 
+    # Get the runtime settings based on the BigQuery table's write-mode.
+    if bq_table_write_mode == "append":
+        only_list_blobs_in_current_dt_span = True
+        delete_blobs_not_in_current_dt_span = False
+    else:  # bq_table_write_mode == "overwrite"
+        only_list_blobs_in_current_dt_span = False
+        delete_blobs_not_in_current_dt_span = True
+
+    # Type alias for a callable which returns a queryset.
+    GetQuerySet: t.TypeAlias = t.Callable[..., QuerySet[t.Any]]
+
     class ChunkMetadata(t.NamedTuple):
         """All of the metadata used to track a chunk."""
 
+        bq_table_name: str  # the name of the BigQuery table
         dt_start_fstr: str  # datetime span start as formatted string
         dt_end_fstr: str  # datetime span end as formatted string
         obj_i_start: int  # object index span start
@@ -166,8 +178,9 @@ def save_query_set_as_csvs_in_gcs_bucket(
             )
             obj_i_end_fstr = str(self.obj_i_end).zfill(self.obj_count_digits)
 
-            # E.g. "2025-01-01T00:00:00_2025-01-02T00:00:00__0001_1000.csv"
+            # E.g. "user/2025-01-01T00:00:00_2025-01-02T00:00:00__0001_1000.csv"
             return (
+                f"{self.bq_table_name}/"
                 f"{self.dt_start_fstr}_{self.dt_end_fstr}"
                 "__"
                 f"{obj_i_start_fstr}_{obj_i_end_fstr}"
@@ -175,12 +188,12 @@ def save_query_set_as_csvs_in_gcs_bucket(
             )
 
         @classmethod
-        def from_blob_name(cls, blob_name: str, bq_table_folder: str):
+        def from_blob_name(cls, blob_name: str):
             """Extract the chunk metadata from a blob name."""
 
-            # "users/2025-01-01T00:00:00_2025-01-02T00:00:00__0001_1000.csv"
+            # E.g. "user/2025-01-01T00:00:00_2025-01-02T00:00:00__0001_1000.csv"
             # "2025-01-01T00:00:00_2025-01-02T00:00:00__0001_1000.csv"
-            blob_name = blob_name.removeprefix(bq_table_folder)
+            bq_table_name, blob_name = blob_name.split("/", maxsplit=1)
             # "2025-01-01T00:00:00_2025-01-02T00:00:00__0001_1000"
             blob_name = blob_name.removesuffix(".csv")
             # "2025-01-01T00:00:00_2025-01-02T00:00:00", "0001_1000"
@@ -191,6 +204,7 @@ def save_query_set_as_csvs_in_gcs_bucket(
             obj_i_start_fstr, obj_i_end_fstr = obj_i_span_fstr.split("_")
 
             return cls(
+                bq_table_name=bq_table_name,
                 dt_start_fstr=dt_start_fstr,
                 dt_end_fstr=dt_end_fstr,
                 obj_i_start=int(obj_i_start_fstr),
@@ -225,199 +239,183 @@ def save_query_set_as_csvs_in_gcs_bucket(
         gcs_client = gcs.Client(credentials=creds)
         return gcs_client.bucket(settings.GOOGLE_CLOUD_STORAGE_BUCKET_NAME)
 
-    # pylint: disable-next=too-many-statements
-    def wrapper(get_query_set: t.Callable[..., QuerySet[t.Any]]):
-        # Get BigQuery table name and validate it's not already registered.
-        _bq_table_name = bq_table_name or get_query_set.__name__
-        if _bq_table_name in _BQ_TABLE_NAMES:
-            raise ValueError(
-                f'The BigQuery table name "{_bq_table_name}" is already'
-                "registered."
-            )
-        _BQ_TABLE_NAMES.add(_bq_table_name)
+    # pylint: disable-next=too-many-locals
+    def save_query_set_as_csvs_in_gcs_bucket(
+        get_query_set: GetQuerySet,
+        bq_table_name: str,
+        *task_args,
+        **task_kwargs,
+    ):
+        # Get the current datetime.
+        dt_end = timezone.now()
 
-        # Prefix all CSV files with a folder named after the BiqQuery table.
-        bq_table_folder = f"{_bq_table_name}/"
+        # Get the queryset.
+        query_set = get_query_set(*task_args, **task_kwargs)
 
-        # Get the runtime settings based on the BigQuery table's write-mode.
-        if bq_table_write_mode == "append":
-            only_list_blobs_in_current_dt_span = True
-            delete_blobs_not_in_current_dt_span = False
-        else:  # bq_table_write_mode == "overwrite"
-            only_list_blobs_in_current_dt_span = False
-            delete_blobs_not_in_current_dt_span = True
+        # Count the objects in the queryset and ensure there's at least 1.
+        obj_count = query_set.count()
+        if obj_count == 0:
+            return
 
-        # pylint: disable-next=too-many-locals
-        def _save_query_set_as_csvs_in_gcs_bucket(*task_args, **task_kwargs):
-            # Get the current datetime.
-            dt_end = timezone.now()
+        # Get the number of digits in the object count.
+        obj_count_digits = len(str(obj_count))
 
-            # Get the queryset.
-            query_set = get_query_set(*task_args, **task_kwargs)
+        # If the queryset is not ordered, order it by ID by default.
+        if not query_set.ordered:
+            query_set = query_set.order_by("id")
 
-            # Count the objects in the queryset and ensure there's at least 1.
-            obj_count = query_set.count()
-            if obj_count == 0:
-                return
+        # Limit the queryset to the object count to ensure the number of
+        # digits in the count remains consistent.
+        query_set = query_set[:obj_count]
 
-            # Get the number of digits in the object count.
-            obj_count_digits = len(str(obj_count))
+        # Impersonate the service account and get access to the GCS bucket.
+        bucket = get_gcs_bucket()
 
-            # If the queryset is not ordered, order it by ID by default.
-            if not query_set.ordered:
-                query_set = query_set.order_by("id")
+        # Get the last time this task successfully ran.
+        dt_start: t.Optional[datetime] = dt_end  # TODO: get real value from DB.
 
-            # Limit the queryset to the object count to ensure the number of
-            # digits in the count remains consistent.
-            query_set = query_set[:obj_count]
+        # Get the range between the last run and now as a formatted string.
+        dt_end_fstr = dt_end.strftime(dt_format)
+        dt_start_fstr = (
+            dt_start.strftime(dt_format) if dt_start else dt_end_fstr
+        )
 
-            # Impersonate the service account and get access to the GCS bucket.
-            bucket = get_gcs_bucket()
+        # The name of the last blob in the current datetime span.
+        last_blob_name_in_current_dt_span: t.Optional[str] = None
 
-            # Get the last time this task successfully ran.
-            dt_start: t.Optional[datetime] = (
-                dt_end  # TODO: get real value from DB.
-            )
+        # List all the existing blobs.
+        for blob in t.cast(
+            t.Iterator[gcs.Blob],
+            bucket.list_blobs(
+                prefix=f"{bq_table_name}/"
+                + (dt_start_fstr if only_list_blobs_in_current_dt_span else "")
+            ),
+        ):
+            blob_name = t.cast(str, blob.name)
 
-            # Get the range between the last run and now as a formatted string.
-            dt_end_fstr = dt_end.strftime(dt_format)
-            dt_start_fstr = (
-                dt_start.strftime(dt_format) if dt_start else dt_end_fstr
-            )
-
-            # The name of the last blob in the current datetime span.
-            last_blob_name_in_current_dt_span: t.Optional[str] = None
-
-            # List all the existing blobs.
-            for blob in t.cast(
-                t.Iterator[gcs.Blob],
-                bucket.list_blobs(
-                    prefix=bq_table_folder
-                    + (
-                        dt_start_fstr
-                        if only_list_blobs_in_current_dt_span
-                        else ""
-                    )
-                ),
+            # Check if found first blob in current datetime span.
+            if only_list_blobs_in_current_dt_span or blob_name.startswith(
+                dt_start_fstr
             ):
-                blob_name = t.cast(str, blob.name)
+                chunk_metadata = ChunkMetadata.from_blob_name(blob_name)
 
-                # Check if found first blob in current datetime span.
-                if only_list_blobs_in_current_dt_span or blob_name.startswith(
-                    dt_start_fstr
-                ):
-                    chunk_metadata = ChunkMetadata.from_blob_name(
-                        blob_name=blob_name, bq_table_folder=bq_table_folder
+                # If the number of digits in the object count has changed...
+                if obj_count_digits != chunk_metadata.obj_count_digits:
+                    # ...update the number of digits in the object count...
+                    chunk_metadata.obj_count_digits = obj_count_digits
+                    # ...and update the blob name...
+                    blob_name = chunk_metadata.to_blob_name()
+                    # ...and copy the blob with the updated name...
+                    bucket.copy_blob(
+                        blob=blob,
+                        destination_bucket=bucket,
+                        new_name=blob_name,
                     )
-
-                    # If the number of digits in the object count has changed...
-                    if obj_count_digits != chunk_metadata.obj_count_digits:
-                        # ...update the number of digits in the object count...
-                        chunk_metadata.obj_count_digits = obj_count_digits
-                        # ...and update the blob name...
-                        blob_name = chunk_metadata.to_blob_name()
-                        # ...and copy the blob with the updated name...
-                        bucket.copy_blob(
-                            blob=blob,
-                            destination_bucket=bucket,
-                            new_name=blob_name,
-                        )
-                        # ...and delete the old blob.
-                        logging.info('Deleting blob "%s".', blob.name)
-                        blob.delete()
-
-                    last_blob_name_in_current_dt_span = blob_name
-                # Check if blob not in current datetime span should be deleted.
-                elif delete_blobs_not_in_current_dt_span:
-                    logging.info('Deleting blob "%s".', blob_name)
+                    # ...and delete the old blob.
+                    logging.info('Deleting blob "%s".', blob.name)
                     blob.delete()
 
-            # Track the current and starting object index (1-based).
-            obj_i = obj_i_start = (
-                # ...extract the starting object index from its name.
-                ChunkMetadata.from_blob_name(
-                    blob_name=last_blob_name_in_current_dt_span,
-                    bq_table_folder=bq_table_folder,
-                ).obj_i_end
-                + 1
-                # If found a blob in the current datetime span...
-                if last_blob_name_in_current_dt_span is not None
-                else 1  # ...else start with the 1st object.
+                last_blob_name_in_current_dt_span = blob_name
+            # Check if blob not in current datetime span should be deleted.
+            elif delete_blobs_not_in_current_dt_span:
+                logging.info('Deleting blob "%s".', blob_name)
+                blob.delete()
+
+        # Track the current and starting object index (1-based).
+        obj_i = obj_i_start = (
+            # ...extract the starting object index from its name.
+            ChunkMetadata.from_blob_name(
+                last_blob_name_in_current_dt_span
+            ).obj_i_end
+            + 1
+            # If found a blob in the current datetime span...
+            if last_blob_name_in_current_dt_span is not None
+            else 1  # ...else start with the 1st object.
+        )
+
+        # If the queryset is not starting with the first object...
+        if obj_i != 1:
+            # ...offset the queryset...
+            offset = obj_i - 1
+            logging.info("Offsetting queryset by %d objects.", offset)
+            query_set = query_set[offset:]
+
+            # ...and ensure there's at least 1 object.
+            if not query_set.exists():
+                return
+
+        chunk_i = obj_i // chunk_size  # Track chunk index (0-based).
+        csv = ""  # Track content of the current CSV file.
+        csv_headers = ",".join(fields)  # Headers of each CSV file.
+
+        # Uploads the current CSV file to the GCS bucket.
+        def upload_csv(obj_i_end: int):
+            # Calculate the starting object index for the current chunk.
+            obj_i_start = (chunk_i * chunk_size) + 1
+
+            # Generate the path to the CSV in the bucket.
+            blob_name = ChunkMetadata(
+                bq_table_name=bq_table_name,
+                dt_start_fstr=dt_start_fstr,
+                dt_end_fstr=dt_end_fstr,
+                obj_i_start=obj_i_start,
+                obj_i_end=obj_i_end,
+                obj_count_digits=obj_count_digits,
+            ).to_blob_name()
+
+            # Create a blob object for the CSV file's path and upload it.
+            logging.info("Uploading %s to bucket.", blob_name)
+            blob = bucket.blob(blob_name)
+            blob.upload_from_string(csv, content_type="text/csv")
+
+        # Iterate through the all the objects in the queryset. The objects
+        # are retrieved in chunks (no caching) to avoid OOM errors. For each
+        # object, a tuple of values is returned. The order of the values in
+        # the tuple is determined by the order of the fields.
+        for obj_i, values in enumerate(
+            t.cast(
+                t.Iterator[t.Tuple[t.Any, ...]],
+                query_set.values_list(*fields).iterator(chunk_size=chunk_size),
+            ),
+            start=obj_i_start,
+        ):
+            if obj_i % chunk_size == 1:  # If at the start of a chunk...
+                if obj_i != obj_i_start:  # ...and not the 1st iteration...
+                    # ...upload the chunk's CSV and increment its index...
+                    upload_csv(obj_i_end=obj_i - 1)
+                    chunk_i += 1
+
+                csv = csv_headers  # ...and start a new CSV.
+
+            # Transform the values into their SQL representations.
+            sql_values = [
+                int(value) if isinstance(value, bool) else value
+                for value in values
+            ]
+
+            # Append the values on a new line.
+            csv += "\n" + ",".join(map(str, sql_values))
+
+        upload_csv(obj_i_end=obj_i)  # Upload final (maybe partial) chunk.
+
+    # pylint: disable-next=too-many-statements
+    def wrapper(get_query_set: GetQuerySet):
+        # Get BigQuery table name and validate it's not already registered.
+        nonlocal bq_table_name
+        bq_table_name = bq_table_name or get_query_set.__name__
+        if bq_table_name in _BQ_TABLE_NAMES:
+            raise ValueError(
+                f'The BigQuery table name "{bq_table_name}" is already'
+                "registered."
             )
-
-            # If the queryset is not starting with the first object...
-            if obj_i != 1:
-                # ...offset the queryset...
-                offset = obj_i - 1
-                logging.info("Offsetting queryset by %d objects.", offset)
-                query_set = query_set[offset:]
-
-                # ...and ensure there's at least 1 object.
-                if not query_set.exists():
-                    return
-
-            chunk_i = obj_i // chunk_size  # Track chunk index (0-based).
-            csv = ""  # Track content of the current CSV file.
-            csv_headers = ",".join(fields)  # Headers of each CSV file.
-
-            # Uploads the current CSV file to the GCS bucket.
-            def upload_csv(obj_i_end: int):
-                # Calculate the starting object index for the current chunk.
-                obj_i_start = (chunk_i * chunk_size) + 1
-
-                # Generate the path to the CSV in the bucket.
-                csv_path = (
-                    bq_table_folder
-                    + ChunkMetadata(
-                        dt_start_fstr=dt_start_fstr,
-                        dt_end_fstr=dt_end_fstr,
-                        obj_i_start=obj_i_start,
-                        obj_i_end=obj_i_end,
-                        obj_count_digits=obj_count_digits,
-                    ).to_blob_name()
-                )
-                logging.info("Uploading %s to bucket.", csv_path)
-
-                # Create a blob object for the CSV file's path and upload it.
-                blob = bucket.blob(csv_path)
-                blob.upload_from_string(csv, content_type="text/csv")
-
-            # Iterate through the all the objects in the queryset. The objects
-            # are retrieved in chunks (no caching) to avoid OOM errors. For each
-            # object, a tuple of values is returned. The order of the values in
-            # the tuple is determined by the order of the fields.
-            for obj_i, values in enumerate(
-                t.cast(
-                    t.Iterator[t.Tuple[t.Any, ...]],
-                    query_set.values_list(*fields).iterator(
-                        chunk_size=chunk_size
-                    ),
-                ),
-                start=obj_i_start,
-            ):
-                if obj_i % chunk_size == 1:  # If at the start of a chunk...
-                    if obj_i != obj_i_start:  # ...and not the 1st iteration...
-                        # ...upload the chunk's CSV and increment its index...
-                        upload_csv(obj_i_end=obj_i - 1)
-                        chunk_i += 1
-
-                    csv = csv_headers  # ...and start a new CSV.
-
-                # Transform the values into their SQL representations.
-                sql_values = [
-                    int(value) if isinstance(value, bool) else value
-                    for value in values
-                ]
-
-                # Append the values on a new line.
-                csv += "\n" + ",".join(map(str, sql_values))
-
-            upload_csv(obj_i_end=obj_i)  # Upload final (maybe partial) chunk.
+        _BQ_TABLE_NAMES.add(bq_table_name)
 
         # Wraps the task with retry logic.
         def task(self: Task, *task_args, **task_kwargs):
             try:
-                _save_query_set_as_csvs_in_gcs_bucket(*task_args, **task_kwargs)
+                save_query_set_as_csvs_in_gcs_bucket(
+                    get_query_set, bq_table_name, *task_args, **task_kwargs
+                )
             except Exception as exc:
                 raise self.retry(exc=exc, countdown=retry_countdown)
 
