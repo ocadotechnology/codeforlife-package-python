@@ -56,9 +56,65 @@ def shared_task(*args, **kwargs):
     return wrapper
 
 
-# pylint: disable-next=too-many-arguments,too-many-statements,too-many-locals
+# pylint: disable-next=abstract-method
+class DataWarehouseTask(Task):
+    """A task that saves a queryset as CSV files in the GCS bucket."""
+
+    BqTableWriteMode: t.TypeAlias = t.Literal["overwrite", "append"]
+
+    _bq_table_write_mode: BqTableWriteMode
+    _chunk_size: int
+    _fields: t.List[str]
+    _time_limit: int
+    _bq_table_name: str
+    _max_retries: int
+    _retry_countdown: int
+
+    @property
+    def bq_table_write_mode(self):
+        """The BigQuery table's write-mode."""
+        return self._bq_table_write_mode
+
+    @property
+    def chunk_size(self):
+        """The number of objects/rows per CSV. Must be a multiple of 10."""
+        return self._chunk_size
+
+    @property
+    def fields(self):
+        """The [Django model] fields to include in the CSV."""
+        return self._fields
+
+    @property
+    def time_limit(self):
+        """
+        The maximum amount of time this task is allowed to take before it's
+        hard-killed.
+        """
+        return self._time_limit
+
+    @property
+    def bq_table_name(self):
+        """
+        The name of the BigQuery table where the CSV files will ultimately be
+        imported into.
+        """
+        return self._bq_table_name
+
+    @property
+    def max_retries(self):
+        """The maximum number of retries allowed."""
+        return self._max_retries
+
+    @property
+    def retry_countdown(self):
+        """The countdown before attempting the next retry."""
+        return self._retry_countdown
+
+
+# pylint: disable-next=too-many-arguments,too-many-statements,too-many-locals,too-many-branches
 def shared_data_warehouse_task(
-    bq_table_write_mode: t.Literal["overwrite", "append"],
+    bq_table_write_mode: DataWarehouseTask.BqTableWriteMode,
     chunk_size: int,
     fields: t.List[str],
     time_limit: int = 3600,
@@ -120,7 +176,9 @@ def shared_data_warehouse_task(
     """
     # pylint: enable=line-too-long,anomalous-backslash-in-string
 
+    # Set required values as defaults.
     kwargs.setdefault("bind", True)
+    kwargs.setdefault("base", DataWarehouseTask)
 
     # Ensure the ID field is always present.
     if "id" not in fields:
@@ -169,6 +227,12 @@ def shared_data_warehouse_task(
         )
     if kwargs["bind"] is not True:
         raise ValidationError("The task must bound.", code="task_unbound")
+    if not issubclass(kwargs["base"], DataWarehouseTask):
+        raise ValidationError(
+            f"The base must be a subclass of "
+            f"{DataWarehouseTask.__module__}.{DataWarehouseTask.__qualname__}.",
+            code="base_not_subclass",
+        )
 
     # The datetime format used in a CSV name.
     dt_format = "%Y-%m-%dT%H:%M:%S"  # E.g. "2025-01-01T00:00:00"
@@ -423,7 +487,6 @@ def shared_data_warehouse_task(
 
         upload_csv(obj_i_end=obj_i)  # Upload final (maybe partial) chunk.
 
-    # pylint: disable-next=too-many-statements
     def wrapper(get_query_set: GetQuerySet):
         # Get BigQuery table name and validate it's not already registered.
         nonlocal bq_table_name
@@ -449,8 +512,8 @@ def shared_data_warehouse_task(
         name = kwargs.pop("name", None)
         name = get_task_name(name if isinstance(name, str) else get_query_set)
 
-        return t.cast(
-            "Task[..., t.Any]",
+        data_warehouse_task = t.cast(
+            DataWarehouseTask,
             _shared_task(
                 **kwargs,
                 name=name,
@@ -458,6 +521,18 @@ def shared_data_warehouse_task(
                 max_retries=max_retries,
             )(task),
         )
+
+        # pylint: disable=protected-access
+        data_warehouse_task._bq_table_write_mode = bq_table_write_mode
+        data_warehouse_task._chunk_size = chunk_size
+        data_warehouse_task._fields = fields
+        data_warehouse_task._time_limit = time_limit
+        data_warehouse_task._bq_table_name = bq_table_name
+        data_warehouse_task._max_retries = max_retries
+        data_warehouse_task._retry_countdown = retry_countdown
+        # pylint: enable=protected-access
+
+        return data_warehouse_task
 
     return wrapper
 
