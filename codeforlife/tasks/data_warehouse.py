@@ -1,8 +1,6 @@
 """
 © Ocado Group
-Created on 28/03/2025 at 14:37:46(+00:00).
-
-Custom utilities for Celery tasks.
+Created on 06/10/2025 at 17:15:37(+01:00).
 """
 
 import logging
@@ -19,43 +17,10 @@ from google.auth import default, impersonated_credentials
 from google.cloud import storage as gcs  # type: ignore[import-untyped]
 from google.oauth2 import service_account
 
-from .types import Args, KwArgs
+from ..types import Args, KwArgs
+from .utils import get_task_name
 
 _BQ_TABLE_NAMES: t.Set[str] = set()
-
-
-def get_task_name(task: t.Union[str, t.Callable]):
-    """Namespace a task by the service it's in.
-
-    Args:
-        task: The name of the task.
-
-    Returns:
-        The name of the task in the format: "{SERVICE_NAME}.{TASK_NAME}".
-    """
-
-    if callable(task):
-        task = f"{task.__module__}.{task.__name__}"
-
-    return f"{settings.SERVICE_NAME}.{task}"
-
-
-def shared_task(*args, **kwargs):
-    """
-    Wrapper around Celery's default shared_task decorator which namespaces all
-    tasks to a specific service.
-    """
-
-    if len(args) == 1 and callable(args[0]):
-        task = args[0]
-        return _shared_task(name=get_task_name(task))(task)
-
-    def wrapper(task: t.Callable):
-        name = kwargs.pop("name", None)
-        name = get_task_name(name if isinstance(name, str) else task)
-        return _shared_task(*args, **kwargs, name=name)(task)
-
-    return wrapper
 
 
 # pylint: disable-next=abstract-method
@@ -558,8 +523,9 @@ class DataWarehouseTask(Task):
             # pylint: disable-next=protected-access
             kwargs = options._kwargs
 
-            # Namespace the task with service's name. If the name is not explicitly
-            # provided, it defaults to the name of the decorated function.
+            # Namespace the task with service's name. If the name is not
+            # explicitly provided, it defaults to the name of the decorated
+            # function.
             name = kwargs.pop("name", None)
             name = get_task_name(
                 name if isinstance(name, str) else get_query_set
@@ -578,19 +544,3 @@ class DataWarehouseTask(Task):
             return data_warehouse_task
 
         return wrapper
-
-
-def get_local_sqs_url(aws_region: str, service_name: str):
-    """Get the URL of an SQS queue in the local environment.
-
-    Args:
-        aws_region: The AWS region.
-        service_name: The service this SQS queue belongs to.
-
-    Returns:
-        The SQS queue's URL.
-    """
-    return (
-        f"http://sqs.{aws_region}.localhost.localstack.cloud:4566"
-        f"/000000000000/{service_name}"
-    )

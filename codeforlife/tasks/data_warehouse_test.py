@@ -10,9 +10,9 @@ from unittest.mock import patch
 from celery import Celery
 from django.utils import timezone
 
-from .tasks import DataWarehouseTask
-from .tests import CeleryTestCase
-from .user.models import User
+from ..tests import CeleryTestCase
+from ..user.models import User
+from .data_warehouse import DataWarehouseTask
 
 # pylint: disable=missing-class-docstring
 
@@ -121,6 +121,7 @@ class TestSharedDataWarehouseTask(CeleryTestCase):
 
             @staticmethod
             def apply():
+                """Execute the task through celery's framework."""
                 self.apply_task(task.name)
 
         return TaskContext()
