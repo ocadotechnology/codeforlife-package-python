@@ -12,13 +12,12 @@ from datetime import datetime
 from celery import Task
 from celery import shared_task as _shared_task
 from django.conf import settings
+from django.core.exceptions import ValidationError
 from django.db.models.query import QuerySet
 from django.utils import timezone
 from google.auth import default, impersonated_credentials
 from google.cloud import storage as gcs  # type: ignore[import-untyped]
 from google.oauth2 import service_account
-
-from .exceptions import ValidationError
 
 _BQ_TABLE_NAMES: t.Set[str] = set()
 
