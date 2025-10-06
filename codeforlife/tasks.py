@@ -19,6 +19,8 @@ from google.auth import default, impersonated_credentials
 from google.cloud import storage as gcs  # type: ignore[import-untyped]
 from google.oauth2 import service_account
 
+from .types import Args, KwArgs
+
 _BQ_TABLE_NAMES: t.Set[str] = set()
 
 
@@ -60,193 +62,159 @@ def shared_task(*args, **kwargs):
 class DataWarehouseTask(Task):
     """A task that saves a queryset as CSV files in the GCS bucket."""
 
-    BqTableWriteMode: t.TypeAlias = t.Literal["overwrite", "append"]
-
-    _bq_table_write_mode: BqTableWriteMode
-    _chunk_size: int
-    _fields: t.List[str]
-    _time_limit: int
-    _bq_table_name: str
-    _max_retries: int
-    _retry_countdown: int
-
-    @property
-    def bq_table_write_mode(self):
-        """The BigQuery table's write-mode."""
-        return self._bq_table_write_mode
-
-    @property
-    def chunk_size(self):
-        """The number of objects/rows per CSV. Must be a multiple of 10."""
-        return self._chunk_size
-
-    @property
-    def fields(self):
-        """The [Django model] fields to include in the CSV."""
-        return self._fields
-
-    @property
-    def time_limit(self):
-        """
-        The maximum amount of time this task is allowed to take before it's
-        hard-killed.
-        """
-        return self._time_limit
-
-    @property
-    def bq_table_name(self):
-        """
-        The name of the BigQuery table where the CSV files will ultimately be
-        imported into.
-        """
-        return self._bq_table_name
-
-    @property
-    def max_retries(self):
-        """The maximum number of retries allowed."""
-        return self._max_retries
-
-    @property
-    def retry_countdown(self):
-        """The countdown before attempting the next retry."""
-        return self._retry_countdown
-
-
-# pylint: disable-next=too-many-arguments,too-many-statements,too-many-locals,too-many-branches
-def shared_data_warehouse_task(
-    bq_table_write_mode: DataWarehouseTask.BqTableWriteMode,
-    chunk_size: int,
-    fields: t.List[str],
-    time_limit: int = 3600,
-    bq_table_name: t.Optional[str] = None,
-    max_retries: int = 5,
-    retry_countdown: int = 10,
-    **kwargs,
-):
-    # pylint: disable=line-too-long,anomalous-backslash-in-string
-    """Create a Celery task that saves a queryset as CSV files in the GCS
-    bucket.
-
-    This decorator handles chunking a queryset to avoid out-of-memory (OOM)
-    errors. Each chunk is saved as a separate CSV file and follows a naming
-    convention that tracks 2 spans:
-
-    1. datetime (dt) - From when this task was last run successfully to now.
-    2. object index (obj_i) - The start and end index of the objects.
-
-    The naming convention follows the format:
-        **"{dt_start}\_{dt_end}\_\_{i_start}\_{i_end}.csv"**
-    The datetime follows the format:
-        **"{YYYY}-{MM}-{DD}T{HH}:{MM}:{SS}"** (e.g. "2025-12-01T23:59:59")
-
-    NOTE: The index is padded with zeros to ensure sorting by name is
-    consistent. For example, the index span from 1 to 500 would be "001_500".
-
-    Ultimately, these CSV files are imported into a BigQuery table, after which
-    they are deleted from the GCS bucket.
-
-    Each task *must* be given a distinct table name and queryset to avoid
-    unintended consequences.
-
-    Examples:
-        ```
-        @shared_data_warehouse_task(
-            # bq_table_name = "example", <- Alternatively, set the table name like so.
-            bq_table_write_mode="append",
-            chunk_size=1000,
-            fields=["first_name", "joined_at", "is_active"],
-        )
-        def user(): # CSVs will be saved to a BQ table named "user"
-            return User.objects.all()
-        ```
-
-    Args:
-        bq_table_write_mode: The BigQuery table's write-mode.
-        chunk_size: The number of objects/rows per CSV. Must be a multiple of 10.
-        fields: The [Django model] fields to include in the CSV.
-        time_limit: The maximum amount of time this task is allowed to take before it's hard-killed.
-        bq_table_name: The name of the BigQuery table where these CSV files will ultimately be imported into. If not provided, the name of the decorated function will be used instead.
-        max_retries: The maximum number of retries allowed.
-        retry_countdown: The countdown before attempting the next retry.
-
-    Returns:
-        A wrapper-function which expects to receive a callable that returns a
-        queryset and returns a Celery task to save the queryset as CSV files in
-        the GCS bucket.
-    """
-    # pylint: enable=line-too-long,anomalous-backslash-in-string
-
-    # Set required values as defaults.
-    kwargs.setdefault("bind", True)
-    kwargs.setdefault("base", DataWarehouseTask)
-
-    # Ensure the ID field is always present.
-    if "id" not in fields:
-        fields.append("id")
-
-    # Validate args.
-    if chunk_size <= 0:
-        raise ValidationError(
-            "The chunk size must be > 0.",
-            code="chunk_size_lte_0",
-        )
-    if chunk_size % 10 != 0:
-        raise ValidationError(
-            "The chunk size must be a multiple of 10.",
-            code="chunk_size_not_multiple_of_10",
-        )
-    if len(fields) <= 1:
-        raise ValidationError(
-            'Must provide at least 1 field (not including "id").',
-            code="no_fields",
-        )
-    if len(fields) != len(set(fields)):
-        raise ValidationError(
-            "Fields must be unique.",
-            code="duplicate_fields",
-        )
-    if time_limit <= 0:
-        raise ValidationError(
-            "The time limit must be > 0.",
-            code="time_limit_lte_0",
-        )
-    if time_limit > 3600:
-        raise ValidationError(
-            "The time limit must be <= 3600 (1 hour).",
-            code="time_limit_gt_3600",
-        )
-    if max_retries < 0:
-        raise ValidationError(
-            "The max retries must be >= 0.",
-            code="max_retries_lt_0",
-        )
-    if retry_countdown < 0:
-        raise ValidationError(
-            "The retry countdown must be >= 0.",
-            code="retry_countdown_lt_0",
-        )
-    if kwargs["bind"] is not True:
-        raise ValidationError("The task must bound.", code="task_unbound")
-    if not issubclass(kwargs["base"], DataWarehouseTask):
-        raise ValidationError(
-            f"The base must be a subclass of "
-            f"{DataWarehouseTask.__module__}.{DataWarehouseTask.__qualname__}.",
-            code="base_not_subclass",
-        )
-
-    # The datetime format used in a CSV name.
-    dt_format = "%Y-%m-%dT%H:%M:%S"  # E.g. "2025-01-01T00:00:00"
-
-    # Get the runtime settings based on the BigQuery table's write-mode.
-    if bq_table_write_mode == "append":
-        only_list_blobs_in_current_dt_span = True
-        delete_blobs_not_in_current_dt_span = False
-    else:  # bq_table_write_mode == "overwrite"
-        only_list_blobs_in_current_dt_span = False
-        delete_blobs_not_in_current_dt_span = True
-
-    # Type alias for a callable which returns a queryset.
     GetQuerySet: t.TypeAlias = t.Callable[..., QuerySet[t.Any]]
+
+    # pylint: disable-next=too-many-instance-attributes
+    class Options:
+        """The options for a data warehouse task."""
+
+        BqTableWriteMode: t.TypeAlias = t.Literal["overwrite", "append"]
+
+        # pylint: disable-next=too-many-arguments,too-many-branches
+        def __init__(
+            self,
+            bq_table_write_mode: BqTableWriteMode,
+            chunk_size: int,
+            fields: t.List[str],
+            time_limit: int = 3600,
+            bq_table_name: t.Optional[str] = None,
+            max_retries: int = 5,
+            retry_countdown: int = 10,
+            **kwargs,
+        ):
+            # pylint: disable=line-too-long
+            """Create the options for a data warehouse task.
+
+            Args:
+                bq_table_write_mode: The BigQuery table's write-mode.
+                chunk_size: The number of objects/rows per CSV. Must be a multiple of 10.
+                fields: The [Django model] fields to include in the CSV.
+                time_limit: The maximum amount of time this task is allowed to take before it's hard-killed.
+                bq_table_name: The name of the BigQuery table where these CSV files will ultimately be imported into. If not provided, the name of the decorated function will be used instead.
+                max_retries: The maximum number of retries allowed.
+                retry_countdown: The countdown before attempting the next retry.
+            """
+            # pylint: enable=line-too-long
+
+            # Set required values as defaults.
+            kwargs.setdefault("bind", True)
+            kwargs.setdefault("base", DataWarehouseTask)
+
+            # Ensure the ID field is always present.
+            if "id" not in fields:
+                fields.append("id")
+
+            # Validate args.
+            if chunk_size <= 0:
+                raise ValidationError(
+                    "The chunk size must be > 0.",
+                    code="chunk_size_lte_0",
+                )
+            if chunk_size % 10 != 0:
+                raise ValidationError(
+                    "The chunk size must be a multiple of 10.",
+                    code="chunk_size_not_multiple_of_10",
+                )
+            if len(fields) <= 1:
+                raise ValidationError(
+                    'Must provide at least 1 field (not including "id").',
+                    code="no_fields",
+                )
+            if len(fields) != len(set(fields)):
+                raise ValidationError(
+                    "Fields must be unique.",
+                    code="duplicate_fields",
+                )
+            if time_limit <= 0:
+                raise ValidationError(
+                    "The time limit must be > 0.",
+                    code="time_limit_lte_0",
+                )
+            if time_limit > 3600:
+                raise ValidationError(
+                    "The time limit must be <= 3600 (1 hour).",
+                    code="time_limit_gt_3600",
+                )
+            if max_retries < 0:
+                raise ValidationError(
+                    "The max retries must be >= 0.",
+                    code="max_retries_lt_0",
+                )
+            if retry_countdown < 0:
+                raise ValidationError(
+                    "The retry countdown must be >= 0.",
+                    code="retry_countdown_lt_0",
+                )
+            if kwargs["bind"] is not True:
+                raise ValidationError(
+                    "The task must bound.", code="task_unbound"
+                )
+            if not issubclass(kwargs["base"], DataWarehouseTask):
+                raise ValidationError(
+                    f"The base must be a subclass of "
+                    f"{DataWarehouseTask.__module__}.{DataWarehouseTask.__qualname__}.",
+                    code="base_not_subclass",
+                )
+
+            self._bq_table_write_mode = bq_table_write_mode
+            self._chunk_size = chunk_size
+            self._fields = fields
+            self._time_limit = time_limit
+            self._bq_table_name = bq_table_name
+            self._max_retries = max_retries
+            self._retry_countdown = retry_countdown
+            self._kwargs = kwargs
+
+            # Get the runtime settings based on the BigQuery table's write-mode.
+            if bq_table_write_mode == "append":
+                self._only_list_blobs_in_current_dt_span = True
+                self._delete_blobs_not_in_current_dt_span = False
+            else:  # bq_table_write_mode == "overwrite"
+                self._only_list_blobs_in_current_dt_span = False
+                self._delete_blobs_not_in_current_dt_span = True
+
+        @property
+        def bq_table_write_mode(self):
+            """The BigQuery table's write-mode."""
+            return self._bq_table_write_mode
+
+        @property
+        def chunk_size(self):
+            """The number of objects/rows per CSV. Must be a multiple of 10."""
+            return self._chunk_size
+
+        @property
+        def fields(self):
+            """The [Django model] fields to include in the CSV."""
+            return self._fields
+
+        @property
+        def time_limit(self):
+            """
+            The maximum amount of time this task is allowed to take before it's
+            hard-killed.
+            """
+            return self._time_limit
+
+        @property
+        def bq_table_name(self):
+            """
+            The name of the BigQuery table where the CSV files will ultimately
+            be imported into.
+            """
+            return self._bq_table_name
+
+        @property
+        def max_retries(self):
+            """The maximum number of retries allowed."""
+            return self._max_retries
+
+        @property
+        def retry_countdown(self):
+            """The countdown before attempting the next retry."""
+            return self._retry_countdown
+
+    options: Options
 
     class ChunkMetadata(t.NamedTuple):
         """All of the metadata used to track a chunk."""
@@ -257,6 +225,14 @@ def shared_data_warehouse_task(
         obj_i_start: int  # object index span start
         obj_i_end: int  # object index span end
         obj_count_digits: int  # number of digits in the object count
+
+        @staticmethod
+        def format_datetime(dt: datetime):
+            """
+            Formats a datetime to be used in a CSV name.
+            E.g. "2025-01-01T00:00:00"
+            """
+            return dt.strftime("%Y-%m-%dT%H:%M:%S")
 
         def to_blob_name(self):
             """Convert this chunk metadata into a blob name."""
@@ -301,7 +277,7 @@ def shared_data_warehouse_task(
                 obj_count_digits=len(obj_i_start_fstr),
             )
 
-    def get_gcs_bucket():
+    def _get_gcs_bucket(self):
         # Get the default credentials from the environment (Workload Identity Federation)
         # These are the short-lived credentials from the AWS IAM role.
         # creds, _ = default()
@@ -329,11 +305,12 @@ def shared_data_warehouse_task(
         return gcs_client.bucket(settings.GOOGLE_CLOUD_STORAGE_BUCKET_NAME)
 
     # pylint: disable-next=too-many-locals
-    def save_query_set_as_csvs_in_gcs_bucket(
+    def _save_query_set_as_csvs_in_gcs_bucket(
+        self,
+        options: Options,
         get_query_set: GetQuerySet,
-        bq_table_name: str,
-        *task_args,
-        **task_kwargs,
+        task_args: Args,
+        task_kwargs: KwArgs,
     ):
         # Get the current datetime.
         dt_end = timezone.now()
@@ -358,15 +335,17 @@ def shared_data_warehouse_task(
         query_set = query_set[:obj_count]
 
         # Impersonate the service account and get access to the GCS bucket.
-        bucket = get_gcs_bucket()
+        bucket = self._get_gcs_bucket()
 
         # Get the last time this task successfully ran.
         dt_start: t.Optional[datetime] = dt_end  # TODO: get real value from DB.
 
         # Get the range between the last run and now as a formatted string.
-        dt_end_fstr = dt_end.strftime(dt_format)
+        dt_end_fstr = self.ChunkMetadata.format_datetime(dt_end)
         dt_start_fstr = (
-            dt_start.strftime(dt_format) if dt_start else dt_end_fstr
+            self.ChunkMetadata.format_datetime(dt_start)
+            if dt_start
+            else dt_end_fstr
         )
 
         # The name of the last blob in the current datetime span.
@@ -376,17 +355,24 @@ def shared_data_warehouse_task(
         for blob in t.cast(
             t.Iterator[gcs.Blob],
             bucket.list_blobs(
-                prefix=f"{bq_table_name}/"
-                + (dt_start_fstr if only_list_blobs_in_current_dt_span else "")
+                prefix=f"{options.bq_table_name}/"
+                + (
+                    dt_start_fstr
+                    # pylint: disable-next=protected-access
+                    if options._only_list_blobs_in_current_dt_span
+                    else ""
+                )
             ),
         ):
             blob_name = t.cast(str, blob.name)
 
             # Check if found first blob in current datetime span.
-            if only_list_blobs_in_current_dt_span or blob_name.startswith(
-                dt_start_fstr
+            if (
+                # pylint: disable-next=protected-access
+                options._only_list_blobs_in_current_dt_span
+                or blob_name.startswith(dt_start_fstr)
             ):
-                chunk_metadata = ChunkMetadata.from_blob_name(blob_name)
+                chunk_metadata = self.ChunkMetadata.from_blob_name(blob_name)
 
                 # If the number of digits in the object count has changed...
                 if obj_count_digits != chunk_metadata.obj_count_digits:
@@ -406,14 +392,15 @@ def shared_data_warehouse_task(
 
                 last_blob_name_in_current_dt_span = blob_name
             # Check if blob not in current datetime span should be deleted.
-            elif delete_blobs_not_in_current_dt_span:
+            # pylint: disable-next=protected-access
+            elif options._delete_blobs_not_in_current_dt_span:
                 logging.info('Deleting blob "%s".', blob_name)
                 blob.delete()
 
         # Track the current and starting object index (1-based).
         obj_i = obj_i_start = (
             # ...extract the starting object index from its name.
-            ChunkMetadata.from_blob_name(
+            self.ChunkMetadata.from_blob_name(
                 last_blob_name_in_current_dt_span
             ).obj_i_end
             + 1
@@ -433,18 +420,18 @@ def shared_data_warehouse_task(
             if not query_set.exists():
                 return
 
-        chunk_i = obj_i // chunk_size  # Track chunk index (0-based).
+        chunk_i = obj_i // options.chunk_size  # Track chunk index (0-based).
         csv = ""  # Track content of the current CSV file.
-        csv_headers = ",".join(fields)  # Headers of each CSV file.
+        csv_headers = ",".join(options.fields)  # Headers of each CSV file.
 
         # Uploads the current CSV file to the GCS bucket.
         def upload_csv(obj_i_end: int):
             # Calculate the starting object index for the current chunk.
-            obj_i_start = (chunk_i * chunk_size) + 1
+            obj_i_start = (chunk_i * options.chunk_size) + 1
 
             # Generate the path to the CSV in the bucket.
-            blob_name = ChunkMetadata(
-                bq_table_name=bq_table_name,
+            blob_name = self.ChunkMetadata(
+                bq_table_name=options.bq_table_name,
                 dt_start_fstr=dt_start_fstr,
                 dt_end_fstr=dt_end_fstr,
                 obj_i_start=obj_i_start,
@@ -464,11 +451,13 @@ def shared_data_warehouse_task(
         for obj_i, values in enumerate(
             t.cast(
                 t.Iterator[t.Tuple[t.Any, ...]],
-                query_set.values_list(*fields).iterator(chunk_size=chunk_size),
+                query_set.values_list(*options.fields).iterator(
+                    chunk_size=options.chunk_size
+                ),
             ),
             start=obj_i_start,
         ):
-            if obj_i % chunk_size == 1:  # If at the start of a chunk...
+            if obj_i % options.chunk_size == 1:  # If at the start of a chunk...
                 if obj_i != obj_i_start:  # ...and not the 1st iteration...
                     # ...upload the chunk's CSV and increment its index...
                     upload_csv(obj_i_end=obj_i - 1)
@@ -487,54 +476,108 @@ def shared_data_warehouse_task(
 
         upload_csv(obj_i_end=obj_i)  # Upload final (maybe partial) chunk.
 
-    def wrapper(get_query_set: GetQuerySet):
-        # Get BigQuery table name and validate it's not already registered.
-        nonlocal bq_table_name
-        bq_table_name = bq_table_name or get_query_set.__name__
-        if bq_table_name in _BQ_TABLE_NAMES:
-            raise ValueError(
-                f'The BigQuery table name "{bq_table_name}" is already'
-                "registered."
-            )
-        _BQ_TABLE_NAMES.add(bq_table_name)
+    # pylint: disable-next=too-many-arguments,too-many-statements,too-many-locals,too-many-branches
+    @classmethod
+    def shared(cls, options: Options):
+        # pylint: disable=line-too-long,anomalous-backslash-in-string
+        """Create a Celery task that saves a queryset as CSV files in the GCS
+        bucket.
 
-        # Wraps the task with retry logic.
-        def task(self: Task, *task_args, **task_kwargs):
-            try:
-                save_query_set_as_csvs_in_gcs_bucket(
-                    get_query_set, bq_table_name, *task_args, **task_kwargs
+        This decorator handles chunking a queryset to avoid out-of-memory (OOM)
+        errors. Each chunk is saved as a separate CSV file and follows a naming
+        convention that tracks 2 spans:
+
+        1. datetime (dt) - From when this task was last run successfully to now.
+        2. object index (obj_i) - The start and end index of the objects.
+
+        The naming convention follows the format:
+            **"{dt_start}\_{dt_end}\_\_{i_start}\_{i_end}.csv"**
+        The datetime follows the format:
+            **"{YYYY}-{MM}-{DD}T{HH}:{MM}:{SS}"** (e.g. "2025-12-01T23:59:59")
+
+        NOTE: The index is padded with zeros to ensure sorting by name is
+        consistent. For example, the index span from 1 to 500 would be "001_500".
+
+        Ultimately, these CSV files are imported into a BigQuery table, after which
+        they are deleted from the GCS bucket.
+
+        Each task *must* be given a distinct table name and queryset to avoid
+        unintended consequences.
+
+        Examples:
+            ```
+            @DataWarehouseTask.shared(
+                DataWarehouseTask.Options(
+                    # bq_table_name = "example", <- Alternatively, set the table name like so.
+                    bq_table_write_mode="append",
+                    chunk_size=1000,
+                    fields=["first_name", "joined_at", "is_active"],
                 )
-            except Exception as exc:
-                raise self.retry(exc=exc, countdown=retry_countdown)
+            )
+            def user(): # CSVs will be saved to a BQ table named "user"
+                return User.objects.all()
+            ```
 
-        # Namespace the task with service's name. If the name is not explicitly
-        # provided, it defaults to the name of the decorated function.
-        name = kwargs.pop("name", None)
-        name = get_task_name(name if isinstance(name, str) else get_query_set)
+        Args:
+            options: The options for this data warehouse task.
 
-        data_warehouse_task = t.cast(
-            DataWarehouseTask,
-            _shared_task(
-                **kwargs,
-                name=name,
-                time_limit=time_limit,
-                max_retries=max_retries,
-            )(task),
-        )
+        Returns:
+            A wrapper-function which expects to receive a callable that returns a
+            queryset and returns a Celery task to save the queryset as CSV files in
+            the GCS bucket.
+        """
+        # pylint: enable=line-too-long,anomalous-backslash-in-string
 
-        # pylint: disable=protected-access
-        data_warehouse_task._bq_table_write_mode = bq_table_write_mode
-        data_warehouse_task._chunk_size = chunk_size
-        data_warehouse_task._fields = fields
-        data_warehouse_task._time_limit = time_limit
-        data_warehouse_task._bq_table_name = bq_table_name
-        data_warehouse_task._max_retries = max_retries
-        data_warehouse_task._retry_countdown = retry_countdown
-        # pylint: enable=protected-access
+        def wrapper(get_query_set: "DataWarehouseTask.GetQuerySet"):
+            # Get BigQuery table name and validate it's not already registered.
+            bq_table_name = options.bq_table_name or get_query_set.__name__
+            if bq_table_name in _BQ_TABLE_NAMES:
+                raise ValueError(
+                    f'The BigQuery table name "{bq_table_name}" is already'
+                    "registered."
+                )
+            _BQ_TABLE_NAMES.add(bq_table_name)
 
-        return data_warehouse_task
+            # Overwrite BigQuery table name.
+            # pylint: disable-next=protected-access
+            options._bq_table_name = bq_table_name
 
-    return wrapper
+            # Wraps the task with retry logic.
+            def task(self: "DataWarehouseTask", *task_args, **task_kwargs):
+                try:
+                    cls._save_query_set_as_csvs_in_gcs_bucket(
+                        self=self,
+                        options=options,
+                        get_query_set=get_query_set,
+                        task_args=task_args,
+                        task_kwargs=task_kwargs,
+                    )
+                except Exception as exc:
+                    raise self.retry(exc=exc, countdown=options.retry_countdown)
+
+            # pylint: disable-next=protected-access
+            kwargs = options._kwargs
+
+            # Namespace the task with service's name. If the name is not explicitly
+            # provided, it defaults to the name of the decorated function.
+            name = kwargs.pop("name", None)
+            name = get_task_name(
+                name if isinstance(name, str) else get_query_set
+            )
+
+            data_warehouse_task = t.cast(
+                DataWarehouseTask,
+                _shared_task(
+                    **kwargs,
+                    name=name,
+                    time_limit=options.time_limit,
+                    max_retries=options.max_retries,
+                )(task),
+            )
+            data_warehouse_task.options = options
+            return data_warehouse_task
+
+        return wrapper
 
 
 def get_local_sqs_url(aws_region: str, service_name: str):

@@ -10,17 +10,19 @@ from unittest.mock import patch
 from celery import Celery
 from django.utils import timezone
 
-from .tasks import DataWarehouseTask, shared_data_warehouse_task
+from .tasks import DataWarehouseTask
 from .tests import CeleryTestCase
 from .user.models import User
 
 # pylint: disable=missing-class-docstring
 
 
-@shared_data_warehouse_task(
-    bq_table_write_mode="append",
-    chunk_size=10,
-    fields=["first_name", "is_active"],
+@DataWarehouseTask.shared(
+    DataWarehouseTask.Options(
+        bq_table_write_mode="append",
+        chunk_size=10,
+        fields=["first_name", "is_active"],
+    )
 )
 def user():
     """Append users to table"""
@@ -35,69 +37,65 @@ class TestSharedDataWarehouseTask(CeleryTestCase):
 
         return super().setUpClass()
 
-    # Validation errors
+    # Options
 
-    def _test_validation_error(
+    def _test_options(
         self,
         code: str,
-        bq_table_write_mode: DataWarehouseTask.BqTableWriteMode = "append",
+        bq_table_write_mode: DataWarehouseTask.Options.BqTableWriteMode = (
+            "append"
+        ),
         chunk_size: int = 10,
         fields: t.Optional[t.List[str]] = None,
         **kwargs
     ):
         with self.assert_raises_validation_error(code=code):
-            shared_data_warehouse_task(
+            DataWarehouseTask.Options(
                 bq_table_write_mode=bq_table_write_mode,
                 chunk_size=chunk_size,
                 fields=fields or ["some_field"],
                 **kwargs
             )
 
-    def test_validation_error__chunk_size_lte_0(self):
+    def test_options__chunk_size_lte_0(self):
         """Chunk size must be > 0."""
-        self._test_validation_error(code="chunk_size_lte_0", chunk_size=0)
+        self._test_options(code="chunk_size_lte_0", chunk_size=0)
 
-    def test_validation_error__chunk_size_not_multiple_of_10(self):
+    def test_options__chunk_size_not_multiple_of_10(self):
         """Chunk size must be a multiple of 10."""
-        self._test_validation_error(
-            code="chunk_size_not_multiple_of_10", chunk_size=9
-        )
+        self._test_options(code="chunk_size_not_multiple_of_10", chunk_size=9)
 
-    def test_validation_error__no_fields(self):
+    def test_options__no_fields(self):
         """Must provide at least 1 field (not including "id")."""
-        self._test_validation_error(code="no_fields", fields=["id"])
+        self._test_options(code="no_fields", fields=["id"])
 
-    def test_validation_error__duplicate_fields(self):
+    def test_options__duplicate_fields(self):
         """Fields must be unique."""
-        self._test_validation_error(
-            code="duplicate_fields", fields=["email", "email"]
-        )
+        self._test_options(code="duplicate_fields", fields=["email", "email"])
 
-    def test_validation_error__time_limit_lte_0(self):
+    def test_options__time_limit_lte_0(self):
         """Time limit must be > 0."""
-        self._test_validation_error(code="time_limit_lte_0", time_limit=0)
+        self._test_options(code="time_limit_lte_0", time_limit=0)
 
-    def test_validation_error__time_limit_gt_3600(self):
+    def test_options__time_limit_gt_3600(self):
         """Time limit must be <= 3600 (1 hour)."""
-        self._test_validation_error(code="time_limit_gt_3600", time_limit=3601)
+        self._test_options(code="time_limit_gt_3600", time_limit=3601)
 
-    def test_validation_error__max_retries_lt_0(self):
+    def test_options__max_retries_lt_0(self):
         """Max retries must be >= 0."""
-        self._test_validation_error(code="max_retries_lt_0", max_retries=-1)
+        self._test_options(code="max_retries_lt_0", max_retries=-1)
 
-    def test_validation_error__retry_countdown_lt_0(self):
+    def test_options__retry_countdown_lt_0(self):
         """Retry countdown must be >= 0."""
-        self._test_validation_error(
-            code="retry_countdown_lt_0", retry_countdown=-1
-        )
+        self._test_options(code="retry_countdown_lt_0", retry_countdown=-1)
 
-    def test_validation_error__task_unbound(self):
+    def test_options__task_unbound(self):
         """Task must be bound."""
-        self._test_validation_error(code="task_unbound", bind=False)
+        self._test_options(code="task_unbound", bind=False)
 
-    def test_validation_error__base_not_subclass(self):
+    def test_options__base_not_subclass(self):
         """Base must be a subclass of DataWarehouseTask."""
-        self._test_validation_error(code="base_not_subclass", base=int)
+        self._test_options(code="base_not_subclass", base=int)
 
     # Task
 
