@@ -29,7 +29,7 @@ def user():
     return User.objects.all()
 
 
-class TestSharedDataWarehouseTask(CeleryTestCase):
+class TestDataWarehouseTask(CeleryTestCase):
 
     @classmethod
     def setUpClass(cls):
