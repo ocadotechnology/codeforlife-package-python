@@ -18,6 +18,8 @@ from google.auth import default, impersonated_credentials
 from google.cloud import storage as gcs  # type: ignore[import-untyped]
 from google.oauth2 import service_account
 
+from .exceptions import ValidationError
+
 _BQ_TABLE_NAMES: t.Set[str] = set()
 
 
@@ -127,23 +129,47 @@ def shared_data_warehouse_task(
 
     # Validate args.
     if chunk_size <= 0:
-        raise ValueError("The chunk size must be > 0.")
+        raise ValidationError(
+            "The chunk size must be > 0.",
+            code="chunk_size_lte_0",
+        )
     if chunk_size % 10 != 0:
-        raise ValueError("The chunk size must be a multiple of 10.")
+        raise ValidationError(
+            "The chunk size must be a multiple of 10.",
+            code="chunk_size_not_multiple_of_10",
+        )
     if len(fields) <= 1:
-        raise ValueError('Must provide at least 1 field (not including "id").')
+        raise ValidationError(
+            'Must provide at least 1 field (not including "id").',
+            code="no_fields",
+        )
     if len(fields) != len(set(fields)):
-        raise ValueError("Fields must be unique.")
+        raise ValidationError(
+            "Fields must be unique.",
+            code="duplicate_fields",
+        )
     if time_limit <= 0:
-        raise ValueError("The time limit must be > 0.")
+        raise ValidationError(
+            "The time limit must be > 0.",
+            code="time_limit_lte_0",
+        )
     if time_limit > 3600:
-        raise ValueError("The time limit must be <= 3600 (1 hour).")
+        raise ValidationError(
+            "The time limit must be <= 3600 (1 hour).",
+            code="time_limit_gt_3600",
+        )
     if max_retries < 0:
-        raise ValueError("The max retries must be >= 0.")
+        raise ValidationError(
+            "The max retries must be >= 0.",
+            code="max_retries_lt_0",
+        )
     if retry_countdown < 0:
-        raise ValueError("The retry countdown must be >= 0.")
+        raise ValidationError(
+            "The retry countdown must be >= 0.",
+            code="retry_countdown_lt_0",
+        )
     if kwargs["bind"] is not True:
-        raise ValueError("The task must bound.")
+        raise ValidationError("The task must bound.", code="task_unbound")
 
     # The datetime format used in a CSV name.
     dt_format = "%Y-%m-%dT%H:%M:%S"  # E.g. "2025-01-01T00:00:00"
