@@ -288,6 +288,7 @@ class DataWarehouseTask(Task):
 
     @staticmethod
     def format_values(values: t.Tuple[t.Any, ...]):
+        """Format the values as a newline in a CSV file."""
         # Transform the values into their SQL representations.
         sql_values: t.List[str] = []
         for value in values:
@@ -458,7 +459,6 @@ class DataWarehouseTask(Task):
 
         upload_csv(obj_i_end=obj_i)  # Upload final (maybe partial) chunk.
 
-    # pylint: disable-next=too-many-arguments,too-many-statements,too-many-locals,too-many-branches
     @classmethod
     def shared(cls, options: Options):
         # pylint: disable=line-too-long,anomalous-backslash-in-string

@@ -95,6 +95,20 @@ class TestDataWarehouseTask(CeleryTestCase):
         """Base must be a subclass of DataWarehouseTask."""
         self._test_options(code="base_not_subclass", base=int)
 
+    # Format values
+
+    def _test_format_values(self, *values: t.Tuple[t.Any, str]):
+        original_values = tuple(value[0] for value in values)
+        formatted_values = [value[1] for value in values]
+
+        csv = DataWarehouseTask.format_values(original_values)
+        assert csv.startswith("\n")
+        assert csv.removeprefix("\n").split(",") == formatted_values
+
+    def test_format_values__bool(self):
+        """Booleans are converted to 0 or 1."""
+        self._test_format_values((True, "1"), (False, "0"))
+
     # Task
 
     def test_task__basic(self):
