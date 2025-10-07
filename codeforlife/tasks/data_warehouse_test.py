@@ -22,8 +22,20 @@ from .data_warehouse import DataWarehouseTask
         fields=["first_name", "is_active"],
     )
 )
-def user():
-    """Append all users to the "user" BigQuery table."""
+def user__append():
+    """Append all users in the "user__append" BigQuery table."""
+    return User.objects.all()
+
+
+@DataWarehouseTask.shared(
+    DataWarehouseTask.Options(
+        bq_table_write_mode="overwrite",
+        chunk_size=10,
+        fields=["first_name", "is_active"],
+    )
+)
+def user__overwrite():
+    """Overwrite all users in the "user__overwrite" BigQuery table."""
     return User.objects.all()
 
 
@@ -179,27 +191,37 @@ class TestDataWarehouseTask(CeleryTestCase):
 
     # Task
 
-    def test_task__basic(self):
-        """Everything completes on the 1st attempt without complications."""
-        self.assert_data_warehouse_task(
-            task=user, now=datetime(year=2025, month=1, day=1)
-        )
-
-    def test_task__overwrite(self):
+    def test_task__append__basic(self):
         """
         Everything completes on the 1st attempt without complications. Any
-        existing data is deleted.
+        existing data is not deleted.
         """
+        self.assert_data_warehouse_task(
+            task=user__append,
+            # uploaded_blobs=[] TODO
+        )
 
-    def test_task__retry__basic(self):
+    def test_task__append__retry(self):
         """
         The first attempt uploads only some of the CSVs. A second attempt is
         required to upload the remainder of the CSVs.
         """
+        self.assert_data_warehouse_task(
+            task=user__append,
+            # Assume we've already uploaded the first chunk.
+            uploaded_obj_count=user__append.options.chunk_size,
+        )
 
-    def test_task__retry__magnitude(self):
+    def test_task__append__retry__magnitude(self):
         """
         The first attempt uploads only some of the CSVs. A second attempt is
         required to upload the remainder of the CSVs. In addition, the number of
         objects has changed and therefore changed the order of magnitude.
         """
+
+    def test_task__overwrite__basic(self):
+        """
+        Everything completes on the 1st attempt without complications. Any
+        existing data is deleted.
+        """
+        self.assert_data_warehouse_task(task=user__overwrite)

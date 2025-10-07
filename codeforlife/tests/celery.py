@@ -61,40 +61,15 @@ class CeleryTestCase(TestCase):
             """The name of the blob."""
             return self.chunk_metadata.to_blob_name()
 
+        def __repr__(self):
+            return self.name
+
     class _MockGcsBucket(t.NamedTuple):
         list_blobs: MagicMock
         blob: MagicMock
         copy_blob: MagicMock
 
-    def _generate_mock_gcs_blobs(
-        self,
-        task: DataWarehouseTask,
-        dt_start_fstr: str,
-        dt_end_fstr: str,
-        obj_i_start: int,
-        obj_count: int,
-        obj_count_digits: int,
-    ):
-        return [
-            self._MockGcsBlob(
-                chunk_metadata=self._Chunk(
-                    bq_table_name=task.options.bq_table_name,
-                    dt_start_fstr=dt_start_fstr,
-                    dt_end_fstr=dt_end_fstr,
-                    obj_i_start=obj_i_start,
-                    obj_i_end=min(
-                        obj_i_start + task.options.chunk_size - 1, obj_count
-                    ),
-                    obj_count_digits=obj_count_digits,
-                ),
-                upload_from_string=MagicMock(),
-                delete=MagicMock(),
-            )
-            for obj_i_start in range(
-                obj_i_start, obj_count + 1, task.options.chunk_size
-            )
-        ]
-
+    # pylint: disable-next=too-many-arguments,too-many-locals
     def assert_data_warehouse_task(
         self,
         task: DataWarehouseTask,
@@ -104,6 +79,19 @@ class CeleryTestCase(TestCase):
         task_args: t.Optional[Args] = None,
         task_kwargs: t.Optional[KwArgs] = None,
     ):
+        # pylint: disable=line-too-long
+        """Assert that a data warehouse tasks uploads chunks of data as CSVs.
+
+        Args:
+            task: The task to make assertions on.
+            uploaded_obj_count: How many objects have already been uploaded.
+            now: When the task is triggered.
+            last_ran_at: When the task was last successfully triggered.
+            task_args: The arguments passed to the task.
+            task_kwargs: The keyword arguments passed to the task.
+        """
+        # pylint: enable=line-too-long
+
         # Set default values.
         now = timezone.make_aware(now or datetime.now())
         last_ran_at = timezone.make_aware(last_ran_at) if last_ran_at else now
@@ -116,7 +104,8 @@ class CeleryTestCase(TestCase):
 
         # Count the objects in the queryset and get the count's magnitude.
         obj_count = query_set.count()
-        assert uploaded_obj_count <= obj_count, "Uploaded object count too high"
+        assert uploaded_obj_count <= obj_count
+        assert (obj_count - uploaded_obj_count) > 0
         obj_count_digits = len(str(obj_count))
 
         # Get formatted strings for the current datetime span's start and end.
@@ -124,22 +113,29 @@ class CeleryTestCase(TestCase):
         dt_end_fstr = self._Chunk.format_datetime(now)
 
         # Generate mocks for all the uploaded and non-uploaded blobs.
-        uploaded_blobs = self._generate_mock_gcs_blobs(
-            task=task,
-            dt_start_fstr=dt_start_fstr,
-            dt_end_fstr=dt_end_fstr,
-            obj_i_start=1,
-            obj_count=uploaded_obj_count,
-            obj_count_digits=obj_count_digits,
-        )
-        non_uploaded_blobs = self._generate_mock_gcs_blobs(
-            task=task,
-            dt_start_fstr=dt_start_fstr,
-            dt_end_fstr=dt_end_fstr,
-            obj_i_start=uploaded_obj_count + 1,
-            obj_count=obj_count,
-            obj_count_digits=obj_count_digits,
-        )
+        def generate_blobs(obj_i_start: int, obj_count: int):
+            return [
+                self._MockGcsBlob(
+                    chunk_metadata=self._Chunk(
+                        bq_table_name=task.options.bq_table_name,
+                        dt_start_fstr=dt_start_fstr,
+                        dt_end_fstr=dt_end_fstr,
+                        obj_i_start=obj_i_start,
+                        obj_i_end=min(
+                            obj_i_start + task.options.chunk_size - 1, obj_count
+                        ),
+                        obj_count_digits=obj_count_digits,
+                    ),
+                    upload_from_string=MagicMock(),
+                    delete=MagicMock(),
+                )
+                for obj_i_start in range(
+                    obj_i_start, obj_count + 1, task.options.chunk_size
+                )
+            ]
+
+        uploaded_blobs = generate_blobs(1, uploaded_obj_count)
+        non_uploaded_blobs = generate_blobs(uploaded_obj_count + 1, obj_count)
 
         # Generate mocks for the bucket's methods.
         bucket_list_blobs = MagicMock(return_value=uploaded_blobs)
