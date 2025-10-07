@@ -52,9 +52,14 @@ class CeleryTestCase(TestCase):
         task.apply(args=args, kwargs=kwargs)
 
     class _MockGcsBlob(t.NamedTuple):
-        name: str
+        chunk_metadata: DataWarehouseTask.ChunkMetadata
         upload_from_string: MagicMock
         delete: MagicMock
+
+        @property
+        def name(self):
+            """The name of the blob."""
+            return self.chunk_metadata.to_blob_name()
 
     class _MockGcsBucket(t.NamedTuple):
         list_blobs: MagicMock
@@ -72,7 +77,7 @@ class CeleryTestCase(TestCase):
     ):
         return [
             self._MockGcsBlob(
-                name=self._Chunk(
+                chunk_metadata=self._Chunk(
                     bq_table_name=task.options.bq_table_name,
                     dt_start_fstr=dt_start_fstr,
                     dt_end_fstr=dt_end_fstr,
@@ -81,7 +86,7 @@ class CeleryTestCase(TestCase):
                         obj_i_start + task.options.chunk_size - 1, obj_count
                     ),
                     obj_count_digits=obj_count_digits,
-                ).to_blob_name(),
+                ),
                 upload_from_string=MagicMock(),
                 delete=MagicMock(),
             )
@@ -104,8 +109,13 @@ class CeleryTestCase(TestCase):
         last_ran_at = timezone.make_aware(last_ran_at) if last_ran_at else now
         task_args, task_kwargs = task_args or tuple(), task_kwargs or {}
 
+        # Get the queryset and order if not already ordered.
+        query_set = task.get_query_set(*task_args, **task_kwargs)
+        if not query_set.ordered:
+            query_set = query_set.order_by("id")
+
         # Count the objects in the queryset and get the count's magnitude.
-        obj_count = task.get_query_set(*task_args, **task_kwargs).count()
+        obj_count = query_set.count()
         assert uploaded_obj_count <= obj_count, "Uploaded object count too high"
         obj_count_digits = len(str(obj_count))
 
@@ -159,7 +169,7 @@ class CeleryTestCase(TestCase):
             prefix=f"{task.options.bq_table_name}/"
             + (
                 dt_start_fstr
-                if task.options.bq_table_write_mode == "append"
+                if task.options.only_list_blobs_in_current_dt_span
                 else ""
             )
         )
@@ -171,9 +181,18 @@ class CeleryTestCase(TestCase):
 
         # Assert that each blob was uploaded from a CSV string.
         for blob in non_uploaded_blobs:
-            upload_from_string = t.cast(MagicMock, blob.upload_from_string)
-            upload_from_string.assert_called_once_with(
-                blob.content, content_type="text/csv"
+            csv = task.options.csv_headers
+            for values in t.cast(
+                t.List[t.Tuple[t.Any, ...]],
+                query_set.values_list(*task.options.fields)[
+                    blob.chunk_metadata.obj_i_start
+                    - 1 : blob.chunk_metadata.obj_i_end
+                ],
+            ):
+                csv += DataWarehouseTask.format_values(values)
+
+            t.cast(MagicMock, blob.upload_from_string).assert_called_once_with(
+                csv, content_type="text/csv"
             )
 
         # bucket_copy_blob.assert_has_calls([])  # TODO

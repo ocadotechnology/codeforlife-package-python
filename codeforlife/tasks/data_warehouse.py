@@ -6,6 +6,7 @@ Created on 06/10/2025 at 17:15:37(+01:00).
 import logging
 import typing as t
 from datetime import datetime
+from functools import cached_property
 
 from celery import Task
 from celery import shared_task as _shared_task
@@ -17,7 +18,6 @@ from google.auth import default, impersonated_credentials
 from google.cloud import storage as gcs  # type: ignore[import-untyped]
 from google.oauth2 import service_account
 
-from ..types import Args, KwArgs
 from .utils import get_task_name
 
 _BQ_TABLE_NAMES: t.Set[str] = set()
@@ -117,7 +117,8 @@ class DataWarehouseTask(Task):
             if not issubclass(kwargs["base"], DataWarehouseTask):
                 raise ValidationError(
                     f"The base must be a subclass of "
-                    f"{DataWarehouseTask.__module__}.{DataWarehouseTask.__qualname__}.",
+                    f"'{DataWarehouseTask.__module__}."
+                    f"{DataWarehouseTask.__qualname__}'.",
                     code="base_not_subclass",
                 )
 
@@ -153,6 +154,11 @@ class DataWarehouseTask(Task):
             """The [Django model] fields to include in the CSV."""
             return self._fields
 
+        @cached_property
+        def csv_headers(self):
+            """The headers of each CSV file."""
+            return ",".join(self._fields)
+
         @property
         def time_limit(self):
             """
@@ -178,6 +184,16 @@ class DataWarehouseTask(Task):
         def retry_countdown(self):
             """The countdown before attempting the next retry."""
             return self._retry_countdown
+
+        @property
+        def only_list_blobs_in_current_dt_span(self):
+            """Whether to only list the blobs in the current datetime span."""
+            return self._only_list_blobs_in_current_dt_span
+
+        @property
+        def delete_blobs_not_in_current_dt_span(self):
+            """Whether to delete all blobs not in the current datetime span."""
+            return self._delete_blobs_not_in_current_dt_span
 
     options: Options
     get_query_set: GetQuerySet
@@ -270,19 +286,29 @@ class DataWarehouseTask(Task):
         gcs_client = gcs.Client(credentials=creds)
         return gcs_client.bucket(settings.GOOGLE_CLOUD_STORAGE_BUCKET_NAME)
 
-    # pylint: disable-next=too-many-locals
+    @staticmethod
+    def format_values(values: t.Tuple[t.Any, ...]):
+        # Transform the values into their SQL representations.
+        sql_values: t.List[str] = []
+        for value in values:
+            if isinstance(value, bool):
+                value = int(value)
+
+            sql_values.append(str(value))
+
+        # Append the values on a new line.
+        return "\n" + ",".join(sql_values)
+
+    @staticmethod
+    # pylint: disable-next=too-many-locals,bad-staticmethod-argument
     def _save_query_set_as_csvs_in_gcs_bucket(
-        self,
-        options: Options,
-        get_query_set: GetQuerySet,
-        task_args: Args,
-        task_kwargs: KwArgs,
+        self: "DataWarehouseTask", *task_args, **task_kwargs
     ):
         # Get the current datetime.
         dt_end = timezone.now()
 
         # Get the queryset.
-        query_set = get_query_set(*task_args, **task_kwargs)
+        query_set = self.get_query_set(*task_args, **task_kwargs)
 
         # Count the objects in the queryset and ensure there's at least 1.
         obj_count = query_set.count()
@@ -321,11 +347,10 @@ class DataWarehouseTask(Task):
         for blob in t.cast(
             t.Iterator[gcs.Blob],
             bucket.list_blobs(
-                prefix=f"{options.bq_table_name}/"
+                prefix=f"{self.options.bq_table_name}/"
                 + (
                     dt_start_fstr
-                    # pylint: disable-next=protected-access
-                    if options._only_list_blobs_in_current_dt_span
+                    if self.options.only_list_blobs_in_current_dt_span
                     else ""
                 )
             ),
@@ -334,8 +359,7 @@ class DataWarehouseTask(Task):
 
             # Check if found first blob in current datetime span.
             if (
-                # pylint: disable-next=protected-access
-                options._only_list_blobs_in_current_dt_span
+                self.options.only_list_blobs_in_current_dt_span
                 or blob_name.startswith(dt_start_fstr)
             ):
                 chunk_metadata = self.ChunkMetadata.from_blob_name(blob_name)
@@ -358,8 +382,7 @@ class DataWarehouseTask(Task):
 
                 last_blob_name_in_current_dt_span = blob_name
             # Check if blob not in current datetime span should be deleted.
-            # pylint: disable-next=protected-access
-            elif options._delete_blobs_not_in_current_dt_span:
+            elif self.options.delete_blobs_not_in_current_dt_span:
                 logging.info('Deleting blob "%s".', blob_name)
                 blob.delete()
 
@@ -386,18 +409,17 @@ class DataWarehouseTask(Task):
             if not query_set.exists():
                 return
 
-        chunk_i = obj_i // options.chunk_size  # Track chunk index (0-based).
+        chunk_i = obj_i // self.options.chunk_size  # Chunk index (0-based).
         csv = ""  # Track content of the current CSV file.
-        csv_headers = ",".join(options.fields)  # Headers of each CSV file.
 
         # Uploads the current CSV file to the GCS bucket.
         def upload_csv(obj_i_end: int):
             # Calculate the starting object index for the current chunk.
-            obj_i_start = (chunk_i * options.chunk_size) + 1
+            obj_i_start = (chunk_i * self.options.chunk_size) + 1
 
             # Generate the path to the CSV in the bucket.
             blob_name = self.ChunkMetadata(
-                bq_table_name=options.bq_table_name,
+                bq_table_name=self.options.bq_table_name,
                 dt_start_fstr=dt_start_fstr,
                 dt_end_fstr=dt_end_fstr,
                 obj_i_start=obj_i_start,
@@ -417,28 +439,22 @@ class DataWarehouseTask(Task):
         for obj_i, values in enumerate(
             t.cast(
                 t.Iterator[t.Tuple[t.Any, ...]],
-                query_set.values_list(*options.fields).iterator(
-                    chunk_size=options.chunk_size
+                query_set.values_list(*self.options.fields).iterator(
+                    chunk_size=self.options.chunk_size
                 ),
             ),
             start=obj_i_start,
         ):
-            if obj_i % options.chunk_size == 1:  # If at the start of a chunk...
+            if obj_i % self.options.chunk_size == 1:  # If start of a chunk...
                 if obj_i != obj_i_start:  # ...and not the 1st iteration...
                     # ...upload the chunk's CSV and increment its index...
                     upload_csv(obj_i_end=obj_i - 1)
                     chunk_i += 1
 
-                csv = csv_headers  # ...and start a new CSV.
-
-            # Transform the values into their SQL representations.
-            sql_values = [
-                int(value) if isinstance(value, bool) else value
-                for value in values
-            ]
+                csv = self.options.csv_headers  # ...and start a new CSV.
 
             # Append the values on a new line.
-            csv += "\n" + ",".join(map(str, sql_values))
+            csv += self.format_values(values)
 
         upload_csv(obj_i_end=obj_i)  # Upload final (maybe partial) chunk.
 
@@ -512,11 +528,7 @@ class DataWarehouseTask(Task):
             def task(self: "DataWarehouseTask", *task_args, **task_kwargs):
                 try:
                     cls._save_query_set_as_csvs_in_gcs_bucket(
-                        self=self,
-                        options=options,
-                        get_query_set=get_query_set,
-                        task_args=task_args,
-                        task_kwargs=task_kwargs,
+                        self, *task_args, **task_kwargs
                     )
                 except Exception as exc:
                     raise self.retry(exc=exc, countdown=options.retry_countdown)
@@ -532,17 +544,16 @@ class DataWarehouseTask(Task):
                 name if isinstance(name, str) else get_query_set
             )
 
-            data_warehouse_task = t.cast(
+            return t.cast(
                 DataWarehouseTask,
-                _shared_task(
+                _shared_task(  # type: ignore[call-overload]
                     **kwargs,
                     name=name,
                     time_limit=options.time_limit,
                     max_retries=options.max_retries,
+                    options=options,
+                    get_query_set=staticmethod(get_query_set),
                 )(task),
             )
-            data_warehouse_task.options = options
-            data_warehouse_task.get_query_set = get_query_set
-            return data_warehouse_task
 
         return wrapper
