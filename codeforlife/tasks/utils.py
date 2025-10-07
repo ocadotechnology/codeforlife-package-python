@@ -24,7 +24,10 @@ def get_task_name(task: t.Union[str, t.Callable]):
     if callable(task):
         task = f"{task.__module__}.{task.__name__}"
 
-    return f"{settings.SERVICE_NAME}.{task}"
+    if not task.startswith(settings.SERVICE_NAME):
+        task = f"{settings.SERVICE_NAME}.{task}"
+
+    return task
 
 
 def shared_task(*args, **kwargs):

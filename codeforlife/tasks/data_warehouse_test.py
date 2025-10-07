@@ -5,10 +5,8 @@ Created on 02/10/2025 at 17:22:38(+01:00).
 
 import typing as t
 from datetime import datetime
-from unittest.mock import MagicMock, patch
 
 from celery import Celery
-from django.utils import timezone
 
 from ..tests import CeleryTestCase
 from ..user.models import User
@@ -25,7 +23,7 @@ from .data_warehouse import DataWarehouseTask
     )
 )
 def user():
-    """Append users to table"""
+    """Append all users to the "user" BigQuery table."""
     return User.objects.all()
 
 
@@ -99,77 +97,11 @@ class TestDataWarehouseTask(CeleryTestCase):
 
     # Task
 
-    def patch_shared_data_warehouse_task(
-        self, task: DataWarehouseTask, now: t.Optional[datetime] = None
-    ):
-        def apply():
-            self.apply_task(task.name)
-
-        class MockGcsBlob(MagicMock):
-            def __init__(self, name: str):
-                super().__init__()
-                self.name = name
-
-            def upload_from_string(self, *args, **kwargs):
-                pass
-
-            def delete(self):
-                pass
-
-        class MockGcsBucket(MagicMock):
-            def __init__(self, blobs: t.List[MockGcsBlob]):
-                super().__init__()
-                self._blobs = blobs
-
-            def blob(self, name: str, *args, **kwargs):
-                return MockGcsBlob(name=name)
-
-            def list_blobs(self, *args, **kwargs):
-                return self._blobs
-
-            def copy_blob(self, *args, **kwargs):
-                pass
-
-        class TaskPatcher:
-            """Wraps a shared data warehouse task to patch objects."""
-
-            class Context(t.NamedTuple):
-                apply: t.Callable[[], None]
-                now: MagicMock
-                get_gcs_bucket: MagicMock
-
-            def __init__(self):
-                self.now = patch.object(
-                    timezone,
-                    "now",
-                    return_value=timezone.make_aware(now or datetime.now()),
-                )
-                self.get_gcs_bucket = patch.object(
-                    DataWarehouseTask,
-                    "_get_gcs_bucket",
-                    return_value=MockGcsBucket(blobs=[]),
-                )
-
-            def __enter__(self):
-                return self.Context(
-                    apply=apply,
-                    now=self.now.__enter__(),
-                    get_gcs_bucket=self.get_gcs_bucket.__enter__(),
-                )
-
-            def __exit__(self, *args, **kwargs):
-                self.now.__exit__(*args, **kwargs)
-                self.get_gcs_bucket.__exit__(*args, **kwargs)
-
-        return TaskPatcher()
-
     def test_task__basic(self):
         """Everything completes on the 1st attempt without complications."""
-        with self.patch_shared_data_warehouse_task(
-            task=user,
-            now=datetime(year=2025, month=1, day=1),
-        ) as task:
-            task.apply()
+        self.assert_data_warehouse_task(
+            task=user, now=datetime(year=2025, month=1, day=1)
+        )
 
     def test_task__overwrite(self):
         """

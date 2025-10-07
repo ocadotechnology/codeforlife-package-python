@@ -180,6 +180,7 @@ class DataWarehouseTask(Task):
             return self._retry_countdown
 
     options: Options
+    get_query_set: GetQuerySet
 
     class ChunkMetadata(t.NamedTuple):
         """All of the metadata used to track a chunk."""
@@ -541,6 +542,7 @@ class DataWarehouseTask(Task):
                 )(task),
             )
             data_warehouse_task.options = options
+            data_warehouse_task.get_query_set = get_query_set
             return data_warehouse_task
 
         return wrapper
