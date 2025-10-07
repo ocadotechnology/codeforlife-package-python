@@ -35,6 +35,39 @@ class TestDataWarehouseTask(CeleryTestCase):
 
         return super().setUpClass()
 
+    def setUp(self):
+        self.bq_table_name = "example"
+        self.dt_start_fstr = DataWarehouseTask.ChunkMetadata.format_datetime(
+            datetime(
+                year=2025,
+                month=1,
+                day=1,
+            )
+        )
+        self.dt_end_fstr = DataWarehouseTask.ChunkMetadata.format_datetime(
+            datetime(
+                year=2025,
+                month=1,
+                day=1,
+            )
+        )
+        self.obj_i_start = 1
+        self.obj_i_end = 100
+        self.obj_count_digits = 4
+
+        obj_i_start_fstr = str(self.obj_i_start).zfill(self.obj_count_digits)
+        obj_i_end_fstr = str(self.obj_i_end).zfill(self.obj_count_digits)
+
+        self.blob_name = (
+            f"{self.bq_table_name}/"
+            f"{self.dt_start_fstr}_{self.dt_end_fstr}"
+            "__"
+            f"{obj_i_start_fstr}_{obj_i_end_fstr}"
+            ".csv"
+        )
+
+        return super().setUp()
+
     # Options
 
     def _test_options(
@@ -45,14 +78,14 @@ class TestDataWarehouseTask(CeleryTestCase):
         ),
         chunk_size: int = 10,
         fields: t.Optional[t.List[str]] = None,
-        **kwargs
+        **kwargs,
     ):
         with self.assert_raises_validation_error(code=code):
             DataWarehouseTask.Options(
                 bq_table_write_mode=bq_table_write_mode,
                 chunk_size=chunk_size,
                 fields=fields or ["some_field"],
-                **kwargs
+                **kwargs,
             )
 
     def test_options__chunk_size_lte_0(self):
@@ -94,6 +127,41 @@ class TestDataWarehouseTask(CeleryTestCase):
     def test_options__base_not_subclass(self):
         """Base must be a subclass of DataWarehouseTask."""
         self._test_options(code="base_not_subclass", base=int)
+
+    # Chunk metadata
+
+    def test_chunk_metadata__format_datetime(self):
+        """
+        Dates are formatted as YYYY-MM-DD, time as HH:MM:SS, and joined with T.
+        """
+        formatted_dt = DataWarehouseTask.ChunkMetadata.format_datetime(
+            datetime(year=2025, month=2, day=1, hour=12, minute=30, second=15)
+        )
+        assert formatted_dt == "2025-02-01T12:30:15"
+
+    def test_chunk_metadata__to_blob_name(self):
+        """Can successfully convert a chunk's metadata into a blob name."""
+        blob_name = DataWarehouseTask.ChunkMetadata(
+            bq_table_name=self.bq_table_name,
+            dt_start_fstr=self.dt_start_fstr,
+            dt_end_fstr=self.dt_end_fstr,
+            obj_i_start=self.obj_i_start,
+            obj_i_end=self.obj_i_end,
+            obj_count_digits=self.obj_count_digits,
+        ).to_blob_name()
+        assert blob_name == self.blob_name
+
+    def test_chunk_metadata__from_blob_name(self):
+        """Can successfully convert a chunk's metadata into a blob name."""
+        chunk_metadata = DataWarehouseTask.ChunkMetadata.from_blob_name(
+            self.blob_name
+        )
+        assert chunk_metadata.bq_table_name == self.bq_table_name
+        assert chunk_metadata.dt_start_fstr == self.dt_start_fstr
+        assert chunk_metadata.dt_end_fstr == self.dt_end_fstr
+        assert chunk_metadata.obj_i_start == self.obj_i_start
+        assert chunk_metadata.obj_i_end == self.obj_i_end
+        assert chunk_metadata.obj_count_digits == self.obj_count_digits
 
     # Format values
 
