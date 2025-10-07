@@ -19,8 +19,6 @@ from .test import TestCase
 class CeleryTestCase(TestCase):
     """A test case for celery tasks."""
 
-    _Chunk = DataWarehouseTask.ChunkMetadata  # shorthand
-
     # The dot-path of the module containing the Celery app.
     app_module: str = "application"
     # The name of the Celery app.
@@ -73,7 +71,7 @@ class CeleryTestCase(TestCase):
     def assert_data_warehouse_task(
         self,
         task: DataWarehouseTask,
-        uploaded_obj_count: int = 0,
+        uploaded_chunk_count: int = 0,
         now: t.Optional[datetime] = None,
         last_ran_at: t.Optional[datetime] = None,
         task_args: t.Optional[Args] = None,
@@ -84,7 +82,7 @@ class CeleryTestCase(TestCase):
 
         Args:
             task: The task to make assertions on.
-            uploaded_obj_count: How many objects have already been uploaded.
+            uploaded_chunk_count: How many chunks have already been uploaded.
             now: When the task is triggered.
             last_ran_at: When the task was last successfully triggered.
             task_args: The arguments passed to the task.
@@ -92,9 +90,13 @@ class CeleryTestCase(TestCase):
         """
         # pylint: enable=line-too-long
 
+        # Validate args.
+        assert uploaded_chunk_count >= 0
+
         # Set default values.
         now = timezone.make_aware(now or datetime.now())
         last_ran_at = timezone.make_aware(last_ran_at) if last_ran_at else now
+        uploaded_obj_count = uploaded_chunk_count * task.options.chunk_size
         task_args, task_kwargs = task_args or tuple(), task_kwargs or {}
 
         # Get the queryset and order if not already ordered.
@@ -109,14 +111,16 @@ class CeleryTestCase(TestCase):
         obj_count_digits = len(str(obj_count))
 
         # Get formatted strings for the current datetime span's start and end.
-        dt_start_fstr = self._Chunk.format_datetime(last_ran_at)
-        dt_end_fstr = self._Chunk.format_datetime(now)
+        dt_start_fstr = DataWarehouseTask.ChunkMetadata.format_datetime(
+            last_ran_at
+        )
+        dt_end_fstr = DataWarehouseTask.ChunkMetadata.format_datetime(now)
 
         # Generate mocks for all the uploaded and non-uploaded blobs.
         def generate_blobs(obj_i_start: int, obj_count: int):
             return [
                 self._MockGcsBlob(
-                    chunk_metadata=self._Chunk(
+                    chunk_metadata=DataWarehouseTask.ChunkMetadata(
                         bq_table_name=task.options.bq_table_name,
                         dt_start_fstr=dt_start_fstr,
                         dt_end_fstr=dt_end_fstr,

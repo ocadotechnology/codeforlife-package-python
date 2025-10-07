@@ -208,8 +208,7 @@ class TestDataWarehouseTask(CeleryTestCase):
         """
         self.assert_data_warehouse_task(
             task=user__append,
-            # Assume we've already uploaded the first chunk.
-            uploaded_obj_count=user__append.options.chunk_size,
+            uploaded_chunk_count=1,  # Assume we've already uploaded 1 chunk.
         )
 
     def test_task__append__retry__magnitude(self):
