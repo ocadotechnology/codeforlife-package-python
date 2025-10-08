@@ -196,7 +196,7 @@ class DataWarehouseTask(Task):
             return self._delete_blobs_not_in_current_dt_span
 
     options: Options
-    get_query_set: GetQuerySet
+    get_queryset: GetQuerySet
 
     class ChunkMetadata(t.NamedTuple):
         """All of the metadata used to track a chunk."""
@@ -309,10 +309,10 @@ class DataWarehouseTask(Task):
         dt_end = timezone.now()
 
         # Get the queryset.
-        query_set = self.get_query_set(*task_args, **task_kwargs)
+        queryset = self.get_queryset(*task_args, **task_kwargs)
 
         # Count the objects in the queryset and ensure there's at least 1.
-        obj_count = query_set.count()
+        obj_count = queryset.count()
         if obj_count == 0:
             return
 
@@ -320,12 +320,12 @@ class DataWarehouseTask(Task):
         obj_count_digits = len(str(obj_count))
 
         # If the queryset is not ordered, order it by ID by default.
-        if not query_set.ordered:
-            query_set = query_set.order_by("id")
+        if not queryset.ordered:
+            queryset = queryset.order_by("id")
 
         # Limit the queryset to the object count to ensure the number of
         # digits in the count remains consistent.
-        query_set = query_set[:obj_count]
+        queryset = queryset[:obj_count]
 
         # Impersonate the service account and get access to the GCS bucket.
         bucket = self._get_gcs_bucket()
@@ -404,10 +404,10 @@ class DataWarehouseTask(Task):
             # ...offset the queryset...
             offset = obj_i - 1
             logging.info("Offsetting queryset by %d objects.", offset)
-            query_set = query_set[offset:]
+            queryset = queryset[offset:]
 
             # ...and ensure there's at least 1 object.
-            if not query_set.exists():
+            if not queryset.exists():
                 return
 
         chunk_i = obj_i // self.options.chunk_size  # Chunk index (0-based).
@@ -440,7 +440,7 @@ class DataWarehouseTask(Task):
         for obj_i, values in enumerate(
             t.cast(
                 t.Iterator[t.Tuple[t.Any, ...]],
-                query_set.values_list(*self.options.fields).iterator(
+                queryset.values_list(*self.options.fields).iterator(
                     chunk_size=self.options.chunk_size
                 ),
             ),
@@ -510,9 +510,9 @@ class DataWarehouseTask(Task):
         """
         # pylint: enable=line-too-long,anomalous-backslash-in-string
 
-        def wrapper(get_query_set: "DataWarehouseTask.GetQuerySet"):
+        def wrapper(get_queryset: "DataWarehouseTask.GetQuerySet"):
             # Get BigQuery table name and validate it's not already registered.
-            bq_table_name = options.bq_table_name or get_query_set.__name__
+            bq_table_name = options.bq_table_name or get_queryset.__name__
             if bq_table_name in _BQ_TABLE_NAMES:
                 raise ValueError(
                     f'The BigQuery table name "{bq_table_name}" is already'
@@ -541,7 +541,7 @@ class DataWarehouseTask(Task):
             # function.
             name = kwargs.pop("name", None)
             name = get_task_name(
-                name if isinstance(name, str) else get_query_set
+                name if isinstance(name, str) else get_queryset
             )
 
             return t.cast(
@@ -552,7 +552,7 @@ class DataWarehouseTask(Task):
                     time_limit=options.time_limit,
                     max_retries=options.max_retries,
                     options=options,
-                    get_query_set=staticmethod(get_query_set),
+                    get_queryset=staticmethod(get_queryset),
                 )(task),
             )
 

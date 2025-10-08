@@ -5,18 +5,21 @@ Created on 02/10/2025 at 17:22:38(+01:00).
 
 import typing as t
 from datetime import datetime, timedelta
+from unittest.mock import MagicMock, call, patch
 
 from celery import Celery
+from django.utils import timezone
 
 from ..tests import CeleryTestCase
+from ..types import Args, KwArgs
 from ..user.models import User
-from .data_warehouse import DataWarehouseTask
+from .data_warehouse import DataWarehouseTask as DWT
 
 # pylint: disable=missing-class-docstring
 
 
-@DataWarehouseTask.shared(
-    DataWarehouseTask.Options(
+@DWT.shared(
+    DWT.Options(
         bq_table_write_mode="append",
         chunk_size=10,
         fields=["first_name", "is_active"],
@@ -27,8 +30,8 @@ def user__append():
     return User.objects.all()
 
 
-@DataWarehouseTask.shared(
-    DataWarehouseTask.Options(
+@DWT.shared(
+    DWT.Options(
         bq_table_write_mode="overwrite",
         chunk_size=10,
         fields=["first_name", "is_active"],
@@ -37,6 +40,26 @@ def user__append():
 def user__overwrite():
     """Overwrite all users in the "user__overwrite" BigQuery table."""
     return User.objects.all()
+
+
+class MockGcsBlob(t.NamedTuple):
+    chunk_metadata: DWT.ChunkMetadata
+    upload_from_string: MagicMock
+    delete: MagicMock
+
+    @property
+    def name(self):
+        """The name of the blob."""
+        return self.chunk_metadata.to_blob_name()
+
+    def __repr__(self):
+        return self.name
+
+
+class MockGcsBucket(t.NamedTuple):
+    list_blobs: MagicMock
+    blob: MagicMock
+    copy_blob: MagicMock
 
 
 class TestDataWarehouseTask(CeleryTestCase):
@@ -49,14 +72,14 @@ class TestDataWarehouseTask(CeleryTestCase):
 
     def setUp(self):
         self.bq_table_name = "example"
-        self.dt_start_fstr = DataWarehouseTask.ChunkMetadata.format_datetime(
+        self.dt_start_fstr = DWT.ChunkMetadata.format_datetime(
             datetime(
                 year=2025,
                 month=1,
                 day=1,
             )
         )
-        self.dt_end_fstr = DataWarehouseTask.ChunkMetadata.format_datetime(
+        self.dt_end_fstr = DWT.ChunkMetadata.format_datetime(
             datetime(
                 year=2025,
                 month=1,
@@ -85,15 +108,13 @@ class TestDataWarehouseTask(CeleryTestCase):
     def _test_options(
         self,
         code: str,
-        bq_table_write_mode: DataWarehouseTask.Options.BqTableWriteMode = (
-            "append"
-        ),
+        bq_table_write_mode: DWT.Options.BqTableWriteMode = ("append"),
         chunk_size: int = 10,
         fields: t.Optional[t.List[str]] = None,
         **kwargs,
     ):
         with self.assert_raises_validation_error(code=code):
-            DataWarehouseTask.Options(
+            DWT.Options(
                 bq_table_write_mode=bq_table_write_mode,
                 chunk_size=chunk_size,
                 fields=fields or ["some_field"],
@@ -137,7 +158,7 @@ class TestDataWarehouseTask(CeleryTestCase):
         self._test_options(code="task_unbound", bind=False)
 
     def test_options__base_not_subclass(self):
-        """Base must be a subclass of DataWarehouseTask."""
+        """Base must be a subclass of DWT."""
         self._test_options(code="base_not_subclass", base=int)
 
     # Chunk metadata
@@ -146,14 +167,14 @@ class TestDataWarehouseTask(CeleryTestCase):
         """
         Dates are formatted as YYYY-MM-DD, time as HH:MM:SS, and joined with T.
         """
-        formatted_dt = DataWarehouseTask.ChunkMetadata.format_datetime(
+        formatted_dt = DWT.ChunkMetadata.format_datetime(
             datetime(year=2025, month=2, day=1, hour=12, minute=30, second=15)
         )
         assert formatted_dt == "2025-02-01T12:30:15"
 
     def test_chunk_metadata__to_blob_name(self):
         """Can successfully convert a chunk's metadata into a blob name."""
-        blob_name = DataWarehouseTask.ChunkMetadata(
+        blob_name = DWT.ChunkMetadata(
             bq_table_name=self.bq_table_name,
             dt_start_fstr=self.dt_start_fstr,
             dt_end_fstr=self.dt_end_fstr,
@@ -165,9 +186,7 @@ class TestDataWarehouseTask(CeleryTestCase):
 
     def test_chunk_metadata__from_blob_name(self):
         """Can successfully convert a chunk's metadata into a blob name."""
-        chunk_metadata = DataWarehouseTask.ChunkMetadata.from_blob_name(
-            self.blob_name
-        )
+        chunk_metadata = DWT.ChunkMetadata.from_blob_name(self.blob_name)
         assert chunk_metadata.bq_table_name == self.bq_table_name
         assert chunk_metadata.dt_start_fstr == self.dt_start_fstr
         assert chunk_metadata.dt_end_fstr == self.dt_end_fstr
@@ -181,7 +200,7 @@ class TestDataWarehouseTask(CeleryTestCase):
         original_values = tuple(value[0] for value in values)
         formatted_values = [value[1] for value in values]
 
-        csv = DataWarehouseTask.format_values(original_values)
+        csv = DWT.format_values(original_values)
         assert csv.startswith("\n")
         assert csv.removeprefix("\n").split(",") == formatted_values
 
@@ -191,12 +210,171 @@ class TestDataWarehouseTask(CeleryTestCase):
 
     # Task
 
+    # pylint: disable-next=too-many-arguments,too-many-locals
+    def _test_task(
+        self,
+        task: DWT,
+        uploaded_chunk_count: int = 0,
+        now: t.Optional[datetime] = None,
+        last_ran_at: t.Optional[timedelta] = None,
+        task_args: t.Optional[Args] = None,
+        task_kwargs: t.Optional[KwArgs] = None,
+    ):
+        """Assert that a data warehouse tasks uploads chunks of data as CSVs.
+
+        Args:
+            task: The task to make assertions on.
+            uploaded_chunk_count: How many chunks have already been uploaded.
+            now: When the task is triggered.
+            last_ran_at: How long ago the task was last successfully ran.
+            task_args: The arguments passed to the task.
+            task_kwargs: The keyword arguments passed to the task.
+        """
+
+        # Validate args.
+        assert uploaded_chunk_count >= 0
+
+        # Get the queryset and order it if not already ordered.
+        task_args, task_kwargs = task_args or tuple(), task_kwargs or {}
+        queryset = task.get_queryset(*task_args, **task_kwargs)
+        if not queryset.ordered:
+            queryset = queryset.order_by("id")
+
+        # Count the objects in the queryset and get the count's magnitude.
+        uploaded_obj_count = uploaded_chunk_count * task.options.chunk_size
+        obj_count = queryset.count()
+        assert uploaded_obj_count <= obj_count
+        assert (obj_count - uploaded_obj_count) > 0
+        obj_count_digits = len(str(obj_count))
+
+        # Local utility to generate blob-mocks for selected spans.
+        def generate_blobs(
+            dt_start_fstr: str,
+            dt_end_fstr: str,
+            obj_i_start: int,
+            obj_i_end: int,
+        ):
+            return [
+                MockGcsBlob(
+                    chunk_metadata=DWT.ChunkMetadata(
+                        bq_table_name=task.options.bq_table_name,
+                        dt_start_fstr=dt_start_fstr,
+                        dt_end_fstr=dt_end_fstr,
+                        obj_i_start=obj_i_start,
+                        obj_i_end=min(
+                            obj_i_start + task.options.chunk_size - 1, obj_i_end
+                        ),
+                        obj_count_digits=obj_count_digits,
+                    ),
+                    upload_from_string=MagicMock(),
+                    delete=MagicMock(),
+                )
+                for obj_i_start in range(
+                    obj_i_start, obj_i_end + 1, task.options.chunk_size
+                )
+            ]
+
+        # Get the current datetime span.
+        dt_end = timezone.make_aware(now or datetime.now())
+        dt_start = dt_end if last_ran_at is None else dt_end - last_ran_at
+
+        # If not the first run, generate blobs for the last datetime span.
+        # Assume the same object count and timedelta.
+        uploaded_blobs_from_last_dt_span: t.List[MockGcsBlob] = []
+        if last_ran_at is not None:
+            dt_start_fstr = DWT.ChunkMetadata.format_datetime(
+                dt_start - last_ran_at
+            )
+            dt_end_fstr = DWT.ChunkMetadata.format_datetime(dt_start)
+            uploaded_blobs_from_last_dt_span += generate_blobs(
+                dt_start_fstr, dt_end_fstr, 1, obj_count
+            )
+
+        # Generate blobs for the current datetime span.
+        dt_start_fstr = DWT.ChunkMetadata.format_datetime(dt_start)
+        dt_end_fstr = DWT.ChunkMetadata.format_datetime(dt_end)
+        uploaded_blobs_from_current_dt_span = generate_blobs(
+            dt_start_fstr, dt_end_fstr, 1, uploaded_obj_count
+        )
+        non_uploaded_blobs_from_current_dt_span = generate_blobs(
+            dt_start_fstr, dt_end_fstr, uploaded_obj_count + 1, obj_count
+        )
+
+        # Generate mocks for the bucket's methods.
+        bucket_list_blobs = MagicMock(
+            return_value=(  # Return the appropriate list based on the filters.
+                uploaded_blobs_from_current_dt_span
+                if task.options.only_list_blobs_in_current_dt_span
+                else uploaded_blobs_from_last_dt_span
+                + uploaded_blobs_from_current_dt_span
+            )
+        )
+        bucket_blob = MagicMock(
+            # Return the blobs not yet uploaded in the current datetime span.
+            side_effect=non_uploaded_blobs_from_current_dt_span  # 1 blob p/call
+        )
+        bucket_copy_blob = MagicMock()
+
+        # Patch methods called in the task to create predetermined results.
+        with patch.object(
+            DWT,
+            "_get_gcs_bucket",
+            return_value=MockGcsBucket(
+                list_blobs=bucket_list_blobs,
+                blob=bucket_blob,
+                copy_blob=bucket_copy_blob,
+            ),
+        ) as get_gcs_bucket:
+            with patch.object(timezone, "now", return_value=now) as now_mock:
+                self.apply_task(task.name, task_args, task_kwargs)
+
+                now_mock.assert_called_once()
+            get_gcs_bucket.assert_called_once()
+
+        # Assert that the blobs for the BigQuery table were listed. If the
+        # table's write-mode is append, assert only the blobs in the current
+        # datetime span were listed.
+        bucket_list_blobs.assert_called_once_with(
+            prefix=f"{task.options.bq_table_name}/"
+            + (
+                dt_start_fstr
+                if task.options.only_list_blobs_in_current_dt_span
+                else ""
+            )
+        )
+
+        # Assert that a blob was created for each non-uploaded blob.
+        bucket_blob.assert_has_calls(
+            [
+                call(blob.name)
+                for blob in non_uploaded_blobs_from_current_dt_span
+            ]
+        )
+
+        # Assert that each blob was uploaded from a CSV string.
+        for blob in non_uploaded_blobs_from_current_dt_span:
+            csv = task.options.csv_headers
+            for values in t.cast(
+                t.List[t.Tuple[t.Any, ...]],
+                queryset.values_list(*task.options.fields)[
+                    blob.chunk_metadata.obj_i_start
+                    - 1 : blob.chunk_metadata.obj_i_end
+                ],
+            ):
+                csv += DWT.format_values(values)
+
+            t.cast(MagicMock, blob.upload_from_string).assert_called_once_with(
+                csv, content_type="text/csv"
+            )
+
+        # bucket_copy_blob.assert_has_calls([])  # TODO
+
     def test_task__append__basic__first(self):
         """
         1. All blobs are uploaded without retries.
         2. This is the first successful run.
         """
-        self.assert_data_warehouse_task(task=user__append)
+        self._test_task(task=user__append)
 
     def test_task__append__basic__not_first(self):
         """
@@ -204,7 +382,7 @@ class TestDataWarehouseTask(CeleryTestCase):
         2. This is not the first successful run.
         3. Any existing data is not deleted.
         """
-        self.assert_data_warehouse_task(
+        self._test_task(
             task=user__append,
             last_ran_at=timedelta(days=1),  # Last successful run was 1 day ago.
         )
@@ -214,7 +392,7 @@ class TestDataWarehouseTask(CeleryTestCase):
         The first attempt uploads only some of the CSVs. A second attempt is
         required to upload the remainder of the CSVs.
         """
-        self.assert_data_warehouse_task(
+        self._test_task(
             task=user__append,
             uploaded_chunk_count=1,  # Assume we've already uploaded 1 chunk.
         )
@@ -231,4 +409,4 @@ class TestDataWarehouseTask(CeleryTestCase):
         Everything completes on the 1st attempt without complications. Any
         existing data is deleted.
         """
-        self.assert_data_warehouse_task(task=user__overwrite)
+        self._test_task(task=user__overwrite)
