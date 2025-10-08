@@ -42,10 +42,11 @@ def user__overwrite():
     return User.objects.all()
 
 
-class MockGcsBlob(t.NamedTuple):
-    chunk_metadata: DWT.ChunkMetadata
-    upload_from_string: MagicMock
-    delete: MagicMock
+class MockGcsBlob:
+    def __init__(self, chunk_metadata: DWT.ChunkMetadata):
+        self.chunk_metadata = chunk_metadata
+        self.upload_from_string = MagicMock()
+        self.delete = MagicMock()
 
     @property
     def name(self):
@@ -55,11 +56,59 @@ class MockGcsBlob(t.NamedTuple):
     def __repr__(self):
         return self.name
 
+    @classmethod
+    # pylint: disable-next=too-many-arguments
+    def generate_list(
+        cls,
+        task: DWT,
+        dt_start_fstr: str,
+        dt_end_fstr: str,
+        obj_i_start: int,
+        obj_i_end: int,
+        obj_count_digits: int,
+    ):
+        """Generate a list of mock GCS blobs.
 
-class MockGcsBucket(t.NamedTuple):
-    list_blobs: MagicMock
-    blob: MagicMock
-    copy_blob: MagicMock
+        Args:
+            task: The task that produced these blobs.
+            dt_start_fstr: The datetime span start as formatted string.
+            dt_end_fstr: The datetime span end as formatted string.
+            obj_i_start: The object index span start.
+            obj_i_end: The object index span end.
+            obj_count_digits: The number of digits in the object count
+
+        Returns:
+            A list of mock GCS blobs.
+        """
+        return [
+            cls(
+                chunk_metadata=DWT.ChunkMetadata(
+                    bq_table_name=task.options.bq_table_name,
+                    dt_start_fstr=dt_start_fstr,
+                    dt_end_fstr=dt_end_fstr,
+                    obj_i_start=obj_i_start,
+                    obj_i_end=min(
+                        obj_i_start + task.options.chunk_size - 1, obj_i_end
+                    ),
+                    obj_count_digits=obj_count_digits,
+                )
+            )
+            for obj_i_start in range(
+                obj_i_start, obj_i_end + 1, task.options.chunk_size
+            )
+        ]
+
+
+# pylint: disable-next=too-few-public-methods
+class MockGcsBucket:
+    def __init__(
+        self,
+        list_blobs_return: t.List[MockGcsBlob],
+        new_blobs: t.List[MockGcsBlob],
+    ):
+        self.list_blobs = MagicMock(return_value=list_blobs_return)
+        self.blob = MagicMock(side_effect=new_blobs)  # Returns 1 blob per call.
+        self.copy_blob = MagicMock()
 
 
 class TestDataWarehouseTask(CeleryTestCase):
@@ -215,6 +264,7 @@ class TestDataWarehouseTask(CeleryTestCase):
         self,
         task: DWT,
         uploaded_chunk_count: int = 0,
+        retry_obj_count: t.Optional[int] = None,
         now: t.Optional[datetime] = None,
         last_ran_at: t.Optional[timedelta] = None,
         task_args: t.Optional[Args] = None,
@@ -225,6 +275,7 @@ class TestDataWarehouseTask(CeleryTestCase):
         Args:
             task: The task to make assertions on.
             uploaded_chunk_count: How many chunks have already been uploaded.
+            retry_obj_count: The new object count when retrying.
             now: When the task is triggered.
             last_ran_at: How long ago the task was last successfully ran.
             task_args: The arguments passed to the task.
@@ -247,33 +298,6 @@ class TestDataWarehouseTask(CeleryTestCase):
         assert (obj_count - uploaded_obj_count) > 0
         obj_count_digits = len(str(obj_count))
 
-        # Local utility to generate blob-mocks for selected spans.
-        def generate_blobs(
-            dt_start_fstr: str,
-            dt_end_fstr: str,
-            obj_i_start: int,
-            obj_i_end: int,
-        ):
-            return [
-                MockGcsBlob(
-                    chunk_metadata=DWT.ChunkMetadata(
-                        bq_table_name=task.options.bq_table_name,
-                        dt_start_fstr=dt_start_fstr,
-                        dt_end_fstr=dt_end_fstr,
-                        obj_i_start=obj_i_start,
-                        obj_i_end=min(
-                            obj_i_start + task.options.chunk_size - 1, obj_i_end
-                        ),
-                        obj_count_digits=obj_count_digits,
-                    ),
-                    upload_from_string=MagicMock(),
-                    delete=MagicMock(),
-                )
-                for obj_i_start in range(
-                    obj_i_start, obj_i_end + 1, task.options.chunk_size
-                )
-            ]
-
         # Get the current datetime span.
         dt_end = timezone.make_aware(now or datetime.now())
         dt_start = dt_end if last_ran_at is None else dt_end - last_ran_at
@@ -286,44 +310,51 @@ class TestDataWarehouseTask(CeleryTestCase):
                 dt_start - last_ran_at
             )
             dt_end_fstr = DWT.ChunkMetadata.format_datetime(dt_start)
-            uploaded_blobs_from_last_dt_span += generate_blobs(
-                dt_start_fstr, dt_end_fstr, 1, obj_count
+            uploaded_blobs_from_last_dt_span += MockGcsBlob.generate_list(
+                task=task,
+                dt_start_fstr=dt_start_fstr,
+                dt_end_fstr=dt_end_fstr,
+                obj_i_start=1,
+                obj_i_end=obj_count,
+                obj_count_digits=obj_count_digits,
             )
 
         # Generate blobs for the current datetime span.
         dt_start_fstr = DWT.ChunkMetadata.format_datetime(dt_start)
         dt_end_fstr = DWT.ChunkMetadata.format_datetime(dt_end)
-        uploaded_blobs_from_current_dt_span = generate_blobs(
-            dt_start_fstr, dt_end_fstr, 1, uploaded_obj_count
+        uploaded_blobs_from_current_dt_span = MockGcsBlob.generate_list(
+            task=task,
+            dt_start_fstr=dt_start_fstr,
+            dt_end_fstr=dt_end_fstr,
+            obj_i_start=1,
+            obj_i_end=uploaded_obj_count,
+            obj_count_digits=obj_count_digits,
         )
-        non_uploaded_blobs_from_current_dt_span = generate_blobs(
-            dt_start_fstr, dt_end_fstr, uploaded_obj_count + 1, obj_count
+        non_uploaded_blobs_from_current_dt_span = MockGcsBlob.generate_list(
+            task=task,
+            dt_start_fstr=dt_start_fstr,
+            dt_end_fstr=dt_end_fstr,
+            obj_i_start=uploaded_obj_count + 1,
+            obj_i_end=obj_count,
+            obj_count_digits=obj_count_digits,
         )
 
-        # Generate mocks for the bucket's methods.
-        bucket_list_blobs = MagicMock(
-            return_value=(  # Return the appropriate list based on the filters.
+        # Generate a mock GCS bucket.
+        bucket = MockGcsBucket(
+            # Return the appropriate list based on the filters.
+            list_blobs_return=(
                 uploaded_blobs_from_current_dt_span
                 if task.options.only_list_blobs_in_current_dt_span
                 else uploaded_blobs_from_last_dt_span
                 + uploaded_blobs_from_current_dt_span
-            )
-        )
-        bucket_blob = MagicMock(
+            ),
             # Return the blobs not yet uploaded in the current datetime span.
-            side_effect=non_uploaded_blobs_from_current_dt_span  # 1 blob p/call
+            new_blobs=non_uploaded_blobs_from_current_dt_span,
         )
-        bucket_copy_blob = MagicMock()
 
         # Patch methods called in the task to create predetermined results.
         with patch.object(
-            DWT,
-            "_get_gcs_bucket",
-            return_value=MockGcsBucket(
-                list_blobs=bucket_list_blobs,
-                blob=bucket_blob,
-                copy_blob=bucket_copy_blob,
-            ),
+            DWT, "_get_gcs_bucket", return_value=bucket
         ) as get_gcs_bucket:
             with patch.object(timezone, "now", return_value=now) as now_mock:
                 self.apply_task(task.name, task_args, task_kwargs)
@@ -334,7 +365,7 @@ class TestDataWarehouseTask(CeleryTestCase):
         # Assert that the blobs for the BigQuery table were listed. If the
         # table's write-mode is append, assert only the blobs in the current
         # datetime span were listed.
-        bucket_list_blobs.assert_called_once_with(
+        bucket.list_blobs.assert_called_once_with(
             prefix=f"{task.options.bq_table_name}/"
             + (
                 dt_start_fstr
@@ -343,8 +374,17 @@ class TestDataWarehouseTask(CeleryTestCase):
             )
         )
 
+        # Assert that all blobs not in the current datetime span were (not)
+        # deleted.
+        for blob in uploaded_blobs_from_last_dt_span:
+            if task.options.delete_blobs_not_in_current_dt_span:
+                blob.delete.assert_called_once()
+            else:
+                blob.delete.assert_not_called()
+        # bucket_copy_blob.assert_has_calls([])  # TODO
+
         # Assert that a blob was created for each non-uploaded blob.
-        bucket_blob.assert_has_calls(
+        bucket.blob.assert_has_calls(
             [
                 call(blob.name)
                 for blob in non_uploaded_blobs_from_current_dt_span
@@ -363,11 +403,9 @@ class TestDataWarehouseTask(CeleryTestCase):
             ):
                 csv += DWT.format_values(values)
 
-            t.cast(MagicMock, blob.upload_from_string).assert_called_once_with(
+            blob.upload_from_string.assert_called_once_with(
                 csv, content_type="text/csv"
             )
-
-        # bucket_copy_blob.assert_has_calls([])  # TODO
 
     def test_task__append__first__no_retry(self):
         """
@@ -399,10 +437,13 @@ class TestDataWarehouseTask(CeleryTestCase):
             uploaded_chunk_count=1,  # Assume we've already uploaded 1 chunk.
         )
 
-    def test_task__overwrite__first__retry(self):
+    def test_task__overwrite__not_first__no_retry(self):
         """
         1. This is the first datetime span.
         2. All blobs are uploaded on the first run - no retries are required.
-        3. The blobs from the
+        3. The blobs from the previous datetime span(s) are deleted.
         """
-        self._test_task(task=user__overwrite)
+        self._test_task(
+            task=user__overwrite,
+            last_ran_at=timedelta(days=1),  # Last successful run was 1 day ago.
+        )
