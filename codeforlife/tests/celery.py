@@ -4,16 +4,41 @@ Created on 01/04/2025 at 16:57:19(+01:00).
 """
 
 import typing as t
-from datetime import datetime
+from datetime import datetime, timedelta
 from importlib import import_module
 from unittest.mock import MagicMock, call, patch
 
 from celery import Celery, Task
 from django.utils import timezone
 
-from ..tasks import DataWarehouseTask, get_task_name
+from ..tasks import DataWarehouseTask as DWT
+from ..tasks import get_task_name
 from ..types import Args, KwArgs
 from .test import TestCase
+
+
+class MockGcsBlob(t.NamedTuple):
+    """A mocked blob in a GCS bucket."""
+
+    chunk_metadata: DWT.ChunkMetadata
+    upload_from_string: MagicMock
+    delete: MagicMock
+
+    @property
+    def name(self):
+        """The name of the blob."""
+        return self.chunk_metadata.to_blob_name()
+
+    def __repr__(self):
+        return self.name
+
+
+class MockGcsBucket(t.NamedTuple):
+    """A mocked GCS bucket."""
+
+    list_blobs: MagicMock
+    blob: MagicMock
+    copy_blob: MagicMock
 
 
 class CeleryTestCase(TestCase):
@@ -49,31 +74,13 @@ class CeleryTestCase(TestCase):
         task: Task = self.app.tasks[get_task_name(name)]
         task.apply(args=args, kwargs=kwargs)
 
-    class _MockGcsBlob(t.NamedTuple):
-        chunk_metadata: DataWarehouseTask.ChunkMetadata
-        upload_from_string: MagicMock
-        delete: MagicMock
-
-        @property
-        def name(self):
-            """The name of the blob."""
-            return self.chunk_metadata.to_blob_name()
-
-        def __repr__(self):
-            return self.name
-
-    class _MockGcsBucket(t.NamedTuple):
-        list_blobs: MagicMock
-        blob: MagicMock
-        copy_blob: MagicMock
-
     # pylint: disable-next=too-many-arguments,too-many-locals
     def assert_data_warehouse_task(
         self,
-        task: DataWarehouseTask,
+        task: DWT,
         uploaded_chunk_count: int = 0,
         now: t.Optional[datetime] = None,
-        last_ran_at: t.Optional[datetime] = None,
+        last_ran_at: t.Optional[timedelta] = None,
         task_args: t.Optional[Args] = None,
         task_kwargs: t.Optional[KwArgs] = None,
     ):
@@ -84,7 +91,7 @@ class CeleryTestCase(TestCase):
             task: The task to make assertions on.
             uploaded_chunk_count: How many chunks have already been uploaded.
             now: When the task is triggered.
-            last_ran_at: When the task was last successfully triggered.
+            last_ran_at: How long ago the task was last successfully ran.
             task_args: The arguments passed to the task.
             task_kwargs: The keyword arguments passed to the task.
         """
@@ -93,40 +100,35 @@ class CeleryTestCase(TestCase):
         # Validate args.
         assert uploaded_chunk_count >= 0
 
-        # Set default values.
-        now = timezone.make_aware(now or datetime.now())
-        last_ran_at = timezone.make_aware(last_ran_at) if last_ran_at else now
-        uploaded_obj_count = uploaded_chunk_count * task.options.chunk_size
+        # Get the queryset and order it if not already ordered.
         task_args, task_kwargs = task_args or tuple(), task_kwargs or {}
-
-        # Get the queryset and order if not already ordered.
         query_set = task.get_query_set(*task_args, **task_kwargs)
         if not query_set.ordered:
             query_set = query_set.order_by("id")
 
         # Count the objects in the queryset and get the count's magnitude.
+        uploaded_obj_count = uploaded_chunk_count * task.options.chunk_size
         obj_count = query_set.count()
         assert uploaded_obj_count <= obj_count
         assert (obj_count - uploaded_obj_count) > 0
         obj_count_digits = len(str(obj_count))
 
-        # Get formatted strings for the current datetime span's start and end.
-        dt_start_fstr = DataWarehouseTask.ChunkMetadata.format_datetime(
-            last_ran_at
-        )
-        dt_end_fstr = DataWarehouseTask.ChunkMetadata.format_datetime(now)
-
-        # Generate mocks for all the uploaded and non-uploaded blobs.
-        def generate_blobs(obj_i_start: int, obj_count: int):
+        # Local utility to generate blob-mocks for selected spans.
+        def generate_blobs(
+            dt_start_fstr: str,
+            dt_end_fstr: str,
+            obj_i_start: int,
+            obj_i_end: int,
+        ):
             return [
-                self._MockGcsBlob(
-                    chunk_metadata=DataWarehouseTask.ChunkMetadata(
+                MockGcsBlob(
+                    chunk_metadata=DWT.ChunkMetadata(
                         bq_table_name=task.options.bq_table_name,
                         dt_start_fstr=dt_start_fstr,
                         dt_end_fstr=dt_end_fstr,
                         obj_i_start=obj_i_start,
                         obj_i_end=min(
-                            obj_i_start + task.options.chunk_size - 1, obj_count
+                            obj_i_start + task.options.chunk_size - 1, obj_i_end
                         ),
                         obj_count_digits=obj_count_digits,
                     ),
@@ -134,23 +136,56 @@ class CeleryTestCase(TestCase):
                     delete=MagicMock(),
                 )
                 for obj_i_start in range(
-                    obj_i_start, obj_count + 1, task.options.chunk_size
+                    obj_i_start, obj_i_end + 1, task.options.chunk_size
                 )
             ]
 
-        uploaded_blobs = generate_blobs(1, uploaded_obj_count)
-        non_uploaded_blobs = generate_blobs(uploaded_obj_count + 1, obj_count)
+        # Get the current datetime span.
+        dt_end = timezone.make_aware(now or datetime.now())
+        dt_start = dt_end if last_ran_at is None else dt_end - last_ran_at
+
+        # If not the first run, generate blobs for the last datetime span.
+        # Assume the same object count and timedelta.
+        uploaded_blobs_from_last_dt_span: t.List[MockGcsBlob] = []
+        if last_ran_at is not None:
+            dt_start_fstr = DWT.ChunkMetadata.format_datetime(
+                dt_start - last_ran_at
+            )
+            dt_end_fstr = DWT.ChunkMetadata.format_datetime(dt_start)
+            uploaded_blobs_from_last_dt_span += generate_blobs(
+                dt_start_fstr, dt_end_fstr, 1, obj_count
+            )
+
+        # Generate blobs for the current datetime span.
+        dt_start_fstr = DWT.ChunkMetadata.format_datetime(dt_start)
+        dt_end_fstr = DWT.ChunkMetadata.format_datetime(dt_end)
+        uploaded_blobs_from_current_dt_span = generate_blobs(
+            dt_start_fstr, dt_end_fstr, 1, uploaded_obj_count
+        )
+        non_uploaded_blobs_from_current_dt_span = generate_blobs(
+            dt_start_fstr, dt_end_fstr, uploaded_obj_count + 1, obj_count
+        )
 
         # Generate mocks for the bucket's methods.
-        bucket_list_blobs = MagicMock(return_value=uploaded_blobs)
-        bucket_blob = MagicMock(side_effect=non_uploaded_blobs)
+        bucket_list_blobs = MagicMock(
+            return_value=(  # Return the appropriate list based on the filters.
+                uploaded_blobs_from_current_dt_span
+                if task.options.only_list_blobs_in_current_dt_span
+                else uploaded_blobs_from_last_dt_span
+                + uploaded_blobs_from_current_dt_span
+            )
+        )
+        bucket_blob = MagicMock(
+            # Return the blobs not yet uploaded in the current datetime span.
+            side_effect=non_uploaded_blobs_from_current_dt_span  # 1 blob p/call
+        )
         bucket_copy_blob = MagicMock()
 
         # Patch methods called in the task to create predetermined results.
         with patch.object(
-            DataWarehouseTask,
+            DWT,
             "_get_gcs_bucket",
-            return_value=self._MockGcsBucket(
+            return_value=MockGcsBucket(
                 list_blobs=bucket_list_blobs,
                 blob=bucket_blob,
                 copy_blob=bucket_copy_blob,
@@ -176,11 +211,14 @@ class CeleryTestCase(TestCase):
 
         # Assert that a blob was created for each non-uploaded blob.
         bucket_blob.assert_has_calls(
-            [call(blob.name) for blob in non_uploaded_blobs]
+            [
+                call(blob.name)
+                for blob in non_uploaded_blobs_from_current_dt_span
+            ]
         )
 
         # Assert that each blob was uploaded from a CSV string.
-        for blob in non_uploaded_blobs:
+        for blob in non_uploaded_blobs_from_current_dt_span:
             csv = task.options.csv_headers
             for values in t.cast(
                 t.List[t.Tuple[t.Any, ...]],
@@ -189,7 +227,7 @@ class CeleryTestCase(TestCase):
                     - 1 : blob.chunk_metadata.obj_i_end
                 ],
             ):
-                csv += DataWarehouseTask.format_values(values)
+                csv += DWT.format_values(values)
 
             t.cast(MagicMock, blob.upload_from_string).assert_called_once_with(
                 csv, content_type="text/csv"

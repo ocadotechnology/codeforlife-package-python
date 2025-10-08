@@ -4,7 +4,7 @@ Created on 02/10/2025 at 17:22:38(+01:00).
 """
 
 import typing as t
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from celery import Celery
 
@@ -191,14 +191,22 @@ class TestDataWarehouseTask(CeleryTestCase):
 
     # Task
 
-    def test_task__append__basic(self):
+    def test_task__append__basic__first(self):
         """
-        Everything completes on the 1st attempt without complications. Any
-        existing data is not deleted.
+        1. All blobs are uploaded without retries.
+        2. This is the first successful run.
+        """
+        self.assert_data_warehouse_task(task=user__append)
+
+    def test_task__append__basic__not_first(self):
+        """
+        1. All blobs are uploaded without retries.
+        2. This is not the first successful run.
+        3. Any existing data is not deleted.
         """
         self.assert_data_warehouse_task(
             task=user__append,
-            # uploaded_blobs=[] TODO
+            last_ran_at=timedelta(days=1),  # Last successful run was 1 day ago.
         )
 
     def test_task__append__retry(self):
