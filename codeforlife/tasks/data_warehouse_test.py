@@ -369,44 +369,40 @@ class TestDataWarehouseTask(CeleryTestCase):
 
         # bucket_copy_blob.assert_has_calls([])  # TODO
 
-    def test_task__append__basic__first(self):
+    def test_task__append__first__no_retry(self):
         """
-        1. All blobs are uploaded without retries.
-        2. This is the first successful run.
+        1. This is the first datetime span.
+        2. All blobs are uploaded on the first run - no retries are required.
         """
         self._test_task(task=user__append)
 
-    def test_task__append__basic__not_first(self):
+    def test_task__append__not_first__no_retry(self):
         """
-        1. All blobs are uploaded without retries.
-        2. This is not the first successful run.
-        3. Any existing data is not deleted.
+        1. This is not the first datetime span.
+        2. All blobs are uploaded on the first run - no retries are required.
+        3. The blobs from the previous datetime span(s) are not deleted.
         """
         self._test_task(
             task=user__append,
             last_ran_at=timedelta(days=1),  # Last successful run was 1 day ago.
         )
 
-    def test_task__append__retry(self):
+    def test_task__append__first__retry(self):
         """
-        The first attempt uploads only some of the CSVs. A second attempt is
-        required to upload the remainder of the CSVs.
+        1. This is the first datetime span.
+        2. Some blobs are uploaded on the first run - retries are required.
+        3. The order of magnitude in the object count has changed - the blobs
+            blobs uploaded in the previous runs need to be renamed.
         """
         self._test_task(
             task=user__append,
             uploaded_chunk_count=1,  # Assume we've already uploaded 1 chunk.
         )
 
-    def test_task__append__retry__magnitude(self):
+    def test_task__overwrite__first__retry(self):
         """
-        The first attempt uploads only some of the CSVs. A second attempt is
-        required to upload the remainder of the CSVs. In addition, the number of
-        objects has changed and therefore changed the order of magnitude.
-        """
-
-    def test_task__overwrite__basic(self):
-        """
-        Everything completes on the 1st attempt without complications. Any
-        existing data is deleted.
+        1. This is the first datetime span.
+        2. All blobs are uploaded on the first run - no retries are required.
+        3. The blobs from the
         """
         self._test_task(task=user__overwrite)
