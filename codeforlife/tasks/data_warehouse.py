@@ -525,9 +525,12 @@ class DataWarehouseTask(Task):
                         self, timestamp, *task_args, **task_kwargs
                     )
                 except Exception as exc:
+                    # Pass the timestamp to the retry.
+                    task_kwargs[self.timestamp_key] = timestamp
+
                     raise self.retry(
                         args=task_args,
-                        kwargs={**task_kwargs, self.timestamp_key: timestamp},
+                        kwargs=task_kwargs,
                         exc=exc,
                         countdown=options.retry_countdown,
                     )
