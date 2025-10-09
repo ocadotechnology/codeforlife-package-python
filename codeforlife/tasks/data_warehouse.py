@@ -133,11 +133,11 @@ class DataWarehouseTask(Task):
 
             # Get the runtime settings based on the BigQuery table's write-mode.
             if bq_table_write_mode == "append":
-                self._only_list_blobs_in_current_dt_span = True
-                self._delete_blobs_not_in_current_dt_span = False
+                self._only_list_blobs_from_current_timestamp = True
+                self._delete_blobs_not_from_current_timestamp = False
             else:  # bq_table_write_mode == "overwrite"
-                self._only_list_blobs_in_current_dt_span = False
-                self._delete_blobs_not_in_current_dt_span = True
+                self._only_list_blobs_from_current_timestamp = False
+                self._delete_blobs_not_from_current_timestamp = True
 
         @property
         def bq_table_write_mode(self):
@@ -186,14 +186,14 @@ class DataWarehouseTask(Task):
             return self._retry_countdown
 
         @property
-        def only_list_blobs_in_current_dt_span(self):
-            """Whether to only list the blobs in the current datetime span."""
-            return self._only_list_blobs_in_current_dt_span
+        def only_list_blobs_from_current_timestamp(self):
+            """Whether to only list blobs from the current timestamp."""
+            return self._only_list_blobs_from_current_timestamp
 
         @property
-        def delete_blobs_not_in_current_dt_span(self):
-            """Whether to delete all blobs not in the current datetime span."""
-            return self._delete_blobs_not_in_current_dt_span
+        def delete_blobs_not_from_current_timestamp(self):
+            """Whether to delete all blobs not from the current timestamp."""
+            return self._delete_blobs_not_from_current_timestamp
 
     options: Options
     get_queryset: GetQuerySet
@@ -202,19 +202,10 @@ class DataWarehouseTask(Task):
         """All of the metadata used to track a chunk."""
 
         bq_table_name: str  # the name of the BigQuery table
-        dt_start_fstr: str  # datetime span start as formatted string
-        dt_end_fstr: str  # datetime span end as formatted string
+        timestamp: str  # when the task was first run
         obj_i_start: int  # object index span start
         obj_i_end: int  # object index span end
         obj_count_digits: int  # number of digits in the object count
-
-        @staticmethod
-        def format_datetime(dt: datetime):
-            """
-            Formats a datetime to be used in a CSV name.
-            E.g. "2025-01-01T00:00:00"
-            """
-            return dt.strftime("%Y-%m-%dT%H:%M:%S")
 
         def to_blob_name(self):
             """Convert this chunk metadata into a blob name."""
@@ -225,35 +216,29 @@ class DataWarehouseTask(Task):
             )
             obj_i_end_fstr = str(self.obj_i_end).zfill(self.obj_count_digits)
 
-            # E.g. "user/2025-01-01T00:00:00_2025-01-02T00:00:00__0001_1000.csv"
+            # E.g. "user/2025-01-01T00:00:00__0001_1000.csv"
             return (
-                f"{self.bq_table_name}/"
-                f"{self.dt_start_fstr}_{self.dt_end_fstr}"
-                "__"
-                f"{obj_i_start_fstr}_{obj_i_end_fstr}"
-                ".csv"
+                f"{self.bq_table_name}/{self.timestamp}__"
+                f"{obj_i_start_fstr}_{obj_i_end_fstr}.csv"
             )
 
         @classmethod
         def from_blob_name(cls, blob_name: str):
             """Extract the chunk metadata from a blob name."""
 
-            # E.g. "user/2025-01-01T00:00:00_2025-01-02T00:00:00__0001_1000.csv"
-            # "2025-01-01T00:00:00_2025-01-02T00:00:00__0001_1000.csv"
+            # E.g. "user/2025-01-01T00:00:00__0001_1000.csv"
+            # "2025-01-01T00:00:00__0001_1000.csv"
             bq_table_name, blob_name = blob_name.split("/", maxsplit=1)
-            # "2025-01-01T00:00:00_2025-01-02T00:00:00__0001_1000"
+            # "2025-01-01T00:00:00__0001_1000"
             blob_name = blob_name.removesuffix(".csv")
-            # "2025-01-01T00:00:00_2025-01-02T00:00:00", "0001_1000"
-            dt_span_fstr, obj_i_span_fstr = blob_name.split("__")
-            # "2025-01-01T00:00:00", "2025-01-02T00:00:00"
-            dt_start_fstr, dt_end_fstr = dt_span_fstr.split("_")
+            # "2025-01-01T00:00:00", "0001_1000"
+            timestamp, obj_i_span_fstr = blob_name.split("__")
             # "0001", "1000"
             obj_i_start_fstr, obj_i_end_fstr = obj_i_span_fstr.split("_")
 
             return cls(
                 bq_table_name=bq_table_name,
-                dt_start_fstr=dt_start_fstr,
-                dt_end_fstr=dt_end_fstr,
+                timestamp=timestamp,
                 obj_i_start=int(obj_i_start_fstr),
                 obj_i_end=int(obj_i_end_fstr),
                 obj_count_digits=len(obj_i_start_fstr),
@@ -301,13 +286,18 @@ class DataWarehouseTask(Task):
         return "\n" + ",".join(sql_values)
 
     @staticmethod
+    def to_timestamp(dt: datetime):
+        """
+        Formats a datetime to a timestamp to be used in a CSV name.
+        E.g. "2025-01-01T00:00:00"
+        """
+        return dt.strftime("%Y-%m-%dT%H:%M:%S")
+
+    @staticmethod
     # pylint: disable-next=too-many-locals,bad-staticmethod-argument
     def _save_query_set_as_csvs_in_gcs_bucket(
-        self: "DataWarehouseTask", *task_args, **task_kwargs
+        self: "DataWarehouseTask", timestamp: str, *task_args, **task_kwargs
     ):
-        # Get the current datetime.
-        dt_end = timezone.now()
-
         # Get the queryset.
         queryset = self.get_queryset(*task_args, **task_kwargs)
 
@@ -330,19 +320,8 @@ class DataWarehouseTask(Task):
         # Impersonate the service account and get access to the GCS bucket.
         bucket = self._get_gcs_bucket()
 
-        # Get the last time this task successfully ran.
-        dt_start: t.Optional[datetime] = dt_end  # TODO: get real value from DB.
-
-        # Get the range between the last run and now as a formatted string.
-        dt_end_fstr = self.ChunkMetadata.format_datetime(dt_end)
-        dt_start_fstr = (
-            self.ChunkMetadata.format_datetime(dt_start)
-            if dt_start
-            else dt_end_fstr
-        )
-
-        # The name of the last blob in the current datetime span.
-        last_blob_name_in_current_dt_span: t.Optional[str] = None
+        # The name of the last blob from the current timestamp.
+        last_blob_name_from_current_timestamp: t.Optional[str] = None
 
         # List all the existing blobs.
         for blob in t.cast(
@@ -350,18 +329,18 @@ class DataWarehouseTask(Task):
             bucket.list_blobs(
                 prefix=f"{self.options.bq_table_name}/"
                 + (
-                    dt_start_fstr
-                    if self.options.only_list_blobs_in_current_dt_span
+                    timestamp
+                    if self.options.only_list_blobs_from_current_timestamp
                     else ""
                 )
             ),
         ):
             blob_name = t.cast(str, blob.name)
 
-            # Check if found first blob in current datetime span.
+            # Check if found first blob from current timestamp.
             if (
-                self.options.only_list_blobs_in_current_dt_span
-                or blob_name.startswith(dt_start_fstr)
+                self.options.only_list_blobs_from_current_timestamp
+                or blob_name.startswith(timestamp)
             ):
                 chunk_metadata = self.ChunkMetadata.from_blob_name(blob_name)
 
@@ -381,9 +360,9 @@ class DataWarehouseTask(Task):
                     logging.info('Deleting blob "%s".', blob.name)
                     blob.delete()
 
-                last_blob_name_in_current_dt_span = blob_name
-            # Check if blob not in current datetime span should be deleted.
-            elif self.options.delete_blobs_not_in_current_dt_span:
+                last_blob_name_from_current_timestamp = blob_name
+            # Check if blobs not from the current timestamp should be deleted.
+            elif self.options.delete_blobs_not_from_current_timestamp:
                 logging.info('Deleting blob "%s".', blob_name)
                 blob.delete()
 
@@ -391,11 +370,11 @@ class DataWarehouseTask(Task):
         obj_i = obj_i_start = (
             # ...extract the starting object index from its name.
             self.ChunkMetadata.from_blob_name(
-                last_blob_name_in_current_dt_span
+                last_blob_name_from_current_timestamp
             ).obj_i_end
             + 1
-            # If found a blob in the current datetime span...
-            if last_blob_name_in_current_dt_span is not None
+            # If found a blob from the current timestamp...
+            if last_blob_name_from_current_timestamp is not None
             else 1  # ...else start with the 1st object.
         )
 
@@ -421,8 +400,7 @@ class DataWarehouseTask(Task):
             # Generate the path to the CSV in the bucket.
             blob_name = self.ChunkMetadata(
                 bq_table_name=self.options.bq_table_name,
-                dt_start_fstr=dt_start_fstr,
-                dt_end_fstr=dt_end_fstr,
+                timestamp=timestamp,
                 obj_i_start=obj_i_start,
                 obj_i_end=obj_i_end,
                 obj_count_digits=obj_count_digits,
@@ -467,14 +445,14 @@ class DataWarehouseTask(Task):
 
         This decorator handles chunking a queryset to avoid out-of-memory (OOM)
         errors. Each chunk is saved as a separate CSV file and follows a naming
-        convention that tracks 2 spans:
+        convention that tracks 2 dimensions:
 
-        1. datetime (dt) - From when this task was last run successfully to now.
+        1. timestamp - When this task first ran (in case of retries).
         2. object index (obj_i) - The start and end index of the objects.
 
         The naming convention follows the format:
-            **"{dt_start}\_{dt_end}\_\_{i_start}\_{i_end}.csv"**
-        The datetime follows the format:
+            **"{timestamp}\_\_{i_start}\_{i_end}.csv"**
+        The timestamp follows the format:
             **"{YYYY}-{MM}-{DD}T{HH}:{MM}:{SS}"** (e.g. "2025-12-01T23:59:59")
 
         NOTE: The index is padded with zeros to ensure sorting by name is
@@ -526,12 +504,27 @@ class DataWarehouseTask(Task):
 
             # Wraps the task with retry logic.
             def task(self: "DataWarehouseTask", *task_args, **task_kwargs):
+                timestamp = (
+                    # ...get the current timestamp.
+                    self.to_timestamp(timezone.now())
+                    # If this is the first run...
+                    if self.request.retries == 0
+                    # ...else pop the timestamp passed from the first run.
+                    else t.cast(str, task_kwargs.pop("_timestamp"))
+                )
+
                 try:
                     cls._save_query_set_as_csvs_in_gcs_bucket(
-                        self, *task_args, **task_kwargs
+                        self, timestamp, *task_args, **task_kwargs
                     )
                 except Exception as exc:
-                    raise self.retry(exc=exc, countdown=options.retry_countdown)
+                    raise self.retry(
+                        args=task_args,
+                        # Pass the timestamp from the first run to the retry.
+                        kwargs={**task_kwargs, "_timestamp": timestamp},
+                        exc=exc,
+                        countdown=options.retry_countdown,
+                    )
 
             # pylint: disable-next=protected-access
             kwargs = options._kwargs

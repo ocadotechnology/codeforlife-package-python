@@ -20,24 +20,26 @@ from .data_warehouse import DataWarehouseTask as DWT
 
 @DWT.shared(
     DWT.Options(
+        bq_table_name="user__append",
         bq_table_write_mode="append",
         chunk_size=10,
         fields=["first_name", "is_active"],
     )
 )
-def user__append():
+def append_users():
     """Append all users in the "user__append" BigQuery table."""
     return User.objects.all()
 
 
 @DWT.shared(
     DWT.Options(
+        bq_table_name="user__overwrite",
         bq_table_write_mode="overwrite",
         chunk_size=10,
         fields=["first_name", "is_active"],
     )
 )
-def user__overwrite():
+def overwrite_users():
     """Overwrite all users in the "user__overwrite" BigQuery table."""
     return User.objects.all()
 
@@ -61,8 +63,7 @@ class MockGcsBlob:
     def generate_list(
         cls,
         task: DWT,
-        dt_start_fstr: str,
-        dt_end_fstr: str,
+        timestamp: str,
         obj_i_start: int,
         obj_i_end: int,
         obj_count_digits: int,
@@ -71,8 +72,7 @@ class MockGcsBlob:
 
         Args:
             task: The task that produced these blobs.
-            dt_start_fstr: The datetime span start as formatted string.
-            dt_end_fstr: The datetime span end as formatted string.
+            timestamp: When the task was first run.
             obj_i_start: The object index span start.
             obj_i_end: The object index span end.
             obj_count_digits: The number of digits in the object count
@@ -84,8 +84,7 @@ class MockGcsBlob:
             cls(
                 chunk_metadata=DWT.ChunkMetadata(
                     bq_table_name=task.options.bq_table_name,
-                    dt_start_fstr=dt_start_fstr,
-                    dt_end_fstr=dt_end_fstr,
+                    timestamp=timestamp,
                     obj_i_start=obj_i_start,
                     obj_i_end=min(
                         obj_i_start + task.options.chunk_size - 1, obj_i_end
@@ -121,20 +120,7 @@ class TestDataWarehouseTask(CeleryTestCase):
 
     def setUp(self):
         self.bq_table_name = "example"
-        self.dt_start_fstr = DWT.ChunkMetadata.format_datetime(
-            datetime(
-                year=2025,
-                month=1,
-                day=1,
-            )
-        )
-        self.dt_end_fstr = DWT.ChunkMetadata.format_datetime(
-            datetime(
-                year=2025,
-                month=1,
-                day=1,
-            )
-        )
+        self.timestamp = DWT.to_timestamp(datetime(year=2025, month=1, day=1))
         self.obj_i_start = 1
         self.obj_i_end = 100
         self.obj_count_digits = 4
@@ -143,11 +129,8 @@ class TestDataWarehouseTask(CeleryTestCase):
         obj_i_end_fstr = str(self.obj_i_end).zfill(self.obj_count_digits)
 
         self.blob_name = (
-            f"{self.bq_table_name}/"
-            f"{self.dt_start_fstr}_{self.dt_end_fstr}"
-            "__"
-            f"{obj_i_start_fstr}_{obj_i_end_fstr}"
-            ".csv"
+            f"{self.bq_table_name}/{self.timestamp}__"
+            f"{obj_i_start_fstr}_{obj_i_end_fstr}.csv"
         )
 
         return super().setUp()
@@ -210,23 +193,24 @@ class TestDataWarehouseTask(CeleryTestCase):
         """Base must be a subclass of DWT."""
         self._test_options(code="base_not_subclass", base=int)
 
-    # Chunk metadata
+    # To timestamp
 
-    def test_chunk_metadata__format_datetime(self):
+    def test_to_timestamp(self):
         """
         Dates are formatted as YYYY-MM-DD, time as HH:MM:SS, and joined with T.
         """
-        formatted_dt = DWT.ChunkMetadata.format_datetime(
+        timestamp = DWT.to_timestamp(
             datetime(year=2025, month=2, day=1, hour=12, minute=30, second=15)
         )
-        assert formatted_dt == "2025-02-01T12:30:15"
+        assert timestamp == "2025-02-01T12:30:15"
+
+    # Chunk metadata
 
     def test_chunk_metadata__to_blob_name(self):
         """Can successfully convert a chunk's metadata into a blob name."""
         blob_name = DWT.ChunkMetadata(
             bq_table_name=self.bq_table_name,
-            dt_start_fstr=self.dt_start_fstr,
-            dt_end_fstr=self.dt_end_fstr,
+            timestamp=self.timestamp,
             obj_i_start=self.obj_i_start,
             obj_i_end=self.obj_i_end,
             obj_count_digits=self.obj_count_digits,
@@ -237,8 +221,7 @@ class TestDataWarehouseTask(CeleryTestCase):
         """Can successfully convert a chunk's metadata into a blob name."""
         chunk_metadata = DWT.ChunkMetadata.from_blob_name(self.blob_name)
         assert chunk_metadata.bq_table_name == self.bq_table_name
-        assert chunk_metadata.dt_start_fstr == self.dt_start_fstr
-        assert chunk_metadata.dt_end_fstr == self.dt_end_fstr
+        assert chunk_metadata.timestamp == self.timestamp
         assert chunk_metadata.obj_i_start == self.obj_i_start
         assert chunk_metadata.obj_i_end == self.obj_i_end
         assert chunk_metadata.obj_count_digits == self.obj_count_digits
@@ -264,9 +247,8 @@ class TestDataWarehouseTask(CeleryTestCase):
         self,
         task: DWT,
         uploaded_chunk_count: int = 0,
-        retry_obj_count: t.Optional[int] = None,
-        now: t.Optional[datetime] = None,
-        last_ran_at: t.Optional[timedelta] = None,
+        uploaded_obj_count_digits: t.Optional[int] = None,
+        since_previous_run: t.Optional[timedelta] = None,
         task_args: t.Optional[Args] = None,
         task_kwargs: t.Optional[KwArgs] = None,
     ):
@@ -275,15 +257,17 @@ class TestDataWarehouseTask(CeleryTestCase):
         Args:
             task: The task to make assertions on.
             uploaded_chunk_count: How many chunks have already been uploaded.
-            retry_obj_count: The new object count when retrying.
-            now: When the task is triggered.
-            last_ran_at: How long ago the task was last successfully ran.
+            uploaded_obj_count_digits: The magnitude of the uploaded objects.
+            since_previous_run: How long ago since the task was previously run.
             task_args: The arguments passed to the task.
             task_kwargs: The keyword arguments passed to the task.
         """
 
         # Validate args.
         assert uploaded_chunk_count >= 0
+        assert (
+            uploaded_obj_count_digits is None or uploaded_obj_count_digits >= 2
+        )
 
         # Get the queryset and order it if not already ordered.
         task_args, task_kwargs = task_args or tuple(), task_kwargs or {}
@@ -291,49 +275,48 @@ class TestDataWarehouseTask(CeleryTestCase):
         if not queryset.ordered:
             queryset = queryset.order_by("id")
 
-        # Count the objects in the queryset and get the count's magnitude.
+        # Count the objects in the queryset.
         uploaded_obj_count = uploaded_chunk_count * task.options.chunk_size
         obj_count = queryset.count()
         assert uploaded_obj_count <= obj_count
         assert (obj_count - uploaded_obj_count) > 0
+
+        # Get the object count's magnitude (number of digits).
         obj_count_digits = len(str(obj_count))
+        if uploaded_obj_count_digits is None:
+            uploaded_obj_count_digits = obj_count_digits
+        else:
+            assert uploaded_obj_count_digits != obj_count_digits
 
-        # Get the current datetime span.
-        dt_end = timezone.make_aware(now or datetime.now())
-        dt_start = dt_end if last_ran_at is None else dt_end - last_ran_at
+        # Get the current datetime.
+        now = timezone.now()
 
-        # If not the first run, generate blobs for the last datetime span.
+        # If not the first run, generate blobs for the last timestamp.
         # Assume the same object count and timedelta.
-        uploaded_blobs_from_last_dt_span: t.List[MockGcsBlob] = []
-        if last_ran_at is not None:
-            dt_start_fstr = DWT.ChunkMetadata.format_datetime(
-                dt_start - last_ran_at
-            )
-            dt_end_fstr = DWT.ChunkMetadata.format_datetime(dt_start)
-            uploaded_blobs_from_last_dt_span += MockGcsBlob.generate_list(
+        uploaded_blobs_from_last_timestamp = (
+            MockGcsBlob.generate_list(
                 task=task,
-                dt_start_fstr=dt_start_fstr,
-                dt_end_fstr=dt_end_fstr,
+                timestamp=DWT.to_timestamp(now - since_previous_run),
                 obj_i_start=1,
                 obj_i_end=obj_count,
                 obj_count_digits=obj_count_digits,
             )
+            if since_previous_run is not None
+            else []
+        )
 
-        # Generate blobs for the current datetime span.
-        dt_start_fstr = DWT.ChunkMetadata.format_datetime(dt_start)
-        dt_end_fstr = DWT.ChunkMetadata.format_datetime(dt_end)
-        uploaded_blobs_from_current_dt_span = MockGcsBlob.generate_list(
+        # Generate blobs for the current timestamp.
+        timestamp = DWT.to_timestamp(now)
+        uploaded_blobs_from_current_timestamp = MockGcsBlob.generate_list(
             task=task,
-            dt_start_fstr=dt_start_fstr,
-            dt_end_fstr=dt_end_fstr,
+            timestamp=timestamp,
             obj_i_start=1,
             obj_i_end=uploaded_obj_count,
-            obj_count_digits=obj_count_digits,
+            obj_count_digits=uploaded_obj_count_digits,
         )
-        non_uploaded_blobs_from_current_dt_span = MockGcsBlob.generate_list(
+        non_uploaded_blobs_from_current_timestamp = MockGcsBlob.generate_list(
             task=task,
-            dt_start_fstr=dt_start_fstr,
-            dt_end_fstr=dt_end_fstr,
+            timestamp=timestamp,
             obj_i_start=uploaded_obj_count + 1,
             obj_i_end=obj_count,
             obj_count_digits=obj_count_digits,
@@ -343,13 +326,13 @@ class TestDataWarehouseTask(CeleryTestCase):
         bucket = MockGcsBucket(
             # Return the appropriate list based on the filters.
             list_blobs_return=(
-                uploaded_blobs_from_current_dt_span
-                if task.options.only_list_blobs_in_current_dt_span
-                else uploaded_blobs_from_last_dt_span
-                + uploaded_blobs_from_current_dt_span
+                uploaded_blobs_from_current_timestamp
+                if task.options.only_list_blobs_from_current_timestamp
+                else uploaded_blobs_from_last_timestamp
+                + uploaded_blobs_from_current_timestamp
             ),
-            # Return the blobs not yet uploaded in the current datetime span.
-            new_blobs=non_uploaded_blobs_from_current_dt_span,
+            # Return the blobs not yet uploaded in the current timestamp.
+            new_blobs=non_uploaded_blobs_from_current_timestamp,
         )
 
         # Patch methods called in the task to create predetermined results.
@@ -364,20 +347,19 @@ class TestDataWarehouseTask(CeleryTestCase):
 
         # Assert that the blobs for the BigQuery table were listed. If the
         # table's write-mode is append, assert only the blobs in the current
-        # datetime span were listed.
+        # timestamp were listed.
         bucket.list_blobs.assert_called_once_with(
             prefix=f"{task.options.bq_table_name}/"
             + (
-                dt_start_fstr
-                if task.options.only_list_blobs_in_current_dt_span
+                timestamp
+                if task.options.only_list_blobs_from_current_timestamp
                 else ""
             )
         )
 
-        # Assert that all blobs not in the current datetime span were (not)
-        # deleted.
-        for blob in uploaded_blobs_from_last_dt_span:
-            if task.options.delete_blobs_not_in_current_dt_span:
+        # Assert that all blobs not in the current timestamp were (not) deleted.
+        for blob in uploaded_blobs_from_last_timestamp:
+            if task.options.delete_blobs_not_from_current_timestamp:
                 blob.delete.assert_called_once()
             else:
                 blob.delete.assert_not_called()
@@ -387,12 +369,12 @@ class TestDataWarehouseTask(CeleryTestCase):
         bucket.blob.assert_has_calls(
             [
                 call(blob.name)
-                for blob in non_uploaded_blobs_from_current_dt_span
+                for blob in non_uploaded_blobs_from_current_timestamp
             ]
         )
 
         # Assert that each blob was uploaded from a CSV string.
-        for blob in non_uploaded_blobs_from_current_dt_span:
+        for blob in non_uploaded_blobs_from_current_timestamp:
             csv = task.options.csv_headers
             for values in t.cast(
                 t.List[t.Tuple[t.Any, ...]],
@@ -407,43 +389,42 @@ class TestDataWarehouseTask(CeleryTestCase):
                 csv, content_type="text/csv"
             )
 
-    def test_task__append__first__no_retry(self):
+    def test_task__append__no_retry__no_previous_blobs(self):
         """
-        1. This is the first datetime span.
-        2. All blobs are uploaded on the first run - no retries are required.
+        1. All blobs are uploaded on the first run - no retries are required.
+        2. Blobs from the previous timestamp are not in the bucket.
         """
-        self._test_task(task=user__append)
+        self._test_task(task=append_users)
 
-    def test_task__append__not_first__no_retry(self):
+    def test_task__append__no_retry__previous_blobs(self):
         """
-        1. This is not the first datetime span.
-        2. All blobs are uploaded on the first run - no retries are required.
-        3. The blobs from the previous datetime span(s) are not deleted.
+        1. All blobs are uploaded on the first run - no retries are required.
+        2. Blobs from the previous timestamp are in the bucket.
+        3. The blobs from the previous timestamp are not deleted.
         """
         self._test_task(
-            task=user__append,
-            last_ran_at=timedelta(days=1),  # Last successful run was 1 day ago.
+            task=append_users,
+            since_previous_run=timedelta(days=1),
         )
 
-    def test_task__append__first__retry(self):
+    def test_task__append__retry__no_previous_blobs(self):
         """
-        1. This is the first datetime span.
-        2. Some blobs are uploaded on the first run - retries are required.
-        3. The order of magnitude in the object count has changed - the blobs
-            blobs uploaded in the previous runs need to be renamed.
+        1. Some blobs are uploaded on the first run - retries are required.
+        2. The order of magnitude in the object count has changed - the blobs
+            uploaded in the previous run(s) need to be renamed.
         """
         self._test_task(
-            task=user__append,
+            task=append_users,
             uploaded_chunk_count=1,  # Assume we've already uploaded 1 chunk.
+            uploaded_obj_count_digits=3,  # Assume there were 100's of objects.
         )
 
-    def test_task__overwrite__not_first__no_retry(self):
+    def test_task__overwrite__no_retry__previous_blobs(self):
         """
-        1. This is the first datetime span.
-        2. All blobs are uploaded on the first run - no retries are required.
-        3. The blobs from the previous datetime span(s) are deleted.
+        1. All blobs are uploaded on the first run - no retries are required.
+        2. The blobs from the previous timestamps are deleted.
         """
         self._test_task(
-            task=user__overwrite,
-            last_ran_at=timedelta(days=1),  # Last successful run was 1 day ago.
+            task=overwrite_users,
+            since_previous_run=timedelta(days=1),
         )
