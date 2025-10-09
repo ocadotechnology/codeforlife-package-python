@@ -244,31 +244,37 @@ class DataWarehouseTask(Task):
             )
 
     def _get_gcs_bucket(self):
-        # Get the default credentials from the environment (Workload Identity Federation)
-        # These are the short-lived credentials from the AWS IAM role.
-        # creds, _ = default()
-
+        # Set the scopes of the credentials.
+        # https://cloud.google.com/storage/docs/oauth-scopes
         scopes = ["https://www.googleapis.com/auth/devstorage.full_control"]
 
-        creds = service_account.Credentials.from_service_account_file(
-            "/workspace/backend/package/service_account.json", scopes=scopes
+        if settings.ENV == "local":
+            # Load the credentials from a local JSON file.
+            credentials = service_account.Credentials.from_service_account_file(
+                "/replace/me/with/path/to/service_account.json",
+                scopes=scopes,
+            )
+        else:
+            # Use Workload Identity Federation to get the default credentials
+            # from the environment. These are the short-lived credentials from
+            # the AWS IAM role.
+            source_credentials, _ = default()
+
+            # Create the impersonated credentials object
+            credentials = impersonated_credentials.Credentials(
+                source_credentials=source_credentials,
+                target_principal=(
+                    settings.GOOGLE_CLOUD_STORAGE_SERVICE_ACCOUNT_NAME
+                ),
+                target_scopes=scopes,
+                # The lifetime of the impersonated credentials in seconds.
+                lifetime=self.options.time_limit,
+            )
+
+        # Create a client with the impersonated credentials and get the bucket.
+        return gcs.Client(credentials=credentials).bucket(
+            settings.GOOGLE_CLOUD_STORAGE_BUCKET_NAME
         )
-
-        # Create the impersonated credentials object
-        # impersonated_creds = impersonated_credentials.Credentials(
-        #     source_credentials=creds,
-        #     target_principal=(
-        #         settings.GOOGLE_CLOUD_STORAGE_SERVICE_ACCOUNT_NAME
-        #     ),
-        #     # https://cloud.google.com/storage/docs/oauth-scopes
-        #     target_scopes=scopes,
-        #     # The lifetime of the impersonated credentials in seconds.
-        #     lifetime=time_limit,
-        # )
-
-        # Create a client with the impersonated credentials.
-        gcs_client = gcs.Client(credentials=creds)
-        return gcs_client.bucket(settings.GOOGLE_CLOUD_STORAGE_BUCKET_NAME)
 
     @staticmethod
     def format_values(values: t.Tuple[t.Any, ...]):
