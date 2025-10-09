@@ -36,6 +36,7 @@ class CeleryTestCase(TestCase):
         name: str,
         args: t.Optional[Args] = None,
         kwargs: t.Optional[KwArgs] = None,
+        **request
     ):
         """Apply a task.
 
@@ -45,7 +46,7 @@ class CeleryTestCase(TestCase):
             kwargs: The keyword args to pass to the task.
         """
         task: Task = self.app.tasks[get_task_name(name)]
-        task.apply(args=args, kwargs=kwargs)
+        task.apply(args=args, kwargs=kwargs, **request)
 
     def assert_data_warehouse_task(
         self,

@@ -5,6 +5,7 @@ Created on 06/10/2025 at 17:15:37(+01:00).
 
 import logging
 import typing as t
+from dataclasses import dataclass
 from datetime import datetime, timezone
 from functools import cached_property
 
@@ -25,6 +26,8 @@ _BQ_TABLE_NAMES: t.Set[str] = set()
 # pylint: disable-next=abstract-method
 class DataWarehouseTask(Task):
     """A task that saves a queryset as CSV files in the GCS bucket."""
+
+    timestamp_key = "_timestamp"
 
     GetQuerySet: t.TypeAlias = t.Callable[..., QuerySet[t.Any]]
 
@@ -197,7 +200,8 @@ class DataWarehouseTask(Task):
     options: Options
     get_queryset: GetQuerySet
 
-    class ChunkMetadata(t.NamedTuple):
+    @dataclass
+    class ChunkMetadata:
         """All of the metadata used to track a chunk."""
 
         bq_table_name: str  # the name of the BigQuery table
@@ -509,14 +513,18 @@ class DataWarehouseTask(Task):
 
             # Wraps the task with retry logic.
             def task(self: "DataWarehouseTask", *task_args, **task_kwargs):
-                timestamp = (
-                    # ...get the current timestamp.
-                    self.to_timestamp(datetime.now(timezone.utc))
-                    # If this is the first run...
-                    if self.request.retries == 0
-                    # ...else pop the timestamp passed from the first run.
-                    else t.cast(str, task_kwargs.pop("_timestamp"))
-                )
+                # If this is not the first run...
+                if self.request.retries:
+                    # ...pop the timestamp passed from the first run.
+                    timestamp = t.cast(
+                        t.Optional[str],
+                        task_kwargs.pop(self.timestamp_key, None),
+                    ) or t.cast(  # Need to also check this due to a Celery bug.
+                        str,
+                        t.cast(dict, self.request.kwargs)[self.timestamp_key],
+                    )
+                else:  # ...else get the current timestamp.
+                    timestamp = self.to_timestamp(datetime.now(timezone.utc))
 
                 try:
                     cls._save_query_set_as_csvs_in_gcs_bucket(
@@ -525,8 +533,7 @@ class DataWarehouseTask(Task):
                 except Exception as exc:
                     raise self.retry(
                         args=task_args,
-                        # Pass the timestamp from the first run to the retry.
-                        kwargs={**task_kwargs, "_timestamp": timestamp},
+                        kwargs={**task_kwargs, self.timestamp_key: timestamp},
                         exc=exc,
                         countdown=options.retry_countdown,
                     )

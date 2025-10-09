@@ -243,8 +243,7 @@ class TestDataWarehouseTask(CeleryTestCase):
     def _test_task(
         self,
         task: DWT,
-        uploaded_chunk_count: int = 0,
-        uploaded_obj_count_digits: t.Optional[int] = None,
+        retries: int = 0,
         since_previous_run: t.Optional[timedelta] = None,
         task_args: t.Optional[Args] = None,
         task_kwargs: t.Optional[KwArgs] = None,
@@ -253,18 +252,14 @@ class TestDataWarehouseTask(CeleryTestCase):
 
         Args:
             task: The task to make assertions on.
-            uploaded_chunk_count: How many chunks have already been uploaded.
-            uploaded_obj_count_digits: The magnitude of the uploaded objects.
+            retries: How many times the task has been retried.
             since_previous_run: How long ago since the task was previously run.
             task_args: The arguments passed to the task.
             task_kwargs: The keyword arguments passed to the task.
         """
 
         # Validate args.
-        assert uploaded_chunk_count >= 0
-        assert (
-            uploaded_obj_count_digits is None or uploaded_obj_count_digits >= 2
-        )
+        assert 0 <= retries <= task.options.max_retries
 
         # Get the queryset and order it if not already ordered.
         task_args, task_kwargs = task_args or tuple(), task_kwargs or {}
@@ -273,17 +268,16 @@ class TestDataWarehouseTask(CeleryTestCase):
             queryset = queryset.order_by("id")
 
         # Count the objects in the queryset.
-        uploaded_obj_count = uploaded_chunk_count * task.options.chunk_size
         obj_count = queryset.count()
+        # Assume we've uploaded 1 chunk if retrying.
+        uploaded_obj_count = task.options.chunk_size if retries else 0
         assert uploaded_obj_count <= obj_count
         assert (obj_count - uploaded_obj_count) > 0
 
-        # Get the object count's magnitude (number of digits).
+        # Get the object count's current magnitude (number of digits) and
+        # simulate a higher order of magnitude during the previous run.
         obj_count_digits = len(str(obj_count))
-        if uploaded_obj_count_digits is None:
-            uploaded_obj_count_digits = obj_count_digits
-        else:
-            assert uploaded_obj_count_digits != obj_count_digits
+        uploaded_obj_count_digits = obj_count_digits + 1
 
         # Get the current datetime.
         now = datetime.now(timezone.utc)
@@ -336,10 +330,23 @@ class TestDataWarehouseTask(CeleryTestCase):
         with patch.object(
             DWT, "_get_gcs_bucket", return_value=bucket
         ) as get_gcs_bucket:
-            with patch.object(datetime, "now", return_value=now) as dt_now:
-                self.apply_task(task.name, task_args, task_kwargs)
+            with patch("codeforlife.tasks.data_warehouse.datetime") as dt:
+                dt_now = t.cast(MagicMock, dt.now)
+                dt_now.return_value = now
+                if retries:
+                    task_kwargs[DWT.timestamp_key] = timestamp
 
-                dt_now.assert_called_once_with(timezone.utc)
+                self.apply_task(
+                    task.name,
+                    task_args,
+                    task_kwargs,
+                    retries=retries,
+                )
+
+                if retries:
+                    dt_now.assert_not_called()
+                else:
+                    dt_now.assert_called_once_with(timezone.utc)
             get_gcs_bucket.assert_called_once()
 
         # Assert that the blobs for the BigQuery table were listed. If the
@@ -360,13 +367,28 @@ class TestDataWarehouseTask(CeleryTestCase):
                 blob.delete.assert_called_once()
             else:
                 blob.delete.assert_not_called()
-        # bucket_copy_blob.assert_has_calls([])  # TODO
 
         # Assert that a blob was created for each non-uploaded blob.
         bucket.blob.assert_has_calls(
             [
                 call(blob.name)
                 for blob in non_uploaded_blobs_from_current_timestamp
+            ]
+        )
+
+        # Assert that the uploaded blobs in the current timestamp were copied
+        # with the magnitude corrected in their name and the old blobs deleted.
+        for blob in uploaded_blobs_from_current_timestamp:
+            blob.chunk_metadata.obj_count_digits = obj_count_digits
+            blob.delete.assert_called_once()
+        bucket.copy_blob.assert_has_calls(
+            [
+                call(
+                    blob=blob,
+                    destination_bucket=bucket,
+                    new_name=blob.chunk_metadata.to_blob_name(),
+                )
+                for blob in uploaded_blobs_from_current_timestamp
             ]
         )
 
@@ -391,7 +413,7 @@ class TestDataWarehouseTask(CeleryTestCase):
         1. All blobs are uploaded on the first run - no retries are required.
         2. Blobs from the previous timestamp are not in the bucket.
         """
-        self._test_task(task=append_users)
+        self._test_task(append_users)
 
     def test_task__append__no_retry__previous_blobs(self):
         """
@@ -399,10 +421,7 @@ class TestDataWarehouseTask(CeleryTestCase):
         2. Blobs from the previous timestamp are in the bucket.
         3. The blobs from the previous timestamp are not deleted.
         """
-        self._test_task(
-            task=append_users,
-            since_previous_run=timedelta(days=1),
-        )
+        self._test_task(append_users, since_previous_run=timedelta(days=1))
 
     def test_task__append__retry__no_previous_blobs(self):
         """
@@ -410,18 +429,11 @@ class TestDataWarehouseTask(CeleryTestCase):
         2. The order of magnitude in the object count has changed - the blobs
             uploaded in the previous run(s) need to be renamed.
         """
-        self._test_task(
-            task=append_users,
-            uploaded_chunk_count=1,  # Assume we've already uploaded 1 chunk.
-            uploaded_obj_count_digits=3,  # Assume there were 100's of objects.
-        )
+        self._test_task(append_users, retries=1)
 
     def test_task__overwrite__no_retry__previous_blobs(self):
         """
         1. All blobs are uploaded on the first run - no retries are required.
         2. The blobs from the previous timestamps are deleted.
         """
-        self._test_task(
-            task=overwrite_users,
-            since_previous_run=timedelta(days=1),
-        )
+        self._test_task(overwrite_users, since_previous_run=timedelta(days=1))
