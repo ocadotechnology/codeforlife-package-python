@@ -516,13 +516,7 @@ class DataWarehouseTask(Task):
                 # If this is not the first run...
                 if self.request.retries:
                     # ...pop the timestamp passed from the first run.
-                    timestamp = t.cast(
-                        t.Optional[str],
-                        task_kwargs.pop(self.timestamp_key, None),
-                    ) or t.cast(  # Need to also check this due to a Celery bug.
-                        str,
-                        t.cast(dict, self.request.kwargs)[self.timestamp_key],
-                    )
+                    timestamp = t.cast(str, task_kwargs.pop(self.timestamp_key))
                 else:  # ...else get the current timestamp.
                     timestamp = self.to_timestamp(datetime.now(timezone.utc))
 
