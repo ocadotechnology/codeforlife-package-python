@@ -5,7 +5,7 @@ Created on 06/10/2025 at 17:15:37(+01:00).
 
 import logging
 import typing as t
-from datetime import datetime
+from datetime import datetime, timezone
 from functools import cached_property
 
 from celery import Task
@@ -13,7 +13,6 @@ from celery import shared_task as _shared_task
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db.models.query import QuerySet
-from django.utils import timezone
 from google.auth import default, impersonated_credentials
 from google.cloud import storage as gcs  # type: ignore[import-untyped]
 from google.oauth2 import service_account
@@ -216,7 +215,7 @@ class DataWarehouseTask(Task):
             )
             obj_i_end_fstr = str(self.obj_i_end).zfill(self.obj_count_digits)
 
-            # E.g. "user/2025-01-01T00:00:00__0001_1000.csv"
+            # E.g. "user/2025-01-01_00:00:00__0001_1000.csv"
             return (
                 f"{self.bq_table_name}/{self.timestamp}__"
                 f"{obj_i_start_fstr}_{obj_i_end_fstr}.csv"
@@ -226,12 +225,12 @@ class DataWarehouseTask(Task):
         def from_blob_name(cls, blob_name: str):
             """Extract the chunk metadata from a blob name."""
 
-            # E.g. "user/2025-01-01T00:00:00__0001_1000.csv"
-            # "2025-01-01T00:00:00__0001_1000.csv"
+            # E.g. "user/2025-01-01_00:00:00__0001_1000.csv"
+            # "2025-01-01_00:00:00__0001_1000.csv"
             bq_table_name, blob_name = blob_name.split("/", maxsplit=1)
-            # "2025-01-01T00:00:00__0001_1000"
+            # "2025-01-01_00:00:00__0001_1000"
             blob_name = blob_name.removesuffix(".csv")
-            # "2025-01-01T00:00:00", "0001_1000"
+            # "2025-01-01_00:00:00", "0001_1000"
             timestamp, obj_i_span_fstr = blob_name.split("__")
             # "0001", "1000"
             obj_i_start_fstr, obj_i_end_fstr = obj_i_span_fstr.split("_")
@@ -289,9 +288,9 @@ class DataWarehouseTask(Task):
     def to_timestamp(dt: datetime):
         """
         Formats a datetime to a timestamp to be used in a CSV name.
-        E.g. "2025-01-01T00:00:00"
+        E.g. "2025-01-01_00:00:00"
         """
-        return dt.strftime("%Y-%m-%dT%H:%M:%S")
+        return dt.strftime("%Y-%m-%d_%H:%M:%S")
 
     @staticmethod
     # pylint: disable-next=too-many-locals,bad-staticmethod-argument
@@ -453,7 +452,7 @@ class DataWarehouseTask(Task):
         The naming convention follows the format:
             **"{timestamp}\_\_{i_start}\_{i_end}.csv"**
         The timestamp follows the format:
-            **"{YYYY}-{MM}-{DD}T{HH}:{MM}:{SS}"** (e.g. "2025-12-01T23:59:59")
+            **"{YYYY}-{MM}-{DD}_{HH}:{MM}:{SS}"** (e.g. "2025-12-01_23:59:59")
 
         NOTE: The index is padded with zeros to ensure sorting by name is
         consistent. For example, the index span from 1 to 500 would be "001_500".
@@ -506,7 +505,7 @@ class DataWarehouseTask(Task):
             def task(self: "DataWarehouseTask", *task_args, **task_kwargs):
                 timestamp = (
                     # ...get the current timestamp.
-                    self.to_timestamp(timezone.now())
+                    self.to_timestamp(datetime.now(timezone.utc))
                     # If this is the first run...
                     if self.request.retries == 0
                     # ...else pop the timestamp passed from the first run.

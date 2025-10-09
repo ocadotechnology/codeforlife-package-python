@@ -4,11 +4,10 @@ Created on 02/10/2025 at 17:22:38(+01:00).
 """
 
 import typing as t
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from unittest.mock import MagicMock, call, patch
 
 from celery import Celery
-from django.utils import timezone
 
 from ..tests import CeleryTestCase
 from ..types import Args, KwArgs
@@ -72,7 +71,7 @@ class MockGcsBlob:
 
         Args:
             task: The task that produced these blobs.
-            timestamp: When the task was first run.
+            timestamp: When the task first ran.
             obj_i_start: The object index span start.
             obj_i_end: The object index span end.
             obj_count_digits: The number of digits in the object count
@@ -196,13 +195,11 @@ class TestDataWarehouseTask(CeleryTestCase):
     # To timestamp
 
     def test_to_timestamp(self):
-        """
-        Dates are formatted as YYYY-MM-DD, time as HH:MM:SS, and joined with T.
-        """
+        """Format should match YYYY-MM-DD_HH:MM:SS."""
         timestamp = DWT.to_timestamp(
             datetime(year=2025, month=2, day=1, hour=12, minute=30, second=15)
         )
-        assert timestamp == "2025-02-01T12:30:15"
+        assert timestamp == "2025-02-01_12:30:15"
 
     # Chunk metadata
 
@@ -289,7 +286,7 @@ class TestDataWarehouseTask(CeleryTestCase):
             assert uploaded_obj_count_digits != obj_count_digits
 
         # Get the current datetime.
-        now = timezone.now()
+        now = datetime.now(timezone.utc)
 
         # If not the first run, generate blobs for the last timestamp.
         # Assume the same object count and timedelta.
@@ -339,10 +336,10 @@ class TestDataWarehouseTask(CeleryTestCase):
         with patch.object(
             DWT, "_get_gcs_bucket", return_value=bucket
         ) as get_gcs_bucket:
-            with patch.object(timezone, "now", return_value=now) as now_mock:
+            with patch.object(datetime, "now", return_value=now) as dt_now:
                 self.apply_task(task.name, task_args, task_kwargs)
 
-                now_mock.assert_called_once()
+                dt_now.assert_called_once_with(timezone.utc)
             get_gcs_bucket.assert_called_once()
 
         # Assert that the blobs for the BigQuery table were listed. If the
