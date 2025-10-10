@@ -3,8 +3,10 @@
 Created on 02/10/2025 at 17:22:38(+01:00).
 """
 
+import csv
+import io
 import typing as t
-from datetime import datetime, timedelta, timezone
+from datetime import date, datetime, time, timedelta, timezone
 from unittest.mock import MagicMock, call, patch
 
 from celery import Celery
@@ -118,8 +120,12 @@ class TestDataWarehouseTask(CeleryTestCase):
         return super().setUpClass()
 
     def setUp(self):
+        self.date = date(year=2025, month=2, day=1)
+        self.time = time(hour=12, minute=30, second=15)
+        self.datetime = datetime.combine(self.date, self.time)
+
         self.bq_table_name = "example"
-        self.timestamp = DWT.to_timestamp(datetime(year=2025, month=1, day=1))
+        self.timestamp = DWT.to_timestamp(self.datetime)
         self.obj_i_start = 1
         self.obj_i_end = 100
         self.obj_count_digits = 4
@@ -196,9 +202,7 @@ class TestDataWarehouseTask(CeleryTestCase):
 
     def test_to_timestamp(self):
         """Format should match YYYY-MM-DD_HH:MM:SS."""
-        timestamp = DWT.to_timestamp(
-            datetime(year=2025, month=2, day=1, hour=12, minute=30, second=15)
-        )
+        timestamp = DWT.to_timestamp(self.datetime)
         assert timestamp == "2025-02-01_12:30:15"
 
     # Chunk metadata
@@ -223,19 +227,63 @@ class TestDataWarehouseTask(CeleryTestCase):
         assert chunk_metadata.obj_i_end == self.obj_i_end
         assert chunk_metadata.obj_count_digits == self.obj_count_digits
 
-    # Format values
+    # Init CSV writer
 
-    def _test_format_values(self, *values: t.Tuple[t.Any, str]):
+    def test_init_csv_writer(self):
+        """
+        Initializing a CSV writer returns the content stream and writer. The
+        fields should be pre-written as headers and the writer should write to
+        the buffer.
+        """
+        task = append_users
+        csv_content, csv_writer = task.init_csv_writer()
+
+        csv_row = ["a", "b", "c"]
+        csv_writer.writerow(csv_row)
+
+        assert csv_content.getvalue().strip() == "\n".join(
+            [",".join(task.options.fields), ",".join(csv_row)]
+        )
+
+    # Write CSV row
+
+    def _test_write_csv_row(self, *values: t.Tuple[t.Any, str]):
         original_values = tuple(value[0] for value in values)
         formatted_values = [value[1] for value in values]
 
-        csv = DWT.format_values(original_values)
-        assert csv.startswith("\n")
-        assert csv.removeprefix("\n").split(",") == formatted_values
+        csv_content = io.StringIO()
+        csv_writer = csv.writer(
+            csv_content, lineterminator="\n", quoting=csv.QUOTE_MINIMAL
+        )
 
-    def test_format_values__bool(self):
+        DWT.write_csv_row(csv_writer, original_values)
+
+        assert csv_content.getvalue().strip() == ",".join(formatted_values)
+
+    def test_write_csv_row__bool(self):
         """Booleans are converted to 0 or 1."""
-        self._test_format_values((True, "1"), (False, "0"))
+        self._test_write_csv_row((True, "1"), (False, "0"))
+
+    def test_write_csv_row__datetime(self):
+        """Datetimes are converted to ISO 8601 format with a space separator."""
+        tz_aware_dt = self.datetime.replace(tzinfo=timezone(timedelta(hours=1)))
+        self._test_write_csv_row((tz_aware_dt, "2025-02-01 11:30:15"))
+
+    def test_write_csv_row__date(self):
+        """Dates are converted to ISO 8601 format."""
+        self._test_write_csv_row((self.date, "2025-02-01"))
+
+    def test_write_csv_row__time(self):
+        """Times are converted to ISO 8601 format, ignoring timezone info."""
+        self._test_write_csv_row((self.time, "12:30:15"))
+
+    def test_write_csv_row__str(self):
+        """
+        Strings containing commas and/or double quotes are correctly escaped.
+        """
+        self._test_write_csv_row(
+            ("a", "a"), ("b,c", '"b,c"'), ('"d","e"', '"""d"",""e"""')
+        )
 
     # Task
 
@@ -394,7 +442,7 @@ class TestDataWarehouseTask(CeleryTestCase):
 
         # Assert that each blob was uploaded from a CSV string.
         for blob in non_uploaded_blobs_from_current_timestamp:
-            csv = task.options.csv_headers
+            csv_content, csv_writer = task.init_csv_writer()
             for values in t.cast(
                 t.List[t.Tuple[t.Any, ...]],
                 queryset.values_list(*task.options.fields)[
@@ -402,10 +450,10 @@ class TestDataWarehouseTask(CeleryTestCase):
                     - 1 : blob.chunk_metadata.obj_i_end
                 ],
             ):
-                csv += DWT.format_values(values)
+                DWT.write_csv_row(csv_writer, values)
 
             blob.upload_from_string.assert_called_once_with(
-                csv, content_type="text/csv"
+                csv_content.getvalue().strip(), content_type="text/csv"
             )
 
     def test_task__append__no_retry__no_previous_blobs(self):

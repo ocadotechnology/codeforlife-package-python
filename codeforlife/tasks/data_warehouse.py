@@ -3,11 +3,12 @@
 Created on 06/10/2025 at 17:15:37(+01:00).
 """
 
+import csv
+import io
 import logging
 import typing as t
 from dataclasses import dataclass
-from datetime import datetime, timezone
-from functools import cached_property
+from datetime import date, datetime, time, timezone
 
 from celery import Task
 from celery import shared_task as _shared_task
@@ -156,11 +157,6 @@ class DataWarehouseTask(Task):
             """The [Django model] fields to include in the CSV."""
             return self._fields
 
-        @cached_property
-        def csv_headers(self):
-            """The headers of each CSV file."""
-            return ",".join(self._fields)
-
         @property
         def time_limit(self):
             """
@@ -280,19 +276,57 @@ class DataWarehouseTask(Task):
             settings.GOOGLE_CLOUD_STORAGE_BUCKET_NAME
         )
 
+    def init_csv_writer(self):
+        """Initializes a CSV writer.
+
+        Returns:
+            A tuple where the first value is the string buffer containing the
+            CSV content and the second value is a CSV writer which handles
+            writing new rows to the CSV buffer.
+        """
+        csv_content = io.StringIO()
+        csv_writer = csv.writer(
+            csv_content, lineterminator="\n", quoting=csv.QUOTE_MINIMAL
+        )
+        csv_writer.writerow(self.options.fields)  # Write the headers.
+        return csv_content, csv_writer
+
     @staticmethod
-    def format_values(values: t.Tuple[t.Any, ...]):
-        """Format the values as a newline in a CSV file."""
+    def write_csv_row(
+        writer: "csv.Writer",  # type: ignore[name-defined]
+        values: t.Tuple[t.Any, ...],
+    ):
+        """Write the values to the CSV file in a format BigQuery accepts.
+
+        Args:
+            writer: The CSV writer which handles formatting the row.
+            values: The values to write to the CSV file.
+        """
+        # Reimport required to avoid being mocked during testing.
+        # pylint: disable-next=reimported,import-outside-toplevel
+        from datetime import datetime as _datetime
+
         # Transform the values into their SQL representations.
-        sql_values: t.List[str] = []
+        csv_row: t.List[str] = []
         for value in values:
-            if isinstance(value, bool):
-                value = int(value)
+            if value is None:
+                value = ""  # BigQuery treats an empty string as NULL/None.
+            elif isinstance(value, bool):
+                value = str(int(value))
+            elif isinstance(value, _datetime):
+                value = (
+                    value.astimezone(timezone.utc)
+                    .replace(tzinfo=None)
+                    .isoformat(sep=" ")
+                )
+            elif isinstance(value, (date, time)):
+                value = value.isoformat()
+            elif not isinstance(value, str):
+                value = str(value)
 
-            sql_values.append(str(value))
+            csv_row.append(value)
 
-        # Append the values on a new line.
-        return "\n" + ",".join(sql_values)
+        writer.writerow(csv_row)
 
     @staticmethod
     def to_timestamp(dt: datetime):
@@ -399,7 +433,9 @@ class DataWarehouseTask(Task):
                 return
 
         chunk_i = obj_i // self.options.chunk_size  # Chunk index (0-based).
-        csv = ""  # Track content of the current CSV file.
+
+        # Track content of the current CSV file.
+        csv_content, csv_writer = self.init_csv_writer()
 
         # Uploads the current CSV file to the GCS bucket.
         def upload_csv(obj_i_end: int):
@@ -418,7 +454,9 @@ class DataWarehouseTask(Task):
             # Create a blob object for the CSV file's path and upload it.
             logging.info("Uploading %s to bucket.", blob_name)
             blob = bucket.blob(blob_name)
-            blob.upload_from_string(csv, content_type="text/csv")
+            blob.upload_from_string(
+                csv_content.getvalue().strip(), content_type="text/csv"
+            )
 
         # Iterate through the all the objects in the queryset. The objects
         # are retrieved in chunks (no caching) to avoid OOM errors. For each
@@ -439,10 +477,10 @@ class DataWarehouseTask(Task):
                     upload_csv(obj_i_end=obj_i - 1)
                     chunk_i += 1
 
-                csv = self.options.csv_headers  # ...and start a new CSV.
+                # ...and start a new CSV.
+                csv_content, csv_writer = self.init_csv_writer()
 
-            # Append the values on a new line.
-            csv += self.format_values(values)
+            self.write_csv_row(csv_writer, values)
 
         upload_csv(obj_i_end=obj_i)  # Upload final (maybe partial) chunk.
 
