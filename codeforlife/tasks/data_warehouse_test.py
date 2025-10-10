@@ -252,14 +252,12 @@ class TestDataWarehouseTask(CeleryTestCase):
         original_values = tuple(value[0] for value in values)
         formatted_values = [value[1] for value in values]
 
-        csv_content = io.StringIO()
-        csv_writer = csv.writer(
-            csv_content, lineterminator="\n", quoting=csv.QUOTE_MINIMAL
-        )
-
+        csv_content, csv_writer = append_users.init_csv_writer()
         DWT.write_csv_row(csv_writer, original_values)
 
-        assert csv_content.getvalue().strip() == ",".join(formatted_values)
+        assert csv_content.getvalue().strip().split("\n", maxsplit=1)[
+            1
+        ] == ",".join(formatted_values)
 
     def test_write_csv_row__bool(self):
         """Booleans are converted to 0 or 1."""
