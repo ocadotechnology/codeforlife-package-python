@@ -12,7 +12,7 @@ from datetime import date, datetime, time, timezone
 
 from celery import Task
 from celery import shared_task as _shared_task
-from django.conf import settings
+from django.conf import settings as django_settings
 from django.core.exceptions import ValidationError
 from django.db.models.query import QuerySet
 from google.auth import default, impersonated_credentials
@@ -33,8 +33,8 @@ class DataWarehouseTask(Task):
     GetQuerySet: t.TypeAlias = t.Callable[..., QuerySet[t.Any]]
 
     # pylint: disable-next=too-many-instance-attributes
-    class Options:
-        """The options for a data warehouse task."""
+    class Settings:
+        """The settings for a data warehouse task."""
 
         BqTableWriteMode: t.TypeAlias = t.Literal["overwrite", "append"]
 
@@ -51,7 +51,7 @@ class DataWarehouseTask(Task):
             **kwargs,
         ):
             # pylint: disable=line-too-long
-            """Create the options for a data warehouse task.
+            """Create the settings for a data warehouse task.
 
             Args:
                 bq_table_write_mode: The BigQuery table's write-mode.
@@ -193,7 +193,7 @@ class DataWarehouseTask(Task):
             """Whether to delete all blobs not from the current timestamp."""
             return self._delete_blobs_not_from_current_timestamp
 
-    options: Options
+    settings: Settings
     get_queryset: GetQuerySet
 
     @dataclass
@@ -248,7 +248,7 @@ class DataWarehouseTask(Task):
         # https://cloud.google.com/storage/docs/oauth-scopes
         scopes = ["https://www.googleapis.com/auth/devstorage.full_control"]
 
-        if settings.ENV == "local":
+        if django_settings.ENV == "local":
             # Load the credentials from a local JSON file.
             credentials = service_account.Credentials.from_service_account_file(
                 "/replace/me/with/path/to/service_account.json",
@@ -264,16 +264,16 @@ class DataWarehouseTask(Task):
             credentials = impersonated_credentials.Credentials(
                 source_credentials=source_credentials,
                 target_principal=(
-                    settings.GOOGLE_CLOUD_STORAGE_SERVICE_ACCOUNT_NAME
+                    django_settings.GOOGLE_CLOUD_STORAGE_SERVICE_ACCOUNT_NAME
                 ),
                 target_scopes=scopes,
                 # The lifetime of the impersonated credentials in seconds.
-                lifetime=self.options.time_limit,
+                lifetime=self.settings.time_limit,
             )
 
         # Create a client with the impersonated credentials and get the bucket.
         return gcs.Client(credentials=credentials).bucket(
-            settings.GOOGLE_CLOUD_STORAGE_BUCKET_NAME
+            django_settings.GOOGLE_CLOUD_STORAGE_BUCKET_NAME
         )
 
     def init_csv_writer(self):
@@ -288,7 +288,7 @@ class DataWarehouseTask(Task):
         csv_writer = csv.writer(
             csv_content, lineterminator="\n", quoting=csv.QUOTE_MINIMAL
         )
-        csv_writer.writerow(self.options.fields)  # Write the headers.
+        csv_writer.writerow(self.settings.fields)  # Write the headers.
         return csv_content, csv_writer
 
     @staticmethod
@@ -370,10 +370,10 @@ class DataWarehouseTask(Task):
         for blob in t.cast(
             t.Iterator[gcs.Blob],
             bucket.list_blobs(
-                prefix=f"{self.options.bq_table_name}/"
+                prefix=f"{self.settings.bq_table_name}/"
                 + (
                     timestamp
-                    if self.options.only_list_blobs_from_current_timestamp
+                    if self.settings.only_list_blobs_from_current_timestamp
                     else ""
                 )
             ),
@@ -382,8 +382,10 @@ class DataWarehouseTask(Task):
 
             # Check if found first blob from current timestamp.
             if (
-                self.options.only_list_blobs_from_current_timestamp
-                or blob_name.startswith(timestamp)
+                self.settings.only_list_blobs_from_current_timestamp
+                or blob_name.startswith(
+                    f"{self.settings.bq_table_name}/{timestamp}"
+                )
             ):
                 chunk_metadata = self.ChunkMetadata.from_blob_name(blob_name)
 
@@ -405,7 +407,7 @@ class DataWarehouseTask(Task):
 
                 last_blob_name_from_current_timestamp = blob_name
             # Check if blobs not from the current timestamp should be deleted.
-            elif self.options.delete_blobs_not_from_current_timestamp:
+            elif self.settings.delete_blobs_not_from_current_timestamp:
                 logging.info('Deleting blob "%s".', blob_name)
                 blob.delete()
 
@@ -432,7 +434,7 @@ class DataWarehouseTask(Task):
             if not queryset.exists():
                 return
 
-        chunk_i = obj_i // self.options.chunk_size  # Chunk index (0-based).
+        chunk_i = obj_i // self.settings.chunk_size  # Chunk index (0-based).
 
         # Track content of the current CSV file.
         csv_content, csv_writer = self.init_csv_writer()
@@ -440,11 +442,11 @@ class DataWarehouseTask(Task):
         # Uploads the current CSV file to the GCS bucket.
         def upload_csv(obj_i_end: int):
             # Calculate the starting object index for the current chunk.
-            obj_i_start = (chunk_i * self.options.chunk_size) + 1
+            obj_i_start = (chunk_i * self.settings.chunk_size) + 1
 
             # Generate the path to the CSV in the bucket.
             blob_name = self.ChunkMetadata(
-                bq_table_name=self.options.bq_table_name,
+                bq_table_name=self.settings.bq_table_name,
                 timestamp=timestamp,
                 obj_i_start=obj_i_start,
                 obj_i_end=obj_i_end,
@@ -465,13 +467,13 @@ class DataWarehouseTask(Task):
         for obj_i, values in enumerate(
             t.cast(
                 t.Iterator[t.Tuple[t.Any, ...]],
-                queryset.values_list(*self.options.fields).iterator(
-                    chunk_size=self.options.chunk_size
+                queryset.values_list(*self.settings.fields).iterator(
+                    chunk_size=self.settings.chunk_size
                 ),
             ),
             start=obj_i_start,
         ):
-            if obj_i % self.options.chunk_size == 1:  # If start of a chunk...
+            if obj_i % self.settings.chunk_size == 1:  # If start of a chunk...
                 if obj_i != obj_i_start:  # ...and not the 1st iteration...
                     # ...upload the chunk's CSV and increment its index...
                     upload_csv(obj_i_end=obj_i - 1)
@@ -485,7 +487,7 @@ class DataWarehouseTask(Task):
         upload_csv(obj_i_end=obj_i)  # Upload final (maybe partial) chunk.
 
     @classmethod
-    def shared(cls, options: Options):
+    def shared(cls, settings: Settings):
         # pylint: disable=line-too-long,anomalous-backslash-in-string
         """Create a Celery task that saves a queryset as CSV files in the GCS
         bucket.
@@ -505,8 +507,8 @@ class DataWarehouseTask(Task):
         NOTE: The index is padded with zeros to ensure sorting by name is
         consistent. For example, the index span from 1 to 500 would be "001_500".
 
-        Ultimately, these CSV files are imported into a BigQuery table, after which
-        they are deleted from the GCS bucket.
+        Ultimately, these CSV files are imported into a BigQuery table, after
+        which they are deleted from the GCS bucket.
 
         Each task *must* be given a distinct table name and queryset to avoid
         unintended consequences.
@@ -526,18 +528,18 @@ class DataWarehouseTask(Task):
             ```
 
         Args:
-            options: The options for this data warehouse task.
+            settings: The settings for this data warehouse task.
 
         Returns:
-            A wrapper-function which expects to receive a callable that returns a
-            queryset and returns a Celery task to save the queryset as CSV files in
-            the GCS bucket.
+            A wrapper-function which expects to receive a callable that returns
+            a queryset and returns a Celery task to save the queryset as CSV
+            files in the GCS bucket.
         """
         # pylint: enable=line-too-long,anomalous-backslash-in-string
 
         def wrapper(get_queryset: "DataWarehouseTask.GetQuerySet"):
             # Get BigQuery table name and validate it's not already registered.
-            bq_table_name = options.bq_table_name or get_queryset.__name__
+            bq_table_name = settings.bq_table_name or get_queryset.__name__
             if bq_table_name in _BQ_TABLE_NAMES:
                 raise ValueError(
                     f'The BigQuery table name "{bq_table_name}" is already'
@@ -547,7 +549,7 @@ class DataWarehouseTask(Task):
 
             # Overwrite BigQuery table name.
             # pylint: disable-next=protected-access
-            options._bq_table_name = bq_table_name
+            settings._bq_table_name = bq_table_name
 
             # Wraps the task with retry logic.
             def task(self: "DataWarehouseTask", *task_args, **task_kwargs):
@@ -570,11 +572,11 @@ class DataWarehouseTask(Task):
                         args=task_args,
                         kwargs=task_kwargs,
                         exc=exc,
-                        countdown=options.retry_countdown,
+                        countdown=settings.retry_countdown,
                     )
 
             # pylint: disable-next=protected-access
-            kwargs = options._kwargs
+            kwargs = settings._kwargs
 
             # Namespace the task with service's name. If the name is not
             # explicitly provided, it defaults to the name of the decorated
@@ -589,9 +591,9 @@ class DataWarehouseTask(Task):
                 _shared_task(  # type: ignore[call-overload]
                     **kwargs,
                     name=name,
-                    time_limit=options.time_limit,
-                    max_retries=options.max_retries,
-                    options=options,
+                    time_limit=settings.time_limit,
+                    max_retries=settings.max_retries,
+                    settings=settings,
                     get_queryset=staticmethod(get_queryset),
                 )(task),
             )

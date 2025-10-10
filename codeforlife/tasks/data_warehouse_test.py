@@ -20,7 +20,7 @@ from .data_warehouse import DataWarehouseTask as DWT
 
 
 @DWT.shared(
-    DWT.Options(
+    DWT.Settings(
         bq_table_name="user__append",
         bq_table_write_mode="append",
         chunk_size=10,
@@ -33,7 +33,7 @@ def append_users():
 
 
 @DWT.shared(
-    DWT.Options(
+    DWT.Settings(
         bq_table_name="user__overwrite",
         bq_table_write_mode="overwrite",
         chunk_size=10,
@@ -84,17 +84,17 @@ class MockGcsBlob:
         return [
             cls(
                 chunk_metadata=DWT.ChunkMetadata(
-                    bq_table_name=task.options.bq_table_name,
+                    bq_table_name=task.settings.bq_table_name,
                     timestamp=timestamp,
                     obj_i_start=obj_i_start,
                     obj_i_end=min(
-                        obj_i_start + task.options.chunk_size - 1, obj_i_end
+                        obj_i_start + task.settings.chunk_size - 1, obj_i_end
                     ),
                     obj_count_digits=obj_count_digits,
                 )
             )
             for obj_i_start in range(
-                obj_i_start, obj_i_end + 1, task.options.chunk_size
+                obj_i_start, obj_i_end + 1, task.settings.chunk_size
             )
         ]
 
@@ -111,6 +111,7 @@ class MockGcsBucket:
         self.copy_blob = MagicMock()
 
 
+# pylint: disable-next=too-many-instance-attributes,too-many-public-methods
 class TestDataWarehouseTask(CeleryTestCase):
 
     @classmethod
@@ -145,13 +146,13 @@ class TestDataWarehouseTask(CeleryTestCase):
     def _test_options(
         self,
         code: str,
-        bq_table_write_mode: DWT.Options.BqTableWriteMode = ("append"),
+        bq_table_write_mode: DWT.Settings.BqTableWriteMode = ("append"),
         chunk_size: int = 10,
         fields: t.Optional[t.List[str]] = None,
         **kwargs,
     ):
         with self.assert_raises_validation_error(code=code):
-            DWT.Options(
+            DWT.Settings(
                 bq_table_write_mode=bq_table_write_mode,
                 chunk_size=chunk_size,
                 fields=fields or ["some_field"],
@@ -242,7 +243,7 @@ class TestDataWarehouseTask(CeleryTestCase):
         csv_writer.writerow(csv_row)
 
         assert csv_content.getvalue().strip() == "\n".join(
-            [",".join(task.options.fields), ",".join(csv_row)]
+            [",".join(task.settings.fields), ",".join(csv_row)]
         )
 
     # Write CSV row
@@ -296,7 +297,7 @@ class TestDataWarehouseTask(CeleryTestCase):
         task_args: t.Optional[Args] = None,
         task_kwargs: t.Optional[KwArgs] = None,
     ):
-        """Assert that a data warehouse tasks uploads chunks of data as CSVs.
+        """Assert that a data warehouse task uploads chunks of data as CSVs.
 
         Args:
             task: The task to make assertions on.
@@ -307,7 +308,7 @@ class TestDataWarehouseTask(CeleryTestCase):
         """
 
         # Validate args.
-        assert 0 <= retries <= task.options.max_retries
+        assert 0 <= retries <= task.settings.max_retries
 
         # Get the queryset and order it if not already ordered.
         task_args, task_kwargs = task_args or tuple(), task_kwargs or {}
@@ -318,7 +319,7 @@ class TestDataWarehouseTask(CeleryTestCase):
         # Count the objects in the queryset.
         obj_count = queryset.count()
         # Assume we've uploaded 1 chunk if retrying.
-        uploaded_obj_count = task.options.chunk_size if retries else 0
+        uploaded_obj_count = task.settings.chunk_size if retries else 0
         assert uploaded_obj_count <= obj_count
         assert (obj_count - uploaded_obj_count) > 0
 
@@ -366,7 +367,7 @@ class TestDataWarehouseTask(CeleryTestCase):
             # Return the appropriate list based on the filters.
             list_blobs_return=(
                 uploaded_blobs_from_current_timestamp
-                if task.options.only_list_blobs_from_current_timestamp
+                if task.settings.only_list_blobs_from_current_timestamp
                 else uploaded_blobs_from_last_timestamp
                 + uploaded_blobs_from_current_timestamp
             ),
@@ -401,17 +402,17 @@ class TestDataWarehouseTask(CeleryTestCase):
         # table's write-mode is append, assert only the blobs in the current
         # timestamp were listed.
         bucket.list_blobs.assert_called_once_with(
-            prefix=f"{task.options.bq_table_name}/"
+            prefix=f"{task.settings.bq_table_name}/"
             + (
                 timestamp
-                if task.options.only_list_blobs_from_current_timestamp
+                if task.settings.only_list_blobs_from_current_timestamp
                 else ""
             )
         )
 
         # Assert that all blobs not in the current timestamp were (not) deleted.
         for blob in uploaded_blobs_from_last_timestamp:
-            if task.options.delete_blobs_not_from_current_timestamp:
+            if task.settings.delete_blobs_not_from_current_timestamp:
                 blob.delete.assert_called_once()
             else:
                 blob.delete.assert_not_called()
@@ -445,7 +446,7 @@ class TestDataWarehouseTask(CeleryTestCase):
             csv_content, csv_writer = task.init_csv_writer()
             for values in t.cast(
                 t.List[t.Tuple[t.Any, ...]],
-                queryset.values_list(*task.options.fields)[
+                queryset.values_list(*task.settings.fields)[
                     blob.chunk_metadata.obj_i_start
                     - 1 : blob.chunk_metadata.obj_i_end
                 ],
@@ -482,6 +483,7 @@ class TestDataWarehouseTask(CeleryTestCase):
     def test_task__overwrite__no_retry__previous_blobs(self):
         """
         1. All blobs are uploaded on the first run - no retries are required.
-        2. The blobs from the previous timestamps are deleted.
+        2. Blobs from the previous timestamp are in the bucket.
+        3. The blobs from the previous timestamp are deleted.
         """
         self._test_task(overwrite_users, since_previous_run=timedelta(days=1))
