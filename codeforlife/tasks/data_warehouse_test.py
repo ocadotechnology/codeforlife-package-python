@@ -141,7 +141,7 @@ class TestDataWarehouseTask(CeleryTestCase):
 
     # Options
 
-    def _test_options(
+    def _test_settings(
         self,
         code: str,
         bq_table_write_mode: DWT.Settings.BqTableWriteMode = ("append"),
@@ -157,45 +157,45 @@ class TestDataWarehouseTask(CeleryTestCase):
                 **kwargs,
             )
 
-    def test_options__chunk_size_lte_0(self):
+    def test_settings__chunk_size_lte_0(self):
         """Chunk size must be > 0."""
-        self._test_options(code="chunk_size_lte_0", chunk_size=0)
+        self._test_settings(code="chunk_size_lte_0", chunk_size=0)
 
-    def test_options__chunk_size_not_multiple_of_10(self):
+    def test_settings__chunk_size_not_multiple_of_10(self):
         """Chunk size must be a multiple of 10."""
-        self._test_options(code="chunk_size_not_multiple_of_10", chunk_size=9)
+        self._test_settings(code="chunk_size_not_multiple_of_10", chunk_size=9)
 
-    def test_options__no_fields(self):
+    def test_settings__no_fields(self):
         """Must provide at least 1 field (not including "id")."""
-        self._test_options(code="no_fields", fields=["id"])
+        self._test_settings(code="no_fields", fields=["id"])
 
-    def test_options__duplicate_fields(self):
+    def test_settings__duplicate_fields(self):
         """Fields must be unique."""
-        self._test_options(code="duplicate_fields", fields=["email", "email"])
+        self._test_settings(code="duplicate_fields", fields=["email", "email"])
 
-    def test_options__time_limit_lte_0(self):
+    def test_settings__time_limit_lte_0(self):
         """Time limit must be > 0."""
-        self._test_options(code="time_limit_lte_0", time_limit=0)
+        self._test_settings(code="time_limit_lte_0", time_limit=0)
 
-    def test_options__time_limit_gt_3600(self):
+    def test_settings__time_limit_gt_3600(self):
         """Time limit must be <= 3600 (1 hour)."""
-        self._test_options(code="time_limit_gt_3600", time_limit=3601)
+        self._test_settings(code="time_limit_gt_3600", time_limit=3601)
 
-    def test_options__max_retries_lt_0(self):
+    def test_settings__max_retries_lt_0(self):
         """Max retries must be >= 0."""
-        self._test_options(code="max_retries_lt_0", max_retries=-1)
+        self._test_settings(code="max_retries_lt_0", max_retries=-1)
 
-    def test_options__retry_countdown_lt_0(self):
+    def test_settings__retry_countdown_lt_0(self):
         """Retry countdown must be >= 0."""
-        self._test_options(code="retry_countdown_lt_0", retry_countdown=-1)
+        self._test_settings(code="retry_countdown_lt_0", retry_countdown=-1)
 
-    def test_options__task_unbound(self):
+    def test_settings__task_unbound(self):
         """Task must be bound."""
-        self._test_options(code="task_unbound", bind=False)
+        self._test_settings(code="task_unbound", bind=False)
 
-    def test_options__base_not_subclass(self):
+    def test_settings__base_not_subclass(self):
         """Base must be a subclass of DWT."""
-        self._test_options(code="base_not_subclass", base=int)
+        self._test_settings(code="base_not_subclass", base=int)
 
     # To timestamp
 
