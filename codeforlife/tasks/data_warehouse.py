@@ -500,12 +500,13 @@ class DataWarehouseTask(Task):
         2. object index (obj_i) - The start and end index of the objects.
 
         The naming convention follows the format:
-            **"{timestamp}\_\_{i_start}\_{i_end}.csv"**
+            `{timestamp}__{i_start}_{i_end}.csv`
         The timestamp follows the format:
-            **"{YYYY}-{MM}-{DD}_{HH}:{MM}:{SS}"** (e.g. "2025-12-01_23:59:59")
+            `{YYYY}-{MM}-{DD}_{HH}:{MM}:{SS}` (e.g. `2025-12-01_23:59:59`)
 
         NOTE: The index is padded with zeros to ensure sorting by name is
-        consistent. For example, the index span from 1 to 500 would be "001_500".
+        consistent. For example, the index span from 1 to 500 would be
+        `001_500`.
 
         Ultimately, these CSV files are imported into a BigQuery table, after
         which they are deleted from the GCS bucket.
