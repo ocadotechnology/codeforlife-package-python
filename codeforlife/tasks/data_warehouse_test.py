@@ -139,7 +139,7 @@ class TestDataWarehouseTask(CeleryTestCase):
 
         return super().setUp()
 
-    # Options
+    # Settings
 
     def _test_settings(
         self,
