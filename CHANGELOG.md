@@ -1,6 +1,14 @@
 # CHANGELOG
 
 
+## v0.29.4 (2025-10-14)
+
+### Bug Fixes
+
+- Import google backend only where needed
+  ([`f726e57`](https://github.com/ocadotechnology/codeforlife-package-python/commit/f726e5718f952b1cf8f90cd25563036d478c76df))
+
+
 ## v0.29.3 (2025-10-09)
 
 ### Bug Fixes
