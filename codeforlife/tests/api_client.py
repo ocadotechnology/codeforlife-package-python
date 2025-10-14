@@ -13,7 +13,6 @@ from rest_framework.response import Response
 from rest_framework.test import APIClient as _APIClient
 
 from ..types import DataDict, JsonDict
-from ..user.auth.backends import GoogleBackend
 from .api_request_factory import APIRequestFactory, BaseAPIRequestFactory
 
 # pylint: disable=duplicate-code
@@ -511,8 +510,11 @@ class APIClient(
         Returns:
             The Google-user.
         """
-        # pylint: disable-next=import-outside-toplevel
+        # pylint: disable=import-outside-toplevel
+        from ..user.auth.backends import GoogleBackend
         from ..user.models import GoogleUser
+
+        # pylint: enable=import-outside-toplevel
 
         user = GoogleUser.objects.get(id=id)
 
