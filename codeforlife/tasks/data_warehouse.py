@@ -115,7 +115,7 @@ class DataWarehouseTask(Task):
                 )
             if kwargs["bind"] is not True:
                 raise ValidationError(
-                    "The task must bound.", code="task_unbound"
+                    "The task must be bound.", code="task_unbound"
                 )
             if not issubclass(kwargs["base"], DataWarehouseTask):
                 raise ValidationError(
@@ -135,12 +135,13 @@ class DataWarehouseTask(Task):
             self._kwargs = kwargs
 
             # Get the runtime settings based on the BigQuery table's write-mode.
-            if bq_table_write_mode == "append":
-                self._only_list_blobs_from_current_timestamp = True
-                self._delete_blobs_not_from_current_timestamp = False
-            else:  # bq_table_write_mode == "overwrite"
-                self._only_list_blobs_from_current_timestamp = False
-                self._delete_blobs_not_from_current_timestamp = True
+            bq_table_write_mode_is_append = bq_table_write_mode == "append"
+            self._only_list_blobs_from_current_timestamp = (
+                bq_table_write_mode_is_append
+            )
+            self._delete_blobs_not_from_current_timestamp = (
+                not bq_table_write_mode_is_append
+            )
 
         @property
         def bq_table_write_mode(self):
