@@ -7,8 +7,9 @@ import typing as t
 from importlib import import_module
 
 from celery import Celery, Task
+from django.db.models import QuerySet
 
-from ..tasks import get_task_name
+from ..tasks import DataWarehouseTask, get_task_name
 from ..types import Args, KwArgs
 from .test import TestCase
 
@@ -35,6 +36,7 @@ class CeleryTestCase(TestCase):
         name: str,
         args: t.Optional[Args] = None,
         kwargs: t.Optional[KwArgs] = None,
+        **options
     ):
         """Apply a task.
 
@@ -44,4 +46,21 @@ class CeleryTestCase(TestCase):
             kwargs: The keyword args to pass to the task.
         """
         task: Task = self.app.tasks[get_task_name(name)]
-        task.apply(args=args, kwargs=kwargs)
+        task.apply(args=args, kwargs=kwargs, **options)
+
+    def assert_data_warehouse_task(
+        self,
+        task: DataWarehouseTask,
+        args: t.Optional[Args] = None,
+        kwargs: t.Optional[KwArgs] = None,
+    ):
+        """Assert that the decorated data warehouse task returns a queryset.
+
+        Args:
+            task: The data warehouse task.
+            args: The args to pass to the task.
+            kwargs: The keyword args to pass to the task.
+        """
+        args, kwargs = args or tuple(), kwargs or {}
+        queryset = task.get_queryset(*args, **kwargs)
+        self.assertIsInstance(queryset, QuerySet)

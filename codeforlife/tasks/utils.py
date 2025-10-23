@@ -24,7 +24,10 @@ def get_task_name(task: t.Union[str, t.Callable]):
     if callable(task):
         task = f"{task.__module__}.{task.__name__}"
 
-    return f"{settings.SERVICE_NAME}.{task}"
+    if not task.startswith(settings.SERVICE_NAME):
+        task = f"{settings.SERVICE_NAME}.{task}"
+
+    return task
 
 
 def shared_task(*args, **kwargs):
@@ -38,8 +41,9 @@ def shared_task(*args, **kwargs):
         return _shared_task(name=get_task_name(task))(task)
 
     def wrapper(task: t.Callable):
-        task = kwargs.pop("name", task)
-        return _shared_task(name=get_task_name(task), *args, **kwargs)(task)
+        name = kwargs.pop("name", None)
+        name = get_task_name(name if isinstance(name, str) else task)
+        return _shared_task(*args, **kwargs, name=name)(task)
 
     return wrapper
 

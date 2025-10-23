@@ -134,3 +134,18 @@ GOOGLE_CLIENT_ID = os.getenv(
     "354656325390-o5n12nbaivhi4do8lalkh29q403uu9u4.apps.googleusercontent.com",
 )
 GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET", "REPLACE_ME")
+
+# The ID of our GCP project.
+GOOGLE_CLOUD_PROJECT_ID = os.getenv(
+    "GOOGLE_CLOUD_PROJECT_ID", "decent-digit-629"
+)
+
+# The bucket on Google Cloud Storage used to export data to BigQuery and the
+# service account to impersonate which has access to the bucket.
+GOOGLE_CLOUD_STORAGE_BUCKET_NAME = os.getenv(
+    "GOOGLE_CLOUD_STORAGE_BUCKET_NAME", "REPLACE_ME"
+)
+GOOGLE_CLOUD_STORAGE_SERVICE_ACCOUNT_NAME = (
+    os.getenv("GOOGLE_CLOUD_STORAGE_SERVICE_ACCOUNT_NAME", "REPLACE_ME")
+    + f"@{GOOGLE_CLOUD_PROJECT_ID}.iam.gserviceaccount.com"
+)
