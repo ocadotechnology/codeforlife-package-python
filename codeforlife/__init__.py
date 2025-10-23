@@ -14,7 +14,7 @@ from .types import Env
 
 # Do NOT set manually!
 # This is auto-updated by python-semantic-release in the pipeline.
-__version__ = "0.29.4"
+__version__ = "0.30.0"
 
 BASE_DIR = Path(__file__).resolve().parent
 DATA_DIR = BASE_DIR.joinpath("data")
