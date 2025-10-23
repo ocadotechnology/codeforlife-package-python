@@ -44,6 +44,7 @@ class DataWarehouseTask(Task):
             bq_table_write_mode: BqTableWriteMode,
             chunk_size: int,
             fields: t.List[str],
+            id_field: str = "id",
             time_limit: int = 3600,
             bq_table_name: t.Optional[str] = None,
             max_retries: int = 5,
@@ -57,6 +58,7 @@ class DataWarehouseTask(Task):
                 bq_table_write_mode: The BigQuery table's write-mode.
                 chunk_size: The number of objects/rows per CSV. Must be a multiple of 10.
                 fields: The [Django model] fields to include in the CSV.
+                id_field: The name of the field used to identify each object.
                 time_limit: The maximum amount of time this task is allowed to take before it's hard-killed.
                 bq_table_name: The name of the BigQuery table where these CSV files will ultimately be imported into. If not provided, the name of the decorated function will be used instead.
                 max_retries: The maximum number of retries allowed.
@@ -69,8 +71,8 @@ class DataWarehouseTask(Task):
             kwargs.setdefault("base", DataWarehouseTask)
 
             # Ensure the ID field is always present.
-            if "id" not in fields:
-                fields.append("id")
+            if id_field not in fields:
+                fields.append(id_field)
 
             # Validate args.
             if chunk_size <= 0:
@@ -85,7 +87,7 @@ class DataWarehouseTask(Task):
                 )
             if len(fields) <= 1:
                 raise ValidationError(
-                    'Must provide at least 1 field (not including "id").',
+                    "Must provide at least 1 field (not including ID field).",
                     code="no_fields",
                 )
             if len(fields) != len(set(fields)):
@@ -128,6 +130,7 @@ class DataWarehouseTask(Task):
             self._bq_table_write_mode = bq_table_write_mode
             self._chunk_size = chunk_size
             self._fields = fields
+            self._id_field = id_field
             self._time_limit = time_limit
             self._bq_table_name = bq_table_name
             self._max_retries = max_retries
@@ -157,6 +160,11 @@ class DataWarehouseTask(Task):
         def fields(self):
             """The [Django model] fields to include in the CSV."""
             return self._fields
+
+        @property
+        def id_field(self):
+            """The name of the field used to identify each object."""
+            return self._id_field
 
         @property
         def time_limit(self):
@@ -355,7 +363,7 @@ class DataWarehouseTask(Task):
 
         # If the queryset is not ordered, order it by ID by default.
         if not queryset.ordered:
-            queryset = queryset.order_by("id")
+            queryset = queryset.order_by(self.settings.id_field)
 
         # Limit the queryset to the object count to ensure the number of
         # digits in the count remains consistent.

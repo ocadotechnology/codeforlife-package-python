@@ -166,7 +166,7 @@ class TestDataWarehouseTask(CeleryTestCase):
         self._test_settings(code="chunk_size_not_multiple_of_10", chunk_size=9)
 
     def test_settings__no_fields(self):
-        """Must provide at least 1 field (not including "id")."""
+        """Must provide at least 1 field (not including ID field)."""
         self._test_settings(code="no_fields", fields=["id"])
 
     def test_settings__duplicate_fields(self):
@@ -310,7 +310,7 @@ class TestDataWarehouseTask(CeleryTestCase):
         task_args, task_kwargs = task_args or tuple(), task_kwargs or {}
         queryset = task.get_queryset(*task_args, **task_kwargs)
         if not queryset.ordered:
-            queryset = queryset.order_by("id")
+            queryset = queryset.order_by(task.settings.id_field)
 
         # Count the objects in the queryset.
         obj_count = queryset.count()
