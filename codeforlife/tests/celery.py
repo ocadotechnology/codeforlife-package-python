@@ -64,3 +64,4 @@ class CeleryTestCase(TestCase):
         args, kwargs = args or tuple(), kwargs or {}
         queryset = task.get_queryset(*args, **kwargs)
         self.assertIsInstance(queryset, QuerySet)
+        queryset.values_list(*task.settings.fields) # assert fields in queryset
