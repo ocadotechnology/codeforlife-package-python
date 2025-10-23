@@ -1,6 +1,20 @@
 # CHANGELOG
 
 
+## v0.30.1 (2025-10-23)
+
+### Bug Fixes
+
+- Assert fields in queryset
+  ([`a0207fa`](https://github.com/ocadotechnology/codeforlife-package-python/commit/a0207faf5eb2ea97858ca2180d115f8cb248e0d8))
+
+- Format
+  ([`ffa5368`](https://github.com/ocadotechnology/codeforlife-package-python/commit/ffa536807503f6fdb026e4efd03423f5f053b781))
+
+- Specify ID field name
+  ([`8192cce`](https://github.com/ocadotechnology/codeforlife-package-python/commit/8192ccee5a4e428f65773db0648a5a8b0af7200c))
+
+
 ## v0.30.0 (2025-10-23)
 
 ### Features
