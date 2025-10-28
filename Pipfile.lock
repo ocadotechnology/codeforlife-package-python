@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "172a29e4e45eeee21fa302cad4988ca3459d24250532d48c1378d958c285e3b4"
+            "sha256": "2968f511c57e79580f07b3d9449c9f71fbf4d6709ab3bfed48f32b76072b5715"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -167,11 +167,11 @@
         },
         "cfl-common": {
             "hashes": [
-                "sha256:27fba6aa2e4827d476acf6aa047edc78cd7150ad072cce018781b153778d6652",
-                "sha256:2e0685abedb8ff87e9944fdffad3dd26ba0cfbb5eaff6b564bd2d0a4f50d328a"
+                "sha256:3a927322a532a213bbfdaec318d132b7d2c4783b99d8d26bc848462c1adc6eb5",
+                "sha256:647ac815ff97a362ba3913aa222f80575900efc786d3fe8f8a4e7c9ca582b96c"
             ],
             "index": "pypi",
-            "version": "==8.9.6"
+            "version": "==8.9.7"
         },
         "charset-normalizer": {
             "hashes": [
@@ -291,11 +291,11 @@
         },
         "codeforlife-portal": {
             "hashes": [
-                "sha256:91b9f267e1ec69dfc4d7677b810640772ea323f7d6f3a994fa4b276af667b58f",
-                "sha256:cecb466349e5bf464aefa2bb8901a8e41c3e07f564e6c852dbd58b0513f60a6a"
+                "sha256:19ce6f95d00525b3c02cfb5a597a301a81449c7d4dbb8178fed1bc60ed5268c4",
+                "sha256:c9bdca7194062f1b12f0d60718665601af73df5a1adf823b4b112f9be5d4001b"
             ],
             "index": "pypi",
-            "version": "==8.9.6"
+            "version": "==8.9.7"
         },
         "cryptography": {
             "hashes": [
@@ -529,11 +529,11 @@
         },
         "google-api-core": {
             "hashes": [
-                "sha256:779a380db4e21a4ee3d717cf8efbf324e53900bf37e1ffb273e5348a9916dd42",
-                "sha256:d32e2f5dd0517e91037169e75bf0a9783b255aff1d11730517c0b2b29e9db06a"
+                "sha256:4743b7d45fe8c0930e59928b1bade287242910f30b06ff9b22f139a3e33271b8",
+                "sha256:b4362b0e2e6bc06037cfb0e2b28e2fe0c3f9d760dc311f314d5fb373768c7387"
             ],
             "markers": "python_version >= '3.7'",
-            "version": "==2.27.0"
+            "version": "==2.28.0"
         },
         "google-auth": {
             "hashes": [
@@ -819,11 +819,11 @@
         },
         "matplotlib-inline": {
             "hashes": [
-                "sha256:8423b23ec666be3d16e16b60bdd8ac4e86e840ebd1dd11a30b9f117f2fa0ab90",
-                "sha256:df192d39a4ff8f21b1895d72e6a13f5fcc5099f00fa84384e0ea28c2cc0653ca"
+                "sha256:d56ce5156ba6085e00a9d54fead6ed29a9c47e215cd1bba2e976ef39f5710a76",
+                "sha256:e1ee949c340d771fc39e241ea75683deb94762c8fa5f2927ec57c83c4dffa9fe"
             ],
-            "markers": "python_version >= '3.8'",
-            "version": "==0.1.7"
+            "markers": "python_version >= '3.9'",
+            "version": "==0.2.1"
         },
         "more-itertools": {
             "hashes": [
@@ -1462,11 +1462,11 @@
         },
         "rapid-router": {
             "hashes": [
-                "sha256:2eeda5ab130c1dfaef048f6be64d84328a9d281e4f32e0207d4a7405a34c2f53",
-                "sha256:7f8043c9afb6c7d782347e21f57ad1fb7279956d5d6e81fc12786fb4317c3fb4"
+                "sha256:49c64b822e9492b1272367aab2ae117b0f1a096946a602384389e5129a675059",
+                "sha256:4e98138b6f0ad527fd793ce21902352d475a93e00ba0116b912e21c2a648d4cc"
             ],
             "index": "pypi",
-            "version": "==7.6.5"
+            "version": "==7.6.7"
         },
         "redis": {
             "extras": [
@@ -1809,11 +1809,11 @@
         },
         "botocore-stubs": {
             "hashes": [
-                "sha256:2a0c382d42b8847adb58552d3bc36dd10eef1b8a4f81ae89713076a3fa377be1",
-                "sha256:d82ccae25ddbfee9521fbeb64c3c1f1d8716a6fd76c2e0bb589df90958536e3c"
+                "sha256:399e3004e5e496500fe4e8c2ed677211b40c1d23f2304368eb1282100b1b2a58",
+                "sha256:5394af28f43eaf5c598a7b440b0d4ef5026fe9096f81cb509075ee92de5b645a"
             ],
             "markers": "python_version >= '3.9'",
-            "version": "==1.40.57"
+            "version": "==1.40.60"
         },
         "celery-types": {
             "hashes": [

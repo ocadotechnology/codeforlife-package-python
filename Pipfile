@@ -30,9 +30,9 @@ importlib-metadata = "==4.13.0" # TODO: remove. needed by old portal
 django-formtools = "==2.5.1" # TODO: remove. needed by old portal
 django-otp = "==1.6.1" # TODO: remove. needed by old portal
 # https://pypi.org/user/codeforlife/
-cfl-common = "==8.9.6" # TODO: remove
-codeforlife-portal = "==8.9.6" # TODO: remove
-rapid-router = "==7.6.5" # TODO: remove
+cfl-common = "==8.9.7" # TODO: remove
+codeforlife-portal = "==8.9.7" # TODO: remove
+rapid-router = "==7.6.7" # TODO: remove
 phonenumbers = "==8.12.12" # TODO: remove
 google-auth = "==2.40.3"
 google-cloud-storage = "==3.4.0"
