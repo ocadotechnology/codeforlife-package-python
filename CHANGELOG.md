@@ -1,6 +1,14 @@
 # CHANGELOG
 
 
+## v0.30.2 (2025-10-28)
+
+### Bug Fixes
+
+- Get_original_queryset
+  ([`5888d89`](https://github.com/ocadotechnology/codeforlife-package-python/commit/5888d890fbbd52ca3fe1529d7ab81d4758df6632))
+
+
 ## v0.30.1 (2025-10-23)
 
 ### Bug Fixes
