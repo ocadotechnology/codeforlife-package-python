@@ -259,7 +259,7 @@ class TestDataWarehouseTask(CeleryTestCase):
 
     def test_write_csv_row__bool(self):
         """Booleans are converted to 0 or 1."""
-        self._test_write_csv_row((True, "1"), (False, "0"))
+        self._test_write_csv_row((True, "True"), (False, "False"))
 
     def test_write_csv_row__datetime(self):
         """Datetimes are converted to ISO 8601 format with a space separator."""

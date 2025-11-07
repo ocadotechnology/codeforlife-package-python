@@ -320,8 +320,6 @@ class DataWarehouseTask(Task):
         for value in values:
             if value is None:
                 value = ""  # BigQuery treats an empty string as NULL/None.
-            elif isinstance(value, bool):
-                value = str(int(value))
             elif isinstance(value, _datetime):
                 value = (
                     value.astimezone(timezone.utc)
