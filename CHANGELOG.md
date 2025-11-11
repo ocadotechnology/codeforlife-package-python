@@ -1,6 +1,17 @@
 # CHANGELOG
 
 
+## v0.30.3 (2025-11-11)
+
+### Bug Fixes
+
+- Bool parsing
+  ([`ce7305b`](https://github.com/ocadotechnology/codeforlife-package-python/commit/ce7305b68926bc68d089e4fec3ac1d8490f13a27))
+
+- Install latest common and upgrade Django
+  ([`83314ee`](https://github.com/ocadotechnology/codeforlife-package-python/commit/83314eecda6f36b09d0e7bcc049ea317672ae427))
+
+
 ## v0.30.2 (2025-10-28)
 
 ### Bug Fixes
