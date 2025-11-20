@@ -78,6 +78,7 @@ class MockGcsBlob:
             cls(
                 chunk_metadata=DWT.ChunkMetadata(
                     bq_table_name=task.settings.bq_table_name,
+                    bq_table_write_mode=task.settings.bq_table_write_mode,
                     timestamp=timestamp,
                     obj_i_start=obj_i_start,
                     obj_i_end=min(
@@ -118,13 +119,14 @@ class TestDataWarehouseTask(CeleryTestCase):
         self.datetime = datetime.combine(self.date, self.time)
 
         self.bq_table_name = "example"
+        self.bq_table_write_mode: DWT.BqTableWriteMode = "append"
         self.timestamp = DWT.to_timestamp(self.datetime)
         self.obj_i_start = 1
         self.obj_i_end = 100
 
         self.blob_name = (
-            f"{self.bq_table_name}/{self.timestamp}__"
-            f"{self.obj_i_start}_{self.obj_i_end}.csv"
+            f"{self.bq_table_name}__{self.bq_table_write_mode}/"
+            f"{self.timestamp}__{self.obj_i_start}_{self.obj_i_end}.csv"
         )
 
         return super().setUp()
@@ -134,7 +136,7 @@ class TestDataWarehouseTask(CeleryTestCase):
     def _test_settings(
         self,
         code: str,
-        bq_table_write_mode: DWT.Settings.BqTableWriteMode = ("append"),
+        bq_table_write_mode: DWT.BqTableWriteMode = "append",
         chunk_size: int = 10,
         fields: t.Optional[t.List[str]] = None,
         **kwargs,
@@ -200,6 +202,7 @@ class TestDataWarehouseTask(CeleryTestCase):
         """Can successfully convert a chunk's metadata into a blob name."""
         blob_name = DWT.ChunkMetadata(
             bq_table_name=self.bq_table_name,
+            bq_table_write_mode=self.bq_table_write_mode,
             timestamp=self.timestamp,
             obj_i_start=self.obj_i_start,
             obj_i_end=self.obj_i_end,
@@ -210,6 +213,7 @@ class TestDataWarehouseTask(CeleryTestCase):
         """Can successfully convert a chunk's metadata into a blob name."""
         chunk_metadata = DWT.ChunkMetadata.from_blob_name(self.blob_name)
         assert chunk_metadata.bq_table_name == self.bq_table_name
+        assert chunk_metadata.bq_table_write_mode == self.bq_table_write_mode
         assert chunk_metadata.timestamp == self.timestamp
         assert chunk_metadata.obj_i_start == self.obj_i_start
         assert chunk_metadata.obj_i_end == self.obj_i_end
@@ -378,7 +382,10 @@ class TestDataWarehouseTask(CeleryTestCase):
         # table's write-mode is append, assert only the blobs in the current
         # timestamp were listed.
         bucket.list_blobs.assert_called_once_with(
-            prefix=f"{task.settings.bq_table_name}/"
+            prefix=(
+                f"{task.settings.bq_table_name}__"
+                f"{task.settings.bq_table_write_mode}/"
+            )
             + (
                 timestamp
                 if task.settings.only_list_blobs_from_current_timestamp
