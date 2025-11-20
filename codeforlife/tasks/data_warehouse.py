@@ -213,35 +213,28 @@ class DataWarehouseTask(Task):
         timestamp: str  # when the task was first run
         obj_i_start: int  # object index span start
         obj_i_end: int  # object index span end
-        obj_count_digits: int  # number of digits in the object count
 
         def to_blob_name(self):
             """Convert this chunk metadata into a blob name."""
 
-            # Left-pad the object indexes with zeros.
-            obj_i_start_fstr = str(self.obj_i_start).zfill(
-                self.obj_count_digits
-            )
-            obj_i_end_fstr = str(self.obj_i_end).zfill(self.obj_count_digits)
-
-            # E.g. "user/2025-01-01_00:00:00__0001_1000.csv"
+            # E.g. "user/2025-01-01_00:00:00__1_1000.csv"
             return (
                 f"{self.bq_table_name}/{self.timestamp}__"
-                f"{obj_i_start_fstr}_{obj_i_end_fstr}.csv"
+                f"{self.obj_i_start}_{self.obj_i_end}.csv"
             )
 
         @classmethod
         def from_blob_name(cls, blob_name: str):
             """Extract the chunk metadata from a blob name."""
 
-            # E.g. "user/2025-01-01_00:00:00__0001_1000.csv"
-            # "2025-01-01_00:00:00__0001_1000.csv"
+            # E.g. "user/2025-01-01_00:00:00__1_1000.csv"
+            # "2025-01-01_00:00:00__1_1000.csv"
             bq_table_name, blob_name = blob_name.split("/", maxsplit=1)
-            # "2025-01-01_00:00:00__0001_1000"
+            # "2025-01-01_00:00:00__1_1000"
             blob_name = blob_name.removesuffix(".csv")
-            # "2025-01-01_00:00:00", "0001_1000"
+            # "2025-01-01_00:00:00", "1_1000"
             timestamp, obj_i_span_fstr = blob_name.split("__")
-            # "0001", "1000"
+            # "1", "1000"
             obj_i_start_fstr, obj_i_end_fstr = obj_i_span_fstr.split("_")
 
             return cls(
@@ -249,7 +242,6 @@ class DataWarehouseTask(Task):
                 timestamp=timestamp,
                 obj_i_start=int(obj_i_start_fstr),
                 obj_i_end=int(obj_i_end_fstr),
-                obj_count_digits=len(obj_i_start_fstr),
             )
 
     def _get_gcs_bucket(self):
@@ -356,9 +348,6 @@ class DataWarehouseTask(Task):
         if obj_count == 0:
             return
 
-        # Get the number of digits in the object count.
-        obj_count_digits = len(str(obj_count))
-
         # If the queryset is not ordered, order it by ID by default.
         if not queryset.ordered:
             queryset = queryset.order_by(self.settings.id_field)
@@ -394,24 +383,6 @@ class DataWarehouseTask(Task):
                     f"{self.settings.bq_table_name}/{timestamp}"
                 )
             ):
-                chunk_metadata = self.ChunkMetadata.from_blob_name(blob_name)
-
-                # If the number of digits in the object count has changed...
-                if obj_count_digits != chunk_metadata.obj_count_digits:
-                    # ...update the number of digits in the object count...
-                    chunk_metadata.obj_count_digits = obj_count_digits
-                    # ...and update the blob name...
-                    blob_name = chunk_metadata.to_blob_name()
-                    # ...and copy the blob with the updated name...
-                    bucket.copy_blob(
-                        blob=blob,
-                        destination_bucket=bucket,
-                        new_name=blob_name,
-                    )
-                    # ...and delete the old blob.
-                    logging.info('Deleting blob "%s".', blob.name)
-                    blob.delete()
-
                 last_blob_name_from_current_timestamp = blob_name
             # Check if blobs not from the current timestamp should be deleted.
             elif self.settings.delete_blobs_not_from_current_timestamp:
@@ -457,7 +428,6 @@ class DataWarehouseTask(Task):
                 timestamp=timestamp,
                 obj_i_start=obj_i_start,
                 obj_i_end=obj_i_end,
-                obj_count_digits=obj_count_digits,
             ).to_blob_name()
 
             # Create a blob object for the CSV file's path and upload it.
