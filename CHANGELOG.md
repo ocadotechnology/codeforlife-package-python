@@ -1,6 +1,19 @@
 # CHANGELOG
 
 
+## v0.30.4 (2025-11-24)
+
+### Bug Fixes
+
+- Remove magnitude from naming convention
+  ([#171](https://github.com/ocadotechnology/codeforlife-package-python/pull/171),
+  [`9e35b9e`](https://github.com/ocadotechnology/codeforlife-package-python/commit/9e35b9e009fe73697f2c474805a0b6c58ef10966))
+
+* fix: remove magnitude from naming convention
+
+* fix: dir name in convention
+
+
 ## v0.30.3 (2025-11-11)
 
 ### Bug Fixes
