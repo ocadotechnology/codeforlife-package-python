@@ -31,17 +31,16 @@ class DataWarehouseTask(Task):
     timestamp_key = "_timestamp"
 
     GetQuerySet: t.TypeAlias = t.Callable[..., QuerySet[t.Any]]
+    BqTableWriteMode: t.TypeAlias = t.Literal["overwrite", "append"]
 
     # pylint: disable-next=too-many-instance-attributes
     class Settings:
         """The settings for a data warehouse task."""
 
-        BqTableWriteMode: t.TypeAlias = t.Literal["overwrite", "append"]
-
         # pylint: disable-next=too-many-arguments,too-many-branches
         def __init__(
             self,
-            bq_table_write_mode: BqTableWriteMode,
+            bq_table_write_mode: "DataWarehouseTask.BqTableWriteMode",
             chunk_size: int,
             fields: t.List[str],
             id_field: str = "id",
@@ -210,46 +209,47 @@ class DataWarehouseTask(Task):
         """All of the metadata used to track a chunk."""
 
         bq_table_name: str  # the name of the BigQuery table
+        bq_table_write_mode: "DataWarehouseTask.BqTableWriteMode"
         timestamp: str  # when the task was first run
         obj_i_start: int  # object index span start
         obj_i_end: int  # object index span end
-        obj_count_digits: int  # number of digits in the object count
 
         def to_blob_name(self):
             """Convert this chunk metadata into a blob name."""
 
-            # Left-pad the object indexes with zeros.
-            obj_i_start_fstr = str(self.obj_i_start).zfill(
-                self.obj_count_digits
-            )
-            obj_i_end_fstr = str(self.obj_i_end).zfill(self.obj_count_digits)
-
-            # E.g. "user/2025-01-01_00:00:00__0001_1000.csv"
+            # E.g. "user__append/2025-01-01_00:00:00__1_1000.csv"
             return (
-                f"{self.bq_table_name}/{self.timestamp}__"
-                f"{obj_i_start_fstr}_{obj_i_end_fstr}.csv"
+                f"{self.bq_table_name}__{self.bq_table_write_mode}/"
+                f"{self.timestamp}__{self.obj_i_start}_{self.obj_i_end}.csv"
             )
 
         @classmethod
         def from_blob_name(cls, blob_name: str):
             """Extract the chunk metadata from a blob name."""
 
-            # E.g. "user/2025-01-01_00:00:00__0001_1000.csv"
-            # "2025-01-01_00:00:00__0001_1000.csv"
-            bq_table_name, blob_name = blob_name.split("/", maxsplit=1)
-            # "2025-01-01_00:00:00__0001_1000"
-            blob_name = blob_name.removesuffix(".csv")
-            # "2025-01-01_00:00:00", "0001_1000"
-            timestamp, obj_i_span_fstr = blob_name.split("__")
-            # "0001", "1000"
-            obj_i_start_fstr, obj_i_end_fstr = obj_i_span_fstr.split("_")
+            # E.g. "user__append/2025-01-01_00:00:00__1_1000.csv"
+            # "user__append", "2025-01-01_00:00:00__1_1000.csv"
+            dir_name, file_name = blob_name.split("/")
+            # "user", "append"
+            bq_table_name, bq_table_write_mode = dir_name.rsplit(
+                "__", maxsplit=1
+            )
+            assert bq_table_write_mode in ("overwrite", "append")
+            # "2025-01-01_00:00:00__1_1000"
+            file_name = file_name.removesuffix(".csv")
+            # "2025-01-01_00:00:00", "1_1000"
+            timestamp, obj_i_span = file_name.split("__")
+            # "1", "1000"
+            obj_i_start, obj_i_end = obj_i_span.split("_")
 
             return cls(
                 bq_table_name=bq_table_name,
+                bq_table_write_mode=t.cast(
+                    DataWarehouseTask.BqTableWriteMode, bq_table_write_mode
+                ),
                 timestamp=timestamp,
-                obj_i_start=int(obj_i_start_fstr),
-                obj_i_end=int(obj_i_end_fstr),
-                obj_count_digits=len(obj_i_start_fstr),
+                obj_i_start=int(obj_i_start),
+                obj_i_end=int(obj_i_end),
             )
 
     def _get_gcs_bucket(self):
@@ -356,9 +356,6 @@ class DataWarehouseTask(Task):
         if obj_count == 0:
             return
 
-        # Get the number of digits in the object count.
-        obj_count_digits = len(str(obj_count))
-
         # If the queryset is not ordered, order it by ID by default.
         if not queryset.ordered:
             queryset = queryset.order_by(self.settings.id_field)
@@ -373,11 +370,17 @@ class DataWarehouseTask(Task):
         # The name of the last blob from the current timestamp.
         last_blob_name_from_current_timestamp: t.Optional[str] = None
 
+        # The name of the directory where the blobs are expected to be located.
+        blob_dir_name = (
+            f"{self.settings.bq_table_name}__"
+            f"{self.settings.bq_table_write_mode}/"
+        )
+
         # List all the existing blobs.
         for blob in t.cast(
             t.Iterator[gcs.Blob],
             bucket.list_blobs(
-                prefix=f"{self.settings.bq_table_name}/"
+                prefix=blob_dir_name
                 + (
                     timestamp
                     if self.settings.only_list_blobs_from_current_timestamp
@@ -390,28 +393,8 @@ class DataWarehouseTask(Task):
             # Check if found first blob from current timestamp.
             if (
                 self.settings.only_list_blobs_from_current_timestamp
-                or blob_name.startswith(
-                    f"{self.settings.bq_table_name}/{timestamp}"
-                )
+                or blob_name.startswith(blob_dir_name + timestamp)
             ):
-                chunk_metadata = self.ChunkMetadata.from_blob_name(blob_name)
-
-                # If the number of digits in the object count has changed...
-                if obj_count_digits != chunk_metadata.obj_count_digits:
-                    # ...update the number of digits in the object count...
-                    chunk_metadata.obj_count_digits = obj_count_digits
-                    # ...and update the blob name...
-                    blob_name = chunk_metadata.to_blob_name()
-                    # ...and copy the blob with the updated name...
-                    bucket.copy_blob(
-                        blob=blob,
-                        destination_bucket=bucket,
-                        new_name=blob_name,
-                    )
-                    # ...and delete the old blob.
-                    logging.info('Deleting blob "%s".', blob.name)
-                    blob.delete()
-
                 last_blob_name_from_current_timestamp = blob_name
             # Check if blobs not from the current timestamp should be deleted.
             elif self.settings.delete_blobs_not_from_current_timestamp:
@@ -454,10 +437,10 @@ class DataWarehouseTask(Task):
             # Generate the path to the CSV in the bucket.
             blob_name = self.ChunkMetadata(
                 bq_table_name=self.settings.bq_table_name,
+                bq_table_write_mode=self.settings.bq_table_write_mode,
                 timestamp=timestamp,
                 obj_i_start=obj_i_start,
                 obj_i_end=obj_i_end,
-                obj_count_digits=obj_count_digits,
             ).to_blob_name()
 
             # Create a blob object for the CSV file's path and upload it.

@@ -60,12 +60,7 @@ class MockGcsBlob:
     @classmethod
     # pylint: disable-next=too-many-arguments
     def generate_list(
-        cls,
-        task: DWT,
-        timestamp: str,
-        obj_i_start: int,
-        obj_i_end: int,
-        obj_count_digits: int,
+        cls, task: DWT, timestamp: str, obj_i_start: int, obj_i_end: int
     ):
         """Generate a list of mock GCS blobs.
 
@@ -83,12 +78,12 @@ class MockGcsBlob:
             cls(
                 chunk_metadata=DWT.ChunkMetadata(
                     bq_table_name=task.settings.bq_table_name,
+                    bq_table_write_mode=task.settings.bq_table_write_mode,
                     timestamp=timestamp,
                     obj_i_start=obj_i_start,
                     obj_i_end=min(
                         obj_i_start + task.settings.chunk_size - 1, obj_i_end
                     ),
-                    obj_count_digits=obj_count_digits,
                 )
             )
             for obj_i_start in range(
@@ -124,17 +119,14 @@ class TestDataWarehouseTask(CeleryTestCase):
         self.datetime = datetime.combine(self.date, self.time)
 
         self.bq_table_name = "example"
+        self.bq_table_write_mode: DWT.BqTableWriteMode = "append"
         self.timestamp = DWT.to_timestamp(self.datetime)
         self.obj_i_start = 1
         self.obj_i_end = 100
-        self.obj_count_digits = 4
-
-        obj_i_start_fstr = str(self.obj_i_start).zfill(self.obj_count_digits)
-        obj_i_end_fstr = str(self.obj_i_end).zfill(self.obj_count_digits)
 
         self.blob_name = (
-            f"{self.bq_table_name}/{self.timestamp}__"
-            f"{obj_i_start_fstr}_{obj_i_end_fstr}.csv"
+            f"{self.bq_table_name}__{self.bq_table_write_mode}/"
+            f"{self.timestamp}__{self.obj_i_start}_{self.obj_i_end}.csv"
         )
 
         return super().setUp()
@@ -144,7 +136,7 @@ class TestDataWarehouseTask(CeleryTestCase):
     def _test_settings(
         self,
         code: str,
-        bq_table_write_mode: DWT.Settings.BqTableWriteMode = ("append"),
+        bq_table_write_mode: DWT.BqTableWriteMode = "append",
         chunk_size: int = 10,
         fields: t.Optional[t.List[str]] = None,
         **kwargs,
@@ -210,10 +202,10 @@ class TestDataWarehouseTask(CeleryTestCase):
         """Can successfully convert a chunk's metadata into a blob name."""
         blob_name = DWT.ChunkMetadata(
             bq_table_name=self.bq_table_name,
+            bq_table_write_mode=self.bq_table_write_mode,
             timestamp=self.timestamp,
             obj_i_start=self.obj_i_start,
             obj_i_end=self.obj_i_end,
-            obj_count_digits=self.obj_count_digits,
         ).to_blob_name()
         assert blob_name == self.blob_name
 
@@ -221,10 +213,10 @@ class TestDataWarehouseTask(CeleryTestCase):
         """Can successfully convert a chunk's metadata into a blob name."""
         chunk_metadata = DWT.ChunkMetadata.from_blob_name(self.blob_name)
         assert chunk_metadata.bq_table_name == self.bq_table_name
+        assert chunk_metadata.bq_table_write_mode == self.bq_table_write_mode
         assert chunk_metadata.timestamp == self.timestamp
         assert chunk_metadata.obj_i_start == self.obj_i_start
         assert chunk_metadata.obj_i_end == self.obj_i_end
-        assert chunk_metadata.obj_count_digits == self.obj_count_digits
 
     # Init CSV writer
 
@@ -319,11 +311,6 @@ class TestDataWarehouseTask(CeleryTestCase):
         assert uploaded_obj_count <= obj_count
         assert (obj_count - uploaded_obj_count) > 0
 
-        # Get the object count's current magnitude (number of digits) and
-        # simulate a higher order of magnitude during the previous run.
-        obj_count_digits = len(str(obj_count))
-        uploaded_obj_count_digits = obj_count_digits + 1
-
         # Get the current datetime.
         now = datetime.now(timezone.utc)
 
@@ -335,7 +322,6 @@ class TestDataWarehouseTask(CeleryTestCase):
                 timestamp=DWT.to_timestamp(now - since_previous_run),
                 obj_i_start=1,
                 obj_i_end=obj_count,
-                obj_count_digits=obj_count_digits,
             )
             if since_previous_run is not None
             else []
@@ -348,14 +334,12 @@ class TestDataWarehouseTask(CeleryTestCase):
             timestamp=timestamp,
             obj_i_start=1,
             obj_i_end=uploaded_obj_count,
-            obj_count_digits=uploaded_obj_count_digits,
         )
         non_uploaded_blobs_from_current_timestamp = MockGcsBlob.generate_list(
             task=task,
             timestamp=timestamp,
             obj_i_start=uploaded_obj_count + 1,
             obj_i_end=obj_count,
-            obj_count_digits=obj_count_digits,
         )
 
         # Generate a mock GCS bucket.
@@ -398,7 +382,10 @@ class TestDataWarehouseTask(CeleryTestCase):
         # table's write-mode is append, assert only the blobs in the current
         # timestamp were listed.
         bucket.list_blobs.assert_called_once_with(
-            prefix=f"{task.settings.bq_table_name}/"
+            prefix=(
+                f"{task.settings.bq_table_name}__"
+                f"{task.settings.bq_table_write_mode}/"
+            )
             + (
                 timestamp
                 if task.settings.only_list_blobs_from_current_timestamp
@@ -418,22 +405,6 @@ class TestDataWarehouseTask(CeleryTestCase):
             [
                 call(blob.name)
                 for blob in non_uploaded_blobs_from_current_timestamp
-            ]
-        )
-
-        # Assert that the uploaded blobs in the current timestamp were copied
-        # with the magnitude corrected in their name and the old blobs deleted.
-        for blob in uploaded_blobs_from_current_timestamp:
-            blob.chunk_metadata.obj_count_digits = obj_count_digits
-            blob.delete.assert_called_once()
-        bucket.copy_blob.assert_has_calls(
-            [
-                call(
-                    blob=blob,
-                    destination_bucket=bucket,
-                    new_name=blob.chunk_metadata.to_blob_name(),
-                )
-                for blob in uploaded_blobs_from_current_timestamp
             ]
         )
 
