@@ -1,6 +1,14 @@
 # CHANGELOG
 
 
+## v0.30.5 (2025-12-03)
+
+### Bug Fixes
+
+- Install latest common
+  ([`d79f2dd`](https://github.com/ocadotechnology/codeforlife-package-python/commit/d79f2ddfd0f3cc8071a6087bc277df0d5b8836c4))
+
+
 ## v0.30.4 (2025-11-24)
 
 ### Bug Fixes
