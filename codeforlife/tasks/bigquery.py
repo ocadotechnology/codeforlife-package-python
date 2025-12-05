@@ -27,9 +27,10 @@ _TABLE_NAMES: t.Set[str] = set()
 
 
 # pylint: disable-next=abstract-method
-class LoadDataIntoBigQueryTask(Task):
+class BigQueryTask(Task):
     """A task which loads data from a Django queryset into a BigQuery table."""
 
+    WriteDisposition: t.TypeAlias = bigquery.WriteDisposition  # shorthand
     GetQuerySet: t.TypeAlias = t.Callable[..., QuerySet[t.Any]]
 
     @dataclass(frozen=True)
@@ -61,7 +62,7 @@ class LoadDataIntoBigQueryTask(Task):
         def __post_init__(self):
             # Set required values as defaults.
             self.kwargs.setdefault("bind", True)
-            self.kwargs.setdefault("base", _Task)
+            self.kwargs.setdefault("base", BigQueryTask)
 
             # Ensure the ID field is always present.
             if self.id_field not in self.fields:
@@ -112,11 +113,11 @@ class LoadDataIntoBigQueryTask(Task):
                 raise ValidationError(
                     "The task must be bound.", code="task_unbound"
                 )
-            if not issubclass(self.kwargs["base"], _Task):
+            if not issubclass(self.kwargs["base"], BigQueryTask):
                 raise ValidationError(
                     f"The base must be a subclass of "
-                    f"'{_Task.__module__}."
-                    f"{_Task.__qualname__}'.",
+                    f"'{BigQueryTask.__module__}."
+                    f"{BigQueryTask.__qualname__}'.",
                     code="base_not_subclass",
                 )
 
@@ -196,6 +197,7 @@ class LoadDataIntoBigQueryTask(Task):
     @staticmethod
     def load_csv_into_bq(
         write_disposition: bigquery.WriteDisposition,
+        time_limit: int,
         table_name: str,
         csv_file: CsvFile,
     ):
@@ -203,13 +205,16 @@ class LoadDataIntoBigQueryTask(Task):
 
         Args:
             write_disposition: Write disposition for the BigQuery table.
+            time_limit: The maximum time to wait for the load job to complete.
             table_name: The table name in BigQuery.
             csv_file: The CSV file to load into BigQuery.
         """
 
         bq_client = bigquery.Client(
             project=django_settings.GOOGLE_CLOUD_PROJECT_ID,
-            credentials=get_gcp_service_account_credentials(),
+            credentials=get_gcp_service_account_credentials(
+                token_lifetime_seconds=time_limit
+            ),
         )
 
         full_table_id = ".".join(
@@ -248,7 +253,7 @@ class LoadDataIntoBigQueryTask(Task):
     @staticmethod
     # pylint: disable-next=too-many-locals,bad-staticmethod-argument
     def _load_data_into_bq(
-        self: "_Task", table_name: str, *task_args, **task_kwargs
+        self: "BigQueryTask", table_name: str, *task_args, **task_kwargs
     ):
         # Get the queryset.
         queryset = self.get_queryset(*task_args, **task_kwargs)
@@ -268,6 +273,7 @@ class LoadDataIntoBigQueryTask(Task):
             ):
                 self.load_csv_into_bq(
                     write_disposition=self.settings.write_disposition,
+                    time_limit=self.settings.time_limit,
                     table_name=table_name,
                     csv_file=csv_file,
                 )
@@ -283,10 +289,10 @@ class LoadDataIntoBigQueryTask(Task):
 
         Examples:
             ```
-            @LoadDataIntoBigQueryTask.shared(
-                LoadDataIntoBigQueryTask.Settings(
+            @BigQueryTask.shared(
+                BigQueryTask.Settings(
                     # table_name = "example", < explicitly set the table name
-                    bq_table_write_mode="append",
+                    write_disposition=BigQueryTask.WriteDisposition.WRITE_TRUNCATE,
                     chunk_size=1000,
                     fields=["first_name", "joined_at", "is_active"],
                 )
@@ -304,7 +310,7 @@ class LoadDataIntoBigQueryTask(Task):
             BigQuery.
         """
 
-        def wrapper(get_queryset: "_Task.GetQuerySet"):
+        def wrapper(get_queryset: "BigQueryTask.GetQuerySet"):
             # Get the table name and validate it's not already registered.
             table_name = settings.table_name or get_queryset.__name__
             if table_name in _TABLE_NAMES:
@@ -314,7 +320,7 @@ class LoadDataIntoBigQueryTask(Task):
             _TABLE_NAMES.add(table_name)
 
             # Wraps the task with retry logic.
-            def task(self: "_Task", *task_args, **task_kwargs):
+            def task(self: "BigQueryTask", *task_args, **task_kwargs):
                 try:
                     cls._load_data_into_bq(
                         self, table_name, *task_args, **task_kwargs
@@ -336,7 +342,7 @@ class LoadDataIntoBigQueryTask(Task):
             )
 
             return t.cast(
-                _Task,
+                BigQueryTask,
                 _shared_task(  # type: ignore[call-overload]
                     **settings.kwargs,
                     name=name,
@@ -348,6 +354,3 @@ class LoadDataIntoBigQueryTask(Task):
             )
 
         return wrapper
-
-
-_Task = LoadDataIntoBigQueryTask  # Short alias for type hints.
