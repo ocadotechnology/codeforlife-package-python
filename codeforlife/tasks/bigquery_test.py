@@ -3,93 +3,89 @@
 Created on 02/10/2025 at 17:22:38(+01:00).
 """
 
+import os
 import typing as t
 from datetime import date, datetime, time, timedelta, timezone
-from unittest.mock import MagicMock, call, patch
+from tempfile import NamedTemporaryFile
+from unittest.mock import MagicMock, patch
 
 from celery import Celery
+from django.conf import settings
+from django.db.models.query import QuerySet
+from google.cloud.bigquery import LoadJobConfig, SourceFormat
 
 from ..tests import CeleryTestCase
-from ..types import Args, KwArgs
+from ..types import KwArgs
 from ..user.models import User
 from .bigquery import BigQueryTask
 
 # pylint: disable=missing-class-docstring
 
 
-@BigQueryTask.shared(
-    BigQueryTask.Settings(
-        table_name="user__append",
-        write_disposition=BigQueryTask.WriteDisposition.WRITE_APPEND,
-        chunk_size=10,
-        fields=["first_name", "is_active"],
-    )
-)
-def append_users():
-    """Append all users in the "user__append" BigQuery table."""
-    return User.objects.all()
-
-
-@BigQueryTask.shared(
-    BigQueryTask.Settings(
-        table_name="user__overwrite",
-        write_disposition=BigQueryTask.WriteDisposition.WRITE_TRUNCATE,
-        chunk_size=10,
-        fields=["first_name", "is_active"],
-    )
-)
-def overwrite_users():
-    """Overwrite all users in the "user__overwrite" BigQuery table."""
-    return User.objects.all()
-
-
-# pylint: disable-next=too-few-public-methods
-# class MockGcsBucket:
-#     def __init__(
-#         self,
-#         list_blobs_return: t.List[MockGcsBlob],
-#         new_blobs: t.List[MockGcsBlob],
-#     ):
-#         self.list_blobs = MagicMock(return_value=list_blobs_return)
-#         self.blob = MagicMock(side_effect=new_blobs)  # Returns 1 blob per call.
-#         self.copy_blob = MagicMock()
+TEST_MODULE = BigQueryTask.__module__
 
 
 # pylint: disable-next=too-many-instance-attributes,too-many-public-methods
 class TestLoadDataIntoBigQueryTask(CeleryTestCase):
 
+    append_users: BigQueryTask
+    truncate_users: BigQueryTask
+
+    @staticmethod
+    def _get_users():
+        return User.objects.all()
+
     @classmethod
     def setUpClass(cls):
         cls.app = Celery(broker="memory://")
 
+        cls.append_users = BigQueryTask.shared(
+            BigQueryTask.Settings(
+                table_name="user__append",
+                write_disposition=BigQueryTask.WriteDisposition.WRITE_APPEND,
+                chunk_size=10,
+                fields=["first_name", "is_active"],
+            )
+        )(cls._get_users)
+
+        cls.truncate_users = BigQueryTask.shared(
+            BigQueryTask.Settings(
+                table_name="user__truncate",
+                write_disposition=BigQueryTask.WriteDisposition.WRITE_TRUNCATE,
+                chunk_size=10,
+                fields=["first_name", "is_active"],
+            )
+        )(cls._get_users)
+
         return super().setUpClass()
 
-    def setUp(self):
-        self.date = date(year=2025, month=2, day=1)
-        self.time = time(hour=12, minute=30, second=15)
-        self.datetime = datetime.combine(self.date, self.time)
+    # settings
 
-        return super().setUp()
-
-    # Settings
-
+    # pylint: disable-next=too-many-arguments
     def _test_settings(
         self,
         code: str,
-        write_disposition: BigQueryTask.WriteDisposition = (
-            BigQueryTask.WriteDisposition.WRITE_APPEND,
-        ),
+        write_disposition: str = BigQueryTask.WriteDisposition.WRITE_APPEND,
         chunk_size: int = 10,
         fields: t.Optional[t.List[str]] = None,
-        **kwargs,
+        kwargs: t.Optional[KwArgs] = None,
+        **settings_kwargs,
     ):
         with self.assert_raises_validation_error(code=code):
             BigQueryTask.Settings(
                 write_disposition=write_disposition,
                 chunk_size=chunk_size,
                 fields=fields or ["some_field"],
-                **kwargs,
+                kwargs=kwargs or {},
+                **settings_kwargs,
             )
+
+    def test_settings__write_disposition_does_not_exist(self):
+        """Write disposition must exist."""
+        self._test_settings(
+            code="write_disposition_does_not_exist",
+            write_disposition="WRITE_INVALID",
+        )
 
     def test_settings__chunk_size_lte_0(self):
         """Chunk size must be > 0."""
@@ -125,274 +121,167 @@ class TestLoadDataIntoBigQueryTask(CeleryTestCase):
 
     def test_settings__task_unbound(self):
         """BigQueryTask must be bound."""
-        self._test_settings(code="task_unbound", bind=False)
+        self._test_settings(code="task_unbound", kwargs={"bind": False})
 
     def test_settings__base_not_subclass(self):
         """Base must be a subclass of BigQueryTask."""
-        self._test_settings(code="base_not_subclass", base=int)
+        self._test_settings(code="base_not_subclass", kwargs={"base": int})
 
-    # # To timestamp
+    # format_value_for_csv
 
-    # def test_to_timestamp(self):
-    #     """Format should match YYYY-MM-DD_HH:MM:SS."""
-    #     timestamp = BigQueryTask.to_timestamp(self.datetime)
-    #     assert timestamp == "2025-02-01_12:30:15"
+    def test_format_value_for_csv__none(self):
+        """None is converted to an empty string."""
+        assert "" == BigQueryTask.format_value_for_csv(None)
 
-    # # Chunk metadata
+    def test_format_value_for_csv__bool(self):
+        """Booleans are converted to 0 or 1."""
+        assert "True" == BigQueryTask.format_value_for_csv(True)
+        assert "False" == BigQueryTask.format_value_for_csv(False)
 
-    # def test_chunk_metadata__to_blob_name(self):
-    #     """Can successfully convert a chunk's metadata into a blob name."""
-    #     blob_name = BigQueryTask.ChunkMetadata(
-    #         bq_table_name=self.bq_table_name,
-    #         bq_table_write_mode=self.bq_table_write_mode,
-    #         timestamp=self.timestamp,
-    #         obj_i_start=self.obj_i_start,
-    #         obj_i_end=self.obj_i_end,
-    #     ).to_blob_name()
-    #     assert blob_name == self.blob_name
+    def test_format_value_for_csv__datetime(self):
+        """Datetimes are converted to ISO 8601 format with a space separator."""
+        assert "2025-02-01 11:30:15" == BigQueryTask.format_value_for_csv(
+            datetime(
+                year=2025, month=2, day=1, hour=12, minute=30, second=15
+            ).replace(tzinfo=timezone(timedelta(hours=1)))
+        )
 
-    # def test_chunk_metadata__from_blob_name(self):
-    #     """Can successfully convert a chunk's metadata into a blob name."""
-    #     chunk_metadata = BigQueryTask.ChunkMetadata.from_blob_name(self.blob_name)
-    #     assert chunk_metadata.bq_table_name == self.bq_table_name
-    #     assert chunk_metadata.bq_table_write_mode == self.bq_table_write_mode
-    #     assert chunk_metadata.timestamp == self.timestamp
-    #     assert chunk_metadata.obj_i_start == self.obj_i_start
-    #     assert chunk_metadata.obj_i_end == self.obj_i_end
+    def test_format_value_for_csv__date(self):
+        """Dates are converted to ISO 8601 format."""
+        assert "2025-02-01" == BigQueryTask.format_value_for_csv(
+            date(year=2025, month=2, day=1)
+        )
 
-    # # Init CSV writer
+    def test_format_value_for_csv__time(self):
+        """Times are converted to ISO 8601 format, ignoring timezone info."""
+        assert "12:30:15" == BigQueryTask.format_value_for_csv(
+            time(hour=12, minute=30, second=15)
+        )
 
-    # def test_init_csv_writer(self):
-    #     """
-    #     Initializing a CSV writer returns the content stream and writer. The
-    #     fields should be pre-written as headers and the writer should write to
-    #     the buffer.
-    #     """
-    #     task = append_users
-    #     csv_content, csv_writer = task.init_csv_writer()
+    # write_queryset_to_csv
 
-    #     csv_row = ["a", "b", "c"]
-    #     csv_writer.writerow(csv_row)
+    def _test_write_queryset_to_csv(
+        self,
+        queryset: QuerySet[t.Any],
+        fields: t.List[str],
+        chunk_size: int = 10,
+    ):
+        with NamedTemporaryFile(
+            mode="w+b", suffix=".csv", delete=True
+        ) as csv_file:
+            assert queryset.exists() == BigQueryTask.write_queryset_to_csv(
+                fields=fields,
+                chunk_size=chunk_size,
+                queryset=queryset,
+                csv_file=csv_file,
+            )
 
-    #     assert csv_content.getvalue().strip() == "\n".join(
-    #         [",".join(task.settings.fields), ",".join(csv_row)]
-    #     )
+            csv_file.seek(0)
 
-    # # Write CSV row
+            expected_rows = [",".join(fields)] + [
+                ",".join(
+                    [
+                        BigQueryTask.format_value_for_csv(getattr(obj, field))
+                        for field in fields
+                    ]
+                )
+                for obj in queryset
+            ]
 
-    # def _test_write_csv_row(self, *values: t.Tuple[t.Any, str]):
-    #     original_values = tuple(value[0] for value in values)
-    #     formatted_values = [value[1] for value in values]
+            assert csv_file.read().decode("utf-8") == "\n".join(expected_rows)
 
-    #     csv_content, csv_writer = append_users.init_csv_writer()
-    #     BigQueryTask.write_csv_row(csv_writer, original_values)
+    def test_write_queryset_to_csv__all(self):
+        """Values are written to the CSV file."""
+        queryset = User.objects.all()
+        assert queryset.exists()
+        self._test_write_queryset_to_csv(queryset, fields=["first_name"])
 
-    #     assert csv_content.getvalue().strip().split("\n", maxsplit=1)[
-    #         1
-    #     ] == ",".join(formatted_values)
+    def test_write_queryset_to_csv__none(self):
+        """No values are written to the CSV file."""
+        queryset = User.objects.none()
+        assert not queryset.exists()
+        self._test_write_queryset_to_csv(queryset, fields=["first_name"])
 
-    # def test_write_csv_row__bool(self):
-    #     """Booleans are converted to 0 or 1."""
-    #     self._test_write_csv_row((True, "True"), (False, "False"))
+    # shared
 
-    # def test_write_csv_row__datetime(self):
-    #     """Datetimes are converted to ISO 8601 format with a space separator."""
-    #     tz_aware_dt = self.datetime.replace(tzinfo=timezone(timedelta(hours=1)))
-    #     self._test_write_csv_row((tz_aware_dt, "2025-02-01 11:30:15"))
+    def test_shared__table_name_already_registered(self):
+        """The append_users task returns a queryset."""
+        task = self.append_users
+        with self.assert_raises_validation_error(
+            code="table_name_already_registered"
+        ):
+            BigQueryTask.shared(task.settings)(task.get_queryset)
 
-    # def test_write_csv_row__date(self):
-    #     """Dates are converted to ISO 8601 format."""
-    #     self._test_write_csv_row((self.date, "2025-02-01"))
+    def _test_shared__write(self, task: BigQueryTask):
+        table_name = task.settings.table_name or task.get_queryset.__name__
 
-    # def test_write_csv_row__time(self):
-    #     """Times are converted to ISO 8601 format, ignoring timezone info."""
-    #     self._test_write_csv_row((self.time, "12:30:15"))
+        mock_bq_client = MagicMock()
+        mock_load_table_from_file: MagicMock = (
+            mock_bq_client.load_table_from_file
+        )
 
-    # def test_write_csv_row__str(self):
-    #     """
-    #     Strings containing commas and/or double quotes are correctly escaped.
-    #     """
-    #     self._test_write_csv_row(
-    #         ("a", "a"), ("b,c", '"b,c"'), ('"d","e"', '"""d"",""e"""')
-    #     )
+        credentials = "I can haz cheezburger?"
 
-    # # BigQueryTask
+        # pylint: disable-next=consider-using-with
+        csv_file = NamedTemporaryFile(mode="w+b", suffix=".csv", delete=False)
+        csv_file_name = csv_file.name
 
-    # # pylint: disable-next=too-many-arguments,too-many-locals
-    # def _test_task(
-    #     self,
-    #     task: BigQueryTask,
-    #     retries: int = 0,
-    #     since_previous_run: t.Optional[timedelta] = None,
-    #     task_args: t.Optional[Args] = None,
-    #     task_kwargs: t.Optional[KwArgs] = None,
-    # ):
-    #     """Assert that a data warehouse task uploads chunks of data as CSVs.
+        @patch(f"{TEST_MODULE}.Client", return_value=mock_bq_client)
+        @patch(
+            f"{TEST_MODULE}.get_gcp_service_account_credentials",
+            return_value=credentials,
+        )
+        @patch(f"{TEST_MODULE}.NamedTemporaryFile", return_value=csv_file)
+        def test(
+            mock_named_temporary_file: MagicMock,
+            mock_get_gcp_service_account_credentials: MagicMock,
+            mock_bq_client_class: MagicMock,
+        ):
+            self.apply_task(name=task.name)
 
-    #     Args:
-    #         task: The task to make assertions on.
-    #         retries: How many times the task has been retried.
-    #         since_previous_run: How long ago since the task was previously run.
-    #         task_args: The arguments passed to the task.
-    #         task_kwargs: The keyword arguments passed to the task.
-    #     """
+            # Assert BigQuery client was created.
+            mock_named_temporary_file.assert_called_once_with(
+                mode="w+b", suffix=".csv", delete=True
+            )
+            mock_get_gcp_service_account_credentials.assert_called_once_with(
+                token_lifetime_seconds=task.settings.time_limit
+            )
+            mock_bq_client_class.assert_called_once_with(
+                project=settings.GOOGLE_CLOUD_PROJECT_ID,
+                credentials=credentials,
+            )
 
-    #     # Validate args.
-    #     assert 0 <= retries <= task.settings.max_retries
+            # Assert load_table_from_file was called.
+            mock_load_table_from_file.assert_called_once_with(
+                file_obj=csv_file,
+                destination=".".join(
+                    [
+                        settings.GOOGLE_CLOUD_PROJECT_ID,
+                        settings.GOOGLE_CLOUD_BIGQUERY_DATASET_ID,
+                        table_name,
+                    ]
+                ),
+                job_config=LoadJobConfig(
+                    source_format=SourceFormat.CSV,
+                    skip_leading_rows=1,
+                    write_disposition=task.settings.write_disposition,
+                    time_zone="Etc/UTC",
+                    date_format="YYYY-MM-DD",
+                    time_format="HH24:MI:SS",
+                    datetime_format="YYYY-MM-DD HH24:MI:SS",
+                ),
+            )
 
-    #     # Get the queryset and order it if not already ordered.
-    #     task_args, task_kwargs = task_args or tuple(), task_kwargs or {}
-    #     queryset = task.get_queryset(*task_args, **task_kwargs)
-    #     if not queryset.ordered:
-    #         queryset = queryset.order_by(task.settings.id_field)
+        try:
+            # pylint: disable-next=no-value-for-parameter
+            test()
+        finally:
+            os.remove(csv_file_name)
 
-    #     # Count the objects in the queryset.
-    #     obj_count = queryset.count()
-    #     # Assume we've uploaded 1 chunk if retrying.
-    #     uploaded_obj_count = task.settings.chunk_size if retries else 0
-    #     assert uploaded_obj_count <= obj_count
-    #     assert (obj_count - uploaded_obj_count) > 0
+    def test_shared__write_append(self):
+        """The append_users task writes data to BigQuery in append mode."""
+        self._test_shared__write(self.append_users)
 
-    #     # Get the current datetime.
-    #     now = datetime.now(timezone.utc)
-
-    #     # If not the first run, generate blobs for the last timestamp.
-    #     # Assume the same object count and timedelta.
-    #     uploaded_blobs_from_last_timestamp = (
-    #         MockGcsBlob.generate_list(
-    #             task=task,
-    #             timestamp=BigQueryTask.to_timestamp(now - since_previous_run),
-    #             obj_i_start=1,
-    #             obj_i_end=obj_count,
-    #         )
-    #         if since_previous_run is not None
-    #         else []
-    #     )
-
-    #     # Generate blobs for the current timestamp.
-    #     timestamp = BigQueryTask.to_timestamp(now)
-    #     uploaded_blobs_from_current_timestamp = MockGcsBlob.generate_list(
-    #         task=task,
-    #         timestamp=timestamp,
-    #         obj_i_start=1,
-    #         obj_i_end=uploaded_obj_count,
-    #     )
-    #     non_uploaded_blobs_from_current_timestamp = MockGcsBlob.generate_list(
-    #         task=task,
-    #         timestamp=timestamp,
-    #         obj_i_start=uploaded_obj_count + 1,
-    #         obj_i_end=obj_count,
-    #     )
-
-    #     # Generate a mock GCS bucket.
-    #     bucket = MockGcsBucket(
-    #         # Return the appropriate list based on the filters.
-    #         list_blobs_return=(
-    #             uploaded_blobs_from_current_timestamp
-    #             if task.settings.only_list_blobs_from_current_timestamp
-    #             else uploaded_blobs_from_last_timestamp
-    #             + uploaded_blobs_from_current_timestamp
-    #         ),
-    #         # Return the blobs not yet uploaded in the current timestamp.
-    #         new_blobs=non_uploaded_blobs_from_current_timestamp,
-    #     )
-
-    #     # Patch methods called in the task to create predetermined results.
-    #     with patch.object(
-    #         BigQueryTask, "_get_gcs_bucket", return_value=bucket
-    #     ) as get_gcs_bucket:
-    #         with patch("codeforlife.tasks.data_warehouse.datetime") as dt:
-    #             dt_now = t.cast(MagicMock, dt.now)
-    #             dt_now.return_value = now
-    #             if retries:
-    #                 task_kwargs[BigQueryTask.timestamp_key] = timestamp
-
-    #             self.apply_task(
-    #                 task.name,
-    #                 task_args,
-    #                 task_kwargs,
-    #                 retries=retries,
-    #             )
-
-    #             if retries:
-    #                 dt_now.assert_not_called()
-    #             else:
-    #                 dt_now.assert_called_once_with(timezone.utc)
-    #         get_gcs_bucket.assert_called_once()
-
-    #     # Assert that the blobs for the BigQuery table were listed. If the
-    #     # table's write-mode is append, assert only the blobs in the current
-    #     # timestamp were listed.
-    #     bucket.list_blobs.assert_called_once_with(
-    #         prefix=(
-    #             f"{task.settings.bq_table_name}__"
-    #             f"{task.settings.bq_table_write_mode}/"
-    #         )
-    #         + (
-    #             timestamp
-    #             if task.settings.only_list_blobs_from_current_timestamp
-    #             else ""
-    #         )
-    #     )
-
-    #     # Assert that all blobs not in the current timestamp were (not) deleted.
-    #     for blob in uploaded_blobs_from_last_timestamp:
-    #         if task.settings.delete_blobs_not_from_current_timestamp:
-    #             blob.delete.assert_called_once()
-    #         else:
-    #             blob.delete.assert_not_called()
-
-    #     # Assert that a blob was created for each non-uploaded blob.
-    #     bucket.blob.assert_has_calls(
-    #         [
-    #             call(blob.name)
-    #             for blob in non_uploaded_blobs_from_current_timestamp
-    #         ]
-    #     )
-
-    #     # Assert that each blob was uploaded from a CSV string.
-    #     for blob in non_uploaded_blobs_from_current_timestamp:
-    #         csv_content, csv_writer = task.init_csv_writer()
-    #         for values in t.cast(
-    #             t.List[t.Tuple[t.Any, ...]],
-    #             queryset.values_list(*task.settings.fields)[
-    #                 blob.chunk_metadata.obj_i_start
-    #                 - 1 : blob.chunk_metadata.obj_i_end
-    #             ],
-    #         ):
-    #             BigQueryTask.write_csv_row(csv_writer, values)
-
-    #         blob.upload_from_string.assert_called_once_with(
-    #             csv_content.getvalue().strip(), content_type="text/csv"
-    #         )
-
-    # def test_task__append__no_retry__no_previous_blobs(self):
-    #     """
-    #     1. All blobs are uploaded on the first run - no retries are required.
-    #     2. Blobs from the previous timestamp are not in the bucket.
-    #     """
-    #     self._test_task(append_users)
-
-    # def test_task__append__no_retry__previous_blobs(self):
-    #     """
-    #     1. All blobs are uploaded on the first run - no retries are required.
-    #     2. Blobs from the previous timestamp are in the bucket.
-    #     3. The blobs from the previous timestamp are not deleted.
-    #     """
-    #     self._test_task(append_users, since_previous_run=timedelta(days=1))
-
-    # def test_task__append__retry__no_previous_blobs(self):
-    #     """
-    #     1. Some blobs are uploaded on the first run - retries are required.
-    #     2. The order of magnitude in the object count has changed - the blobs
-    #         uploaded in the previous run(s) need to be renamed.
-    #     """
-    #     self._test_task(append_users, retries=1)
-
-    # def test_task__overwrite__no_retry__previous_blobs(self):
-    #     """
-    #     1. All blobs are uploaded on the first run - no retries are required.
-    #     2. Blobs from the previous timestamp are in the bucket.
-    #     3. The blobs from the previous timestamp are deleted.
-    #     """
-    #     self._test_task(overwrite_users, since_previous_run=timedelta(days=1))
+    def test_shared__write_truncate(self):
+        """The append_users task writes data to BigQuery in truncate mode."""
+        self._test_shared__write(self.truncate_users)

@@ -4,10 +4,11 @@ Created on 06/10/2025 at 17:15:37(+01:00).
 """
 
 import csv
+import io
 import logging
 import typing as t
 from dataclasses import dataclass, field
-from datetime import date, time, timezone
+from datetime import date, datetime, time, timezone
 from tempfile import NamedTemporaryFile, _TemporaryFileWrapper
 
 from celery import Task
@@ -15,13 +16,19 @@ from celery import shared_task as _shared_task
 from django.conf import settings as django_settings
 from django.core.exceptions import ValidationError
 from django.db.models.query import QuerySet
-from google.cloud import bigquery
+from google.cloud.bigquery import (
+    Client,
+    LoadJobConfig,
+    SourceFormat,
+    WriteDisposition,
+)
 
 from ..auth import get_gcp_service_account_credentials
 from ..types import KwArgs
 from .utils import get_task_name
 
-CsvFile = _TemporaryFileWrapper[str]
+if t.TYPE_CHECKING:
+    CsvFile = _TemporaryFileWrapper[bytes]
 
 _TABLE_NAMES: t.Set[str] = set()
 
@@ -30,7 +37,7 @@ _TABLE_NAMES: t.Set[str] = set()
 class BigQueryTask(Task):
     """A task which loads data from a Django queryset into a BigQuery table."""
 
-    WriteDisposition: t.TypeAlias = bigquery.WriteDisposition  # shorthand
+    WriteDisposition: t.TypeAlias = WriteDisposition  # shorthand
     GetQuerySet: t.TypeAlias = t.Callable[..., QuerySet[t.Any]]
 
     @dataclass(frozen=True)
@@ -39,12 +46,12 @@ class BigQueryTask(Task):
         """The settings for a data warehouse task."""
 
         # The BigQuery table's write disposition.
-        write_disposition: bigquery.WriteDisposition
+        write_disposition: str
         # The number of rows to write at a time. Must be a multiple of 10.
         chunk_size: int
         # The [Django model] fields to include in the CSV.
         fields: t.List[str]
-        # The name of the field used to identify each object.
+        # The name of the field used to identify each row.
         id_field: str = "id"
         # The maximum amount of time this task is allowed to take before it's
         # hard-killed.
@@ -69,6 +76,14 @@ class BigQueryTask(Task):
                 self.fields.append(self.id_field)
 
             # Validate args.
+            if not self.write_disposition.startswith("WRITE_") or not hasattr(
+                WriteDisposition, self.write_disposition
+            ):
+                raise ValidationError(
+                    f'The write disposition "{self.write_disposition}"'
+                    " does not exist.",
+                    code="write_disposition_does_not_exist",
+                )
             if self.chunk_size <= 0:
                 raise ValidationError(
                     "The chunk size must be > 0.",
@@ -134,13 +149,10 @@ class BigQueryTask(Task):
         Returns:
             The formatted value as a string.
         """
-        # Reimport required to avoid being mocked during testing.
-        # pylint: disable-next=reimported,import-outside-toplevel
-        from datetime import datetime as _datetime
 
         if value is None:
             return ""  # BigQuery treats an empty string as NULL/None.
-        if isinstance(value, _datetime):
+        if isinstance(value, datetime):
             return (
                 value.astimezone(timezone.utc)
                 .replace(tzinfo=None)
@@ -159,7 +171,7 @@ class BigQueryTask(Task):
         fields: t.List[str],
         chunk_size: int,
         queryset: QuerySet[t.Any],
-        csv_file: CsvFile,
+        csv_file: "CsvFile",
     ):
         """Write a queryset to a CSV file.
 
@@ -173,33 +185,46 @@ class BigQueryTask(Task):
             Whether any values were written to the CSV file.
         """
 
+        text_wrapper = io.TextIOWrapper(csv_file, encoding="utf-8", newline="")
+
         csv_writer = csv.writer(
-            csv_file, lineterminator="\n", quoting=csv.QUOTE_MINIMAL
+            text_wrapper, lineterminator="\n", quoting=csv.QUOTE_MINIMAL
         )
         csv_writer.writerow(fields)  # Write the headers.
 
+        chunk_index = 1  # 1 based index. For logging.
         wrote_values = False  # Track if any values were written.
 
-        for chunk_i, values in enumerate(
+        for row_index, values in enumerate(
             t.cast(
                 t.Iterator[t.Tuple[t.Any, ...]],
                 # Iterate chunks to avoid OOM for large querysets.
                 queryset.values_list(*fields).iterator(chunk_size),
             )
         ):
-            logging.info("Writing chunk index %d to CSV.", chunk_i)
+            if row_index % chunk_size == 0:
+                logging.info("Writing chunk %d", chunk_index)
+                chunk_index += 1
+
             csv_row = [cls.format_value_for_csv(value) for value in values]
             csv_writer.writerow(csv_row)
             wrote_values = True
+
+        # Move back 1 byte (because lineterminator is "\n").
+        text_wrapper.seek(text_wrapper.tell() - 1)
+        # Chop off the trailing newline.
+        text_wrapper.truncate()
+        # Detach the wrapper to flush data to the binary file.
+        text_wrapper.detach()
 
         return wrote_values
 
     @staticmethod
     def load_csv_into_bq(
-        write_disposition: bigquery.WriteDisposition,
+        write_disposition: str,
         time_limit: int,
         table_name: str,
-        csv_file: CsvFile,
+        csv_file: "CsvFile",
     ):
         """Load a CSV file into a BigQuery table.
 
@@ -210,7 +235,7 @@ class BigQueryTask(Task):
             csv_file: The CSV file to load into BigQuery.
         """
 
-        bq_client = bigquery.Client(
+        bq_client = Client(
             project=django_settings.GOOGLE_CLOUD_PROJECT_ID,
             credentials=get_gcp_service_account_credentials(
                 token_lifetime_seconds=time_limit
@@ -232,8 +257,8 @@ class BigQueryTask(Task):
         bq_load_job = bq_client.load_table_from_file(
             file_obj=csv_file,
             destination=full_table_id,
-            job_config=bigquery.LoadJobConfig(
-                source_format=bigquery.SourceFormat.CSV,
+            job_config=LoadJobConfig(
+                source_format=SourceFormat.CSV,
                 skip_leading_rows=1,
                 write_disposition=write_disposition,
                 time_zone="Etc/UTC",
@@ -263,7 +288,7 @@ class BigQueryTask(Task):
             queryset = queryset.order_by(self.settings.id_field)
 
         with NamedTemporaryFile(
-            mode="w+", suffix=".csv", delete=True
+            mode="w+b", suffix=".csv", delete=True
         ) as csv_file:
             if self.write_queryset_to_csv(
                 fields=self.settings.fields,
@@ -288,18 +313,18 @@ class BigQueryTask(Task):
         unintended consequences.
 
         Examples:
-            ```
-            @BigQueryTask.shared(
-                BigQueryTask.Settings(
-                    # table_name = "example", < explicitly set the table name
-                    write_disposition=BigQueryTask.WriteDisposition.WRITE_TRUNCATE,
-                    chunk_size=1000,
-                    fields=["first_name", "joined_at", "is_active"],
-                )
+        ```
+        @BigQueryTask.shared(
+            BigQueryTask.Settings(
+                # table_name = "example", <- explicitly set the table name
+                write_disposition=BigQueryTask.WriteDisposition.WRITE_TRUNCATE,
+                chunk_size=1000,
+                fields=["first_name", "joined_at", "is_active"],
             )
-            def user():  # All users will be saved to a BQ table named "user".
-                return User.objects.all()
-            ```
+        )
+        def user():  # All users will be saved to a BQ table named "user".
+            return User.objects.all()
+        ```
 
         Args:
             settings: The settings for this data warehouse task.
@@ -314,8 +339,9 @@ class BigQueryTask(Task):
             # Get the table name and validate it's not already registered.
             table_name = settings.table_name or get_queryset.__name__
             if table_name in _TABLE_NAMES:
-                raise ValueError(
-                    f'The table name "{table_name}" is already registered.'
+                raise ValidationError(
+                    f'The table name "{table_name}" is already registered.',
+                    code="table_name_already_registered",
                 )
             _TABLE_NAMES.add(table_name)
 
