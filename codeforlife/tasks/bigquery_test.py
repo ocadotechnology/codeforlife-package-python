@@ -22,7 +22,7 @@ from .bigquery import BigQueryTask
 # pylint: disable=missing-class-docstring
 
 
-TEST_MODULE = BigQueryTask.__module__
+_ = BigQueryTask.__module__  # Shorthand for patching.
 
 
 # pylint: disable-next=too-many-instance-attributes,too-many-public-methods
@@ -215,34 +215,45 @@ class TestLoadDataIntoBigQueryTask(CeleryTestCase):
     def _test_shared__write(self, task: BigQueryTask):
         table_name = task.settings.table_name or task.get_queryset.__name__
 
+        credentials = "I can haz cheezburger?"
+        job_config = LoadJobConfig()
+
         mock_bq_client = MagicMock()
         mock_load_table_from_file: MagicMock = (
             mock_bq_client.load_table_from_file
         )
-
-        credentials = "I can haz cheezburger?"
+        mock_load_job = MagicMock()
+        mock_load_table_from_file.return_value = mock_load_job
+        mock_load_job_result: MagicMock = mock_load_job.result
 
         # pylint: disable-next=consider-using-with
         csv_file = NamedTemporaryFile(mode="w+b", suffix=".csv", delete=False)
         csv_file_name = csv_file.name
 
-        @patch(f"{TEST_MODULE}.Client", return_value=mock_bq_client)
+        @patch(f"{_}.LoadJobConfig", return_value=job_config)
+        @patch(f"{_}.Client", return_value=mock_bq_client)
         @patch(
-            f"{TEST_MODULE}.get_gcp_service_account_credentials",
+            f"{_}.get_gcp_service_account_credentials",
             return_value=credentials,
         )
-        @patch(f"{TEST_MODULE}.NamedTemporaryFile", return_value=csv_file)
+        @patch(f"{_}.NamedTemporaryFile", return_value=csv_file)
         def test(
             mock_named_temporary_file: MagicMock,
             mock_get_gcp_service_account_credentials: MagicMock,
             mock_bq_client_class: MagicMock,
+            mock_load_job_config_class: MagicMock,
         ):
             self.apply_task(name=task.name)
 
-            # Assert BigQuery client was created.
+            # Assert CSV file was created.
             mock_named_temporary_file.assert_called_once_with(
                 mode="w+b", suffix=".csv", delete=True
             )
+
+            # Assert queryset was written to CSV.
+            # TODO
+
+            # Assert BigQuery client was created.
             mock_get_gcp_service_account_credentials.assert_called_once_with(
                 token_lifetime_seconds=task.settings.time_limit
             )
@@ -251,7 +262,16 @@ class TestLoadDataIntoBigQueryTask(CeleryTestCase):
                 credentials=credentials,
             )
 
-            # Assert load_table_from_file was called.
+            # Assert load job was created and run.
+            mock_load_job_config_class.assert_called_once_with(
+                source_format=SourceFormat.CSV,
+                skip_leading_rows=1,
+                write_disposition=task.settings.write_disposition,
+                time_zone="Etc/UTC",
+                date_format="YYYY-MM-DD",
+                time_format="HH24:MI:SS",
+                datetime_format="YYYY-MM-DD HH24:MI:SS",
+            )
             mock_load_table_from_file.assert_called_once_with(
                 file_obj=csv_file,
                 destination=".".join(
@@ -261,16 +281,9 @@ class TestLoadDataIntoBigQueryTask(CeleryTestCase):
                         table_name,
                     ]
                 ),
-                job_config=LoadJobConfig(
-                    source_format=SourceFormat.CSV,
-                    skip_leading_rows=1,
-                    write_disposition=task.settings.write_disposition,
-                    time_zone="Etc/UTC",
-                    date_format="YYYY-MM-DD",
-                    time_format="HH24:MI:SS",
-                    datetime_format="YYYY-MM-DD HH24:MI:SS",
-                ),
+                job_config=job_config,
             )
+            mock_load_job_result.assert_called_once_with()
 
         try:
             # pylint: disable-next=no-value-for-parameter
