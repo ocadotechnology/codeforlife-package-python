@@ -8,19 +8,20 @@ import logging
 import typing as t
 from dataclasses import dataclass, field
 from datetime import date, time, timezone
-from tempfile import NamedTemporaryFile
+from tempfile import NamedTemporaryFile, _TemporaryFileWrapper
 
 from celery import Task
 from celery import shared_task as _shared_task
 from django.conf import settings as django_settings
 from django.core.exceptions import ValidationError
 from django.db.models.query import QuerySet
-from google.auth import default, impersonated_credentials
 from google.cloud import bigquery
-from google.oauth2 import service_account
 
+from ..auth import get_gcp_service_account_credentials
 from ..types import KwArgs
 from .utils import get_task_name
+
+CsvFile = _TemporaryFileWrapper[str]
 
 _TABLE_NAMES: t.Set[str] = set()
 
@@ -122,72 +123,127 @@ class LoadDataIntoBigQueryTask(Task):
     settings: Settings
     get_queryset: GetQuerySet
 
-    def _get_bq_client(self):
-        # Set the scopes of the credentials.
-        # https://cloud.google.com/storage/docs/oauth-scopes
-        scopes = ["https://www.googleapis.com/auth/devstorage.full_control"]
-
-        if django_settings.ENV == "local":
-            # Load the credentials from a local JSON file.
-            credentials = service_account.Credentials.from_service_account_file(
-                "/replace/me/with/path/to/service_account.json",
-                scopes=scopes,
-            )
-        else:
-            # Use Workload Identity Federation to get the default credentials
-            # from the environment. These are the short-lived credentials from
-            # the AWS IAM role.
-            source_credentials, _ = default()
-
-            # Create the impersonated credentials object
-            credentials = impersonated_credentials.Credentials(
-                source_credentials=source_credentials,
-                target_principal=(),
-                target_scopes=scopes,
-                # The lifetime of the impersonated credentials in seconds.
-                lifetime=self.settings.time_limit,
-            )
-
-        # Create a client with the impersonated credentials and get the bucket.
-        return bigquery.Client(
-            project=django_settings.GOOGLE_CLOUD_PROJECT_ID,
-            credentials=credentials,
-        )
-
     @staticmethod
-    def write_csv_row(
-        writer: "csv.Writer",  # type: ignore[name-defined]
-        values: t.Tuple[t.Any, ...],
-    ):
-        """Write the values to the CSV file in a format BigQuery accepts.
+    def format_value_for_csv(value: t.Any) -> str:
+        """Format a value for inclusion in a CSV file.
 
         Args:
-            writer: The CSV writer which handles formatting the row.
-            values: The values to write to the CSV file.
+            value: The value to format.
+
+        Returns:
+            The formatted value as a string.
         """
         # Reimport required to avoid being mocked during testing.
         # pylint: disable-next=reimported,import-outside-toplevel
         from datetime import datetime as _datetime
 
-        # Transform the values into their SQL representations.
-        csv_row: t.List[str] = []
-        for value in values:
-            if value is None:
-                value = ""  # BigQuery treats an empty string as NULL/None.
-            elif isinstance(value, _datetime):
-                value = (
-                    value.astimezone(timezone.utc)
-                    .replace(tzinfo=None)
-                    .isoformat(sep=" ")
-                )
-            elif isinstance(value, (date, time)):
-                value = value.isoformat()
-            elif not isinstance(value, str):
-                value = str(value)
+        if value is None:
+            return ""  # BigQuery treats an empty string as NULL/None.
+        if isinstance(value, _datetime):
+            return (
+                value.astimezone(timezone.utc)
+                .replace(tzinfo=None)
+                .isoformat(sep=" ")
+            )
+        if isinstance(value, (date, time)):
+            return value.isoformat()
+        if not isinstance(value, str):
+            return str(value)
 
-            csv_row.append(value)
+        return value
 
-        writer.writerow(csv_row)
+    @classmethod
+    def write_queryset_to_csv(
+        cls,
+        fields: t.List[str],
+        chunk_size: int,
+        queryset: QuerySet[t.Any],
+        csv_file: CsvFile,
+    ):
+        """Write a queryset to a CSV file.
+
+        Args:
+            fields: The list of fields to include in the CSV.
+            chunk_size: The number of rows to write at a time.
+            queryset: The queryset to write.
+            csv_file: The CSV file to write to.
+
+        Returns:
+            Whether any values were written to the CSV file.
+        """
+
+        csv_writer = csv.writer(
+            csv_file, lineterminator="\n", quoting=csv.QUOTE_MINIMAL
+        )
+        csv_writer.writerow(fields)  # Write the headers.
+
+        wrote_values = False  # Track if any values were written.
+
+        for chunk_i, values in enumerate(
+            t.cast(
+                t.Iterator[t.Tuple[t.Any, ...]],
+                # Iterate chunks to avoid OOM for large querysets.
+                queryset.values_list(*fields).iterator(chunk_size),
+            )
+        ):
+            logging.info("Writing chunk index %d to CSV.", chunk_i)
+            csv_row = [cls.format_value_for_csv(value) for value in values]
+            csv_writer.writerow(csv_row)
+            wrote_values = True
+
+        return wrote_values
+
+    @staticmethod
+    def load_csv_into_bq(
+        write_disposition: bigquery.WriteDisposition,
+        table_name: str,
+        csv_file: CsvFile,
+    ):
+        """Load a CSV file into a BigQuery table.
+
+        Args:
+            write_disposition: Write disposition for the BigQuery table.
+            table_name: The table name in BigQuery.
+            csv_file: The CSV file to load into BigQuery.
+        """
+
+        bq_client = bigquery.Client(
+            project=django_settings.GOOGLE_CLOUD_PROJECT_ID,
+            credentials=get_gcp_service_account_credentials(),
+        )
+
+        full_table_id = ".".join(
+            [
+                django_settings.GOOGLE_CLOUD_PROJECT_ID,
+                django_settings.GOOGLE_CLOUD_BIGQUERY_DATASET_ID,
+                table_name,
+            ]
+        )
+
+        csv_file.seek(0)  # Reset file pointer to the start.
+
+        logging.info("Starting BigQuery load job.")
+        # Load the temporary CSV file into BigQuery.
+        bq_load_job = bq_client.load_table_from_file(
+            file_obj=csv_file,
+            destination=full_table_id,
+            job_config=bigquery.LoadJobConfig(
+                source_format=bigquery.SourceFormat.CSV,
+                skip_leading_rows=1,
+                write_disposition=write_disposition,
+                time_zone="Etc/UTC",
+                date_format="YYYY-MM-DD",
+                time_format="HH24:MI:SS",
+                datetime_format="YYYY-MM-DD HH24:MI:SS",
+            ),
+        )
+
+        bq_load_job.result()
+        logging.info(
+            "Successfully loaded %d rows into to BigQuery table %s.",
+            bq_load_job.output_rows,
+            full_table_id,
+        )
 
     @staticmethod
     # pylint: disable-next=too-many-locals,bad-staticmethod-argument
@@ -204,64 +260,17 @@ class LoadDataIntoBigQueryTask(Task):
         with NamedTemporaryFile(
             mode="w+", suffix=".csv", delete=True
         ) as csv_file:
-            csv_writer = csv.writer(
-                csv_file, lineterminator="\n", quoting=csv.QUOTE_MINIMAL
-            )
-            csv_writer.writerow(self.settings.fields)  # Write the headers.
-            wrote_values = False  # Track if any values were written.
-
-            # Iterate through the all the objects in the queryset. The objects
-            # are retrieved in chunks (no caching) to avoid OOM errors. For each
-            # object, a tuple of values is returned. The order of the values in
-            # the tuple is determined by the order of the fields.
-            for chunk_i, values in enumerate(
-                t.cast(
-                    t.Iterator[t.Tuple[t.Any, ...]],
-                    queryset.values_list(*self.settings.fields).iterator(
-                        chunk_size=self.settings.chunk_size
-                    ),
-                )
+            if self.write_queryset_to_csv(
+                fields=self.settings.fields,
+                chunk_size=self.settings.chunk_size,
+                queryset=queryset,
+                csv_file=csv_file,
             ):
-                logging.info("Writing chunk index %d to CSV.", chunk_i)
-                self.write_csv_row(csv_writer, values)
-                wrote_values = True
-
-            if not wrote_values:
-                return  # No data to load.
-
-            csv_file.seek(0)  # Reset file pointer to the start.
-
-            logging.info("Starting BigQuery load job.")
-
-            full_table_id = ".".join(
-                [
-                    django_settings.GOOGLE_CLOUD_PROJECT_ID,
-                    django_settings.GOOGLE_CLOUD_BIGQUERY_DATASET_ID,
-                    table_name,
-                ]
-            )
-
-            # Load the temporary CSV file into BigQuery.
-            load_job = self._get_bq_client().load_table_from_file(
-                file_obj=csv_file,
-                destination=full_table_id,
-                job_config=bigquery.LoadJobConfig(
-                    source_format=bigquery.SourceFormat.CSV,
-                    skip_leading_rows=1,
+                self.load_csv_into_bq(
                     write_disposition=self.settings.write_disposition,
-                    time_zone="Etc/UTC",
-                    date_format="YYYY-MM-DD",
-                    time_format="HH24:MI:SS",
-                    datetime_format="YYYY-MM-DD HH24:MI:SS",
-                ),
-            )
-
-            load_job.result()
-            logging.info(
-                "Successfully loaded %d rows into to BigQuery table %s.",
-                load_job.output_rows,
-                full_table_id,
-            )
+                    table_name=table_name,
+                    csv_file=csv_file,
+                )
 
     @classmethod
     def shared(cls, settings: Settings):
@@ -291,8 +300,8 @@ class LoadDataIntoBigQueryTask(Task):
 
         Returns:
             A wrapper-function which expects to receive a callable that returns
-            a queryset and returns a Celery task to save the queryset as CSV
-            files in the GCS bucket.
+            a queryset and returns a Celery task to save the queryset to
+            BigQuery.
         """
 
         def wrapper(get_queryset: "_Task.GetQuerySet"):

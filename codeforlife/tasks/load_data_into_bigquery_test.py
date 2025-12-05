@@ -12,7 +12,7 @@ from celery import Celery
 from ..tests import CeleryTestCase
 from ..types import Args, KwArgs
 from ..user.models import User
-from .data_warehouse import DataWarehouseTask as DWT
+from .load_data_into_bigquery import DataWarehouseTask as DWT
 
 # pylint: disable=missing-class-docstring
 
