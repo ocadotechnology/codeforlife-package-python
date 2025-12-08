@@ -9,7 +9,7 @@ import os
 import typing as t
 from datetime import date, datetime, time, timedelta, timezone
 from tempfile import NamedTemporaryFile
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 from celery import Celery
 from django.conf import settings
@@ -67,11 +67,8 @@ class TestLoadDataIntoBigQueryTask(CeleryTestCase):
         return super().setUpClass()
 
     def setUp(self):
-        def set_up_patch(target: str, **kwargs):
-            mock = patch(f"{BigQueryTask.__module__}.{target}", **kwargs)
-            started_mock = t.cast(MagicMock, mock.start())
-            self.addCleanup(mock.stop)
-            return started_mock
+        def target(relative_dot_path: str):  # Shortcut for patching.
+            return f"{BigQueryTask.__module__}.{relative_dot_path}"
 
         # Mock creating a NamedTemporaryFile.
         # pylint: disable-next=consider-using-with
@@ -79,14 +76,14 @@ class TestLoadDataIntoBigQueryTask(CeleryTestCase):
             mode="w+b", suffix=".csv", delete=False
         )
         self.addCleanup(os.remove, self.csv_file.name)
-        self.mock_named_temporary_file = set_up_patch(
-            "NamedTemporaryFile", return_value=self.csv_file
+        self.mock_named_temporary_file = self.patch(
+            target("NamedTemporaryFile"), return_value=self.csv_file
         )
 
         # Mock getting GCP service account credentials.
         self.credentials = "I can haz cheezburger?"
-        self.mock_get_gcp_service_account_credentials = set_up_patch(
-            "get_gcp_service_account_credentials",
+        self.mock_get_gcp_service_account_credentials = self.patch(
+            target("get_gcp_service_account_credentials"),
             return_value=self.credentials,
         )
 
@@ -99,11 +96,11 @@ class TestLoadDataIntoBigQueryTask(CeleryTestCase):
         mock_load_job = MagicMock()
         self.mock_load_table_from_file.return_value = mock_load_job
         self.mock_load_job_result: MagicMock = mock_load_job.result
-        self.mock_load_job_config_class = set_up_patch(
-            "LoadJobConfig", return_value=self.job_config
+        self.mock_load_job_config_class = self.patch(
+            target("LoadJobConfig"), return_value=self.job_config
         )
-        self.mock_bq_client_class = set_up_patch(
-            "Client", return_value=self.mock_bq_client
+        self.mock_bq_client_class = self.patch(
+            target("Client"), return_value=self.mock_bq_client
         )
 
         return super().setUp()
