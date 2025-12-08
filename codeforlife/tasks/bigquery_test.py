@@ -14,7 +14,7 @@ from unittest.mock import MagicMock
 from celery import Celery
 from django.conf import settings
 from django.db.models.query import QuerySet
-from google.cloud.bigquery import LoadJobConfig, SourceFormat
+from google.cloud.bigquery import SourceFormat
 
 from ..tests import CeleryTestCase
 from ..types import KwArgs
@@ -87,20 +87,34 @@ class TestLoadDataIntoBigQueryTask(CeleryTestCase):
             return_value=self.credentials,
         )
 
-        # Mock BigQuery classes and functions.
-        self.job_config = LoadJobConfig()
+        # Mock BigQuery client and related methods.
         self.mock_bq_client = MagicMock()
+        self.mock_bq_client_class = self.patch(
+            target("Client"), return_value=self.mock_bq_client
+        )
+
+        # Mock dataset creation.
+        self.dataset = MagicMock(
+            dataset_id=(
+                settings.GOOGLE_CLOUD_PROJECT_ID
+                + f".{settings.GOOGLE_CLOUD_BIGQUERY_DATASET_ID}"
+            )
+        )
+        self.mock_dataset_class = self.patch(
+            target("Dataset"), return_value=self.dataset
+        )
+        self.mock_create_dataset: MagicMock = self.mock_bq_client.create_dataset
+
+        # Mock load job and related methods.
+        self.job_config = MagicMock()
+        self.mock_load_job = MagicMock()
         self.mock_load_table_from_file: MagicMock = (
             self.mock_bq_client.load_table_from_file
         )
-        mock_load_job = MagicMock()
-        self.mock_load_table_from_file.return_value = mock_load_job
-        self.mock_load_job_result: MagicMock = mock_load_job.result
+        self.mock_load_table_from_file.return_value = self.mock_load_job
+        self.mock_load_job_result: MagicMock = self.mock_load_job.result
         self.mock_load_job_config_class = self.patch(
             target("LoadJobConfig"), return_value=self.job_config
-        )
-        self.mock_bq_client_class = self.patch(
-            target("Client"), return_value=self.mock_bq_client
         )
 
         return super().setUp()
@@ -150,6 +164,15 @@ class TestLoadDataIntoBigQueryTask(CeleryTestCase):
         self.mock_bq_client_class.assert_called_once_with(
             project=settings.GOOGLE_CLOUD_PROJECT_ID,
             credentials=self.credentials,
+        )
+
+        # Assert dataset was created.
+        self.mock_dataset_class.assert_called_once_with(
+            settings.GOOGLE_CLOUD_PROJECT_ID
+            + f".{settings.GOOGLE_CLOUD_BIGQUERY_DATASET_ID}"
+        )
+        self.mock_create_dataset.assert_called_once_with(
+            self.dataset, exists_ok=True
         )
 
         # Assert load job was created and run.
