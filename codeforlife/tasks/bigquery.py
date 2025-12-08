@@ -30,12 +30,12 @@ from .utils import get_task_name
 if t.TYPE_CHECKING:
     CsvFile = _TemporaryFileWrapper[bytes]
 
-_TABLE_NAMES: t.Set[str] = set()
-
 
 # pylint: disable-next=abstract-method
 class BigQueryTask(Task):
     """A task which loads data from a Django queryset into a BigQuery table."""
+
+    TABLE_NAMES: t.Set[str] = set()
 
     WriteDisposition: t.TypeAlias = WriteDisposition  # shorthand
     GetQuerySet: t.TypeAlias = t.Callable[..., QuerySet[t.Any]]
@@ -43,7 +43,7 @@ class BigQueryTask(Task):
     @dataclass(frozen=True)
     # pylint: disable-next=too-many-instance-attributes
     class Settings:
-        """The settings for a data warehouse task."""
+        """The settings for a BigQuery task."""
 
         # The BigQuery table's write disposition.
         write_disposition: str
@@ -138,6 +138,25 @@ class BigQueryTask(Task):
 
     settings: Settings
     get_queryset: GetQuerySet
+
+    @classmethod
+    def register_table_name(cls, table_name: str):
+        """Register a table name to ensure it is unique.
+
+        Args:
+            table_name: The name of the table to register.
+
+        Raises:
+            ValidationError: If the table name is already registered.
+        """
+
+        if table_name in cls.TABLE_NAMES:
+            raise ValidationError(
+                f'The table name "{table_name}" is already registered.',
+                code="table_name_already_registered",
+            )
+
+        cls.TABLE_NAMES.add(table_name)
 
     def get_ordered_queryset(self, *task_args, **task_kwargs):
         """Get the ordered queryset.
@@ -317,9 +336,10 @@ class BigQueryTask(Task):
 
     @classmethod
     def shared(cls, settings: Settings):
-        """Create a shared data warehouse task.
+        """Create a shared BigQuery task.
 
-        This decorator creates a Celery task that saves the queryset
+        This decorator creates a Celery task that saves the queryset to a
+        BigQuery table.
 
         Each task *must* be given a distinct table name and queryset to avoid
         unintended consequences.
@@ -339,7 +359,7 @@ class BigQueryTask(Task):
         ```
 
         Args:
-            settings: The settings for this data warehouse task.
+            settings: The settings for this BigQuery task.
 
         Returns:
             A wrapper-function which expects to receive a callable that returns
@@ -348,14 +368,8 @@ class BigQueryTask(Task):
         """
 
         def wrapper(get_queryset: "BigQueryTask.GetQuerySet"):
-            # Get the table name and validate it's not already registered.
             table_name = settings.table_name or get_queryset.__name__
-            if table_name in _TABLE_NAMES:
-                raise ValidationError(
-                    f'The table name "{table_name}" is already registered.',
-                    code="table_name_already_registered",
-                )
-            _TABLE_NAMES.add(table_name)
+            cls.register_table_name(table_name)
 
             # Wraps the task with retry logic.
             def task(self: "BigQueryTask", *task_args, **task_kwargs):

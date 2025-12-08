@@ -243,6 +243,24 @@ class TestLoadDataIntoBigQueryTask(CeleryTestCase):
         """Base must be a subclass of BigQueryTask."""
         self._test_settings(code="base_not_subclass", kwargs={"base": int})
 
+    # register_table_name
+
+    def test_register_table_name__registered(self):
+        """An already registered table name raises a ValidationError."""
+        table_name = self.append_users.settings.table_name
+        assert table_name
+        assert table_name in BigQueryTask.TABLE_NAMES
+        with self.assert_raises_validation_error(
+            code="table_name_already_registered"
+        ):
+            BigQueryTask.register_table_name(table_name)
+
+    def test_register_table_name__unregistered(self):
+        """An unregistered table name does not raise an error."""
+        table_name = "some_unique_table_name"
+        BigQueryTask.register_table_name(table_name)
+        assert table_name in BigQueryTask.TABLE_NAMES
+
     # format_value_for_csv
 
     def test_format_value_for_csv__none(self):
@@ -322,14 +340,6 @@ class TestLoadDataIntoBigQueryTask(CeleryTestCase):
         self._test_write_queryset_to_csv(queryset, fields=["first_name"])
 
     # shared
-
-    def test_shared__table_name_already_registered(self):
-        """The append_users task returns a queryset."""
-        task = self.append_users
-        with self.assert_raises_validation_error(
-            code="table_name_already_registered"
-        ):
-            BigQueryTask.shared(task.settings)(task.get_queryset)
 
     def _test_shared__write(self, task: BigQueryTask):
         self.apply_task(name=task.name)
