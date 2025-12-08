@@ -7,7 +7,7 @@ Authentication credentials.
 
 import typing as t
 
-import boto3
+from boto3 import Session as AwsSession
 from django.conf import settings
 from google.auth.aws import (
     AwsSecurityCredentials,
@@ -27,16 +27,22 @@ class AwsSessionSecurityCredentialsSupplier(AwsSecurityCredentialsSupplier):
         return settings.AWS_REGION
 
     def get_aws_security_credentials(self, _, __) -> AwsSecurityCredentials:
-        session_credentials = (
-            boto3.Session().get_credentials().get_frozen_credentials()
-        )
+        aws_credentials = AwsSession().get_credentials()
+        assert aws_credentials
+
+        aws_read_only_credentials = aws_credentials.get_frozen_credentials()
+        assert aws_read_only_credentials.access_key
+        assert aws_read_only_credentials.secret_key
+        assert aws_read_only_credentials.token
+
         return AwsSecurityCredentials(
-            access_key_id=session_credentials.access_key,
-            secret_access_key=session_credentials.secret_key,
-            session_token=session_credentials.token,
+            access_key_id=aws_read_only_credentials.access_key,
+            secret_access_key=aws_read_only_credentials.secret_key,
+            session_token=aws_read_only_credentials.token,
         )
 
 
+# pylint: disable-next=abstract-method,too-many-ancestors
 class GcpWifCredentials(AwsCredentials):
     """Workload Identity Federation credentials for GCP using AWS IAM roles."""
 
