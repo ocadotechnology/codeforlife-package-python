@@ -18,7 +18,7 @@ from django.core.exceptions import ValidationError
 from django.db.models.query import QuerySet
 from google.cloud.bigquery import (
     Client,
-    Dataset,
+    CreateDisposition,
     LoadJobConfig,
     SourceFormat,
     WriteDisposition,
@@ -272,32 +272,30 @@ class BigQueryTask(Task):
             csv_file: The CSV file to load into BigQuery.
         """
 
-        client = Client(
+        bq_client = Client(
             project=django_settings.GOOGLE_CLOUD_PROJECT_ID,
             credentials=get_gcp_service_account_credentials(
                 token_lifetime_seconds=time_limit
             ),
         )
 
-        dataset = Dataset(
-            django_settings.GOOGLE_CLOUD_PROJECT_ID
-            + f".{django_settings.GOOGLE_CLOUD_BIGQUERY_DATASET_ID}"
+        full_table_id = ".".join(
+            [
+                django_settings.GOOGLE_CLOUD_PROJECT_ID,
+                django_settings.GOOGLE_CLOUD_BIGQUERY_DATASET_ID,
+                table_name,
+            ]
         )
-
-        logging.info("Creating dataset if not exists.")
-        client.create_dataset(dataset, exists_ok=True)
-        logging.info("Dataset created or already exists.")
 
         csv_file.seek(0)  # Reset file pointer to the start.
 
-        full_table_id = f"{dataset.dataset_id}.{table_name}"
-
         logging.info("Starting BigQuery load job.")
         # Load the temporary CSV file into BigQuery.
-        load_job = client.load_table_from_file(
+        bq_load_job = bq_client.load_table_from_file(
             file_obj=csv_file,
             destination=full_table_id,
             job_config=LoadJobConfig(
+                create_disposition=CreateDisposition.CREATE_IF_NEEDED,
                 source_format=SourceFormat.CSV,
                 skip_leading_rows=1,
                 write_disposition=write_disposition,
@@ -307,10 +305,11 @@ class BigQueryTask(Task):
                 datetime_format="YYYY-MM-DD HH24:MI:SS",
             ),
         )
-        load_job.result()
+
+        bq_load_job.result()
         logging.info(
             "Successfully loaded %d rows into to BigQuery table %s.",
-            load_job.output_rows,
+            bq_load_job.output_rows,
             full_table_id,
         )
 
