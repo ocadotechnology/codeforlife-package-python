@@ -3,6 +3,8 @@
 Created on 02/10/2025 at 17:22:38(+01:00).
 """
 
+import csv
+import io
 import os
 import typing as t
 from datetime import date, datetime, time, timedelta, timezone
@@ -19,10 +21,12 @@ from ..types import KwArgs
 from ..user.models import User
 from .bigquery import BigQueryTask
 
+if t.TYPE_CHECKING:
+    from tempfile import _TemporaryFileWrapper
+
+CsvFile = t.Union[io.BufferedReader, "_TemporaryFileWrapper[bytes]"]
+
 # pylint: disable=missing-class-docstring
-
-
-_ = BigQueryTask.__module__  # Shorthand for patching.
 
 
 # pylint: disable-next=too-many-instance-attributes,too-many-public-methods
@@ -58,6 +62,118 @@ class TestLoadDataIntoBigQueryTask(CeleryTestCase):
         )(cls._get_users)
 
         return super().setUpClass()
+
+    def setUp(self):
+        def set_up_patch(target: str, **kwargs):
+            mock = patch(f"{BigQueryTask.__module__}.{target}", **kwargs)
+            started_mock = t.cast(MagicMock, mock.start())
+            self.addCleanup(mock.stop)
+            return started_mock
+
+        # Mock creating a NamedTemporaryFile.
+        # pylint: disable-next=consider-using-with
+        self.csv_file = NamedTemporaryFile(
+            mode="w+b", suffix=".csv", delete=False
+        )
+        self.addCleanup(os.remove, self.csv_file.name)
+        self.mock_named_temporary_file = set_up_patch(
+            "NamedTemporaryFile", return_value=self.csv_file
+        )
+
+        # Mock getting GCP service account credentials.
+        self.credentials = "I can haz cheezburger?"
+        self.mock_get_gcp_service_account_credentials = set_up_patch(
+            "get_gcp_service_account_credentials",
+            return_value=self.credentials,
+        )
+
+        # Mock BigQuery classes and functions.
+        self.job_config = LoadJobConfig()
+        self.mock_bq_client = MagicMock()
+        self.mock_load_table_from_file: MagicMock = (
+            self.mock_bq_client.load_table_from_file
+        )
+        mock_load_job = MagicMock()
+        self.mock_load_table_from_file.return_value = mock_load_job
+        self.mock_load_job_result: MagicMock = mock_load_job.result
+        self.mock_load_job_config_class = set_up_patch(
+            "LoadJobConfig", return_value=self.job_config
+        )
+        self.mock_bq_client_class = set_up_patch(
+            "Client", return_value=self.mock_bq_client
+        )
+
+        return super().setUp()
+
+    # assertions
+
+    def _assert_queryset_written_to_csv(
+        self,
+        queryset: QuerySet[t.Any],
+        fields: t.List[str],
+        csv_file: t.Optional[CsvFile] = None,
+    ):
+        # Read the actual CSV content.
+        csv_file = csv_file or self.csv_file
+        csv_file.seek(0)
+        actual_content = csv_file.read().decode("utf-8")
+
+        # Generate the expected CSV content.
+        csv_content = io.StringIO()
+        csv_writer = csv.writer(
+            csv_content, lineterminator="\n", quoting=csv.QUOTE_MINIMAL
+        )
+        csv_writer.writerow(fields)  # Write the headers.
+        for obj in queryset:
+            csv_writer.writerow(
+                [
+                    BigQueryTask.format_value_for_csv(getattr(obj, field))
+                    for field in fields
+                ]
+            )
+        expected_content = csv_content.getvalue().rstrip()
+
+        # Assert the actual CSV content matches the expected content.
+        assert actual_content == expected_content
+
+    def _assert_csv_file_loaded_into_bigquery(
+        self,
+        table_name: str,
+        token_lifetime_seconds: int,
+        write_disposition: str,
+        csv_file: CsvFile,
+    ):
+        # Assert BigQuery client was created.
+        self.mock_get_gcp_service_account_credentials.assert_called_once_with(
+            token_lifetime_seconds=token_lifetime_seconds
+        )
+        self.mock_bq_client_class.assert_called_once_with(
+            project=settings.GOOGLE_CLOUD_PROJECT_ID,
+            credentials=self.credentials,
+        )
+
+        # Assert load job was created and run.
+        self.mock_load_job_config_class.assert_called_once_with(
+            source_format=SourceFormat.CSV,
+            skip_leading_rows=1,
+            write_disposition=write_disposition,
+            time_zone="Etc/UTC",
+            date_format="YYYY-MM-DD",
+            time_format="HH24:MI:SS",
+            datetime_format="YYYY-MM-DD HH24:MI:SS",
+        )
+        self.mock_load_table_from_file.assert_called_once_with(
+            file_obj=csv_file,
+            destination=".".join(
+                [
+                    settings.GOOGLE_CLOUD_PROJECT_ID,
+                    settings.GOOGLE_CLOUD_BIGQUERY_DATASET_ID,
+                    table_name,
+                ]
+            ),
+            job_config=self.job_config,
+        )
+        self.mock_load_job_result.assert_called_once_with()
 
     # settings
 
@@ -166,29 +282,14 @@ class TestLoadDataIntoBigQueryTask(CeleryTestCase):
         fields: t.List[str],
         chunk_size: int = 10,
     ):
-        with NamedTemporaryFile(
-            mode="w+b", suffix=".csv", delete=True
-        ) as csv_file:
-            assert queryset.exists() == BigQueryTask.write_queryset_to_csv(
-                fields=fields,
-                chunk_size=chunk_size,
-                queryset=queryset,
-                csv_file=csv_file,
-            )
+        assert queryset.exists() == BigQueryTask.write_queryset_to_csv(
+            fields=fields,
+            chunk_size=chunk_size,
+            queryset=queryset,
+            csv_file=self.csv_file,
+        )
 
-            csv_file.seek(0)
-
-            expected_rows = [",".join(fields)] + [
-                ",".join(
-                    [
-                        BigQueryTask.format_value_for_csv(getattr(obj, field))
-                        for field in fields
-                    ]
-                )
-                for obj in queryset
-            ]
-
-            assert csv_file.read().decode("utf-8") == "\n".join(expected_rows)
+        self._assert_queryset_written_to_csv(queryset, fields)
 
     def test_write_queryset_to_csv__all(self):
         """Values are written to the CSV file."""
@@ -213,83 +314,28 @@ class TestLoadDataIntoBigQueryTask(CeleryTestCase):
             BigQueryTask.shared(task.settings)(task.get_queryset)
 
     def _test_shared__write(self, task: BigQueryTask):
-        table_name = task.settings.table_name or task.get_queryset.__name__
+        self.apply_task(name=task.name)
 
-        credentials = "I can haz cheezburger?"
-        job_config = LoadJobConfig()
-
-        mock_bq_client = MagicMock()
-        mock_load_table_from_file: MagicMock = (
-            mock_bq_client.load_table_from_file
+        # Assert CSV file was created.
+        self.mock_named_temporary_file.assert_called_once_with(
+            mode="w+b", suffix=".csv", delete=True
         )
-        mock_load_job = MagicMock()
-        mock_load_table_from_file.return_value = mock_load_job
-        mock_load_job_result: MagicMock = mock_load_job.result
 
-        # pylint: disable-next=consider-using-with
-        csv_file = NamedTemporaryFile(mode="w+b", suffix=".csv", delete=False)
-        csv_file_name = csv_file.name
+        # Assert queryset was written to CSV.
+        assert self.csv_file.closed
+        with open(self.csv_file.name, "rb") as csv_file:
+            self._assert_queryset_written_to_csv(
+                queryset=task.get_ordered_queryset(),
+                fields=task.settings.fields,
+                csv_file=csv_file,
+            )
 
-        @patch(f"{_}.LoadJobConfig", return_value=job_config)
-        @patch(f"{_}.Client", return_value=mock_bq_client)
-        @patch(
-            f"{_}.get_gcp_service_account_credentials",
-            return_value=credentials,
+        self._assert_csv_file_loaded_into_bigquery(
+            table_name=task.settings.table_name or task.get_queryset.__name__,
+            token_lifetime_seconds=task.settings.time_limit,
+            write_disposition=task.settings.write_disposition,
+            csv_file=self.csv_file,
         )
-        @patch(f"{_}.NamedTemporaryFile", return_value=csv_file)
-        def test(
-            mock_named_temporary_file: MagicMock,
-            mock_get_gcp_service_account_credentials: MagicMock,
-            mock_bq_client_class: MagicMock,
-            mock_load_job_config_class: MagicMock,
-        ):
-            self.apply_task(name=task.name)
-
-            # Assert CSV file was created.
-            mock_named_temporary_file.assert_called_once_with(
-                mode="w+b", suffix=".csv", delete=True
-            )
-
-            # Assert queryset was written to CSV.
-            # TODO
-
-            # Assert BigQuery client was created.
-            mock_get_gcp_service_account_credentials.assert_called_once_with(
-                token_lifetime_seconds=task.settings.time_limit
-            )
-            mock_bq_client_class.assert_called_once_with(
-                project=settings.GOOGLE_CLOUD_PROJECT_ID,
-                credentials=credentials,
-            )
-
-            # Assert load job was created and run.
-            mock_load_job_config_class.assert_called_once_with(
-                source_format=SourceFormat.CSV,
-                skip_leading_rows=1,
-                write_disposition=task.settings.write_disposition,
-                time_zone="Etc/UTC",
-                date_format="YYYY-MM-DD",
-                time_format="HH24:MI:SS",
-                datetime_format="YYYY-MM-DD HH24:MI:SS",
-            )
-            mock_load_table_from_file.assert_called_once_with(
-                file_obj=csv_file,
-                destination=".".join(
-                    [
-                        settings.GOOGLE_CLOUD_PROJECT_ID,
-                        settings.GOOGLE_CLOUD_BIGQUERY_DATASET_ID,
-                        table_name,
-                    ]
-                ),
-                job_config=job_config,
-            )
-            mock_load_job_result.assert_called_once_with()
-
-        try:
-            # pylint: disable-next=no-value-for-parameter
-            test()
-        finally:
-            os.remove(csv_file_name)
 
     def test_shared__write_append(self):
         """The append_users task writes data to BigQuery in append mode."""

@@ -139,6 +139,23 @@ class BigQueryTask(Task):
     settings: Settings
     get_queryset: GetQuerySet
 
+    def get_ordered_queryset(self, *task_args, **task_kwargs):
+        """Get the ordered queryset.
+
+        Args:
+            task_args: The positional arguments passed to the task.
+            task_kwargs: The keyword arguments passed to the task.
+
+        Returns:
+            The ordered queryset.
+        """
+
+        queryset = self.get_queryset(*task_args, **task_kwargs)
+        if not queryset.ordered:
+            queryset = queryset.order_by(self.settings.id_field)
+
+        return queryset
+
     @staticmethod
     def format_value_for_csv(value: t.Any) -> str:
         """Format a value for inclusion in a CSV file.
@@ -280,12 +297,7 @@ class BigQueryTask(Task):
     def _load_data_into_bq(
         self: "BigQueryTask", table_name: str, *task_args, **task_kwargs
     ):
-        # Get the queryset.
-        queryset = self.get_queryset(*task_args, **task_kwargs)
-
-        # If the queryset is not ordered, order it by ID by default.
-        if not queryset.ordered:
-            queryset = queryset.order_by(self.settings.id_field)
+        queryset = self.get_ordered_queryset(*task_args, **task_kwargs)
 
         with NamedTemporaryFile(
             mode="w+b", suffix=".csv", delete=True
