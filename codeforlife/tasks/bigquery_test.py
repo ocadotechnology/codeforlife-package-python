@@ -36,8 +36,11 @@ class TestLoadDataIntoBigQueryTask(CeleryTestCase):
     truncate_users: BigQueryTask
 
     @staticmethod
-    def _get_users():
-        return User.objects.all()
+    def _get_users(order_by: t.Optional[str] = None):
+        queryset = User.objects.all()
+        if order_by:
+            queryset = queryset.order_by(order_by)
+        return queryset
 
     @classmethod
     def setUpClass(cls):
@@ -273,6 +276,24 @@ class TestLoadDataIntoBigQueryTask(CeleryTestCase):
         assert "12:30:15" == BigQueryTask.format_value_for_csv(
             time(hour=12, minute=30, second=15)
         )
+
+    # get_ordered_queryset
+
+    def _test_get_ordered_queryset(self, order_by: t.Optional[str] = None):
+        task = self.append_users
+        queryset = task.get_ordered_queryset(order_by=order_by)
+        assert queryset.ordered
+        assert list(queryset) == list(
+            User.objects.order_by(order_by or task.settings.id_field)
+        )
+
+    def test_get_ordered_queryset__pre_ordered(self):
+        """Does not reorder an already ordered queryset."""
+        self._test_get_ordered_queryset(order_by="first_name")
+
+    def test_get_ordered_queryset__post_ordered(self):
+        """Orders the queryset if not already ordered. The default is by ID."""
+        self._test_get_ordered_queryset()
 
     # write_queryset_to_csv
 
