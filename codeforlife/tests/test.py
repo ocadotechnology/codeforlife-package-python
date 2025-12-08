@@ -5,11 +5,15 @@ Created on 10/04/2024 at 13:03:00(+01:00).
 
 import typing as t
 from unittest.case import _AssertRaisesContext
+from unittest.mock import MagicMock, patch
 
 from django.core.exceptions import ValidationError
 from django.http import HttpResponse
 from django.test import Client as _Client
 from django.test import TestCase as _TestCase
+
+if t.TYPE_CHECKING:
+    from unittest.mock import _patch_pass_arg  # type: ignore[attr-defined]
 
 
 class Client(_Client):
@@ -39,6 +43,40 @@ class Client(_Client):
 
 class TestCase(_TestCase):
     """Base test case for all tests to inherit."""
+
+    def _start_and_stop_patch(self, p: "_patch_pass_arg"):
+        mock = t.cast(MagicMock, p.start())
+        self.addCleanup(p.stop)
+        return mock
+
+    def patch(self, target: str, **kwargs):
+        """Patch a target.
+
+        Sets up automatic unpatching on test cleanup.
+
+        Args:
+            target: The target to patch.
+
+        Returns:
+            The mock object.
+        """
+        return self._start_and_stop_patch(patch(target, **kwargs))
+
+    def patch_object(self, target: t.Any, attribute: str, **kwargs):
+        """Patch an attribute on a target.
+
+        Sets up automatic unpatching on test cleanup.
+
+        Args:
+            target: The target to patch.
+            attribute: The attribute to patch.
+
+        Returns:
+            The mock object.
+        """
+        return self._start_and_stop_patch(
+            patch.object(target, attribute, **kwargs)
+        )
 
     def assert_raises_validation_error(self, code: str, *args, **kwargs):
         """Assert code block raises a validation error.

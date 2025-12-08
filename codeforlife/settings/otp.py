@@ -60,6 +60,11 @@ CACHE_DB_DATA_PATH = (
     f"{AWS_S3_APP_FOLDER}/elasticacheMetadata/{CACHE_CLUSTER_ID}.dbdata"
 )
 
+# GCP
+
+GCP_WIF_AUDIENCE = os.getenv("GCP_WIF_AUDIENCE")
+GCP_WIF_SERVICE_ACCOUNT = os.getenv("GCP_WIF_SERVICE_ACCOUNT")
+
 # SQS
 
 SQS_URL = os.getenv("SQS_URL")

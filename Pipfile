@@ -35,7 +35,7 @@ codeforlife-portal = "==8.9.9" # TODO: remove
 rapid-router = "==7.6.10" # TODO: remove
 phonenumbers = "==8.12.12" # TODO: remove
 google-auth = "==2.40.3"
-google-cloud-storage = "==3.4.0"
+google-cloud-bigquery = "==3.38.0"
 
 [dev-packages]
 celery-types = "==0.23.0"
