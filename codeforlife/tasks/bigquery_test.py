@@ -258,6 +258,7 @@ class TestLoadDataIntoBigQueryTask(CeleryTestCase):
     def test_register_table_name__unregistered(self):
         """An unregistered table name does not raise an error."""
         table_name = "some_unique_table_name"
+        assert table_name not in BigQueryTask.TABLE_NAMES
         BigQueryTask.register_table_name(table_name)
         assert table_name in BigQueryTask.TABLE_NAMES
 
