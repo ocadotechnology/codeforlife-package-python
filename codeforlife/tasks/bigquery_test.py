@@ -92,8 +92,8 @@ class TestLoadDataIntoBigQueryTask(CeleryTestCase):
         self.mock_bq_client_class = self.patch(
             target("Client"), return_value=self.mock_bq_client
         )
-        
-        # Mock load_table_from_file method and its result(). 
+
+        # Mock load_table_from_file method and its result().
         self.mock_load_table_from_file: MagicMock = (
             self.mock_bq_client.load_table_from_file
         )
