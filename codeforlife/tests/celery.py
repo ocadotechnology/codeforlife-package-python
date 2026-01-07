@@ -9,7 +9,7 @@ from importlib import import_module
 from celery import Celery, Task
 from django.db.models import QuerySet
 
-from ..tasks import DataWarehouseTask, get_task_name
+from ..tasks import BigQueryTask, get_task_name
 from ..types import Args, KwArgs
 from .test import TestCase
 
@@ -48,9 +48,9 @@ class CeleryTestCase(TestCase):
         task: Task = self.app.tasks[get_task_name(name)]
         task.apply(args=args, kwargs=kwargs, **options)
 
-    def assert_data_warehouse_task(
+    def assert_bigquery_task(
         self,
-        task: DataWarehouseTask,
+        task: BigQueryTask,
         args: t.Optional[Args] = None,
         kwargs: t.Optional[KwArgs] = None,
     ):
