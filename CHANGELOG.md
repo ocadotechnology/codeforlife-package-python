@@ -1,6 +1,36 @@
 # CHANGELOG
 
 
+## v0.31.0 (2026-01-07)
+
+### Features
+
+- Workspace 1049 ([#172](https://github.com/ocadotechnology/codeforlife-package-python/pull/172),
+  [`6843255`](https://github.com/ocadotechnology/codeforlife-package-python/commit/6843255e00fa8accd5cad9dc16508fc5130e92e8))
+
+* remove blob logic
+
+* load data into BQ - untested
+
+* quick save
+
+* fix tests
+
+* test get_ordered_queryset
+
+* fix
+
+* fix types
+
+* house keeping
+
+* create dataset if it doesn't exist
+
+* create if needed
+
+* fix format
+
+
 ## v0.30.6 (2025-12-10)
 
 ### Bug Fixes
