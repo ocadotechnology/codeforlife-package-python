@@ -36,6 +36,7 @@ rapid-router = "==7.6.12" # TODO: remove
 phonenumbers = "==8.12.12" # TODO: remove
 google-auth = "==2.40.3"
 google-cloud-bigquery = "==3.38.0"
+tink = {version = "==1.13.0", extras = ["gcpkms"]}
 
 [dev-packages]
 celery-types = "==0.23.0"

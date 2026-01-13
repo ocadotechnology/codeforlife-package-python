@@ -12,7 +12,7 @@ from django.db.utils import IntegrityError
 from django.utils.crypto import get_random_string
 from django.utils.translation import gettext_lazy as _
 
-from ...models import EncryptedCharField
+from ...models import EncryptedBinaryField, Model
 from ...types import Validators
 from ...validators import CharSetValidatorBuilder
 from .user import User
@@ -23,9 +23,10 @@ else:
     TypedModelMeta = object
 
 
-class OtpBypassToken(models.Model):
+class OtpBypassToken(Model):
     """A single use token to bypass a user's OTP authentication factor."""
 
+    ASSOCIATED_DATA = "otp_bypass_token"
     length = 8
     allowed_chars = string.ascii_lowercase
     max_count = 10
@@ -72,15 +73,19 @@ class OtpBypassToken(models.Model):
         on_delete=models.CASCADE,
     )
 
-    token = EncryptedCharField(
-        _("token"),
-        max_length=100,
+    _token, token = EncryptedBinaryField.initialize(
+        associated_data="token",
+        verbose_name=_("token"),
         help_text=_("The encrypted equivalent of the token."),
     )
 
     class Meta(TypedModelMeta):
         verbose_name = _("OTP bypass token")
         verbose_name_plural = _("OTP bypass tokens")
+
+    @property
+    def dek_aead(self):
+        return self.user.userprofile.dek_aead
 
     def save(self, *args, **kwargs):
         raise IntegrityError("Cannot create or update a single instance.")
