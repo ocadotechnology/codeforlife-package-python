@@ -8,5 +8,5 @@ from .abstract_base_user import AbstractBaseUser
 from .base import *
 from .base_session_store import BaseSessionStore
 from .data_encryption_key_field import DataEncryptionKeyField
-from .encrypted_binary_field import EncryptedBinaryField
 from .encrypted_char_field import EncryptedCharField
+from .encrypted_text_field import EncryptedTextField

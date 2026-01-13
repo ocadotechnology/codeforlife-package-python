@@ -36,12 +36,11 @@ class DataEncryptionKeyField(models.BinaryField):
         "The encrypted data encryption key (DEK) for this model."
     )
 
-    @classmethod
-    def _set_init_kwargs(cls, kwargs: KwArgs):
+    def _set_init_kwargs(self, kwargs: KwArgs):
         kwargs["editable"] = False
-        kwargs["default"] = cls.create_dek
-        kwargs.setdefault("verbose_name", _(cls.default_verbose_name))
-        kwargs.setdefault("help_text", _(cls.default_help_text))
+        kwargs["default"] = self.create_dek
+        kwargs.setdefault("verbose_name", _(self.default_verbose_name))
+        kwargs.setdefault("help_text", _(self.default_help_text))
 
     def __init__(self, **kwargs):
         if kwargs.get("editable", False):
@@ -62,10 +61,6 @@ class DataEncryptionKeyField(models.BinaryField):
         name, path, args, kwargs = super().deconstruct()
         self._set_init_kwargs(kwargs)
         return name, path, args, kwargs
-
-    # TODO: inherit EncryptedBinaryField
-    # def contribute_to_class(self, cls, name, private_only=False):
-    #     super().contribute_to_class(cls, name, private_only)
 
     @classmethod
     def create_dek(cls):

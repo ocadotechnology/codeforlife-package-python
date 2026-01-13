@@ -9,10 +9,11 @@ from functools import cached_property
 from django.core.exceptions import ValidationError
 from django.db import models
 
-from ..models import DataEncryptionKeyModel, Model
+from ..types import KwArgs
+from .base import Model
 
 
-class EncryptedBinaryField(models.BinaryField):
+class EncryptedTextField(models.BinaryField):
     """
     A custom BinaryField that registers itself as an encrypted field on the
     model class.
@@ -20,21 +21,23 @@ class EncryptedBinaryField(models.BinaryField):
 
     model: t.Type[Model]
 
-    def __init__(self, associated_data: str, *args, **kwargs):
+    def _set_init_kwargs(self, kwargs: KwArgs):
+        kwargs.setdefault("db_column", self.associated_data)
+
+    def __init__(self, associated_data: str, **kwargs):
         if not associated_data:
             raise ValidationError(
                 "Associated data cannot be empty.", code="no_associated_data"
             )
         self.associated_data = associated_data
 
-        # Set db_column to associated_data by default.
-        kwargs.setdefault("db_column", associated_data)
-
-        super().__init__(*args, **kwargs)
+        self._set_init_kwargs(kwargs)
+        super().__init__(**kwargs)
 
     def deconstruct(self):
         name, path, args, kwargs = super().deconstruct()
         kwargs["associated_data"] = self.associated_data
+        self._set_init_kwargs(kwargs)
         return name, path, args, kwargs
 
     def contribute_to_class(self, cls, name, private_only=False):
@@ -75,46 +78,38 @@ class EncryptedBinaryField(models.BinaryField):
 
         encrypted_fields.append(self)
 
+    @property
+    def _associated_data(self):
+        """Returns the fully qualified associated data for this field."""
+        return f"{self.model.ASSOCIATED_DATA}:{self.associated_data}".encode()
+
     @cached_property
     def getter_and_setter(self):
         """Returns a property that gets/sets the decrypted/encrypted value."""
-        field = self
 
-        def to_associated_data(model: Model, dek_model: DataEncryptionKeyModel):
-            """Generates the Associated Data (AD) for encryption/decryption."""
-            return ":".join(
-                [
-                    dek_model.ASSOCIATED_DATA,
-                    dek_model.pk,
-                    model.ASSOCIATED_DATA,
-                    field.associated_data,
-                ]
-            ).encode()
-
-        def decrypt_value(self: Model):
+        def decrypt_value(model: Model):
             """Decrypts a single value using the DEK and associated data."""
-            ciphertext: t.Optional[bytes] = getattr(self, field.name)
+            ciphertext: t.Optional[bytes] = getattr(model, self.name)
             if ciphertext is None:
                 return None
 
-            dek_model = self.get_data_encryption_key_model()
-            return dek_model.data_key_aead.decrypt(
+            return model.dek_aead.decrypt(
                 ciphertext=ciphertext,
-                associated_data=to_associated_data(self, dek_model),
+                associated_data=self._associated_data,
             ).decode()
 
-        def encrypt_value(self: Model, plaintext: t.Optional[str]):
+        def encrypt_value(model: Model, plaintext: t.Optional[str]):
             """Encrypts a single value using the DEK and associated data."""
-            if plaintext is None:
-                value = None
-            else:
-                dek_model = self.get_data_encryption_key_model()
-                value = dek_model.data_key_aead.encrypt(
+            value = (
+                None
+                if plaintext is None
+                else model.dek_aead.encrypt(
                     plaintext=plaintext.encode(),
-                    associated_data=to_associated_data(self, dek_model),
+                    associated_data=self._associated_data,
                 )
+            )
 
-            setattr(self, field.name, value)
+            setattr(model, self.name, value)
 
         # Create property with getter and setter. Cast to str for mypy.
         return t.cast(str, property(fget=decrypt_value, fset=encrypt_value))
@@ -122,5 +117,5 @@ class EncryptedBinaryField(models.BinaryField):
     @classmethod
     def initialize(cls, associated_data: str, *args, **kwargs):
         """Helper to create an EncryptedBinaryField and its property."""
-        encrypted_binary_field = cls(associated_data, *args, **kwargs)
-        return encrypted_binary_field, encrypted_binary_field.getter_and_setter
+        encrypted_text_field = cls(associated_data, *args, **kwargs)
+        return encrypted_text_field, encrypted_text_field.getter_and_setter

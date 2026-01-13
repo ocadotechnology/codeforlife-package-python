@@ -7,14 +7,13 @@ Base model for all Django models.
 
 import typing as t
 
-from django.core.exceptions import ValidationError
 from django.db import models
 
 if t.TYPE_CHECKING:
     from django_stubs_ext.db.models import TypedModelMeta
     from tink.aead import Aead
 
-    from .encrypted_binary_field import EncryptedBinaryField
+    from .encrypted_text_field import EncryptedTextField
 else:
     TypedModelMeta = object
 
@@ -55,19 +54,9 @@ class Model(models.Model):
     """Base for all models."""
 
     ASSOCIATED_DATA: str
-    _ENCRYPTED_FIELDS: t.List["EncryptedBinaryField"] = []
+    _ENCRYPTED_FIELDS: t.List["EncryptedTextField"] = []
 
     objects: models.Manager[t.Self]  # = Manager()
-
-    def __init_subclass__(cls, *args, **kwargs):
-        super().__init_subclass__(*args, **kwargs)
-
-        if not cls._meta.abstract and not hasattr(cls, "ASSOCIATED_DATA"):
-            raise ValidationError(
-                f"Model '{cls.__name__}' must define an"
-                " ASSOCIATED_DATA attribute.",
-                code="no_associated_data",
-            )
 
     class Meta(TypedModelMeta):
         abstract = True
