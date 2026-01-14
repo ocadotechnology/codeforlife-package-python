@@ -47,6 +47,10 @@ class BaseEncryptedField(models.BinaryField, t.Generic[T]):
     def contribute_to_class(self, cls, name, private_only=False):
         super().contribute_to_class(cls, name, private_only)
 
+        # Skip fake models used for migrations.
+        if cls.__module__ == "__fake__":
+            return
+
         # Ensure the model subclasses EncryptedModel.
         if not issubclass(cls, EncryptedModel):
             raise ValidationError(
@@ -140,14 +144,13 @@ class BaseEncryptedField(models.BinaryField, t.Generic[T]):
 
             setattr(model, self.name, value)
 
-        # Create property with getter and/or setter. Cast to T for mypy.
-        return t.cast(
-            T,
-            property(
-                fget=decrypt_value if self.decrypt_value else None,
-                fset=encrypt_value if self.encrypt_value else None,
-            ),
+        # Create property with getter and/or setter.
+        value = property(
+            fget=decrypt_value if self.decrypt_value else None,
+            fset=encrypt_value if self.encrypt_value else None,
         )
+
+        return t.cast(T, value)  # Cast to T for mypy.
 
     @classmethod
     def initialize(cls, associated_data: str, **kwargs):

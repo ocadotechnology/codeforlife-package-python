@@ -12,7 +12,7 @@ from django.db.utils import IntegrityError
 from django.utils.crypto import get_random_string
 from django.utils.translation import gettext_lazy as _
 
-from ...models import EncryptedTextField, Model
+from ...models import EncryptedModel, EncryptedTextField
 from ...types import Validators
 from ...validators import CharSetValidatorBuilder
 from .user import User
@@ -23,7 +23,7 @@ else:
     TypedModelMeta = object
 
 
-class OtpBypassToken(Model):
+class OtpBypassToken(EncryptedModel):
     """A single use token to bypass a user's OTP authentication factor."""
 
     associated_data = "otp_bypass_token"
@@ -40,7 +40,7 @@ class OtpBypassToken(Model):
     ]
 
     # pylint: disable-next=missing-class-docstring,too-few-public-methods
-    class Manager(models.Manager["OtpBypassToken"]):
+    class Manager(EncryptedModel.Manager["OtpBypassToken"]):
         def bulk_create(self, user: User):  # type: ignore[override]
             """Bulk create OTP-bypass tokens.
 
@@ -61,9 +61,13 @@ class OtpBypassToken(Model):
 
             user.otp_bypass_tokens.all().delete()
 
-            return super().bulk_create(
-                [OtpBypassToken(user=user, token=token) for token in tokens]
-            )
+            otp_bypass_tokens: t.List[OtpBypassToken] = []
+            for token in tokens:
+                otp_bypass_token = OtpBypassToken(user=user)
+                otp_bypass_token.token = token
+                otp_bypass_tokens.append(otp_bypass_token)
+
+            return super().bulk_create(otp_bypass_tokens)
 
     objects: Manager = Manager()
 

@@ -1,5 +1,8 @@
 import typing as t
 
+from django.core.exceptions import ValidationError
+from django.db import models
+
 from .base import Model
 
 if t.TYPE_CHECKING:
@@ -10,44 +13,54 @@ if t.TYPE_CHECKING:
 else:
     TypedModelMeta = object
 
-# class Manager(models.Manager["AnyModel"], t.Generic["AnyModel"]):
-#     """Base manager for all models."""
 
-#     def bulk_create(self, objs, batch_size=None, ignore_conflicts=False):
-#         """
-#         Intercepts bulk_create to encrypt data in memory before saving.
-#         """
-#         for obj in objs:
-#             if hasattr(obj, "ensure_key_exists"):
-#                 obj.ensure_key_exists()
-#             if hasattr(obj, "encrypt_all_fields"):
-#                 obj.encrypt_all_fields()
-
-#         return super().bulk_create(
-#             objs, batch_size=batch_size, ignore_conflicts=ignore_conflicts
-#         )
-
-#     def update(self, **kwargs):
-#         """
-#         Block standard update() on encrypted fields because it bypasses the
-#         per-row unique keys.
-#         """
-#         if hasattr(self.model, "ENCRYPTED_FIELDS"):
-#             if any(field in kwargs for field in self.model.ENCRYPTED_FIELDS):
-#                 raise NotImplementedError(
-#                     "Cannot use .update() on encrypted fields. "
-#                     "Use .bulk_update() or iterate and save() instead."
-#                 )
-
-#         return super().update(**kwargs)
-
-
-class EncryptedModel(Model):
-    """Base for all models with encrypted fields."""
-
+class _EncryptedModel(Model):
     ENCRYPTED_FIELDS: t.List["BaseEncryptedField"] = []
 
     associated_data: str
+
+    class Meta(TypedModelMeta):
+        abstract = True
+
+
+AnyEncryptedModel = t.TypeVar("AnyEncryptedModel", bound=_EncryptedModel)
+
+
+class EncryptedModel(_EncryptedModel):
+    """Base for all models with encrypted fields."""
+
+    def __init__(self, **kwargs):
+        for name in kwargs:
+            if any(field.name == name for field in self.ENCRYPTED_FIELDS):
+                raise ValidationError(
+                    f"Cannot set encrypted field '{name}' via __init__."
+                    " Set the property after initialization instead.",
+                    code="cannot_set_encrypted_field",
+                )
+
+        super().__init__(**kwargs)
+
+    class Manager(
+        models.Manager[AnyEncryptedModel], t.Generic[AnyEncryptedModel]
+    ):
+        """Base manager for models with encrypted fields."""
+
+        def update(self, **kwargs):
+            """Ensure encrypted fields are not updated via 'update()'."""
+            for name in kwargs:
+                if any(
+                    field.name == name for field in self.model.ENCRYPTED_FIELDS
+                ):
+                    raise ValidationError(
+                        f"Cannot update encrypted field '{name}' via"
+                        " 'update()'. Set the property on each instance"
+                        " instead.",
+                        code="cannot_update_encrypted_field",
+                    )
+
+            return super().update(**kwargs)
+
+    objects: Manager[t.Self] = Manager()  # type: ignore[assignment]
 
     class Meta(TypedModelMeta):
         abstract = True
@@ -56,16 +69,3 @@ class EncryptedModel(Model):
     def dek_aead(self) -> "Aead":
         """Gets the AEAD primitive for this model's DEK."""
         raise NotImplementedError()
-
-    def encrypt_all_fields(self):
-        """
-        Helper called by Manager.bulk_create().
-        Forces the encryption of all properties into their DB fields.
-        """
-        for field in self.ENCRYPTED_FIELDS:
-            plaintext = getattr(
-                self, field.name, None
-            )  # field.getter_and_setter.fget(self)
-            if plaintext:
-                # The setter on the property will handle encryption
-                setattr(self, field.name, plaintext)

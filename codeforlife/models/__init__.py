@@ -9,4 +9,5 @@ from .base import *
 from .base_encrypted_field import BaseEncryptedField
 from .base_session_store import BaseSessionStore
 from .data_encryption_key_field import DataEncryptionKeyField
+from .encrypted import EncryptedModel
 from .encrypted_text_field import EncryptedTextField
