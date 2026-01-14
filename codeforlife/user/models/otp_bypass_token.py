@@ -12,7 +12,7 @@ from django.db.utils import IntegrityError
 from django.utils.crypto import get_random_string
 from django.utils.translation import gettext_lazy as _
 
-from ...models import EncryptedBinaryField, Model
+from ...models import EncryptedTextField, Model
 from ...types import Validators
 from ...validators import CharSetValidatorBuilder
 from .user import User
@@ -26,7 +26,7 @@ else:
 class OtpBypassToken(Model):
     """A single use token to bypass a user's OTP authentication factor."""
 
-    ASSOCIATED_DATA = "otp_bypass_token"
+    associated_data = "otp_bypass_token"
     length = 8
     allowed_chars = string.ascii_lowercase
     max_count = 10
@@ -73,7 +73,7 @@ class OtpBypassToken(Model):
         on_delete=models.CASCADE,
     )
 
-    _token, token = EncryptedBinaryField.initialize(
+    _token, token = EncryptedTextField.initialize(
         associated_data="token",
         verbose_name=_("token"),
         help_text=_("The encrypted equivalent of the token."),
