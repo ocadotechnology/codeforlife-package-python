@@ -59,29 +59,6 @@ class BaseEncryptedField(models.BinaryField, t.Generic[T]):
                 code="invalid_model_base_class",
             )
 
-        # Ensure the model defines associated_data correctly.
-        if not cls._meta.abstract:
-            if not hasattr(cls, "associated_data"):
-                raise ValidationError(
-                    f"'{cls.__module__}.{cls.__name__}' must define an"
-                    " associated_data attribute.",
-                    code="no_associated_data",
-                )
-
-            if not isinstance(cls.associated_data, str):
-                raise ValidationError(
-                    f"'{cls.__module__}.{cls.__name__}.associated_data' must be"
-                    " a string.",
-                    code="invalid_associated_data_type",
-                )
-
-            if not cls.associated_data:
-                raise ValidationError(
-                    f"'{cls.__module__}.{cls.__name__}.associated_data' cannot"
-                    " be empty.",
-                    code="empty_associated_data",
-                )
-
         # Ensure no duplicate encrypted fields.
         if self in cls.ENCRYPTED_FIELDS:
             raise ValidationError(
