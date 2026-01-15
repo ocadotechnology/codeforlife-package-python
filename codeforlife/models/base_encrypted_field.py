@@ -87,7 +87,7 @@ class BaseEncryptedField(models.BinaryField, t.Generic[T]):
         raise NotImplementedError()
 
     @property
-    def _associated_data(self):
+    def qual_associated_data(self):
         """Returns the fully qualified associated data for this field."""
         return f"{self.model.associated_data}:{self.associated_data}".encode()
 
@@ -103,7 +103,7 @@ class BaseEncryptedField(models.BinaryField, t.Generic[T]):
 
             data = model.dek_aead.decrypt(
                 ciphertext=ciphertext,
-                associated_data=self._associated_data,
+                associated_data=self.qual_associated_data,
             )
 
             return self.bytes_to_value(data)
@@ -115,7 +115,7 @@ class BaseEncryptedField(models.BinaryField, t.Generic[T]):
                 if plaintext is None
                 else model.dek_aead.encrypt(
                     plaintext=self.value_to_bytes(plaintext),
-                    associated_data=self._associated_data,
+                    associated_data=self.qual_associated_data,
                 )
             )
 
