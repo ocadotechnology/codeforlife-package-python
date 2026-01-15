@@ -64,6 +64,20 @@ class EncryptedModelTestCase(TestCase):
                 class Meta(TypedModelMeta):
                     app_label = "codeforlife.user"
 
+    def test_contribute_to_class(self):
+        """BaseEncryptedField is contributed to class correctly."""
+
+        # pylint: disable-next=unused-variable,abstract-method
+        class TestModel(EncryptedModel):
+            associated_data = "model"
+
+            field = self.field
+
+            class Meta(TypedModelMeta):
+                app_label = "codeforlife.user"
+
+        assert self.field in TestModel.ENCRYPTED_FIELDS
+
     def test_contribute_to_class__associated_data_already_used(self):
         """
         Cannot contribute BaseEncryptedField with duplicate associated data.
