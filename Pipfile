@@ -28,11 +28,10 @@ pyjwt = "==2.6.0" # TODO: upgrade to latest version.
 psutil = "==7.0.0"
 importlib-metadata = "==4.13.0" # TODO: remove. needed by old portal
 django-formtools = "==2.5.1" # TODO: remove. needed by old portal
-django-otp = "==1.6.3" # TODO: remove. needed by old portal
 # https://pypi.org/user/codeforlife/
-cfl-common = "==8.9.11" # TODO: remove
-codeforlife-portal = "==8.9.11" # TODO: remove
-rapid-router = "==7.6.12" # TODO: remove
+cfl-common = "==8.9.15" # TODO: remove
+codeforlife-portal = "==8.9.15" # TODO: remove
+rapid-router = "==7.6.13" # TODO: remove
 phonenumbers = "==8.12.12" # TODO: remove
 google-auth = "==2.40.3"
 google-cloud-bigquery = "==3.38.0"
