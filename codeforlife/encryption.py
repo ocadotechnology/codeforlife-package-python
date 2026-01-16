@@ -25,13 +25,13 @@ class FakeAead:
 
     @staticmethod
     # pylint: disable-next=unused-argument
-    def encrypt(plaintext: bytes, associated_data: bytes):
+    def encrypt(plaintext: bytes, associated_data: bytes = b""):
         """Simulate ciphertext by wrapping in base64 and adding a prefix."""
         return b"fake_enc:" + b64encode(plaintext)
 
     @staticmethod
     # pylint: disable-next=unused-argument
-    def decrypt(ciphertext: bytes, associated_data: bytes):
+    def decrypt(ciphertext: bytes, associated_data: bytes = b""):
         """Simulate decryption by removing prefix and base64 decoding."""
         if not ciphertext.startswith(b"fake_enc:"):
             raise ValueError("Invalid ciphertext for fake mock")

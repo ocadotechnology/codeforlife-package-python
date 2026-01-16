@@ -1,8 +1,9 @@
 import typing as t
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 from django.db import models
 
+from ..encryption import FakeAead
 from ..tests import TestCase
 from .base_encrypted_field import BaseEncryptedField
 from .encrypted import EncryptedModel
@@ -19,7 +20,8 @@ else:
 class EncryptedModelTestCase(TestCase):
     def setUp(self):
         self.associated_data = "field"
-        self.default = b"default_encrypted_bytes"
+        self.decrypted_default = b"default_encrypted_bytes"
+        self.default = FakeAead.encrypt(self.decrypted_default)
         self.field = BaseEncryptedField[str](
             associated_data=self.associated_data, default=self.default
         )
@@ -135,12 +137,6 @@ class EncryptedModelTestCase(TestCase):
         assert field.value.fset is not None
         assert field.value.fdel is None
 
-        dek_aead_mock = MagicMock()
-        dek_aead_decrypt_mock = MagicMock(return_value=b"decrypted_bytes")
-        dek_aead_mock.decrypt = dek_aead_decrypt_mock
-        dek_aead_encrypt_mock = MagicMock(return_value=b"encrypted_bytes")
-        dek_aead_mock.encrypt = dek_aead_encrypt_mock
-
         class ValidModel(EncryptedModel):
             associated_data = "model"
 
@@ -150,9 +146,7 @@ class EncryptedModelTestCase(TestCase):
             class Meta(TypedModelMeta):
                 app_label = "codeforlife.user"
 
-            @property
-            def dek_aead(self):
-                return dek_aead_mock
+            dek_aead = FakeAead.as_mock()
 
         with patch.object(
             field, "bytes_to_value", return_value="value"
@@ -163,25 +157,25 @@ class EncryptedModelTestCase(TestCase):
 
             # Get the value.
             value = instance.value
-            dek_aead_decrypt_mock.assert_called_once_with(
+            instance.dek_aead.decrypt.assert_called_once_with(
                 ciphertext=self.default,
                 associated_data=field.qual_associated_data,
             )
-            bytes_to_value_mock.assert_called_once_with(
-                dek_aead_decrypt_mock.return_value
-            )
+            bytes_to_value_mock.assert_called_once_with(self.decrypted_default)
             assert value == bytes_to_value_mock.return_value
 
             # Set the value.
             value = "new_value"
             instance.value = value
             value_to_bytes_mock.assert_called_once_with(value)
-            dek_aead_encrypt_mock.assert_called_once_with(
+            instance.dek_aead.encrypt.assert_called_once_with(
                 plaintext=value_to_bytes_mock.return_value,
                 associated_data=field.qual_associated_data,
             )
             # pylint: disable-next=protected-access
-            assert instance._field == dek_aead_encrypt_mock.return_value
+            assert instance._field == FakeAead.encrypt(
+                value_to_bytes_mock.return_value
+            )
 
     def test_initialize(self):
         """BaseEncryptedField.initialize creates field and value property."""
