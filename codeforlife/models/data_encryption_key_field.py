@@ -1,23 +1,16 @@
 import typing as t
 from functools import cached_property
-from io import BytesIO
 
-from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models
-from django.utils.functional import SimpleLazyObject
 from django.utils.translation import gettext_lazy as _
-from tink import (  # type: ignore[import-untyped]
-    BinaryKeysetReader,
-    BinaryKeysetWriter,
-    new_keyset_handle,
-    read_keyset_handle,
-)
-from tink.aead import Aead, aead_key_templates  # type: ignore[import-untyped]
-from tink.integration.gcpkms import GcpKmsClient  # type: ignore[import-untyped]
 
+from ..encryption import create_dek, get_dek_aead
 from ..models import Model
 from ..types import KwArgs
+
+if t.TYPE_CHECKING:
+    from tink.aead import Aead  # type: ignore[import-untyped]
 
 
 class DataEncryptionKeyField(models.BinaryField):
@@ -25,20 +18,15 @@ class DataEncryptionKeyField(models.BinaryField):
     A custom BinaryField to store a encrypted data encryption key (DEK).
     """
 
-    _master_key_aead: Aead = SimpleLazyObject(
-        lambda: GcpKmsClient(
-            settings.KMS_MASTER_KEY_URI, settings.KMS_CREDENTIALS_PATH
-        ).get_aead(settings.KMS_MASTER_KEY_URI)
-    )
-
     default_verbose_name = "data encryption key"
     default_help_text = (
         "The encrypted data encryption key (DEK) for this model."
     )
 
-    def _set_init_kwargs(self, kwargs: KwArgs):
+    def set_init_kwargs(self, kwargs: KwArgs):
+        """Sets common init kwargs."""
         kwargs["editable"] = False
-        kwargs["default"] = self.create_dek
+        kwargs["default"] = create_dek
         kwargs.setdefault("verbose_name", _(self.default_verbose_name))
         kwargs.setdefault("help_text", _(self.default_help_text))
 
@@ -53,46 +41,32 @@ class DataEncryptionKeyField(models.BinaryField):
                 "DataEncryptionKeyField cannot have a default value.",
                 code="default_not_allowed",
             )
+        if kwargs.get("null", False):
+            raise ValidationError(
+                "DataEncryptionKeyField cannot be null.",
+                code="null_not_allowed",
+            )
 
-        self._set_init_kwargs(kwargs)
+        self.set_init_kwargs(kwargs)
         super().__init__(**kwargs)
 
     def deconstruct(self):
         name, path, args, kwargs = super().deconstruct()
-        self._set_init_kwargs(kwargs)
+        self.set_init_kwargs(kwargs)
         return name, path, args, kwargs
-
-    @classmethod
-    def create_dek(cls):
-        """
-        Generates a new random AES-256-GCM key, wraps it with Cloud KMS,
-        and returns the binary blob for storage.
-        """
-        stream = BytesIO()
-        new_keyset_handle(key_template=aead_key_templates.AES256_GCM).write(
-            keyset_writer=BinaryKeysetWriter(stream),
-            master_key_primitive=cls._master_key_aead,
-        )
-        return stream.getvalue()
 
     @cached_property
     def aead(self):
         """Return the AEAD primitive for this data encryption key."""
 
         def get_aead(model: Model):
-            dek: t.Optional[bytes] = getattr(model, self.name, None)
-            if not dek:
-                raise ValueError("The data encryption key (DEK) is missing.")
+            dek: bytes = getattr(model, self.name)
 
-            # dek  # TODO: Cache this value.
-
-            return read_keyset_handle(
-                keyset_reader=BinaryKeysetReader(dek),
-                master_key_aead=self._master_key_aead,
-            ).primitive(Aead)
+            # TODO: Cache this value.
+            return get_dek_aead(dek)
 
         # Create a property with getter. Cast to Aead for mypy.
-        return t.cast(Aead, property(fget=get_aead))
+        return t.cast("Aead", property(fget=get_aead))
 
     @classmethod
     def initialize(cls, **kwargs):
