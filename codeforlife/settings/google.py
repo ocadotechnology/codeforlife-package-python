@@ -1,3 +1,10 @@
+"""
+© Ocado Group
+Created on 19/01/2026 at 09:54:59(+00:00).
+
+This file contains all the variables required by Google Cloud Platform (GCP).
+"""
+
 import os
 
 # Our Google OAuth 2.0 client credentials

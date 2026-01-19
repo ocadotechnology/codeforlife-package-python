@@ -1,3 +1,10 @@
+"""
+© Ocado Group
+Created on 19/01/2026 at 09:55:44(+00:00).
+
+Various utilities for encrypting/decrypting data.
+"""
+
 import typing as t
 from base64 import b64decode, b64encode
 from dataclasses import dataclass

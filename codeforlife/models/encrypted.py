@@ -1,3 +1,8 @@
+"""
+© Ocado Group
+Created on 19/01/2026 at 09:56:25(+00:00).
+"""
+
 import typing as t
 
 from django.apps import apps
