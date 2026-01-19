@@ -67,11 +67,11 @@ class DataEncryptionKeyFieldTestCase(TestCase):
         assert kwargs["help_text"] == DataEncryptionKeyField.default_help_text
 
     @patch(
-        "codeforlife.models.data_encryption_key_field.create_dek",
+        "codeforlife.models.fields.data_encryption_key.create_dek",
         return_value=b"mock_dek_bytes",
     )
     @patch(
-        "codeforlife.models.data_encryption_key_field.get_dek_aead",
+        "codeforlife.models.fields.data_encryption_key.get_dek_aead",
         return_value="mock_dek_aead",
     )
     def test_aead(

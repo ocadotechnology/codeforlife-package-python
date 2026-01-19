@@ -32,6 +32,7 @@ class DataEncryptionKeyField(models.BinaryField):
         """Sets common init kwargs."""
         kwargs["editable"] = False
         kwargs["default"] = create_dek
+        kwargs["null"] = False
         kwargs.setdefault("verbose_name", _(self.default_verbose_name))
         kwargs.setdefault("help_text", _(self.default_help_text))
 
