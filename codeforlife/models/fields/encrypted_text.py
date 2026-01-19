@@ -3,7 +3,7 @@
 Created on 12/01/2026 at 09:17:46(+00:00).
 """
 
-from .base_encrypted_field import BaseEncryptedField
+from .base_encrypted import BaseEncryptedField
 
 
 class EncryptedTextField(BaseEncryptedField[str]):

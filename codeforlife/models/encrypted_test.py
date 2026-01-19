@@ -3,7 +3,7 @@ import typing as t
 from ..tests import ModelTestCase
 from ..user.models import OtpBypassToken
 from .encrypted import EncryptedModel
-from .encrypted_text_field import EncryptedTextField
+from .fields import EncryptedTextField
 
 if t.TYPE_CHECKING:
     from django_stubs_ext.db.models import TypedModelMeta

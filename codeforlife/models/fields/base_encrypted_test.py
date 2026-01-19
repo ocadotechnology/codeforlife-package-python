@@ -3,10 +3,10 @@ from unittest.mock import patch
 
 from django.db import models
 
-from ..encryption import FakeAead
-from ..tests import TestCase
-from .base_encrypted_field import BaseEncryptedField
-from .encrypted import EncryptedModel
+from ...encryption import FakeAead
+from ...tests import TestCase
+from ..encrypted import EncryptedModel
+from .base_encrypted import BaseEncryptedField
 
 if t.TYPE_CHECKING:
     from django_stubs_ext.db.models import TypedModelMeta

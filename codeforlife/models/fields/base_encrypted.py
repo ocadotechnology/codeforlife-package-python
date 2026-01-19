@@ -4,8 +4,8 @@ from functools import cached_property
 from django.core.exceptions import ValidationError
 from django.db import models
 
-from ..types import Args, KwArgs
-from .encrypted import EncryptedModel
+from ...types import Args, KwArgs
+from ..encrypted import EncryptedModel
 
 T = t.TypeVar("T")
 

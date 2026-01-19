@@ -5,9 +5,9 @@ from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
-from ..encryption import create_dek, get_dek_aead
-from ..models import Model
-from ..types import KwArgs
+from ...encryption import create_dek, get_dek_aead
+from ...models import Model
+from ...types import KwArgs
 
 if t.TYPE_CHECKING:
     from tink.aead import Aead  # type: ignore[import-untyped]

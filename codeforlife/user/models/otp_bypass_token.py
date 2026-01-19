@@ -12,7 +12,8 @@ from django.db.utils import IntegrityError
 from django.utils.crypto import get_random_string
 from django.utils.translation import gettext_lazy as _
 
-from ...models import EncryptedModel, EncryptedTextField
+from ...models import EncryptedModel
+from ...models.fields import EncryptedTextField
 from ...types import Validators
 from ...validators import CharSetValidatorBuilder
 from .user import User
@@ -69,7 +70,7 @@ class OtpBypassToken(EncryptedModel):
 
             return super().bulk_create(otp_bypass_tokens)
 
-    objects: Manager = Manager()
+    objects: Manager = Manager()  # type: ignore[assignment]
 
     user = models.ForeignKey(
         User,

@@ -3,9 +3,9 @@ from unittest.mock import MagicMock, patch
 
 from django.db import models
 
-from ..encryption import create_dek
-from ..tests import TestCase
-from .data_encryption_key_field import DataEncryptionKeyField
+from ...encryption import create_dek
+from ...tests import TestCase
+from .data_encryption_key import DataEncryptionKeyField
 
 if t.TYPE_CHECKING:
     from django_stubs_ext.db.models import TypedModelMeta

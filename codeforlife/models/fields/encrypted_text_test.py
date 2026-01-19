@@ -1,5 +1,5 @@
-from ..tests import TestCase
-from .encrypted_text_field import EncryptedTextField
+from ...tests import TestCase
+from .encrypted_text import EncryptedTextField
 
 
 # pylint: disable-next=missing-class-docstring

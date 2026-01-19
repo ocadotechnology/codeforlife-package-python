@@ -9,9 +9,9 @@ from .base import Model
 
 if t.TYPE_CHECKING:
     from django_stubs_ext.db.models import TypedModelMeta
-    from tink.aead import Aead
+    from tink.aead import Aead  # type: ignore[import]
 
-    from .base_encrypted_field import BaseEncryptedField
+    from .fields import BaseEncryptedField
 else:
     TypedModelMeta = object
 
@@ -63,7 +63,7 @@ class EncryptedModel(_EncryptedModel):
 
             return super().update(**kwargs)
 
-    objects: Manager[t.Self] = Manager()  # type: ignore[assignment]
+    objects: Manager["EncryptedModel"] = Manager()  # type: ignore[assignment]
 
     class Meta(TypedModelMeta):
         abstract = True
