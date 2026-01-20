@@ -40,6 +40,22 @@ class FakeEncryptedModel(EncryptedModel):
     def dek_aead(self):
         return FakeAead.as_mock()
 
+    def get_stored_value(self, field: BaseEncryptedField):
+        """Returns the stored value for the given field."""
+        assert field in self.ENCRYPTED_FIELDS
+        return self.__dict__[field.attname]
+
+    def assert_value_is_pending_encryption(
+        self, field: BaseEncryptedField, value: str
+    ):
+        """
+        Asserts the value for the given field is pending encryption.
+        """
+        pending_encryption = self.get_stored_value(field)
+        assert isinstance(pending_encryption, _PendingEncryption)
+        assert pending_encryption.value == value
+        assert pending_encryption.instance == self
+
 
 class FakeModelMeta(TypedModelMeta):
     """A fake Meta class for testing."""
@@ -71,26 +87,28 @@ class FakeEncryptedField(BaseEncryptedField[str]):
 
 class EncryptedModelTestCase(TestCase):
 
-    @staticmethod
-    def value_to_bytes(value: str):
-        """Converts a string value to bytes."""
-        return value.encode()
+    def _get_model_class(self):
+        """Dynamically creates a FakeEncryptedModel subclass with fields.
 
-    @staticmethod
-    def bytes_to_value(data: bytes):
-        """Converts bytes data to a string value."""
-        return data.decode()
+        This assigns self.field and self.field2 to the model.
+        """
+
+        class Model(FakeEncryptedModel):
+            field = self.field
+            field2 = self.field2
+
+            Meta = FakeModelMeta
+
+        return Model
+
+    def _get_model_instance(self, **kwargs):
+        """Gets an instance of the dynamically created model class."""
+        return self._get_model_class()(**kwargs)
 
     def setUp(self):
         # Set up the first field with a non-callable default for testing.
         self.field_associated_data = "field"
         self.field_default = "default"
-        self.field_encrypted_default = FakeAead.encrypt(
-            self.value_to_bytes(self.field_default)
-        )
-        self.field_decrypted_default = FakeAead.decrypt(
-            self.field_encrypted_default
-        )
         self.field = FakeEncryptedField(
             associated_data=self.field_associated_data,
             default=self.field_default,
@@ -144,13 +162,8 @@ class EncryptedModelTestCase(TestCase):
 
     def test_contribute_to_class(self):
         """BaseEncryptedField is contributed to class correctly."""
-
-        class Model(FakeEncryptedModel):
-            field = self.field
-
-            Meta = FakeModelMeta
-
-        assert self.field in Model.ENCRYPTED_FIELDS
+        Model = self._get_model_class()  # Assign fields to model.
+        self.assertListEqual(Model.ENCRYPTED_FIELDS, [self.field, self.field2])
 
     def test_contribute_to_class__associated_data_already_used(self):
         """
@@ -182,12 +195,7 @@ class EncryptedModelTestCase(TestCase):
 
     def test_qual_associated_data(self):
         """qual_associated_data returns fully qualified associated data."""
-
-        class Model(FakeEncryptedModel):
-            field = self.field
-
-            Meta = FakeModelMeta
-
+        Model = self._get_model_class()
         assert (
             self.field.qual_associated_data
             == f"{Model.associated_data}:{self.field_associated_data}".encode()
@@ -195,14 +203,8 @@ class EncryptedModelTestCase(TestCase):
 
     def test_decrypt_value(self):
         """decrypt_value decrypts the given ciphertext."""
-
-        class Model(FakeEncryptedModel):
-            field = self.field
-
-            Meta = FakeModelMeta
-
         # Create instance and mock shorthands.
-        instance = Model()
+        instance = self._get_model_instance()
         decrypt_mock: MagicMock = instance.dek_aead.decrypt
         bytes_to_value_mock: MagicMock = self.field.bytes_to_value
 
@@ -213,7 +215,7 @@ class EncryptedModelTestCase(TestCase):
         bytes_to_value_mock.assert_not_called()
 
         # When ciphertext is provided, decryption occurs.
-        ciphertext = self.field_encrypted_default
+        ciphertext = FakeAead.encrypt(b"value")
         decrypted_value = self.field.decrypt_value(instance, ciphertext)
         decrypt_kwargs = {
             "ciphertext": ciphertext,
@@ -228,14 +230,8 @@ class EncryptedModelTestCase(TestCase):
 
     def test_encrypt_value(self):
         """encrypt_value encrypts the given plaintext."""
-
-        class Model(FakeEncryptedModel):
-            field = self.field
-
-            Meta = FakeModelMeta
-
         # Create instance and mock shorthands.
-        instance = Model()
+        instance = self._get_model_instance()
         encrypt_mock: MagicMock = instance.dek_aead.encrypt
         value_to_bytes_mock: MagicMock = self.field.value_to_bytes
 
@@ -259,29 +255,11 @@ class EncryptedModelTestCase(TestCase):
 
     def test_cache_name(self):
         """cache_name returns the correct cache attribute name."""
-
-        # pylint: disable-next=unused-variable
-        class Model(FakeEncryptedModel):
-            field = self.field
-
-            Meta = FakeModelMeta
-
+        self._get_model_class()  # Assign field to model.
         assert self.field.cache_name == "_field_decrypted_value"
 
-    def _assert_pending_encryption(
-        self,
-        instance: EncryptedModel,
-        field: BaseEncryptedField,
-        value: t.Optional[str],
-    ):
-        pending_encryption = instance.__dict__[field.attname]
-        assert isinstance(pending_encryption, _PendingEncryption)
-        assert pending_encryption.value == value
-        assert pending_encryption.instance == instance
-
-    def test_set(self):
-        """__set__ sets the field value correctly."""
-
+    def test_set__default(self):
+        """Setting field to default value stores pending encryption."""
         # Field must have a non-callable default for this test.
         assert self.field.default is not None and not callable(
             self.field.default
@@ -289,90 +267,50 @@ class EncryptedModelTestCase(TestCase):
         # Field2 must have a callable default for this test.
         assert self.field2.default is not None and callable(self.field2.default)
 
-        class Model(FakeEncryptedModel):
-            field = self.field
-            field2 = self.field2
-
-            Meta = FakeModelMeta
-
-        instance = Model()
-
-        # Initial value is the encrypted default.
-        self._assert_pending_encryption(
-            instance, self.field, self.field_default
+        instance = self._get_model_instance()
+        instance.assert_value_is_pending_encryption(
+            self.field, self.field_default
         )
-        self._assert_pending_encryption(
-            instance, self.field2, self.field2_default
+        instance.assert_value_is_pending_encryption(
+            self.field2, self.field2_default
         )
 
+    def test_set__init(self):
+        """Setting field to initial value stores pending encryption."""
         value = "initial_value"
-        instance = Model(field=value)
-        self._assert_pending_encryption(instance, self.field, value)
+        instance = self._get_model_instance(field=value)
+        instance.assert_value_is_pending_encryption(self.field, value)
 
-        # Set to None.
-        instance.field = None
-        assert instance.__dict__[self.field.attname] is None
+    def test_set__none(self):
+        """Setting field to None stores None."""
+        assert self.field.default is not None
+        instance = self._get_model_instance(field=None)
+        assert instance.get_stored_value(self.field) is None
 
-        # Set to _TrustedCiphertext.
-        trusted_ciphertext = _TrustedCiphertext(self.encrypted_default)
-        instance.field = trusted_ciphertext
-        assert (
-            instance.__dict__[self.field.attname]
-            == trusted_ciphertext.ciphertext
-        )
+    def test_set__trusted_ciphertext(self):
+        """Setting field to _TrustedCiphertext stores ciphertext directly."""
+        ciphertext = b"encrypted_value"
+        trusted_ciphertext = _TrustedCiphertext(ciphertext)
+        instance = self._get_model_instance(field=trusted_ciphertext)
+        assert instance.get_stored_value(self.field) == ciphertext
 
-        # Set to new value.
+    def test_set__new_value(self):
+        """
+        Setting field to new value stores pending encryption and clears cache.
+        """
+        assert self.field.default is not None
+
         value = "new_value"
+        assert self.field.default != value
+
+        instance = self._get_model_instance()
+
+        # Cache the value on the instance.
+        setattr(instance, self.field.cache_name, value)
+
+        # Clear cache by setting to new value.
         instance.field = value
-        self._assert_pending_encryption(instance, self.field, value)
+        instance.assert_value_is_pending_encryption(self.field, value)
 
-    # def test_value(self):
-    #     """value returns a property that encrypts/decrypts the field's value."""
-    #     field = BaseEncryptedField[str](
-    #         associated_data="value", default=self.default
-    #     )
-
-    #     assert isinstance(field.value, property)
-    #     assert field.value.fget is not None
-    #     assert field.value.fset is not None
-    #     assert field.value.fdel is None
-
-    #     class ValidModel(EncryptedModel):
-    #         associated_data = "model"
-
-    #         _field = field
-    #         value: str = field.value
-
-    #         class Meta(TypedModelMeta):
-    #             app_label = "codeforlife.user"
-
-    #         dek_aead = FakeAead.as_mock()
-
-    #     with patch.object(
-    #         field, "bytes_to_value", return_value="value"
-    #     ) as bytes_to_value_mock, patch.object(
-    #         field, "value_to_bytes", return_value=b"bytes"
-    #     ) as value_to_bytes_mock:
-    #         instance = ValidModel()
-
-    #         # Get the value.
-    #         value = instance.value
-    #         instance.dek_aead.decrypt.assert_called_once_with(
-    #             ciphertext=self.default,
-    #             associated_data=field.qual_associated_data,
-    #         )
-    #         bytes_to_value_mock.assert_called_once_with(self.decrypted_default)
-    #         assert value == bytes_to_value_mock.return_value
-
-    #         # Set the value.
-    #         value = "new_value"
-    #         instance.value = value
-    #         value_to_bytes_mock.assert_called_once_with(value)
-    #         instance.dek_aead.encrypt.assert_called_once_with(
-    #             plaintext=value_to_bytes_mock.return_value,
-    #             associated_data=field.qual_associated_data,
-    #         )
-    #         # pylint: disable-next=protected-access
-    #         assert instance._field == FakeAead.encrypt(
-    #             value_to_bytes_mock.return_value
-    #         )
+        # Ensure cached value is cleared.
+        assert not hasattr(instance, self.field.cache_name)

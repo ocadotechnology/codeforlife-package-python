@@ -22,9 +22,8 @@ else:
 
 
 class _EncryptedModel(Model):
-    ENCRYPTED_FIELDS: t.List["BaseEncryptedField"] = []
-
     associated_data: str
+    ENCRYPTED_FIELDS: t.List["BaseEncryptedField"]
 
     class Meta(TypedModelMeta):
         abstract = True

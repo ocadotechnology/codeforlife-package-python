@@ -165,6 +165,10 @@ class BaseEncryptedField(models.BinaryField, t.Generic[T]):
                 code="invalid_model_base_class",
             )
 
+        if not hasattr(cls, "ENCRYPTED_FIELDS"):
+            cls.ENCRYPTED_FIELDS = [self]
+            return
+
         # Ensure no duplicate encrypted fields.
         if self in cls.ENCRYPTED_FIELDS:
             raise ValidationError(
