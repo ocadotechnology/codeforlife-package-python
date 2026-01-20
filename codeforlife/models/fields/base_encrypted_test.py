@@ -23,13 +23,12 @@ if t.TYPE_CHECKING:
 else:
     TypedModelMeta = object
 
-# pylint: disable=missing-class-docstring
 # pylint: disable=too-few-public-methods
 # pylint: disable=too-many-instance-attributes
 
 
 class FakeEncryptedModel(EncryptedModel):
-    """A fake EncryptedModel for testing."""
+    """A fake EncryptedModel without fields for testing."""
 
     associated_data = "model"
 
@@ -41,9 +40,14 @@ class FakeEncryptedModel(EncryptedModel):
         return FakeAead.as_mock()
 
     def get_stored_value(self, field: BaseEncryptedField):
-        """Returns the stored value for the given field."""
+        """Gets the stored value for the given field."""
         assert field in self.ENCRYPTED_FIELDS
         return self.__dict__[field.attname]
+
+    def set_stored_value(self, field: BaseEncryptedField, value):
+        """Sets the stored value for the given field."""
+        assert field in self.ENCRYPTED_FIELDS
+        self.__dict__[field.attname] = value
 
     def assert_value_is_pending_encryption(
         self, field: BaseEncryptedField, value: str
@@ -69,6 +73,7 @@ class FakeEncryptedField(BaseEncryptedField[str]):
 
     value_to_bytes: MagicMock
     bytes_to_value: MagicMock
+    decrypt_value: MagicMock
 
     @staticmethod
     def _value_to_bytes(value: str):
@@ -83,9 +88,15 @@ class FakeEncryptedField(BaseEncryptedField[str]):
 
         self.value_to_bytes = MagicMock(side_effect=self._value_to_bytes)
         self.bytes_to_value = MagicMock(side_effect=self._bytes_to_value)
+        self.decrypt_value = MagicMock(side_effect=super().decrypt_value)
 
 
 class EncryptedModelTestCase(TestCase):
+    """Tests BaseEncryptedField functionality."""
+
+    # --------------------------------------------------------------------------
+    # Test Helper Methods
+    # --------------------------------------------------------------------------
 
     def _get_model_class(self):
         """Dynamically creates a FakeEncryptedModel subclass with fields.
@@ -94,6 +105,8 @@ class EncryptedModelTestCase(TestCase):
         """
 
         class Model(FakeEncryptedModel):
+            """A fake EncryptedModel with fields for testing."""
+
             field = self.field
             field2 = self.field2
 
@@ -122,6 +135,10 @@ class EncryptedModelTestCase(TestCase):
             default=lambda: self.field2_default,
         )
 
+    # --------------------------------------------------------------------------
+    # Construction & Deconstruction Tests
+    # --------------------------------------------------------------------------
+
     def test_init__no_associated_data(self):
         """Cannot create BaseEncryptedField with no associated data."""
         with self.assert_raises_validation_error(code="no_associated_data"):
@@ -138,6 +155,10 @@ class EncryptedModelTestCase(TestCase):
 
         assert kwargs["associated_data"] == self.field_associated_data
         assert kwargs["db_column"] == self.field_associated_data
+
+    # --------------------------------------------------------------------------
+    # Django Model Field Integration Tests
+    # --------------------------------------------------------------------------
 
     def test_contribute_to_class__invalid_model_base_class(self):
         """Cannot contribute BaseEncryptedField to invalid model base class."""
@@ -180,6 +201,10 @@ class EncryptedModelTestCase(TestCase):
                 )
 
                 Meta = FakeModelMeta
+
+    # --------------------------------------------------------------------------
+    # Encryption & Decryption Tests
+    # --------------------------------------------------------------------------
 
     def test_bytes_to_value(self):
         """bytes_to_value raises NotImplementedError."""
@@ -253,6 +278,10 @@ class EncryptedModelTestCase(TestCase):
         encrypt_mock.assert_called_once_with(**encrypt_kwargs)
         assert encrypted_bytes == encrypt_mock.side_effect(**encrypt_kwargs)
 
+    # --------------------------------------------------------------------------
+    # Getting & Setting Values Tests
+    # --------------------------------------------------------------------------
+
     def test_cache_name(self):
         """cache_name returns the correct cache attribute name."""
         self._get_model_class()  # Assign field to model.
@@ -314,3 +343,57 @@ class EncryptedModelTestCase(TestCase):
 
         # Ensure cached value is cleared.
         assert not hasattr(instance, self.field.cache_name)
+
+    def test_get__descriptor(self):
+        """Getting field from class returns the descriptor."""
+        Model = self._get_model_class()
+        assert isinstance(Model.field, BaseEncryptedField.descriptor_class)
+        assert Model.field.field == self.field
+
+    def test_get__cached(self):
+        """Getting field when cached returns cached value."""
+        value = "decrypted_value"
+        assert value != self.field.default
+
+        instance = self._get_model_instance()
+        setattr(instance, self.field.cache_name, value)
+        assert instance.field == value
+
+    def test_get__none(self):
+        """Getting field when stored value is None returns None."""
+        instance = self._get_model_instance()
+        instance.set_stored_value(self.field, None)
+
+        assert instance.field is None
+        self.field.decrypt_value.assert_not_called()
+
+    def test_get__pending_encryption(self):
+        """
+        Getting field when stored value is pending encryption returns value.
+        """
+        instance = self._get_model_instance()
+        value = "decrypted_value"
+        pending_encryption = _PendingEncryption(value, instance)
+        instance.set_stored_value(self.field, pending_encryption)
+
+        assert instance.field == value
+        self.field.decrypt_value.assert_not_called()
+
+    def test_get__decrypted_value(self):
+        """Getting field when stored value is ciphertext returns decrypted."""
+        plaintext = "decrypted_value"
+        ciphertext = FakeAead.encrypt(plaintext.encode())
+
+        # Create instance with stored ciphertext.
+        instance = self._get_model_instance()
+        instance.set_stored_value(self.field, ciphertext)
+
+        # Ensure cache is not set initially.
+        assert not hasattr(instance, self.field.cache_name)
+
+        # Get the field value, which should decrypt the ciphertext.
+        assert instance.field == plaintext
+        self.field.decrypt_value.assert_called_once_with(instance, ciphertext)
+
+        # Ensure decrypted value is cached on the instance.
+        assert getattr(instance, self.field.cache_name) == plaintext
