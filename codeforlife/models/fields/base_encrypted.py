@@ -220,7 +220,9 @@ class BaseEncryptedField(models.BinaryField, t.Generic[T]):
         # Wrap it so __set__ knows this is NOT new user input.
         return _TrustedCiphertext(value)
 
-    def pre_save(self, model_instance: EncryptedModel, add):  # type: ignore[override]
+    def pre_save(
+        self, model_instance: EncryptedModel, add  # type: ignore[override]
+    ):
         """
         Called before the model is saved. This is where we perform encryption,
         because we have access to the instance (needed for the DEK).
