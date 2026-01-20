@@ -23,26 +23,19 @@ else:
 class Person(EncryptedModel):
     associated_data = "person"
 
-    _name, name = EncryptedTextField.initialize(associated_data="name")
+    name = EncryptedTextField(associated_data="name")
 
     class Meta(TypedModelMeta):
         app_label = "codeforlife.user"
 
 
 class EncryptedModelTestCase(ModelTestCase[EncryptedModel]):
-    def test_init__cannot_set_encrypted_field(self):
-        """Cannot set encrypted field via __init__."""
-        with self.assert_raises_validation_error(
-            code="cannot_set_encrypted_field"
-        ):
-            Person(_name="Alice")
-
     def test_objects___update__cannot_update_encrypted_field(self):
         """Cannot update encrypted field via objects.update()."""
         with self.assert_raises_validation_error(
             code="cannot_update_encrypted_field"
         ):
-            Person.objects.update(_name="Alice")
+            Person.objects.update(name="Alice")
 
     def test_dek_aead(self):
         """dek_aead raises NotImplementedError."""

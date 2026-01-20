@@ -35,17 +35,6 @@ AnyEncryptedModel = t.TypeVar("AnyEncryptedModel", bound=_EncryptedModel)
 class EncryptedModel(_EncryptedModel):
     """Base for all models with encrypted fields."""
 
-    def __init__(self, **kwargs):
-        for name in kwargs:
-            if any(field.name == name for field in self.ENCRYPTED_FIELDS):
-                raise ValidationError(
-                    f"Cannot set encrypted field '{name}' via __init__."
-                    " Set the property after initialization instead.",
-                    code="cannot_set_encrypted_field",
-                )
-
-        super().__init__(**kwargs)
-
     # pylint: disable-next=too-few-public-methods
     class Manager(
         models.Manager[AnyEncryptedModel], t.Generic[AnyEncryptedModel]
@@ -54,16 +43,18 @@ class EncryptedModel(_EncryptedModel):
 
         def update(self, **kwargs):
             """Ensure encrypted fields are not updated via 'update()'."""
-            for name in kwargs:
-                if any(
-                    field.name == name for field in self.model.ENCRYPTED_FIELDS
-                ):
-                    raise ValidationError(
-                        f"Cannot update encrypted field '{name}' via"
-                        " 'update()'. Set the property on each instance"
-                        " instead.",
-                        code="cannot_update_encrypted_field",
-                    )
+            if hasattr(self.model, "ENCRYPTED_FIELDS"):
+                for name in kwargs:
+                    if any(
+                        field.name == name
+                        for field in self.model.ENCRYPTED_FIELDS
+                    ):
+                        raise ValidationError(
+                            f"Cannot update encrypted field '{name}' via"
+                            " 'update()'. Set the property on each instance"
+                            " instead.",
+                            code="cannot_update_encrypted_field",
+                        )
 
             return super().update(**kwargs)
 
