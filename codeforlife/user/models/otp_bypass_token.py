@@ -78,7 +78,7 @@ class OtpBypassToken(EncryptedModel):
         on_delete=models.CASCADE,
     )
 
-    _token, token = EncryptedTextField.initialize(
+    token = EncryptedTextField(
         associated_data="token",
         verbose_name=_("token"),
         help_text=_("The encrypted equivalent of the token."),
