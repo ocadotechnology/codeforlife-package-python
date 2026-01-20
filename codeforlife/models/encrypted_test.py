@@ -30,12 +30,18 @@ class Person(EncryptedModel):
 
 
 class EncryptedModelTestCase(ModelTestCase[EncryptedModel]):
-    def test_objects___update__cannot_update_encrypted_field(self):
+    def test_objects___update__cannot_update(self):
         """Cannot update encrypted field via objects.update()."""
-        with self.assert_raises_validation_error(
-            code="cannot_update_encrypted_field"
-        ):
+        with self.assert_raises_validation_error(code="cannot_update"):
             Person.objects.update(name="Alice")
+
+    def test_objects___bulk_update(self):
+        """Cannot bulk update encrypted field via objects.bulk_update()."""
+        assert Person.objects.bulk_update is None
+
+    def test_objects___bulk_create(self):
+        """Cannot bulk create encrypted field via objects.bulk_create()."""
+        assert Person.objects.bulk_create is None
 
     def test_dek_aead(self):
         """dek_aead raises NotImplementedError."""

@@ -58,7 +58,6 @@ class FakeEncryptedModel(EncryptedModel):
         pending_encryption = self.get_stored_value(field)
         assert isinstance(pending_encryption, _PendingEncryption)
         assert pending_encryption.value == value
-        assert pending_encryption.instance == self
 
 
 class FakeModelMeta(TypedModelMeta):
@@ -373,7 +372,7 @@ class EncryptedModelTestCase(TestCase):
         """
         instance = self._get_model_instance()
         value = "decrypted_value"
-        pending_encryption = _PendingEncryption(value, instance)
+        pending_encryption = _PendingEncryption(value)
         instance.set_stored_value(self.field, pending_encryption)
 
         assert instance.field == value

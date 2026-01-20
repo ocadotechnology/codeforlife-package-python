@@ -23,7 +23,6 @@ class _PendingEncryption(t.Generic[T]):
     """Helper: Data waiting to be encrypted (User Input)."""
 
     value: T
-    instance: EncryptedModel
 
 
 @dataclass(frozen=True)
@@ -100,7 +99,7 @@ class EncryptedAttribute(DeferredAttribute, t.Generic[AnyBaseEncryptedField]):
                 value.ciphertext
                 if isinstance(value, _TrustedCiphertext)
                 # If it's a new value from the user, store a pending encryption.
-                else _PendingEncryption(value, instance)
+                else _PendingEncryption(value)
             )
         )
 
@@ -221,20 +220,31 @@ class BaseEncryptedField(models.BinaryField, t.Generic[T]):
         # Wrap it so __set__ knows this is NOT new user input.
         return _TrustedCiphertext(value)
 
-    def get_prep_value(self, value: t.Optional[_PendingEncryption[T]]):
+    def pre_save(self, model_instance: EncryptedModel, add):  # type: ignore[override]
         """
-        'value' is the current value of the model's attribute, and the method
-        should return data in a format that has been prepared for use as a
-        parameter in a query.
+        Called before the model is saved. This is where we perform encryption,
+        because we have access to the instance (needed for the DEK).
+        """
+        value: bytes | _PendingEncryption[T] | None = (
+            model_instance.__dict__.get(self.attname)
+        )
 
-        https://docs.djangoproject.com/en/5.1/howto/custom-model-fields/#converting-python-objects-to-query-values
-        """
-        # If it's a pending encryption, encrypt it now.
+        # No data to encrypt.
+        if value is None:
+            return None
+
+        # Data needs encrypting.
         if isinstance(value, _PendingEncryption):
-            return self.encrypt_value(value.instance, value.value)
+            return self.encrypt_value(model_instance, value.value)
 
-        # If it's already bytes (e.g. strict assignment), pass through.
-        return super().get_prep_value(value)
+        # Unexpected data type.
+        if not isinstance(value, bytes):
+            raise ValidationError(
+                f"Unexpected value type '{type(value)}' for encryption.",
+                code="invalid_value_type",
+            )
+
+        return value
 
     # --------------------------------------------------------------------------
     # Crypto Logic

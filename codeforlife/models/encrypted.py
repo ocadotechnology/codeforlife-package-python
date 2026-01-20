@@ -53,10 +53,14 @@ class EncryptedModel(_EncryptedModel):
                             f"Cannot update encrypted field '{name}' via"
                             " 'update()'. Set the property on each instance"
                             " instead.",
-                            code="cannot_update_encrypted_field",
+                            code="cannot_update",
                         )
 
             return super().update(**kwargs)
+
+        # Disable bulk operations that would bypass field-level encryption.
+        bulk_update: None = None  # type: ignore[assignment]
+        bulk_create: None = None  # type: ignore[assignment]
 
     objects: Manager["EncryptedModel"] = Manager()  # type: ignore[assignment]
 
