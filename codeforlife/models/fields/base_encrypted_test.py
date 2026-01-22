@@ -325,6 +325,22 @@ class TestEncryptedModel(TestCase):
         instance = self._get_model_instance(field=trusted_ciphertext)
         assert instance.get_stored_value(self.field) == ciphertext
 
+    def test_set__memoryview(self):
+        """Setting field to memoryview stores bytes directly."""
+        value = b"byte_value"
+        memoryview_value = memoryview(value)
+        instance = self._get_model_instance(field=memoryview_value)
+        assert instance.get_stored_value(self.field) == value
+
+    def test_set__memoryview__invalid_memoryview_type(self):
+        """Setting field to invalid memoryview type raises ValidationError."""
+        value = bytearray(b"Hello")
+        memoryview_value = memoryview(value)
+        with self.assert_raises_validation_error(
+            code="invalid_memoryview_type"
+        ):
+            self._get_model_instance(field=memoryview_value)
+
     def test_set__new_value(self):
         """
         Setting field to new value stores pending encryption and clears cache.
