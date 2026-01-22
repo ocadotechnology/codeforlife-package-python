@@ -62,13 +62,8 @@ class OtpBypassToken(EncryptedModel):
 
             user.otp_bypass_tokens.all().delete()
 
-            otp_bypass_tokens: t.List[OtpBypassToken] = []
             for token in tokens:
-                otp_bypass_token = OtpBypassToken(user=user)
-                otp_bypass_token.token = token
-                otp_bypass_tokens.append(otp_bypass_token)
-
-            return super().bulk_create(otp_bypass_tokens)
+                OtpBypassToken(user=user, token=token).save()
 
     objects: Manager = Manager()  # type: ignore[assignment]
 

@@ -42,11 +42,16 @@ class EncryptedAttribute(DeferredAttribute, t.Generic[AnyBaseEncryptedField]):
     Custom descriptor that handles the get/set mechanics for encrypted fields.
     """
 
-    field: AnyBaseEncryptedField
+    _field: AnyBaseEncryptedField
 
     @property
-    def _field(self):
-        return t.cast(AnyBaseEncryptedField, self.field)
+    def field(self):
+        """Helper to get the field with the correct type."""
+        return t.cast(AnyBaseEncryptedField, self._field)
+
+    @field.setter
+    def field(self, value: AnyBaseEncryptedField):
+        self._field = value
 
     def __get__(self, instance: t.Optional[EncryptedModel], cls=None):
         # Return the descriptor itself when accessed on the class.
@@ -54,7 +59,7 @@ class EncryptedAttribute(DeferredAttribute, t.Generic[AnyBaseEncryptedField]):
             return self
 
         # If we have a cached decrypted value, return it.
-        cache_name = self._field.cache_name
+        cache_name = self.field.cache_name
         if hasattr(instance, cache_name):
             return getattr(instance, cache_name)
 
@@ -73,7 +78,7 @@ class EncryptedAttribute(DeferredAttribute, t.Generic[AnyBaseEncryptedField]):
             return value.value
 
         # Decrypt the value before returning it.
-        decrypted_value = self._field.decrypt_value(instance, value)
+        decrypted_value = self.field.decrypt_value(instance, value)
 
         # Cache the decrypted value on the instance.
         setattr(instance, cache_name, decrypted_value)
@@ -86,12 +91,12 @@ class EncryptedAttribute(DeferredAttribute, t.Generic[AnyBaseEncryptedField]):
         value: t.Optional[t.Union[T, _TrustedCiphertext]],
     ):
         # Clear any cached decrypted value.
-        cache_name = self._field.cache_name
+        cache_name = self.field.cache_name
         if hasattr(instance, cache_name):
             delattr(instance, cache_name)
 
         # Store the internal value on the instance.
-        instance.__dict__[self._field.attname] = (
+        instance.__dict__[self.field.attname] = (
             None
             if value is None
             else (
@@ -191,7 +196,7 @@ class BaseEncryptedField(models.BinaryField, t.Generic[T]):
     # Descriptor Methods
     # --------------------------------------------------------------------------
 
-    @t.overload  # type: ignore[no-overload-impl,override]
+    @t.overload  # type: ignore[override]
     def __get__(
         self, instance: None, owner: t.Any
     ) -> EncryptedAttribute[t.Self]: ...
@@ -200,6 +205,15 @@ class BaseEncryptedField(models.BinaryField, t.Generic[T]):
     def __get__(
         self, instance: EncryptedModel, owner: t.Any
     ) -> t.Optional[T]: ...
+
+    def __get__(
+        self, instance: t.Optional[EncryptedModel], owner: t.Any
+    ) -> t.Union[EncryptedAttribute[t.Self], t.Optional[T]]:
+        return t.cast(
+            t.Union[EncryptedAttribute[t.Self], t.Optional[T]],
+            # pylint: disable-next=no-member
+            super().__get__(instance, owner),
+        )
 
     @cached_property
     def cache_name(self):
