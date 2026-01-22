@@ -9,10 +9,10 @@ from functools import cached_property
 
 from django.core.exceptions import ValidationError
 from django.db import models
-from django.db.models.query_utils import DeferredAttribute
 
 from ...types import Args, KwArgs
 from ..encrypted import EncryptedModel
+from .deferred_attribute import DeferredAttribute
 
 T = t.TypeVar("T")
 Default: t.TypeAlias = t.Union[T, t.Callable[[], T]]
@@ -37,23 +37,14 @@ AnyBaseEncryptedField = t.TypeVar(
 )
 
 
-class EncryptedAttribute(DeferredAttribute, t.Generic[AnyBaseEncryptedField]):
+class EncryptedAttribute(
+    DeferredAttribute[AnyBaseEncryptedField], t.Generic[AnyBaseEncryptedField]
+):
     """
     Custom descriptor that handles the get/set mechanics for encrypted fields.
     """
 
     InternalValue: t.TypeAlias = t.Optional[t.Union[bytes, _PendingEncryption]]
-
-    _field: AnyBaseEncryptedField
-
-    @property
-    def field(self):
-        """Helper to get the field with the correct type."""
-        return t.cast(AnyBaseEncryptedField, self._field)
-
-    @field.setter
-    def field(self, value: AnyBaseEncryptedField):
-        self._field = value
 
     def __get__(self, instance: t.Optional[EncryptedModel], cls=None):
         # Return the descriptor itself when accessed on the class.
