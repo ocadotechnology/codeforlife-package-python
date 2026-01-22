@@ -10,7 +10,7 @@ from unittest.mock import MagicMock
 from django.db import models
 
 from ...encryption import FakeAead
-from ...tests import TestCase
+from ...tests import InterruptPipelineError, TestCase
 from ..encrypted import EncryptedModel
 from .base_encrypted import (
     BaseEncryptedField,
@@ -72,6 +72,7 @@ class FakeEncryptedField(BaseEncryptedField[str]):
 
     value_to_bytes: MagicMock
     bytes_to_value: MagicMock
+    encrypt_value: MagicMock
     decrypt_value: MagicMock
 
     @staticmethod
@@ -87,10 +88,12 @@ class FakeEncryptedField(BaseEncryptedField[str]):
 
         self.value_to_bytes = MagicMock(side_effect=self._value_to_bytes)
         self.bytes_to_value = MagicMock(side_effect=self._bytes_to_value)
+        self.encrypt_value = MagicMock(side_effect=super().encrypt_value)
         self.decrypt_value = MagicMock(side_effect=super().decrypt_value)
 
 
-class EncryptedModelTestCase(TestCase):
+# pylint: disable-next=too-many-public-methods
+class TestEncryptedModel(TestCase):
     """Tests BaseEncryptedField functionality."""
 
     # --------------------------------------------------------------------------
@@ -396,3 +399,33 @@ class EncryptedModelTestCase(TestCase):
 
         # Ensure decrypted value is cached on the instance.
         assert getattr(instance, self.field.cache_name) == plaintext
+
+    # --------------------------------------------------------------------------
+    # pre_save Tests
+    # --------------------------------------------------------------------------
+
+    def test_pre_save__pending_encryption(self):
+        """pre_save encrypts pending encryption before saving."""
+
+        # Create instance with pending encryption.
+        instance = self._get_model_instance()
+        pending_encryption = instance.get_stored_value(self.field)
+        assert isinstance(pending_encryption, _PendingEncryption)
+
+        # Assert the value is encrypted in pre_save.
+        def assert_pre_save(result):
+            self.field.encrypt_value.assert_called_once_with(
+                instance, pending_encryption.value
+            )
+            assert result == self.field.encrypt_value.side_effect(
+                instance, pending_encryption.value
+            )
+
+        # Run the save pipeline, interrupting at pre_save.
+        InterruptPipelineError.run(
+            test_case=self,
+            step_target=self.field,
+            step_attribute="pre_save",
+            assert_step=assert_pre_save,
+            pipeline=instance.save,
+        )
