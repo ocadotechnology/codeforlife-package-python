@@ -38,7 +38,8 @@ AnyBaseEncryptedField = t.TypeVar(
 
 
 class EncryptedAttribute(
-    DeferredAttribute[AnyBaseEncryptedField], t.Generic[AnyBaseEncryptedField]
+    DeferredAttribute[AnyBaseEncryptedField, EncryptedModel],
+    t.Generic[AnyBaseEncryptedField],
 ):
     """
     Custom descriptor that handles the get/set mechanics for encrypted fields.
@@ -46,7 +47,7 @@ class EncryptedAttribute(
 
     InternalValue: t.TypeAlias = t.Optional[t.Union[bytes, _PendingEncryption]]
 
-    def __get__(self, instance: t.Optional[EncryptedModel], cls=None):
+    def __get__(self, instance, cls=None):
         # Return the descriptor itself when accessed on the class.
         if instance is None:
             return self
@@ -57,8 +58,8 @@ class EncryptedAttribute(
             return getattr(instance, cache_name)
 
         # Get the internal value from the instance.
-        internal_value: EncryptedAttribute.InternalValue = (
-            instance.__dict__.get(self.field.attname)
+        internal_value: EncryptedAttribute.InternalValue = super().__get__(
+            instance, cls
         )
 
         # No data to decrypt.
@@ -79,7 +80,7 @@ class EncryptedAttribute(
 
     def __set__(
         self,
-        instance: EncryptedModel,
+        instance,
         value: t.Optional[
             t.Union["memoryview[bytes]", _TrustedCiphertext, t.Any]
         ],
@@ -106,7 +107,7 @@ class EncryptedAttribute(
             internal_value = _PendingEncryption(value)
 
         # Set the internal value on the instance.
-        instance.__dict__[self.field.attname] = internal_value
+        super().__set__(instance, internal_value)
 
 
 class BaseEncryptedField(models.BinaryField, t.Generic[T]):
