@@ -429,3 +429,57 @@ class TestEncryptedModel(TestCase):
             assert_step=assert_pre_save,
             pipeline=instance.save,
         )
+
+    def test_pre_save__none(self):
+        """pre_save with no value does nothing."""
+
+        # Create instance with no stored value.
+        instance = self._get_model_instance()
+        instance.set_stored_value(self.field, None)
+
+        # Assert pre_save does nothing.
+        def assert_pre_save(result):
+            assert result is None
+            self.field.encrypt_value.assert_not_called()
+
+        # Run the save pipeline, interrupting at pre_save.
+        InterruptPipelineError.run(
+            test_case=self,
+            step_target=self.field,
+            step_attribute="pre_save",
+            assert_step=assert_pre_save,
+            pipeline=instance.save,
+        )
+
+    def test_pre_save__trusted_ciphertext(self):
+        """pre_save with trusted ciphertext does nothing."""
+
+        # Create instance with trusted ciphertext.
+        ciphertext = b"encrypted_value"
+        trusted_ciphertext = _TrustedCiphertext(ciphertext)
+        instance = self._get_model_instance(field=trusted_ciphertext)
+
+        # Assert pre_save returns the ciphertext directly.
+        def assert_pre_save(result):
+            assert result == ciphertext
+            self.field.encrypt_value.assert_not_called()
+
+        # Run the save pipeline, interrupting at pre_save.
+        InterruptPipelineError.run(
+            test_case=self,
+            step_target=self.field,
+            step_attribute="pre_save",
+            assert_step=assert_pre_save,
+            pipeline=instance.save,
+        )
+
+    def test_pre_save__invalid_value_type(self):
+        """pre_save with invalid value type raises ValidationError."""
+
+        # Create instance with invalid stored value.
+        instance = self._get_model_instance()
+        instance.set_stored_value(self.field, 12345)  # Invalid type.
+
+        # Run the save pipeline, interrupting at pre_save.
+        with self.assert_raises_validation_error(code="invalid_value_type"):
+            instance.save()
