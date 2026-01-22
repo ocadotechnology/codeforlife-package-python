@@ -406,7 +406,6 @@ class TestEncryptedModel(TestCase):
 
     def test_pre_save__pending_encryption(self):
         """pre_save encrypts pending encryption before saving."""
-
         # Create instance with pending encryption.
         instance = self._get_model_instance()
         pending_encryption = instance.get_stored_value(self.field)
@@ -432,7 +431,6 @@ class TestEncryptedModel(TestCase):
 
     def test_pre_save__none(self):
         """pre_save with no value does nothing."""
-
         # Create instance with no stored value.
         instance = self._get_model_instance()
         instance.set_stored_value(self.field, None)
@@ -453,7 +451,6 @@ class TestEncryptedModel(TestCase):
 
     def test_pre_save__trusted_ciphertext(self):
         """pre_save with trusted ciphertext does nothing."""
-
         # Create instance with trusted ciphertext.
         ciphertext = b"encrypted_value"
         trusted_ciphertext = _TrustedCiphertext(ciphertext)
@@ -475,7 +472,6 @@ class TestEncryptedModel(TestCase):
 
     def test_pre_save__invalid_value_type(self):
         """pre_save with invalid value type raises ValidationError."""
-
         # Create instance with invalid stored value.
         instance = self._get_model_instance()
         instance.set_stored_value(self.field, 12345)  # Invalid type.
