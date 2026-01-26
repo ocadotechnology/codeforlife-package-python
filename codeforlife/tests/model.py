@@ -28,6 +28,14 @@ class ModelTestCase(TestCase, t.Generic[AnyModel]):
         """
         return get_arg(cls, 0)
 
+    def get_model_instance(self, *args, **kwargs) -> AnyModel:
+        """Get an instance of the model.
+
+        Returns:
+            An instance of the model.
+        """
+        return self.get_model_class()(*args, **kwargs)
+
     def assert_raises_integrity_error(self, *args, **kwargs):
         """Assert the code block raises an integrity error.
 

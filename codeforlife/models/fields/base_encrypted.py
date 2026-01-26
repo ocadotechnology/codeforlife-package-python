@@ -8,7 +8,7 @@ from dataclasses import dataclass
 from functools import cached_property
 
 from django.core.exceptions import ValidationError
-from django.db import models
+from django.db.models import BinaryField
 
 from ...types import Args, KwArgs
 from ..encrypted import EncryptedModel
@@ -81,9 +81,7 @@ class EncryptedAttribute(
     def __set__(
         self,
         instance,
-        value: t.Optional[
-            t.Union["memoryview[bytes]", _TrustedCiphertext, t.Any]
-        ],
+        value: t.Optional[t.Union[memoryview, _TrustedCiphertext, t.Any]],
     ):
         # Clear any cached decrypted value.
         cache_name = self.field.cache_name
@@ -110,7 +108,7 @@ class EncryptedAttribute(
         super().__set__(instance, internal_value)
 
 
-class BaseEncryptedField(models.BinaryField, t.Generic[T]):
+class BaseEncryptedField(BinaryField, t.Generic[T]):
     """Encrypted field base class."""
 
     model: t.Type[EncryptedModel]

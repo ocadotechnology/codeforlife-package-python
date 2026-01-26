@@ -29,19 +29,39 @@ class Person(EncryptedModel):
         app_label = "codeforlife.user"
 
 
-class EncryptedModelTestCase(ModelTestCase[EncryptedModel]):
+class TestEncryptedModel(ModelTestCase[EncryptedModel]):
     def test_objects___update__cannot_update(self):
         """Cannot update encrypted field via objects.update()."""
         with self.assert_raises_validation_error(code="cannot_update"):
             Person.objects.update(name="Alice")
 
+    def test_objects___aupdate(self):
+        """Cannot aupdate encrypted field via objects.aupdate()."""
+        assert Person.objects.aupdate is None
+
     def test_objects___bulk_update(self):
         """Cannot bulk update encrypted field via objects.bulk_update()."""
         assert Person.objects.bulk_update is None
 
+    def test_objects___abulk_update(self):
+        """Cannot abulk_update encrypted field via objects.abulk_update()."""
+        assert Person.objects.abulk_update is None
+
     def test_objects___bulk_create(self):
         """Cannot bulk create encrypted field via objects.bulk_create()."""
         assert Person.objects.bulk_create is None
+
+    def test_objects___abulk_create(self):
+        """Cannot abulk_create encrypted field via objects.abulk_create()."""
+        assert Person.objects.abulk_create is None
+
+    def test_objects__in_bulk(self):
+        """Cannot in_bulk encrypted field via objects.in_bulk()."""
+        assert Person.objects.in_bulk is None
+
+    def test_objects__ain_bulk(self):
+        """Cannot ain_bulk encrypted field via objects.ain_bulk()."""
+        assert Person.objects.ain_bulk is None
 
     def test_dek_aead(self):
         """dek_aead raises NotImplementedError."""

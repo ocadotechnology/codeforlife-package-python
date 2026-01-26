@@ -4,24 +4,57 @@ Created on 19/01/2026 at 09:57:19(+00:00).
 """
 
 import typing as t
-from functools import cached_property
+from dataclasses import dataclass, field
 
 from django.core.exceptions import ValidationError
-from django.db import models
+from django.db.models import BinaryField
 from django.utils.translation import gettext_lazy as _
 
-from ...encryption import create_dek, get_dek_aead
-from ...models import Model
+from ...encryption import create_dek
 from ...types import KwArgs
+from .deferred_attribute import DeferredAttribute
 
 if t.TYPE_CHECKING:
-    from tink.aead import Aead  # type: ignore[import-untyped]
+    from ...models import DataEncryptionKeyModel
+
+AnyDataEncryptionKeyField = t.TypeVar(
+    "AnyDataEncryptionKeyField", bound="DataEncryptionKeyField"
+)
 
 
-class DataEncryptionKeyField(models.BinaryField):
+@dataclass(frozen=True)
+class _Default:
+    """A default value holder for DataEncryptionKeyField."""
+
+    dek: bytes = field(default_factory=create_dek)
+
+
+class DataEncryptionKeyAttribute(
+    DeferredAttribute[AnyDataEncryptionKeyField, "DataEncryptionKeyModel"],
+    t.Generic[AnyDataEncryptionKeyField],
+):
+    """Descriptor for DataEncryptionKeyField."""
+
+    def __set__(self, instance, value):
+        if isinstance(value, _Default):
+            value = value.dek
+        elif value is not None:
+            raise ValidationError(
+                "DataEncryptionKeyField can only be set to None.",
+                code="cannot_set_value",
+            )
+
+        super().__set__(instance, value)
+
+
+class DataEncryptionKeyField(BinaryField):
     """
     A custom BinaryField to store a encrypted data encryption key (DEK).
     """
+
+    model: t.Type["DataEncryptionKeyModel"]
+
+    descriptor_class = DataEncryptionKeyAttribute
 
     default_verbose_name = "data encryption key"
     default_help_text = (
@@ -31,7 +64,7 @@ class DataEncryptionKeyField(models.BinaryField):
     def set_init_kwargs(self, kwargs: KwArgs):
         """Sets common init kwargs."""
         kwargs["editable"] = False
-        kwargs["default"] = create_dek
+        kwargs["default"] = _Default
         kwargs["null"] = False
         kwargs.setdefault("verbose_name", _(self.default_verbose_name))
         kwargs.setdefault("help_text", _(self.default_help_text))
@@ -61,21 +94,31 @@ class DataEncryptionKeyField(models.BinaryField):
         self.set_init_kwargs(kwargs)
         return name, path, args, kwargs
 
-    @cached_property
-    def aead(self):
-        """Return the AEAD primitive for this data encryption key."""
+    # --------------------------------------------------------------------------
+    # Descriptor Methods
+    # --------------------------------------------------------------------------
 
-        def get_aead(model: Model):
-            dek: bytes = getattr(model, self.name)
+    # Get the descriptor.
+    @t.overload  # type: ignore[override]
+    def __get__(
+        self, instance: None, owner: t.Any
+    ) -> DataEncryptionKeyAttribute[t.Self]: ...
 
-            # TODO: Cache this value.
-            return get_dek_aead(dek)
+    # Get the value.
+    @t.overload
+    def __get__(
+        self, instance: "DataEncryptionKeyModel", owner: t.Any
+    ) -> t.Optional[bytes]: ...
 
-        # Create a property with getter. Cast to Aead for mypy.
-        return t.cast("Aead", property(fget=get_aead))
+    # Actual implementation of __get__.
+    def __get__(
+        self, instance: t.Optional["DataEncryptionKeyModel"], owner: t.Any
+    ):
+        return t.cast(
+            t.Union[DataEncryptionKeyAttribute[t.Self], t.Optional[bytes]],
+            # pylint: disable-next=no-member
+            super().__get__(instance, owner),
+        )
 
-    @classmethod
-    def initialize(cls, **kwargs):
-        """Helpers to create a new DEK and return its AEAD primitive."""
-        dek = cls(**kwargs)
-        return dek, dek.aead
+    # Can only be set to None to allow data shredding.
+    def __set__(self, instance: "DataEncryptionKeyModel", value: None): ...

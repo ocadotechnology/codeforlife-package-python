@@ -21,19 +21,15 @@ else:
     TypedModelMeta = object
 
 
-class _EncryptedModel(Model):
-    associated_data: str
-    ENCRYPTED_FIELDS: t.List["BaseEncryptedField"]
-
-    class Meta(TypedModelMeta):
-        abstract = True
+AnyEncryptedModel = t.TypeVar("AnyEncryptedModel", bound="EncryptedModel")
 
 
-AnyEncryptedModel = t.TypeVar("AnyEncryptedModel", bound=_EncryptedModel)
-
-
-class EncryptedModel(_EncryptedModel):
+class EncryptedModel(Model):
     """Base for all models with encrypted fields."""
+
+    associated_data: str
+
+    ENCRYPTED_FIELDS: t.List["BaseEncryptedField"]
 
     # pylint: disable-next=too-few-public-methods
     class Manager(
@@ -59,8 +55,13 @@ class EncryptedModel(_EncryptedModel):
             return super().update(**kwargs)
 
         # Disable bulk operations that would bypass field-level encryption.
-        bulk_update: None = None  # type: ignore[assignment]
-        bulk_create: None = None  # type: ignore[assignment]
+        aupdate: t.Never = None  # type: ignore[assignment]
+        bulk_update: t.Never = None  # type: ignore[assignment]
+        abulk_update: t.Never = None  # type: ignore[assignment]
+        bulk_create: t.Never = None  # type: ignore[assignment]
+        abulk_create: t.Never = None  # type: ignore[assignment]
+        in_bulk: t.Never = None  # type: ignore[assignment]
+        ain_bulk: t.Never = None  # type: ignore[assignment]
 
     objects: Manager["EncryptedModel"] = Manager()  # type: ignore[assignment]
 
