@@ -19,7 +19,7 @@ else:
 # pylint: disable=too-few-public-methods
 
 
-class DataEncryptionKeyFieldTestCase(TestCase):
+class TestDataEncryptionKeyField(TestCase):
     def _get_model_class(self):
         """Dynamically creates a Model subclass with a DEK field.
 

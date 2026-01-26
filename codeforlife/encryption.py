@@ -12,6 +12,7 @@ from io import BytesIO
 from unittest.mock import MagicMock, create_autospec
 
 from django.conf import settings
+from django.utils.crypto import get_random_string
 from tink import (  # type: ignore[import-untyped]
     BinaryKeysetReader,
     BinaryKeysetWriter,
@@ -93,6 +94,10 @@ def create_dek():
     Creates a new random AES-256-GCM data encryption key (DEK), wraps it with
     Cloud KMS, and returns the binary blob for storage.
     """
+    # In local environment, return a fake encrypted DEK.
+    if settings.ENV == "local":
+        return FakeAead.encrypt(get_random_string(32).encode())
+
     stream = BytesIO()
     new_keyset_handle(key_template=aead_key_templates.AES256_GCM).write(
         keyset_writer=BinaryKeysetWriter(stream),
@@ -106,6 +111,10 @@ def get_dek_aead(dek: bytes) -> Aead:
     """Get the AEAD primitive for the given data encryption key (DEK)."""
     if not dek:
         raise ValueError("The data encryption key (DEK) is missing.")
+
+    # In local environment, return the fake AEAD primitive.
+    if settings.ENV == "local":
+        return FakeAead()
 
     return read_keyset_handle(
         keyset_reader=BinaryKeysetReader(dek),
