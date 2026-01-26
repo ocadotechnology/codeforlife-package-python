@@ -26,7 +26,7 @@ class TestDataEncryptionKeyModel(ModelTestCase[DataEncryptionKeyModel]):
         Dynamically create a subclass of DataEncryptionKeyModel for testing.
         """
 
-        class TestModel(super().get_model_class()):
+        class TestModel(DataEncryptionKeyModel):
             class Meta(TypedModelMeta):
                 app_label = "codeforlife.user"
 

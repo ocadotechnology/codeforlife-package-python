@@ -23,6 +23,7 @@ if t.TYPE_CHECKING:
 else:
     TypedModelMeta = object
 
+# pylint: disable=missing-class-docstring
 # pylint: disable=too-few-public-methods
 # pylint: disable=too-many-instance-attributes
 
@@ -93,9 +94,7 @@ class FakeEncryptedField(BaseEncryptedField[str]):
 
 
 # pylint: disable-next=too-many-public-methods
-class TestEncryptedModel(TestCase):
-    """Tests BaseEncryptedField functionality."""
-
+class TestBaseEncryptedField(TestCase):
     # --------------------------------------------------------------------------
     # Test Helper Methods
     # --------------------------------------------------------------------------
@@ -212,13 +211,17 @@ class TestEncryptedModel(TestCase):
         """bytes_to_value raises NotImplementedError."""
         with self.assertRaises(NotImplementedError):
             # pylint: disable-next=expression-not-assigned
-            self.field.bytes_to_value(b"data")
+            BaseEncryptedField[str](associated_data="test").bytes_to_value(
+                b"data"
+            )
 
     def test_value_to_bytes(self):
         """value_to_bytes raises NotImplementedError."""
         with self.assertRaises(NotImplementedError):
             # pylint: disable-next=expression-not-assigned
-            self.field.value_to_bytes("value")
+            BaseEncryptedField[str](associated_data="test").value_to_bytes(
+                "value"
+            )
 
     def test_qual_associated_data(self):
         """qual_associated_data returns fully qualified associated data."""
