@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "041d49f01251a84c9d080194f1cd79230b635a17e549f7749f9887fc9c5f7413"
+            "sha256": "76d8955f2a4a2a2d8b4b25f07ead2a7d59a9a52d31cbf03e9ce0288911e73fab"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -184,11 +184,11 @@
         },
         "cfl-common": {
             "hashes": [
-                "sha256:289e3f1a5707e9c291f93d240af02ffcadf9355b2a4a9ed39bb2f571bd79fbb5",
-                "sha256:eb476e9f77cf19486e7db963261b31b95b5c051eb89be722f0b6114de6ed0788"
+                "sha256:02a7f5d44cd8495c7b252bb6980896d45b413f645da42f805f17e7851e1d51db",
+                "sha256:eba4f98e6b569f2851fda9bde0ca61a46585112494f2319ed1503b47a4de2b9e"
             ],
             "index": "pypi",
-            "version": "==8.9.18"
+            "version": "==8.9.19"
         },
         "charset-normalizer": {
             "hashes": [
@@ -342,11 +342,11 @@
         },
         "codeforlife-portal": {
             "hashes": [
-                "sha256:401ccd2b7bcf6f0505efdbf48f023edfa6d35d345bdf97daf24c7951cb223af8",
-                "sha256:d2936b17c0ba673547f2b00f3f9a65bfbf524caf9e47eb62d8ced2df26216824"
+                "sha256:6a181a6742ef189da84fe66a13c01d4136130a0b57c9c90ddcff444c7f9e7fb6",
+                "sha256:ab894bd62d9b6cb05207f4661fdb78eac0c07384b72c6c83e9a9d00f94aa563f"
             ],
             "index": "pypi",
-            "version": "==8.9.18"
+            "version": "==8.9.19"
         },
         "cryptography": {
             "hashes": [
@@ -1571,11 +1571,11 @@
         },
         "rapid-router": {
             "hashes": [
-                "sha256:7749d8f33cd561a0f9f87bf82bab90cd9db1a55c364a06756fca6dab23e18adf",
-                "sha256:d09413c92b24b99ee2eb5d83dd3995b808367b64c61ad061758ebdcf00b6d18a"
+                "sha256:736a37ef2a9a2592add7ba0a885c08228d81fe15a773a194ecb93cece793c26c",
+                "sha256:b18545684c1707c9889c8e1bdaf68db84b9a7364da6273c4de5e04d30116ce37"
             ],
             "index": "pypi",
-            "version": "==7.6.17"
+            "version": "==7.6.18"
         },
         "redis": {
             "extras": [
