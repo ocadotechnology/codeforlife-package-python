@@ -29,7 +29,13 @@ _GcpKmsClient = gcpkms.GcpKmsClient
 
 @dataclass
 class FakeAead:
-    """A fake AEAD primitive for local testing."""
+    """A fake AEAD primitive for local testing.
+
+    We cannot call a real KMS service in a local/test environment as that would:
+    1. require network access.
+    2. require valid credentials.
+    3. incur costs.
+    """
 
     @staticmethod
     # pylint: disable-next=unused-argument
@@ -58,7 +64,13 @@ class FakeAead:
 
 @dataclass
 class FakeGcpKmsClient:
-    """A fake GcpKmsClient for local testing."""
+    """A fake GcpKmsClient for local testing.
+
+    We cannot call a real KMS service in a local/test environment as that would:
+    1. require network access.
+    2. require valid credentials.
+    3. incur costs.
+    """
 
     key_uri: str
 

@@ -113,9 +113,12 @@ class EncryptedModel(Model):
         else:
             for model in apps.get_models():
                 if (
+                    # pylint: disable-next=too-many-boolean-expressions
                     not model is cls
                     and not model._meta.abstract
                     and issubclass(model, EncryptedModel)
+                    and hasattr(model, "associated_data")
+                    and isinstance(model.associated_data, str)
                     and model.associated_data == cls.associated_data
                 ):
                     errors.append(
@@ -124,13 +127,27 @@ class EncryptedModel(Model):
                             f" '{cls.associated_data}'",
                             hint=(
                                 f"{cls.__module__}.{cls.__name__}"
-                                " shares this ID with"
+                                " shares this associated data with"
                                 f" {model.__module__}.{model.__name__}."
                             ),
                             obj=cls,
                             id="codeforlife.user.E004",
                         )
                     )
+
+        if not issubclass(cls.objects.__class__, EncryptedModel.Manager):
+            errors.append(
+                checks.Error(
+                    "EncryptedModel subclasses must use the"
+                    " EncryptedModel.Manager.",
+                    hint=(
+                        f"Set 'objects = EncryptedModel.Manager()' on"
+                        f" {cls.__module__}.{cls.__name__}."
+                    ),
+                    obj=cls,
+                    id="codeforlife.user.E005",
+                )
+            )
 
         return errors
 

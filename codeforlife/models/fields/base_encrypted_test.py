@@ -373,10 +373,10 @@ class TestBaseEncryptedField(TestCase):
 
     def test_get__cached(self):
         """Getting field when cached returns cached value."""
-        value = "decrypted_value"
-        assert value != self.field.default
-
         instance = self._get_model_instance()
+        instance.set_stored_value(self.field, b"irrelevant")
+
+        value = "decrypted_value"
         setattr(instance, self.field.cache_name, value)
         assert instance.field == value
 

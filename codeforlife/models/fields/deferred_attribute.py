@@ -10,10 +10,11 @@ from django.db.models.query_utils import DeferredAttribute as _DeferredAttribute
 
 AnyModel = t.TypeVar("AnyModel", bound=Model)
 AnyField = t.TypeVar("AnyField", bound=Field)
+T = t.TypeVar("T")
 
 
 # pylint: disable-next=too-few-public-methods
-class DeferredAttribute(_DeferredAttribute, t.Generic[AnyField, AnyModel]):
+class DeferredAttribute(_DeferredAttribute, t.Generic[AnyField, AnyModel, T]):
     """Custom DeferredAttribute with type hints ref to the field."""
 
     _field: AnyField
@@ -21,6 +22,8 @@ class DeferredAttribute(_DeferredAttribute, t.Generic[AnyField, AnyModel]):
     @property
     def field(self):
         """Helper to get the field with the correct type."""
+        # Mypy tries to be helpful here but fails to infer the correct type.
+        # Hence the cast.
         return t.cast(AnyField, self._field)
 
     @field.setter
@@ -33,8 +36,8 @@ class DeferredAttribute(_DeferredAttribute, t.Generic[AnyField, AnyModel]):
             return self
 
         # Get the internal value from the instance.
-        return instance.__dict__.get(self.field.attname)
+        return t.cast(t.Optional[T], instance.__dict__.get(self.field.attname))
 
-    def __set__(self, instance: AnyModel, value):
+    def __set__(self, instance: AnyModel, value: t.Optional[T]):
         # Set the internal value on the instance.
         instance.__dict__[self.field.attname] = value

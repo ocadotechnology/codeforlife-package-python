@@ -54,16 +54,16 @@ class TestDataEncryptionKeyField(TestCase):
         with self.assert_raises_validation_error(code="default_not_allowed"):
             DataEncryptionKeyField(default=b"default_value")
 
-    def test_init__null_not_allowed(self):
+    def test_init__null_allowed(self):
         """Cannot create DataEncryptionKeyField with null=True."""
         with self.assert_raises_validation_error(code="null_not_allowed"):
-            DataEncryptionKeyField(null=True)
+            DataEncryptionKeyField(null=False)
 
     def test_init(self):
         """DataEncryptionKeyField is constructed correctly."""
         assert self.field.editable is False
         assert self.field.default == _Default
-        assert self.field.null is False
+        assert self.field.null is True
         assert (
             self.field.verbose_name
             == DataEncryptionKeyField.default_verbose_name
@@ -76,7 +76,7 @@ class TestDataEncryptionKeyField(TestCase):
 
         assert kwargs["editable"] is False
         assert kwargs["default"] == _Default
-        assert kwargs["null"] is False
+        assert kwargs["null"] is True
         assert (
             kwargs["verbose_name"]
             == DataEncryptionKeyField.default_verbose_name

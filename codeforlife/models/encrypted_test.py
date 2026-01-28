@@ -5,6 +5,8 @@ Created on 19/01/2026 at 09:56:31(+00:00).
 
 import typing as t
 
+from django.db import models
+
 from ..tests import ModelTestCase
 from ..user.models import OtpBypassToken
 from .encrypted import EncryptedModel
@@ -77,10 +79,7 @@ class TestEncryptedModel(ModelTestCase[EncryptedModel]):
             class Meta(TypedModelMeta):
                 app_label = "codeforlife.user"
 
-        self.assert_check(
-            error_id="codeforlife.user.E001",
-            model_class=E001,
-        )
+        self.assert_check(error_id="codeforlife.user.E001", model_class=E001)
 
     def test_check__e002(self):
         """Check for string associated_data."""
@@ -92,10 +91,7 @@ class TestEncryptedModel(ModelTestCase[EncryptedModel]):
             class Meta(TypedModelMeta):
                 app_label = "codeforlife.user"
 
-        self.assert_check(
-            error_id="codeforlife.user.E002",
-            model_class=E002,
-        )
+        self.assert_check(error_id="codeforlife.user.E002", model_class=E002)
 
     def test_check__e003(self):
         """Check for non-empty associated_data."""
@@ -107,10 +103,7 @@ class TestEncryptedModel(ModelTestCase[EncryptedModel]):
             class Meta(TypedModelMeta):
                 app_label = "codeforlife.user"
 
-        self.assert_check(
-            error_id="codeforlife.user.E003",
-            model_class=E003,
-        )
+        self.assert_check(error_id="codeforlife.user.E003", model_class=E003)
 
     def test_check__e004(self):
         """Check for unique associated_data."""
@@ -122,7 +115,18 @@ class TestEncryptedModel(ModelTestCase[EncryptedModel]):
             class Meta(TypedModelMeta):
                 app_label = "codeforlife.user"
 
-        self.assert_check(
-            error_id="codeforlife.user.E004",
-            model_class=E004,
-        )
+        self.assert_check(error_id="codeforlife.user.E004", model_class=E004)
+
+    def test_check__e005(self):
+        """Check manager subclasses EncryptedModel.Manager."""
+
+        # pylint: disable-next=abstract-method
+        class E005(EncryptedModel):
+            associated_data = "example"
+
+            objects = models.Manager()  # type: ignore[assignment]
+
+            class Meta(TypedModelMeta):
+                app_label = "codeforlife.user"
+
+        self.assert_check(error_id="codeforlife.user.E005", model_class=E005)

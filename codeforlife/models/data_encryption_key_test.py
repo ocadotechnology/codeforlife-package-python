@@ -38,6 +38,7 @@ class TestDataEncryptionKeyModel(ModelTestCase[DataEncryptionKeyModel]):
         instance = self.get_model_instance()
 
         with self.subTest("When dek is set"):
+            assert instance.dek is not None
             dek_aead_mock = FakeAead.as_mock()
             get_dek_aead_mock.return_value = dek_aead_mock
             assert instance.dek_aead is dek_aead_mock

@@ -15,7 +15,6 @@ from ..encrypted import EncryptedModel
 from .deferred_attribute import DeferredAttribute
 
 T = t.TypeVar("T")
-Default: t.TypeAlias = t.Union[T, t.Callable[[], T]]
 
 
 @dataclass(frozen=True)
@@ -35,32 +34,24 @@ class _TrustedCiphertext:
 AnyBaseEncryptedField = t.TypeVar(
     "AnyBaseEncryptedField", bound="BaseEncryptedField"
 )
+Value: t.TypeAlias = t.Union[bytes, _PendingEncryption[T]]
 
 
 class EncryptedAttribute(
-    DeferredAttribute[AnyBaseEncryptedField, EncryptedModel],
-    t.Generic[AnyBaseEncryptedField],
+    DeferredAttribute[AnyBaseEncryptedField, EncryptedModel, Value[T]],
+    t.Generic[AnyBaseEncryptedField, T],
 ):
     """
     Custom descriptor that handles the get/set mechanics for encrypted fields.
     """
 
-    InternalValue: t.TypeAlias = t.Optional[t.Union[bytes, _PendingEncryption]]
-
     def __get__(self, instance, cls=None):
-        # Return the descriptor itself when accessed on the class.
-        if instance is None:
-            return self
-
-        # If we have a cached decrypted value, return it.
-        cache_name = self.field.cache_name
-        if hasattr(instance, cache_name):
-            return getattr(instance, cache_name)
-
         # Get the internal value from the instance.
-        internal_value: EncryptedAttribute.InternalValue = super().__get__(
-            instance, cls
-        )
+        internal_value = super().__get__(instance, cls)
+
+        # Return the descriptor itself when accessed on the class.
+        if internal_value is self:
+            return self
 
         # No data to decrypt.
         if internal_value is None:
@@ -70,8 +61,15 @@ class EncryptedAttribute(
         if isinstance(internal_value, _PendingEncryption):
             return internal_value.value
 
+        # If we have a cached decrypted value, return it.
+        cache_name = self.field.cache_name
+        if hasattr(instance, cache_name):
+            return t.cast(T, getattr(instance, cache_name))
+
         # Decrypt the value before returning it.
-        decrypted_value = self.field.decrypt_value(instance, internal_value)
+        decrypted_value = t.cast(
+            T, self.field.decrypt_value(instance, internal_value)
+        )
 
         # Cache the decrypted value on the instance.
         setattr(instance, cache_name, decrypted_value)
@@ -81,7 +79,9 @@ class EncryptedAttribute(
     def __set__(
         self,
         instance,
-        value: t.Optional[t.Union[memoryview, _TrustedCiphertext, t.Any]],
+        value: t.Optional[  # type: ignore[override]
+            t.Union[memoryview, _TrustedCiphertext, T]
+        ],
     ):
         # Clear any cached decrypted value.
         cache_name = self.field.cache_name
@@ -89,7 +89,7 @@ class EncryptedAttribute(
             delattr(instance, cache_name)
 
         # Determine the internal value to set.
-        internal_value: EncryptedAttribute.InternalValue
+        internal_value: t.Optional[Value[T]]
         if value is None:
             internal_value = None
         elif isinstance(value, memoryview):  # From fixture load.
@@ -126,7 +126,8 @@ class BaseEncryptedField(BinaryField, t.Generic[T]):
     def __init__(
         self,
         associated_data: str,
-        default: t.Optional[Default[T]] = None,
+        # Set type for default to match T.
+        default: t.Optional[t.Union[T, t.Callable[[], T]]] = None,
         **kwargs,
     ):
         if not associated_data:
@@ -199,7 +200,7 @@ class BaseEncryptedField(BinaryField, t.Generic[T]):
     @t.overload  # type: ignore[override]
     def __get__(
         self, instance: None, owner: t.Any
-    ) -> EncryptedAttribute[t.Self]: ...
+    ) -> EncryptedAttribute[t.Self, T]: ...
 
     # Get the internal value when accessed on an instance.
     @t.overload
@@ -208,11 +209,9 @@ class BaseEncryptedField(BinaryField, t.Generic[T]):
     ) -> t.Optional[T]: ...
 
     # Actual implementation of __get__.
-    def __get__(
-        self, instance: t.Optional[EncryptedModel], owner: t.Any
-    ) -> t.Union[EncryptedAttribute[t.Self], t.Optional[T]]:
+    def __get__(self, instance: t.Optional[EncryptedModel], owner: t.Any):
         return t.cast(
-            t.Union[EncryptedAttribute[t.Self], t.Optional[T]],
+            t.Union[EncryptedAttribute[t.Self, T], t.Optional[T]],
             # pylint: disable-next=no-member
             super().__get__(instance, owner),
         )
@@ -246,9 +245,7 @@ class BaseEncryptedField(BinaryField, t.Generic[T]):
         Called before the model is saved. This is where we perform encryption,
         because we have access to the instance (needed for the DEK).
         """
-        value: bytes | _PendingEncryption[T] | None = (
-            model_instance.__dict__.get(self.attname)
-        )
+        value: t.Optional[Value[T]] = model_instance.__dict__.get(self.attname)
 
         # No data to encrypt.
         if value is None:

@@ -33,7 +33,17 @@ class InterruptPipelineError(Exception):
         pipeline_args: t.Optional["Args"] = None,
         pipeline_kwargs: t.Optional["KwArgs"] = None,
     ):
-        """Run a pipeline, interrupting at a specified step."""
+        """Run a pipeline, interrupting at a specified step.
+
+        Args:
+            test_case: The test case instance to use for assertions.
+            step_target: The object containing the step method to patch.
+            step_attribute: The name of the step method to patch.
+            assert_step: A callable that asserts the step was reached correctly.
+            pipeline: The pipeline function to run.
+            pipeline_args: Positional arguments to pass to the pipeline.
+            pipeline_kwargs: Keyword arguments to pass to the pipeline.
+        """
 
         # Get the original step method.
         step = getattr(step_target, step_attribute)

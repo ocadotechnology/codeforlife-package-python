@@ -30,21 +30,29 @@ class _Default:
 
 
 class DataEncryptionKeyAttribute(
-    DeferredAttribute[AnyDataEncryptionKeyField, "DataEncryptionKeyModel"],
+    DeferredAttribute[
+        AnyDataEncryptionKeyField, "DataEncryptionKeyModel", bytes
+    ],
     t.Generic[AnyDataEncryptionKeyField],
 ):
     """Descriptor for DataEncryptionKeyField."""
 
-    def __set__(self, instance, value):
+    def __set__(
+        self,
+        instance,
+        value: t.Optional[_Default],  # type: ignore[override]
+    ):
         if isinstance(value, _Default):
-            value = value.dek
-        elif value is not None:
+            internal_value = value.dek
+        elif value is None:
+            internal_value = None
+        else:
             raise ValidationError(
                 "DataEncryptionKeyField can only be set to None.",
                 code="cannot_set_value",
             )
 
-        super().__set__(instance, value)
+        super().__set__(instance, internal_value)
 
 
 class DataEncryptionKeyField(BinaryField):
@@ -65,7 +73,7 @@ class DataEncryptionKeyField(BinaryField):
         """Sets common init kwargs."""
         kwargs["editable"] = False
         kwargs["default"] = _Default
-        kwargs["null"] = False
+        kwargs["null"] = True
         kwargs.setdefault("verbose_name", _(self.default_verbose_name))
         kwargs.setdefault("help_text", _(self.default_help_text))
 
@@ -80,9 +88,10 @@ class DataEncryptionKeyField(BinaryField):
                 "DataEncryptionKeyField cannot have a default value.",
                 code="default_not_allowed",
             )
-        if kwargs.get("null", False):
+        if not kwargs.get("null", True):
             raise ValidationError(
-                "DataEncryptionKeyField cannot be null.",
+                "DataEncryptionKeyField must allow null to support data"
+                " shredding.",
                 code="null_not_allowed",
             )
 
