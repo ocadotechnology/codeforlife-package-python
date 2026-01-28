@@ -63,8 +63,8 @@ class User(_AbstractBaseUser, _User):
     _password: t.Optional[str]
 
     id: int  # type: ignore[assignment]
-    auth_factors: QuerySet["AuthFactor"]  # type: ignore[assignment]
-    otp_bypass_tokens: QuerySet["OtpBypassToken"]  # type: ignore[assignment]
+    auth_factors: QuerySet["AuthFactor"]  # type: ignore
+    otp_bypass_tokens: QuerySet["OtpBypassToken"]  # type: ignore
     session: "Session"  # type: ignore[assignment]
     userprofile: UserProfile
 

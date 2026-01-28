@@ -10,7 +10,7 @@ from .user import UserSerializer
 
 # pylint: disable-next=missing-class-docstring,too-many-ancestors
 class TestUserSerializer(ModelSerializerTestCase[User, User]):
-    model_serializer_class = UserSerializer
+    model_serializer_class = UserSerializer  # type: ignore
 
     # test: to representation
 

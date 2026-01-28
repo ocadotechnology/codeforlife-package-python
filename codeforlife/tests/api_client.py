@@ -313,7 +313,7 @@ class APIClient(
 ):
     """Base API client to be inherited by all other API clients."""
 
-    request_factory_class = APIRequestFactory
+    request_factory_class = APIRequestFactory  # type: ignore
 
     @property
     def request_user_class(self) -> t.Type[RequestUser]:

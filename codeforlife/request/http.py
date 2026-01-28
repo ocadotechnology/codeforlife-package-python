@@ -28,7 +28,8 @@ AnyAbstractBaseUser = t.TypeVar("AnyAbstractBaseUser", bound=AbstractBaseUser)
 # pylint: disable-next=missing-class-docstring
 class BaseHttpRequest(_HttpRequest, t.Generic[AnyDBStore, AnyAbstractBaseUser]):
     session: AnyDBStore
-    user: t.Union[AnyAbstractBaseUser, AnonymousUser]
+    # pylint: disable-next=line-too-long
+    user: t.Union[AnyAbstractBaseUser, AnonymousUser]  # type: ignore[assignment]
 
 
 # pylint: disable-next=missing-class-docstring

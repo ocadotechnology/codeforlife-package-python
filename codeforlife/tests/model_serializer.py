@@ -388,7 +388,7 @@ class ModelSerializerTestCase(
 ):
     """Base for all model serializer test cases."""
 
-    request_factory_class = APIRequestFactory
+    request_factory_class = APIRequestFactory  # type: ignore
 
     @classmethod
     def get_request_user_class(cls) -> t.Type[AnyModel]:

@@ -65,7 +65,7 @@ class BaseLoginView(
         self.request.session.clear_expired(user_id=user.pk)
 
         # Create session (without data).
-        login(self.request, user)
+        login(self.request, user)  # type: ignore[arg-type]
 
         # Save session (with data).
         self.request.session.save()

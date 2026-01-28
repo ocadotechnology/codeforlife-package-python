@@ -257,6 +257,6 @@ class ModelViewSetTestCase(
     }
 
     @property
-    def request_user_class(self):
+    def request_user_class(self):  # type: ignore[override]
         """Shorthand to request-user class."""
         return self.model_view_set_class.request_user_class

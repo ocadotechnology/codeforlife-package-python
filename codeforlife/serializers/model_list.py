@@ -175,8 +175,8 @@ class BaseModelListSerializer(
             super().to_internal_value([item[1] for item in data_items]),
         )
 
-    # pylint: disable-next=useless-parent-delegation,arguments-renamed
-    def to_representation(self, instance: t.List[AnyModel]) -> t.List[DataDict]:
+    # pylint: disable-next=useless-parent-delegation,arguments-renamed,line-too-long
+    def to_representation(self, instance: t.List[AnyModel]) -> t.List[DataDict]:  # type: ignore[override]
         return super().to_representation(instance)
 
 

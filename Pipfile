@@ -29,9 +29,9 @@ psutil = "==7.0.0"
 importlib-metadata = "==4.13.0" # TODO: remove. needed by old portal
 django-formtools = "==2.5.1" # TODO: remove. needed by old portal
 # https://pypi.org/user/codeforlife/
-cfl-common = "==8.9.15" # TODO: remove
-codeforlife-portal = "==8.9.15" # TODO: remove
-rapid-router = "==7.6.13" # TODO: remove
+cfl-common = "==8.9.18" # TODO: remove
+codeforlife-portal = "==8.9.18" # TODO: remove
+rapid-router = "==7.6.16" # TODO: remove
 phonenumbers = "==8.12.12" # TODO: remove
 google-auth = "==2.40.3"
 google-cloud-bigquery = "==3.38.0"
@@ -52,9 +52,9 @@ pydot = "==1.4.2"
 pylint = "==3.2.7"
 pylint-django = "==2.5.5"
 isort = "==5.13.2"
-mypy = "==1.6.1"
-django-stubs = {version = "==4.2.6", extras = ["compatible-mypy"]}
-djangorestframework-stubs = {version = "==3.14.4", extras = ["compatible-mypy"]}
+mypy = "==1.19.1"
+django-stubs = {version = "==5.2.8", extras = ["compatible-mypy"]}
+djangorestframework-stubs = {version = "==3.16.7", extras = ["compatible-mypy"]}
 types-regex = "==2024.11.6.*"
 types-psutil = "==7.0.0.20250601"
 
