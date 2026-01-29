@@ -12,10 +12,8 @@ from django.utils.translation import gettext_lazy as _
 
 from ...encryption import create_dek
 from ...types import KwArgs
+from ..base_data_encryption_key import BaseDataEncryptionKeyModel
 from .deferred_attribute import DeferredAttribute
-
-if t.TYPE_CHECKING:
-    from ...models import DataEncryptionKeyModel
 
 AnyDataEncryptionKeyField = t.TypeVar(
     "AnyDataEncryptionKeyField", bound="DataEncryptionKeyField"
@@ -31,7 +29,7 @@ class _Default:
 
 class DataEncryptionKeyAttribute(
     DeferredAttribute[
-        AnyDataEncryptionKeyField, "DataEncryptionKeyModel", bytes
+        AnyDataEncryptionKeyField, BaseDataEncryptionKeyModel, bytes
     ],
     t.Generic[AnyDataEncryptionKeyField],
 ):
@@ -60,9 +58,13 @@ class DataEncryptionKeyField(BinaryField):
     A custom BinaryField to store a encrypted data encryption key (DEK).
     """
 
-    model: t.Type["DataEncryptionKeyModel"]
+    model: t.Type[BaseDataEncryptionKeyModel]
 
     descriptor_class = DataEncryptionKeyAttribute
+
+    # --------------------------------------------------------------------------
+    # Construction & Deconstruction
+    # --------------------------------------------------------------------------
 
     default_verbose_name = "data encryption key"
     default_help_text = (
@@ -104,6 +106,39 @@ class DataEncryptionKeyField(BinaryField):
         return name, path, args, kwargs
 
     # --------------------------------------------------------------------------
+    # Django Model Field Integration
+    # --------------------------------------------------------------------------
+
+    def contribute_to_class(self, cls, name, private_only=False):
+        super().contribute_to_class(cls, name, private_only)
+
+        # Skip fake models used for migrations.
+        if cls.__module__ == "__fake__":
+            return
+
+        # Ensure the model subclasses BaseDataEncryptionKeyModel.
+        if not issubclass(cls, BaseDataEncryptionKeyModel):
+            raise ValidationError(
+                f"'{cls.__module__}.{cls.__name__}' must subclass"
+                f" '{BaseDataEncryptionKeyModel.__module__}."
+                f"{BaseDataEncryptionKeyModel.__name__}'.",
+                code="invalid_model_base_class",
+            )
+
+        # Ensure only one DEK field per model.
+        # pylint: disable-next=protected-access
+        if cls._dek is not None:
+            raise ValidationError(
+                f"'{cls.__module__}.{cls.__name__}' already has a"
+                " DataEncryptionKeyField defined.",
+                code="multiple_dek_fields_not_allowed",
+            )
+
+        # Set the class DEK field reference.
+        # pylint: disable-next=protected-access
+        cls._dek = getattr(cls, self.name)
+
+    # --------------------------------------------------------------------------
     # Descriptor Methods
     # --------------------------------------------------------------------------
 
@@ -116,12 +151,12 @@ class DataEncryptionKeyField(BinaryField):
     # Get the value.
     @t.overload
     def __get__(
-        self, instance: "DataEncryptionKeyModel", owner: t.Any
+        self, instance: BaseDataEncryptionKeyModel, owner: t.Any
     ) -> t.Optional[bytes]: ...
 
     # Actual implementation of __get__.
     def __get__(
-        self, instance: t.Optional["DataEncryptionKeyModel"], owner: t.Any
+        self, instance: t.Optional[BaseDataEncryptionKeyModel], owner: t.Any
     ):
         return t.cast(
             t.Union[DataEncryptionKeyAttribute[t.Self], t.Optional[bytes]],
@@ -130,4 +165,4 @@ class DataEncryptionKeyField(BinaryField):
         )
 
     # Can only be set to None to allow data shredding.
-    def __set__(self, instance: "DataEncryptionKeyModel", value: None): ...
+    def __set__(self, instance: BaseDataEncryptionKeyModel, value: None): ...

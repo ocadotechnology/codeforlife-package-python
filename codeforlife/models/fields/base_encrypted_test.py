@@ -284,7 +284,7 @@ class TestBaseEncryptedField(TestCase):
         assert encrypted_bytes == encrypt_mock.side_effect(**encrypt_kwargs)
 
     # --------------------------------------------------------------------------
-    # Getting & Setting Values Tests
+    # Descriptor Methods Tests
     # --------------------------------------------------------------------------
 
     def test_cache_name(self):

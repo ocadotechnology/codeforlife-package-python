@@ -8,7 +8,8 @@ from unittest.mock import MagicMock, patch
 
 from ..encryption import FakeAead
 from ..tests import ModelTestCase
-from .data_encryption_key import DataEncryptionKeyModel
+from .base_data_encryption_key import BaseDataEncryptionKeyModel
+from .fields import DataEncryptionKeyField
 
 if t.TYPE_CHECKING:
     from django_stubs_ext.db.models import TypedModelMeta
@@ -19,18 +20,23 @@ else:
 # pylint: disable=too-few-public-methods
 
 
-class TestDataEncryptionKeyModel(ModelTestCase[DataEncryptionKeyModel]):
+class TestDataEncryptionKeyModel(ModelTestCase[BaseDataEncryptionKeyModel]):
     @classmethod
     def get_model_class(cls):
         """
-        Dynamically create a subclass of DataEncryptionKeyModel for testing.
+        Dynamically create a subclass of BaseDataEncryptionKeyModel for testing.
         """
 
-        class TestModel(DataEncryptionKeyModel):
+        class TestModel(BaseDataEncryptionKeyModel):
+            dek: DataEncryptionKeyField = DataEncryptionKeyField()
+
             class Meta(TypedModelMeta):
                 app_label = "codeforlife.user"
 
         return TestModel
+
+    def get_model_instance(self, *args, **kwargs):
+        return self.get_model_class()(*args, **kwargs)
 
     def test_dek_aead__none(self):
         """Returns None when dek is None."""
@@ -43,7 +49,7 @@ class TestDataEncryptionKeyModel(ModelTestCase[DataEncryptionKeyModel]):
         with self.assert_raises_validation_error(code="unsaved_instance"):
             _ = instance.dek_aead
 
-    @patch("codeforlife.models.data_encryption_key.get_dek_aead")
+    @patch("codeforlife.models.base_data_encryption_key.get_dek_aead")
     def test_dek_aead__not_cached(self, get_dek_aead_mock: MagicMock):
         """Returns dek_aead and caches it when not cached."""
         # Create an instance with a primary key to mimic a saved instance.
@@ -63,7 +69,7 @@ class TestDataEncryptionKeyModel(ModelTestCase[DataEncryptionKeyModel]):
         # Ensure the get_dek_aead function was called with the correct dek.
         get_dek_aead_mock.assert_called_once_with(instance.dek)
 
-    @patch("codeforlife.models.data_encryption_key.get_dek_aead")
+    @patch("codeforlife.models.base_data_encryption_key.get_dek_aead")
     def test_dek_aead__cached(self, get_dek_aead_mock: MagicMock):
         """Returns the cached dek_aead."""
         # Create an instance with a primary key to mimic a saved instance.

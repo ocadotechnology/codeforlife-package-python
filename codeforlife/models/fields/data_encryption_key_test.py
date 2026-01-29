@@ -8,6 +8,7 @@ import typing as t
 from django.db import models
 
 from ...tests import TestCase
+from ..base_data_encryption_key import BaseDataEncryptionKeyModel
 from .data_encryption_key import DataEncryptionKeyField, _Default
 
 if t.TYPE_CHECKING:
@@ -19,20 +20,29 @@ else:
 # pylint: disable=too-few-public-methods
 
 
+class FakeModelMeta(TypedModelMeta):
+    """A fake Meta class for testing."""
+
+    app_label = "codeforlife.user"
+
+
 class TestDataEncryptionKeyField(TestCase):
+    # --------------------------------------------------------------------------
+    # Test Helper Methods
+    # --------------------------------------------------------------------------
+
     def _get_model_class(self):
         """Dynamically creates a Model subclass with a DEK field.
 
         This assigns self.field to the 'dek' attribute of the model.
         """
 
-        class DekModel(models.Model):
+        class DekModel(BaseDataEncryptionKeyModel):
             """A fake Model with a DEK field for testing."""
 
             dek = self.field
 
-            class Meta(TypedModelMeta):
-                app_label = "codeforlife.user"
+            Meta = FakeModelMeta
 
         return DekModel
 
@@ -43,6 +53,11 @@ class TestDataEncryptionKeyField(TestCase):
     def setUp(self):
         # Casting as the field is not deferred in a model.
         self.field = t.cast(DataEncryptionKeyField, DataEncryptionKeyField())
+        self.field2 = t.cast(DataEncryptionKeyField, DataEncryptionKeyField())
+
+    # --------------------------------------------------------------------------
+    # Construction & Deconstruction Tests
+    # --------------------------------------------------------------------------
 
     def test_init__editable_not_allowed(self):
         """Cannot create DataEncryptionKeyField with editable=True."""
@@ -82,6 +97,53 @@ class TestDataEncryptionKeyField(TestCase):
             == DataEncryptionKeyField.default_verbose_name
         )
         assert kwargs["help_text"] == DataEncryptionKeyField.default_help_text
+
+    # --------------------------------------------------------------------------
+    # Django Model Field Integration Tests
+    # --------------------------------------------------------------------------
+
+    def test_contribute_to_class__invalid_model_base_class(self):
+        """
+        Cannot contribute DataEncryptionKeyField to invalid model base class.
+        """
+        with self.assert_raises_validation_error(
+            code="invalid_model_base_class"
+        ):
+            # pylint: disable-next=unused-variable
+            class Model(models.Model):
+                field = self.field
+
+                Meta = FakeModelMeta
+
+    def test_contribute_to_class__multiple_dek_fields_not_allowed(self):
+        """
+        Cannot contribute multiple DataEncryptionKeyFields to a model.
+        """
+        with self.assert_raises_validation_error(
+            code="multiple_dek_fields_not_allowed"
+        ):
+            # pylint: disable-next=unused-variable
+            class Model(BaseDataEncryptionKeyModel):
+                dek1 = self.field
+                dek2 = self.field2
+
+                Meta = FakeModelMeta
+
+    def test_contribute_to_class(self):
+        """DataEncryptionKeyField is contributed to model correctly."""
+        with self.subTest("Class attribute set correctly"):
+            Model = self._get_model_class()
+            # pylint: disable-next=protected-access
+            assert Model._dek == Model.dek
+
+        with self.subTest("Instance attribute set correctly"):
+            instance = Model()
+            # pylint: disable-next=protected-access
+            assert instance._dek == instance.dek
+
+    # --------------------------------------------------------------------------
+    # Descriptor Methods Tests
+    # --------------------------------------------------------------------------
 
     def test_get__descriptor(self):
         """Getting field from class returns the descriptor."""
