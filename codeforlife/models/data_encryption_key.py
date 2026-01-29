@@ -22,8 +22,8 @@ class DataEncryptionKeyModel(EncryptedModel):
     """Model to store data encryption keys."""
 
     # Cache configuration for data encryption keys.
-    dek_cache_maxsize: int = 1024
-    dek_cache_ttl: int = 900  # 15 minutes
+    dek_cache_maxsize: float = 1024
+    dek_cache_ttl: float = 900  # 15 minutes
 
     DEK_CACHE: TTLCache
 

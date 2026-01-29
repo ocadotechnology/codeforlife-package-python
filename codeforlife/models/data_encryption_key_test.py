@@ -32,19 +32,50 @@ class TestDataEncryptionKeyModel(ModelTestCase[DataEncryptionKeyModel]):
 
         return TestModel
 
-    @patch("codeforlife.models.data_encryption_key.get_dek_aead")
-    def test_dek_aead(self, get_dek_aead_mock: MagicMock):
-        """dek_aead property returns None when dek is not set."""
+    def test_dek_aead__none(self):
+        """Returns None when dek is None."""
+        instance = self.get_model_instance(dek=None)
+        assert instance.dek_aead is None
+
+    def test_dek_aead__unsaved_instance(self):
+        """Cannot get dek before saving the instance."""
         instance = self.get_model_instance()
+        with self.assert_raises_validation_error(code="unsaved_instance"):
+            _ = instance.dek_aead
 
-        with self.subTest("When dek is set"):
-            assert instance.dek is not None
-            dek_aead_mock = FakeAead.as_mock()
-            get_dek_aead_mock.return_value = dek_aead_mock
-            assert instance.dek_aead is dek_aead_mock
-            get_dek_aead_mock.assert_called_once_with(instance.dek)
+    @patch("codeforlife.models.data_encryption_key.get_dek_aead")
+    def test_dek_aead__not_cached(self, get_dek_aead_mock: MagicMock):
+        """Returns dek_aead and caches it when not cached."""
+        # Create an instance with a primary key to mimic a saved instance.
+        instance = self.get_model_instance(pk=1)
+        assert instance.dek is not None
 
-        with self.subTest("When dek is None"):
-            get_dek_aead_mock.reset_mock()
-            instance.dek = None
-            assert instance.dek_aead is None
+        # Setup the mock to return a FakeAead instance.
+        dek_aead_mock = FakeAead.as_mock()
+        get_dek_aead_mock.return_value = dek_aead_mock
+
+        # Initially, the cache should not have the dek_aead. After accessing
+        # dek_aead, it should be cached.
+        assert instance.pk not in instance.DEK_CACHE
+        assert instance.dek_aead is dek_aead_mock
+        assert instance.pk in instance.DEK_CACHE
+
+        # Ensure the get_dek_aead function was called with the correct dek.
+        get_dek_aead_mock.assert_called_once_with(instance.dek)
+
+    @patch("codeforlife.models.data_encryption_key.get_dek_aead")
+    def test_dek_aead__cached(self, get_dek_aead_mock: MagicMock):
+        """Returns the cached dek_aead."""
+        # Create an instance with a primary key to mimic a saved instance.
+        instance = self.get_model_instance(pk=1)
+        assert instance.dek is not None
+
+        # Pre-populate the cache with a FakeAead instance.
+        dek_aead_mock = FakeAead.as_mock()
+        instance.DEK_CACHE[instance.pk] = dek_aead_mock
+
+        # Accessing dek_aead should return the cached value.
+        assert instance.dek_aead is dek_aead_mock
+
+        # Ensure the get_dek_aead function was not called as its cached.
+        get_dek_aead_mock.assert_not_called()
