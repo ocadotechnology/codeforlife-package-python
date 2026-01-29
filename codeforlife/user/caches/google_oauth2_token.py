@@ -8,7 +8,7 @@ import typing as t
 import requests
 from django.conf import settings
 
-from ...caches import BaseDynamicKeyValueCache
+from ...caches import BaseDynamicKeyCache
 from ...types import OAuth2TokenFromRefreshDict
 from ..models import GoogleUser
 
@@ -24,9 +24,7 @@ class GoogleOAuth2TokenCacheValue(t.TypedDict):
 
 
 class GoogleOAuth2TokenCache(
-    BaseDynamicKeyValueCache[
-        GoogleOAuth2TokenCacheKey, GoogleOAuth2TokenCacheValue
-    ]
+    BaseDynamicKeyCache[GoogleOAuth2TokenCacheKey, GoogleOAuth2TokenCacheValue]
 ):
     """
     Authorization to a user's Google account. The key is the user's ID. The

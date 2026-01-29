@@ -26,7 +26,7 @@ class TestDataEncryptionKeyField(TestCase):
         This assigns self.field to the 'dek' attribute of the model.
         """
 
-        class Model(models.Model):
+        class DekModel(models.Model):
             """A fake Model with a DEK field for testing."""
 
             dek = self.field
@@ -34,7 +34,7 @@ class TestDataEncryptionKeyField(TestCase):
             class Meta(TypedModelMeta):
                 app_label = "codeforlife.user"
 
-        return Model
+        return DekModel
 
     def _get_model_instance(self, **kwargs):
         """Gets an instance of the dynamically created model class."""

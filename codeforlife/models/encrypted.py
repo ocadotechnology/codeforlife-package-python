@@ -31,6 +31,10 @@ class EncryptedModel(Model):
 
     ENCRYPTED_FIELDS: t.List["BaseEncryptedField"]
 
+    def __init_subclass__(cls):
+        super().__init_subclass__()
+        cls.ENCRYPTED_FIELDS = []
+
     # pylint: disable-next=too-few-public-methods
     class Manager(
         models.Manager[AnyEncryptedModel], t.Generic[AnyEncryptedModel]
@@ -39,18 +43,16 @@ class EncryptedModel(Model):
 
         def update(self, **kwargs):
             """Ensure encrypted fields are not updated via 'update()'."""
-            if hasattr(self.model, "ENCRYPTED_FIELDS"):
-                for name in kwargs:
-                    if any(
-                        field.name == name
-                        for field in self.model.ENCRYPTED_FIELDS
-                    ):
-                        raise ValidationError(
-                            f"Cannot update encrypted field '{name}' via"
-                            " 'update()'. Set the property on each instance"
-                            " instead.",
-                            code="cannot_update",
-                        )
+            for name in kwargs:
+                if any(
+                    field.name == name for field in self.model.ENCRYPTED_FIELDS
+                ):
+                    raise ValidationError(
+                        f"Cannot update encrypted field '{name}' via"
+                        " 'update()'. Set the property on each instance"
+                        " instead.",
+                        code="cannot_update",
+                    )
 
             return super().update(**kwargs)
 

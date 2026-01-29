@@ -31,12 +31,10 @@ class DeferredAttribute(_DeferredAttribute, t.Generic[AnyField, AnyModel, T]):
         self._field = value
 
     def __get__(self, instance: t.Optional[AnyModel], cls=None):
-        # Return the descriptor itself when accessed on the class.
-        if instance is None:
-            return self
-
-        # Get the internal value from the instance.
-        return t.cast(t.Optional[T], instance.__dict__.get(self.field.attname))
+        return t.cast(
+            t.Optional[T],
+            super().__get__(instance, cls),  # type: ignore[misc]
+        )
 
     def __set__(self, instance: AnyModel, value: t.Optional[T]):
         # Set the internal value on the instance.
