@@ -25,11 +25,11 @@ class DataEncryptionKeyModel(EncryptedModel):
     dek_cache_maxsize: float = 1024
     dek_cache_ttl: float = 900  # 15 minutes
 
-    DEK_CACHE: TTLCache
+    DEK_AEAD_CACHE: TTLCache
 
     def __init_subclass__(cls):
         super().__init_subclass__()
-        cls.DEK_CACHE = TTLCache(
+        cls.DEK_AEAD_CACHE = TTLCache(
             maxsize=cls.dek_cache_maxsize, ttl=cls.dek_cache_ttl
         )
 
@@ -53,13 +53,13 @@ class DataEncryptionKeyModel(EncryptedModel):
             )
 
         # Check the cache for the DEK AEAD.
-        if self.pk in self.DEK_CACHE:
-            return self.DEK_CACHE[self.pk]
+        if self.pk in self.DEK_AEAD_CACHE:
+            return self.DEK_AEAD_CACHE[self.pk]
 
         # Get the AEAD primitive for the data encryption key.
         dek_aead = get_dek_aead(self.dek)
 
         # Cache the DEK AEAD for future access.
-        self.DEK_CACHE[self.pk] = dek_aead
+        self.DEK_AEAD_CACHE[self.pk] = dek_aead
 
         return dek_aead

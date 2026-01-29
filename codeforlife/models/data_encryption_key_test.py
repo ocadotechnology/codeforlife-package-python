@@ -56,9 +56,9 @@ class TestDataEncryptionKeyModel(ModelTestCase[DataEncryptionKeyModel]):
 
         # Initially, the cache should not have the dek_aead. After accessing
         # dek_aead, it should be cached.
-        assert instance.pk not in instance.DEK_CACHE
+        assert instance.pk not in instance.DEK_AEAD_CACHE
         assert instance.dek_aead is dek_aead_mock
-        assert instance.pk in instance.DEK_CACHE
+        assert instance.pk in instance.DEK_AEAD_CACHE
 
         # Ensure the get_dek_aead function was called with the correct dek.
         get_dek_aead_mock.assert_called_once_with(instance.dek)
@@ -72,7 +72,7 @@ class TestDataEncryptionKeyModel(ModelTestCase[DataEncryptionKeyModel]):
 
         # Pre-populate the cache with a FakeAead instance.
         dek_aead_mock = FakeAead.as_mock()
-        instance.DEK_CACHE[instance.pk] = dek_aead_mock
+        instance.DEK_AEAD_CACHE[instance.pk] = dek_aead_mock
 
         # Accessing dek_aead should return the cached value.
         assert instance.dek_aead is dek_aead_mock
