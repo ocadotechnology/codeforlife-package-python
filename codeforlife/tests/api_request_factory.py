@@ -60,7 +60,7 @@ class BaseAPIRequestFactory(
         return request
 
     # pylint: disable-next=too-many-arguments
-    def generic(
+    def generic(  # type: ignore[override]
         self,
         method: str,
         path: t.Optional[str] = None,

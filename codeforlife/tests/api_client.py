@@ -313,7 +313,8 @@ class APIClient(
 ):
     """Base API client to be inherited by all other API clients."""
 
-    request_factory_class = APIRequestFactory
+    # pylint: disable-next=line-too-long
+    request_factory_class = APIRequestFactory  # type: ignore[assignment,override]
 
     @property
     def request_user_class(self) -> t.Type[RequestUser]:

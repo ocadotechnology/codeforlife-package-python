@@ -57,7 +57,9 @@ class BaseLoginView(
         raise NotImplementedError
 
     def form_valid(
-        self, form: BaseLoginForm[AnyAbstractBaseUser]  # type: ignore
+        self,
+        # pylint: disable-next=line-too-long
+        form: BaseLoginForm[AnyAbstractBaseUser],  # type: ignore[assignment,override]
     ):
         user = form.user
 
@@ -65,7 +67,7 @@ class BaseLoginView(
         self.request.session.clear_expired(user_id=user.pk)
 
         # Create session (without data).
-        login(self.request, user)
+        login(self.request, user)  # type: ignore[arg-type]
 
         # Save session (with data).
         self.request.session.save()
@@ -101,6 +103,8 @@ class BaseLoginView(
         return response
 
     def form_invalid(
-        self, form: BaseLoginForm[AnyAbstractBaseUser]  # type: ignore
+        self,
+        # pylint: disable-next=line-too-long
+        form: BaseLoginForm[AnyAbstractBaseUser],  # type: ignore[assignment,override]
     ):
         return JsonResponse(form.errors, status=status.HTTP_400_BAD_REQUEST)

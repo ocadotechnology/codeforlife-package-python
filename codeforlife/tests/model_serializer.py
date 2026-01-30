@@ -388,7 +388,8 @@ class ModelSerializerTestCase(
 ):
     """Base for all model serializer test cases."""
 
-    request_factory_class = APIRequestFactory
+    # pylint: disable-next=line-too-long
+    request_factory_class = APIRequestFactory  # type: ignore[assignment,override]
 
     @classmethod
     def get_request_user_class(cls) -> t.Type[AnyModel]:
