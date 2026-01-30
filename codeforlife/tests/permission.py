@@ -115,7 +115,8 @@ class PermissionTestCase(
 ):
     """Base test case for all permission test cases."""
 
-    request_factory_class = APIRequestFactory  # type: ignore
+    # pylint: disable-next=line-too-long
+    request_factory_class = APIRequestFactory  # type: ignore[assignment,override]
     request_user_class: t.Type[RequestUser]
 
     REQUIRED_ATTRS = {

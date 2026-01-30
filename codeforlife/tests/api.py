@@ -47,7 +47,7 @@ class APITestCase(
 ):
     """Base API test case to be inherited by all other API test cases."""
 
-    client_class = APIClient  # type: ignore
+    client_class = APIClient  # type: ignore[assignment,override]
     request_user_class: t.Type[RequestUser]
 
     REQUIRED_ATTRS: t.Set[str] = {"client_class", "request_user_class"}
