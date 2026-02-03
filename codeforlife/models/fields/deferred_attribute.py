@@ -30,7 +30,9 @@ class DeferredAttribute(_DeferredAttribute, t.Generic[AnyField, AnyModel, T]):
     def field(self, value: AnyField):
         self._field = value
 
-    def __get__(self, instance: t.Optional[AnyModel], cls=None):
+    def __get__(
+        self, instance: t.Optional[AnyModel], cls=None  # type: ignore[override]
+    ):
         return t.cast(
             t.Optional[T],
             super().__get__(instance, cls),  # type: ignore[misc]
