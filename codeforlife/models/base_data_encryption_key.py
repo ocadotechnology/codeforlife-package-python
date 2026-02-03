@@ -1,6 +1,10 @@
 """
 © Ocado Group
 Created on 26/01/2026 at 10:32:18(+00:00).
+
+This abstract model brings the `EncryptedModel` and `DataEncryptionKeyField`
+together. It also implements the `dek_aead` property, which retrieves and caches
+the decrypted DEK's AEAD primitive for use in encryption/decryption operations.
 """
 
 import typing as t
@@ -20,12 +24,13 @@ else:
 
 
 class BaseDataEncryptionKeyModel(EncryptedModel):
-    """Model to store data encryption keys."""
+    """Model to store and manage a data encryption key."""
 
     # Cache configuration for data encryption keys.
     dek_aead_cache_maxsize: float = 1024
     dek_aead_cache_ttl: float = 900  # 15 minutes
 
+    # In-memory cache for the decrypted DEK AEAD primitive.
     DEK_AEAD_CACHE: TTLCache
 
     def __init_subclass__(cls):
@@ -34,7 +39,8 @@ class BaseDataEncryptionKeyModel(EncryptedModel):
             maxsize=cls.dek_aead_cache_maxsize, ttl=cls.dek_aead_cache_ttl
         )
 
-    # Reference to the DataEncryptionKeyField.
+    # A class-level reference to the DataEncryptionKeyField instance.
+    # This is set by the `contribute_to_class` method of the field.
     _dek: t.Optional["DataEncryptionKeyField"] = None
 
     class Meta(TypedModelMeta):
@@ -42,6 +48,9 @@ class BaseDataEncryptionKeyModel(EncryptedModel):
 
     @property
     def dek_aead(self):
+        """
+        Provides the AEAD primitive for the DEK, caching it for performance.
+        """
         # Return None if there is no DEK.
         if self._dek is None:
             return None

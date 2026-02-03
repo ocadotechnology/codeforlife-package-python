@@ -1,6 +1,29 @@
 """
 © Ocado Group
 Created on 19/01/2026 at 09:56:25(+00:00).
+
+This is the base class for any model that will contain encrypted fields. Its
+primary role is to override the default manager to disable bulk operations that
+could otherwise bypass the field-level encryption logic, potentially leading to
+data corruption or leaks. It also uses Django's `check` framework to validate
+the model's configuration.
+
+A critical security measure in this architecture is the custom `Manager` within
+`EncryptedModel`. Standard Django bulk operations like `bulk_create()` and
+`update()` bypass the individual model's `save()` method and, by extension, our
+custom field's `pre_save` logic. If these methods were allowed, it would be
+possible to insert or update data without it being properly encrypted, or to
+corrupt existing encrypted data.
+
+To prevent this, the `Manager` explicitly disables these operations by setting
+them to `None`. The `update()` method is given a special implementation that
+actively checks if any of the fields being updated are encrypted fields and
+raises a `ValidationError` if they are. This forces developers to fetch model
+instances and update their properties individually, ensuring the encryption
+logic is always triggered. Furthermore, the model's `check` framework includes a
+validation step to ensure that any subclass of `EncryptedModel` is using a
+manager that inherits from `EncryptedModel.Manager`, guaranteeing these security
+measures are always enforced.
 """
 
 import typing as t
@@ -31,15 +54,24 @@ class EncryptedModel(Model):
 
     ENCRYPTED_FIELDS: t.List["BaseEncryptedField"]
 
+    def __init__(self, *args, **kwargs):
+        # Each instance gets its own dict of decrypted values.
+        self.__decrypted_values__: t.Dict[str, t.Any] = {}
+        super().__init__(*args, **kwargs)
+
     def __init_subclass__(cls):
         super().__init_subclass__()
+        # Each subclass gets its own list of encrypted fields.
         cls.ENCRYPTED_FIELDS = []
 
     # pylint: disable-next=too-few-public-methods
     class Manager(
         models.Manager[AnyEncryptedModel], t.Generic[AnyEncryptedModel]
     ):
-        """Base manager for models with encrypted fields."""
+        """
+        Base manager for models with encrypted fields. Disables bulk operations
+        that would bypass field-level encryption.
+        """
 
         def update(self, **kwargs):
             """Ensure encrypted fields are not updated via 'update()'."""
@@ -88,7 +120,7 @@ class EncryptedModel(Model):
                     "Must define an associated_data attribute.",
                     hint=f"{cls.__module__}.{cls.__name__}",
                     obj=cls,
-                    id="codeforlife.user.E001",
+                    id="encrypted.E001",
                 )
             )
         # Ensure associated_data is a string.
@@ -98,7 +130,7 @@ class EncryptedModel(Model):
                     "associated_data must be a string.",
                     hint=f"{cls.__module__}.{cls.__name__}",
                     obj=cls,
-                    id="codeforlife.user.E002",
+                    id="encrypted.E002",
                 )
             )
         # Ensure associated_data is not empty.
@@ -108,7 +140,7 @@ class EncryptedModel(Model):
                     "associated_data cannot be empty.",
                     hint=f"{cls.__module__}.{cls.__name__}",
                     obj=cls,
-                    id="codeforlife.user.E003",
+                    id="encrypted.E003",
                 )
             )
         # Ensure associated_data is unique.
@@ -133,9 +165,17 @@ class EncryptedModel(Model):
                                 f" {model.__module__}.{model.__name__}."
                             ),
                             obj=cls,
-                            id="codeforlife.user.E004",
+                            id="encrypted.E004",
                         )
                     )
+
+        return errors
+
+    @classmethod
+    def check(cls, **kwargs):
+        """Run model checks, including custom checks for encrypted models."""
+        errors = super().check(**kwargs)
+        errors.extend(cls._check_associated_data(**kwargs))
 
         if not issubclass(cls.objects.__class__, EncryptedModel.Manager):
             errors.append(
@@ -147,17 +187,10 @@ class EncryptedModel(Model):
                         f" {cls.__module__}.{cls.__name__}."
                     ),
                     obj=cls,
-                    id="codeforlife.user.E005",
+                    id="encrypted.E005",
                 )
             )
 
-        return errors
-
-    @classmethod
-    def check(cls, **kwargs):
-        """Run model checks, including custom checks for encrypted models."""
-        errors = super().check(**kwargs)
-        errors.extend(cls._check_associated_data(**kwargs))
         return errors
 
     @property

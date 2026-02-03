@@ -79,7 +79,7 @@ class TestEncryptedModel(ModelTestCase[EncryptedModel]):
             class Meta(TypedModelMeta):
                 app_label = "codeforlife.user"
 
-        self.assert_check(error_id="codeforlife.user.E001", model_class=E001)
+        self.assert_check(error_id="encrypted.E001", model_class=E001)
 
     def test_check__e002(self):
         """Check for string associated_data."""
@@ -91,7 +91,7 @@ class TestEncryptedModel(ModelTestCase[EncryptedModel]):
             class Meta(TypedModelMeta):
                 app_label = "codeforlife.user"
 
-        self.assert_check(error_id="codeforlife.user.E002", model_class=E002)
+        self.assert_check(error_id="encrypted.E002", model_class=E002)
 
     def test_check__e003(self):
         """Check for non-empty associated_data."""
@@ -103,7 +103,7 @@ class TestEncryptedModel(ModelTestCase[EncryptedModel]):
             class Meta(TypedModelMeta):
                 app_label = "codeforlife.user"
 
-        self.assert_check(error_id="codeforlife.user.E003", model_class=E003)
+        self.assert_check(error_id="encrypted.E003", model_class=E003)
 
     def test_check__e004(self):
         """Check for unique associated_data."""
@@ -115,7 +115,7 @@ class TestEncryptedModel(ModelTestCase[EncryptedModel]):
             class Meta(TypedModelMeta):
                 app_label = "codeforlife.user"
 
-        self.assert_check(error_id="codeforlife.user.E004", model_class=E004)
+        self.assert_check(error_id="encrypted.E004", model_class=E004)
 
     def test_check__e005(self):
         """Check manager subclasses EncryptedModel.Manager."""
@@ -129,4 +129,4 @@ class TestEncryptedModel(ModelTestCase[EncryptedModel]):
             class Meta(TypedModelMeta):
                 app_label = "codeforlife.user"
 
-        self.assert_check(error_id="codeforlife.user.E005", model_class=E005)
+        self.assert_check(error_id="encrypted.E005", model_class=E005)

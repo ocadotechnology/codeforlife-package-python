@@ -1,11 +1,56 @@
 """
 © Ocado Group
 Created on 19/01/2026 at 09:57:04(+00:00).
+
+This is where the core logic of transparent encryption and decryption happens.
+`BaseEncryptedField` is a generic field that stores encrypted data as bytes. The
+magic is in its descriptor, `EncryptedAttribute`.
+
+The descriptor intercepts get and set operations:
+
+- On `set`: The value is not immediately encrypted. It's wrapped in a
+  `_PendingEncryption` object and stored in the model instance's `__dict__`.
+  This is a performance optimization to avoid encrypting a value multiple
+  times if it's changed repeatedly before saving. Any previously cached
+  decrypted value is cleared.
+- On `get`: The descriptor first checks if a decrypted value is already cached
+  on the model instance. If so, it returns it immediately. Otherwise, it checks
+  the value in `__dict__`. If it's ciphertext (bytes), it's decrypted
+  on-the-fly, cached on the instance, and then returned. If it's a pending
+  plaintext value, it's returned directly.
+- On `save`: The field's `pre_save` method is called. It checks for a
+  `_PendingEncryption` object. If found, it encrypts the plaintext value using
+  the `dek_aead` and replaces it with the resulting ciphertext bytes, which are
+  then written to the database.
+
+A key challenge is differentiating between a value that has just been loaded
+from the database (and is therefore encrypted ciphertext) and a new plaintext
+value that a developer is setting.
+
+- When a developer sets `user.email = "new@example.com"`, this is **new
+  plaintext** that needs to be encrypted on save.
+- When Django loads a `User` from the database, the `email` field contains
+  **existing ciphertext** (raw bytes).
+
+We solve this with two wrapper classes:
+
+1. `_PendingEncryption(value)`: When a developer sets a value on the field, the
+   `EncryptedAttribute` descriptor wraps it in this class. This marks the data
+   as "dirty" or "pending encryption." The `pre_save` method looks for this
+   wrapper to know what needs to be encrypted.
+2. `_TrustedCiphertext(value)`: When Django loads data from the database, the
+   `from_db_value` method on the field is called. We wrap the raw bytes from the
+   database in this class. The `EncryptedAttribute` descriptor's `__set__`
+   method sees this wrapper and knows the value is already-encrypted ciphertext,
+   preventing it from being re-wrapped as `_PendingEncryption`. This avoids
+   unnecessary re-encryption of data that hasn't changed.
+
+This distinction allows the field to correctly handle both new data and existing
+data without ambiguity.
 """
 
 import typing as t
 from dataclasses import dataclass
-from functools import cached_property
 
 from django.core.exceptions import ValidationError
 from django.db.models import BinaryField
@@ -19,22 +64,23 @@ T = t.TypeVar("T")
 
 @dataclass(frozen=True)
 class _PendingEncryption(t.Generic[T]):
-    """Helper: Data waiting to be encrypted (User Input)."""
+    """A wrapper for plaintext that is pending encryption."""
 
     value: T
 
 
 @dataclass(frozen=True)
 class _TrustedCiphertext:
-    """Helper: Trusted ciphertext directly from the DB."""
+    """A wrapper for ciphertext that comes directly from the database."""
 
     ciphertext: bytes
 
 
+Value: t.TypeAlias = t.Union[_TrustedCiphertext, _PendingEncryption[T]]
+
 AnyBaseEncryptedField = t.TypeVar(
     "AnyBaseEncryptedField", bound="BaseEncryptedField"
 )
-Value: t.TypeAlias = t.Union[bytes, _PendingEncryption[T]]
 
 
 class EncryptedAttribute(
@@ -42,7 +88,7 @@ class EncryptedAttribute(
     t.Generic[AnyBaseEncryptedField, T],
 ):
     """
-    Custom descriptor that handles the get/set mechanics for encrypted fields.
+    Descriptor that handles the get/set mechanics for encrypted fields.
     """
 
     def __get__(self, instance, cls=None):
@@ -61,20 +107,27 @@ class EncryptedAttribute(
         if isinstance(internal_value, _PendingEncryption):
             return internal_value.value
 
-        # If we have a cached decrypted value, return it.
-        cache_name = self.field.cache_name
-        if hasattr(instance, cache_name):
-            return t.cast(T, getattr(instance, cache_name))
+        if isinstance(internal_value, _TrustedCiphertext):
+            # If we have a cached decrypted value, return it.
+            if self.field.attname in instance.__decrypted_values__:
+                return t.cast(
+                    T, instance.__decrypted_values__[self.field.attname]
+                )
 
-        # Decrypt the value before returning it.
-        decrypted_value = t.cast(
-            T, self.field.decrypt_value(instance, internal_value)
+            # Decrypt the value before returning it.
+            decrypted_value = t.cast(
+                T, self.field.decrypt_value(instance, internal_value.ciphertext)
+            )
+
+            # Cache the decrypted value on the instance.
+            instance.__decrypted_values__[self.field.attname] = decrypted_value
+
+            return decrypted_value
+
+        raise ValidationError(
+            "Unexpected internal value type for encrypted field.",
+            code="invalid_internal_value_type",
         )
-
-        # Cache the decrypted value on the instance.
-        setattr(instance, cache_name, decrypted_value)
-
-        return decrypted_value
 
     def __set__(
         self,
@@ -84,23 +137,24 @@ class EncryptedAttribute(
         ],
     ):
         # Clear any cached decrypted value.
-        cache_name = self.field.cache_name
-        if hasattr(instance, cache_name):
-            delattr(instance, cache_name)
+        instance.__decrypted_values__.pop(self.field.attname, None)
 
         # Determine the internal value to set.
         internal_value: t.Optional[Value[T]]
         if value is None:
             internal_value = None
-        elif isinstance(value, memoryview):  # From fixture load.
+        # When Django loads data from a fixture (e.g., a JSON file), it
+        # provides binary data as a `memoryview` object. Our descriptor
+        # handles this by extracting the raw bytes from the `memoryview`.
+        elif isinstance(value, memoryview):
             if not isinstance(value.obj, bytes):
                 raise ValidationError(
                     "Expected bytes in memoryview for encrypted field.",
                     code="invalid_memoryview_type",
                 )
-            internal_value = value.obj
+            internal_value = _TrustedCiphertext(value.obj)
         elif isinstance(value, _TrustedCiphertext):  # From DB.
-            internal_value = value.ciphertext
+            internal_value = value
         else:  # From user input.
             internal_value = _PendingEncryption(value)
 
@@ -155,6 +209,10 @@ class BaseEncryptedField(BinaryField, t.Generic[T]):
     # --------------------------------------------------------------------------
 
     def contribute_to_class(self, cls, name, private_only=False):
+        """
+        Called by Django when the field is added to a model. This method
+        performs critical validations and registers the field with the model.
+        """
         super().contribute_to_class(cls, name, private_only)
 
         # Skip fake models used for migrations.
@@ -192,15 +250,13 @@ class BaseEncryptedField(BinaryField, t.Generic[T]):
     # Descriptor Methods
     # --------------------------------------------------------------------------
 
-    # Get the descriptor with the correct types.
     @t.overload  # type: ignore[override]
-    def __get__(
+    def __get__(  # Get the descriptor with the correct types.
         self, instance: None, owner: t.Any
     ) -> EncryptedAttribute[t.Self, T]: ...
 
-    # Get the internal value when accessed on an instance.
     @t.overload
-    def __get__(
+    def __get__(  # Get the internal value when accessed on an instance.
         self, instance: EncryptedModel, owner: t.Any
     ) -> t.Optional[T]: ...
 
@@ -215,18 +271,12 @@ class BaseEncryptedField(BinaryField, t.Generic[T]):
     # Set the internal value when assigned on an instance.
     def __set__(self, instance: EncryptedModel, value: t.Optional[T]): ...
 
-    @cached_property
-    def cache_name(self):
-        """The name used to cache the decrypted value on the instance."""
-        return f"_{self.name}_decrypted_value"
-
     # pylint: disable-next=unused-argument
     def from_db_value(self, value: t.Optional[bytes], expression, connection):
         """
-        Converts a value as returned by the database to a Python object. It is
-        the reverse of get_prep_value().
-
-        https://docs.djangoproject.com/en/5.1/howto/custom-model-fields/#converting-values-to-python-objects
+        Converts a value as returned by the database to a Python object.
+        We wrap the raw bytes in _TrustedCiphertext to signal that this is
+        existing ciphertext from the database, not new plaintext.
         """
         if value is None:
             return None
@@ -237,10 +287,7 @@ class BaseEncryptedField(BinaryField, t.Generic[T]):
     def pre_save(
         self, model_instance: EncryptedModel, add  # type: ignore[override]
     ):
-        """
-        Called before the model is saved. This is where we perform encryption,
-        because we have access to the instance (needed for the DEK).
-        """
+        """Before saving, encrypt any pending values."""
         value: t.Optional[Value[T]] = model_instance.__dict__.get(self.attname)
 
         # No data to encrypt.
@@ -251,29 +298,35 @@ class BaseEncryptedField(BinaryField, t.Generic[T]):
         if isinstance(value, _PendingEncryption):
             return self.encrypt_value(model_instance, value.value)
 
-        # Unexpected data type.
-        if not isinstance(value, bytes):
-            raise ValidationError(
-                f"Unexpected value type '{type(value)}' for encryption.",
-                code="invalid_value_type",
-            )
+        # Already encrypted data from DB, store as-is.
+        if isinstance(value, _TrustedCiphertext):
+            return value.ciphertext
 
-        return value
+        raise ValidationError(
+            f"Unexpected value type '{type(value)}' for encryption.",
+            code="invalid_value_type",
+        )
 
     # --------------------------------------------------------------------------
     # Crypto Logic
     # --------------------------------------------------------------------------
 
     def bytes_to_value(self, data: bytes) -> T:
-        """Converts decrypted bytes to the field value."""
+        """
+        Subclasses must implement this method to convert decrypted bytes back to
+        the field's value type.
+        """
         raise NotImplementedError()
 
     def value_to_bytes(self, value: T) -> bytes:
-        """Converts the field value to bytes for encryption."""
+        """
+        Subclasses must implement this method to convert the field's value to
+        bytes before encryption.
+        """
         raise NotImplementedError()
 
     @property
-    def qual_associated_data(self):
+    def full_associated_data(self):
         """Returns the fully qualified associated data for this field."""
         return f"{self.model.associated_data}:{self.associated_data}".encode()
 
@@ -286,7 +339,7 @@ class BaseEncryptedField(BinaryField, t.Generic[T]):
 
         data = instance.dek_aead.decrypt(
             ciphertext=ciphertext,
-            associated_data=self.qual_associated_data,
+            associated_data=self.full_associated_data,
         )
 
         return self.bytes_to_value(data)
@@ -298,6 +351,6 @@ class BaseEncryptedField(BinaryField, t.Generic[T]):
             if plaintext is None
             else instance.dek_aead.encrypt(
                 plaintext=self.value_to_bytes(plaintext),
-                associated_data=self.qual_associated_data,
+                associated_data=self.full_associated_data,
             )
         )

@@ -2,7 +2,28 @@
 © Ocado Group
 Created on 19/01/2026 at 09:55:44(+00:00).
 
-Various utilities for encrypting/decrypting data.
+Here we provide a few utility functions that interact with Google Cloud KMS and
+the `tink` cryptography library.
+
+To avoid a dependency on Google Cloud KMS during local development and in CI/CD
+pipelines, we use fake (mock) implementations of the KMS client and its AEAD
+primitive. A simple check for the environment (e.g., `settings.ENV == "local"`)
+determines whether to use the real `GcpKmsClient` or a `FakeGcpKmsClient`.
+
+The fake client mimics the behavior of the real one. Instead of performing real
+encryption, it simulates it by encoding the plaintext in base64 and adding a
+prefix. This allows the application to run without needing cloud credentials
+while still being able to distinguish between "encrypted" and plaintext data.
+
+While the `FakeAead` and `FakeGcpKmsClient` are sufficient for running a local
+development server, they are not `unittest.mock.MagicMock` instances by default.
+This is intentional, as we don't want the overhead of tracking function calls
+during local development.
+
+For unit tests, where you might need to assert that encryption or decryption
+methods were called, both fake classes provide an `as_mock()` class method. This
+method returns a `MagicMock` instance of the class, allowing you to use mock
+assertions like `assert_called_once()`.
 """
 
 import typing as t
@@ -29,13 +50,7 @@ _GcpKmsClient = gcpkms.GcpKmsClient
 
 @dataclass
 class FakeAead:
-    """A fake AEAD primitive for local testing.
-
-    We cannot call a real KMS service in a local/test environment as that would:
-    1. require network access.
-    2. require valid credentials.
-    3. incur costs.
-    """
+    """A fake AEAD primitive for local testing."""
 
     @staticmethod
     # pylint: disable-next=unused-argument
@@ -54,7 +69,12 @@ class FakeAead:
 
     @classmethod
     def as_mock(cls):
-        """Factory method to build the mock AEAD."""
+        """
+        Returns the class as a functional MagicMock for testing. The mock tracks
+        calls while still performing the fake encryption and decryption by using
+        the original methods as side effects. We set `instance=True` to ensure
+        the mock behaves as an instance of the class, not the class itself.
+        """
         mock: MagicMock = create_autospec(Aead, instance=True)
         mock.encrypt.side_effect = cls.encrypt
         mock.decrypt.side_effect = cls.decrypt
@@ -64,13 +84,7 @@ class FakeAead:
 
 @dataclass
 class FakeGcpKmsClient:
-    """A fake GcpKmsClient for local testing.
-
-    We cannot call a real KMS service in a local/test environment as that would:
-    1. require network access.
-    2. require valid credentials.
-    3. incur costs.
-    """
+    """A fake GcpKmsClient for local testing."""
 
     key_uri: str
 
@@ -87,7 +101,12 @@ class FakeGcpKmsClient:
 
     @classmethod
     def as_mock(cls):
-        """Factory method to build the mock GcpKmsClient."""
+        """
+        Returns the class as a functional MagicMock for testing. It returns a
+        mocked FakeAead instance that is also functional. We set `instance=True`
+        to ensure the mock behaves as an instance of the class, not the class
+        itself.
+        """
         mock: MagicMock = create_autospec(_GcpKmsClient, instance=True)
         mock.get_aead.return_value = FakeAead.as_mock()
 
@@ -120,7 +139,10 @@ def create_dek():
 
 
 def get_dek_aead(dek: bytes) -> Aead:
-    """Get the AEAD primitive for the given data encryption key (DEK)."""
+    """
+    Takes an encrypted DEK, decrypts it with the KEK, and returns the AEAD
+    primitive for performing cryptographic operations.
+    """
     if not dek:
         raise ValueError("The data encryption key (DEK) is missing.")
 
@@ -137,10 +159,10 @@ def get_dek_aead(dek: bytes) -> Aead:
 # Ensure Tink AEAD is registered.
 aead_register()
 
-# Get the GcpKmsClient class depending on the environment.
+# Use the fake client in 'local' environment, otherwise use the real one.
 GcpKmsClient = FakeGcpKmsClient if settings.ENV == "local" else _GcpKmsClient
 
-# Register the GCP KMS client.
+# Register the GCP KMS client with Tink.
 GcpKmsClient.register_client(
     key_uri=settings.GCP_KMS_KEY_URI, credentials_path=None
 )

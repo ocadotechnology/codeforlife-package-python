@@ -1,6 +1,36 @@
 """
 © Ocado Group
 Created on 19/01/2026 at 09:57:19(+00:00).
+
+This field is responsible for managing the lifecycle of a DEK for a model
+instance. When a new model instance is created, this field automatically
+generates a new DEK, encrypts it with the KEK, and prepares it to be stored in
+the database.
+
+This is achieved using a `_Default` dataclass as a sentinel. In the
+`DataEncryptionKeyField`'s `__init__` method, the `default` is set to the
+`_Default` class. When a new model instance is created, Django sets the field's
+value to an instance of `_Default()`.
+
+The `_Default` dataclass has a field `dek` with a `default_factory` that points
+to the `create_dek` function. This means that when `_Default` is instantiated, a
+new DEK is automatically created.
+
+The field's custom descriptor, `DataEncryptionKeyAttribute`, then intercepts the
+`_Default` instance in its `__set__` method, extracts the newly created `dek`
+from it, and sets it as the field's value on the model instance. This elegant
+pattern ensures that a new DEK is generated only when a new model instance is
+created.
+
+The `contribute_to_class` method on `DataEncryptionKeyField` performs crucial
+validations when the field is added to a model. It ensures that the model
+inherits from the correct base class (`BaseDataEncryptionKeyModel`) and, most
+importantly, it guarantees that a model can only have one
+`DataEncryptionKeyField`. It does this by checking a class-level `_dek`
+attribute; if this attribute is already set, it means another DEK field has
+already been processed, and a `ValidationError` is raised. This prevents
+developers from accidentally creating multiple encryption keys for a single
+model instance, which would lead to ambiguity and potential data loss.
 """
 
 import typing as t
@@ -22,7 +52,7 @@ AnyDataEncryptionKeyField = t.TypeVar(
 
 @dataclass(frozen=True)
 class _Default:
-    """A default value holder for DataEncryptionKeyField."""
+    """A default value holder that creates a new DEK on instantiation."""
 
     dek: bytes = field(default_factory=create_dek)
 
@@ -33,16 +63,19 @@ class DataEncryptionKeyAttribute(
     ],
     t.Generic[AnyDataEncryptionKeyField],
 ):
-    """Descriptor for DataEncryptionKeyField."""
+    """
+    Descriptor for DataEncryptionKeyField that handles the automatic creation of
+    a new DEK and data shredding.
+    """
 
     def __set__(
         self,
         instance,
         value: t.Optional[_Default],  # type: ignore[override]
     ):
-        if isinstance(value, _Default):
+        if isinstance(value, _Default):  # new instance is being created
             internal_value = value.dek
-        elif value is None:
+        elif value is None:  # data is being shredded
             internal_value = None
         else:
             raise ValidationError(
@@ -55,7 +88,7 @@ class DataEncryptionKeyAttribute(
 
 class DataEncryptionKeyField(BinaryField):
     """
-    A custom BinaryField to store a encrypted data encryption key (DEK).
+    A custom BinaryField to store an encrypted data encryption key (DEK).
     """
 
     model: t.Type[BaseDataEncryptionKeyModel]
@@ -73,9 +106,9 @@ class DataEncryptionKeyField(BinaryField):
 
     def set_init_kwargs(self, kwargs: KwArgs):
         """Sets common init kwargs."""
-        kwargs["editable"] = False
-        kwargs["default"] = _Default
-        kwargs["null"] = True
+        kwargs["editable"] = False  # DEK should not be editable in admin forms
+        kwargs["default"] = _Default  # Default to a new DEK generator
+        kwargs["null"] = True  # Allow null for data shredding
         kwargs.setdefault("verbose_name", _(self.default_verbose_name))
         kwargs.setdefault("help_text", _(self.default_help_text))
 
@@ -142,20 +175,17 @@ class DataEncryptionKeyField(BinaryField):
     # Descriptor Methods
     # --------------------------------------------------------------------------
 
-    # Get the descriptor.
     @t.overload  # type: ignore[override]
-    def __get__(
+    def __get__(  # Get the descriptor.
         self, instance: None, owner: t.Any
     ) -> DataEncryptionKeyAttribute[t.Self]: ...
 
-    # Get the value.
     @t.overload
-    def __get__(
+    def __get__(  # Get the value.
         self, instance: BaseDataEncryptionKeyModel, owner: t.Any
     ) -> t.Optional[bytes]: ...
 
-    # Actual implementation of __get__.
-    def __get__(
+    def __get__(  # Actual implementation of __get__.
         self, instance: t.Optional[BaseDataEncryptionKeyModel], owner: t.Any
     ):
         return t.cast(

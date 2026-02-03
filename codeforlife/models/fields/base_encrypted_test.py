@@ -223,11 +223,11 @@ class TestBaseEncryptedField(TestCase):
                 "value"
             )
 
-    def test_qual_associated_data(self):
-        """qual_associated_data returns fully qualified associated data."""
+    def test_full_associated_data(self):
+        """Returns fully qualified associated data."""
         Model = self._get_model_class()
         assert (
-            self.field.qual_associated_data
+            self.field.full_associated_data
             == f"{Model.associated_data}:{self.field_associated_data}".encode()
         )
 
@@ -249,7 +249,7 @@ class TestBaseEncryptedField(TestCase):
         decrypted_value = self.field.decrypt_value(instance, ciphertext)
         decrypt_kwargs = {
             "ciphertext": ciphertext,
-            "associated_data": self.field.qual_associated_data,
+            "associated_data": self.field.full_associated_data,
         }
         decrypt_mock.assert_called_once_with(**decrypt_kwargs)
         decrypted_bytes = decrypt_mock.side_effect(**decrypt_kwargs)
@@ -278,7 +278,7 @@ class TestBaseEncryptedField(TestCase):
         decrypted_bytes = value_to_bytes_mock.side_effect(plaintext)
         encrypt_kwargs = {
             "plaintext": decrypted_bytes,
-            "associated_data": self.field.qual_associated_data,
+            "associated_data": self.field.full_associated_data,
         }
         encrypt_mock.assert_called_once_with(**encrypt_kwargs)
         assert encrypted_bytes == encrypt_mock.side_effect(**encrypt_kwargs)
@@ -286,11 +286,6 @@ class TestBaseEncryptedField(TestCase):
     # --------------------------------------------------------------------------
     # Descriptor Methods Tests
     # --------------------------------------------------------------------------
-
-    def test_cache_name(self):
-        """cache_name returns the correct cache attribute name."""
-        self._get_model_class()  # Assign field to model.
-        assert self.field.cache_name == "_field_decrypted_value"
 
     def test_set__default(self):
         """Setting field to default value stores pending encryption."""
@@ -323,17 +318,17 @@ class TestBaseEncryptedField(TestCase):
 
     def test_set__trusted_ciphertext(self):
         """Setting field to _TrustedCiphertext stores ciphertext directly."""
-        ciphertext = b"encrypted_value"
-        trusted_ciphertext = _TrustedCiphertext(ciphertext)
+        trusted_ciphertext = _TrustedCiphertext(b"encrypted_value")
         instance = self._get_model_instance(field=trusted_ciphertext)
-        assert instance.get_stored_value(self.field) == ciphertext
+        assert instance.get_stored_value(self.field) is trusted_ciphertext
 
     def test_set__memoryview(self):
         """Setting field to memoryview stores bytes directly."""
-        value = b"byte_value"
-        memoryview_value = memoryview(value)
+        memoryview_value = memoryview(b"byte_value")
         instance = self._get_model_instance(field=memoryview_value)
-        assert instance.get_stored_value(self.field) == value
+        trusted_ciphertext = instance.get_stored_value(self.field)
+        assert isinstance(trusted_ciphertext, _TrustedCiphertext)
+        assert trusted_ciphertext.ciphertext == memoryview_value.obj
 
     def test_set__memoryview__invalid_memoryview_type(self):
         """Setting field to invalid memoryview type raises ValidationError."""
@@ -356,14 +351,26 @@ class TestBaseEncryptedField(TestCase):
         instance = self._get_model_instance()
 
         # Cache the value on the instance.
-        setattr(instance, self.field.cache_name, value)
+        instance.__decrypted_values__[self.field.attname] = value
 
         # Clear cache by setting to new value.
         instance.field = value
         instance.assert_value_is_pending_encryption(self.field, value)
 
         # Ensure cached value is cleared.
-        assert not hasattr(instance, self.field.cache_name)
+        assert self.field.attname not in instance.__decrypted_values__
+
+    def test_get__invalid_internal_value_type(self):
+        """
+        Getting field with invalid internal value type raises ValidationError.
+        """
+        instance = self._get_model_instance()
+        instance.set_stored_value(self.field, b"data")  # Invalid type.
+
+        with self.assert_raises_validation_error(
+            code="invalid_internal_value_type"
+        ):
+            _ = instance.field
 
     def test_get__descriptor(self):
         """Getting field from class returns the descriptor."""
@@ -374,10 +381,10 @@ class TestBaseEncryptedField(TestCase):
     def test_get__cached(self):
         """Getting field when cached returns cached value."""
         instance = self._get_model_instance()
-        instance.set_stored_value(self.field, b"irrelevant")
+        instance.set_stored_value(self.field, _TrustedCiphertext(b"irrelevant"))
 
         value = "decrypted_value"
-        setattr(instance, self.field.cache_name, value)
+        instance.__decrypted_values__[self.field.attname] = value
         assert instance.field == value
 
     def test_get__none(self):
@@ -407,17 +414,16 @@ class TestBaseEncryptedField(TestCase):
 
         # Create instance with stored ciphertext.
         instance = self._get_model_instance()
-        instance.set_stored_value(self.field, ciphertext)
-
+        instance.set_stored_value(self.field, _TrustedCiphertext(ciphertext))
         # Ensure cache is not set initially.
-        assert not hasattr(instance, self.field.cache_name)
+        assert self.field.attname not in instance.__decrypted_values__
 
         # Get the field value, which should decrypt the ciphertext.
         assert instance.field == plaintext
         self.field.decrypt_value.assert_called_once_with(instance, ciphertext)
 
         # Ensure decrypted value is cached on the instance.
-        assert getattr(instance, self.field.cache_name) == plaintext
+        assert instance.__decrypted_values__[self.field.attname] == plaintext
 
     # --------------------------------------------------------------------------
     # pre_save Tests
@@ -493,7 +499,7 @@ class TestBaseEncryptedField(TestCase):
         """pre_save with invalid value type raises ValidationError."""
         # Create instance with invalid stored value.
         instance = self._get_model_instance()
-        instance.set_stored_value(self.field, 12345)  # Invalid type.
+        instance.set_stored_value(self.field, b"data")  # Invalid type.
 
         # Run the save pipeline, interrupting at pre_save.
         with self.assert_raises_validation_error(code="invalid_value_type"):
