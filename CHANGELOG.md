@@ -1,6 +1,27 @@
 # CHANGELOG
 
 
+## v0.31.1 (2026-01-30)
+
+### Bug Fixes
+
+- Install latest common
+  ([`47d0211`](https://github.com/ocadotechnology/codeforlife-package-python/commit/47d02117a38d9095de11464400b6842aeaa28cf9))
+
+- Updates and mypy ([#174](https://github.com/ocadotechnology/codeforlife-package-python/pull/174),
+  [`2499d9f`](https://github.com/ocadotechnology/codeforlife-package-python/commit/2499d9fee772ff82a690e31223826c5b433bb1fe))
+
+* fix: Update deps including mypy
+
+* Get latest RR
+
+* Get latest portal and RR
+
+* Downgrade to django-stubs 5.1
+
+* Feedback
+
+
 ## v0.31.0 (2026-01-07)
 
 ### Features

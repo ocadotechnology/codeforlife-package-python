@@ -157,7 +157,8 @@ class TestUserViewSet(ModelViewSetTestCase[RequestUser, User]):
 
         self.client.login_as(user)
         self.client.list(
-            models=StudentUser.objects.filter(new_student__in=students),
+            # pylint: disable-next=line-too-long
+            models=StudentUser.objects.filter(new_student__in=students),  # type: ignore[arg-type]
             filters={"students_in_class": klass.access_code},
         )
 

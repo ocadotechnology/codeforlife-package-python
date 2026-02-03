@@ -54,7 +54,7 @@ class BaseAPIView(_APIView, t.Generic[AnyBaseRequest]):
 
 # pylint: disable-next=missing-class-docstring
 class APIView(BaseAPIView[Request[RequestUser]], t.Generic[RequestUser]):
-    request_class = Request
+    request_class = Request  # type: ignore[assignment,override]
     request_user_class: t.Type[RequestUser]
 
     REQUIRED_ATTRS: t.Set[str] = {"request_class", "request_user_class"}

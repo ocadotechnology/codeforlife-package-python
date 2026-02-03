@@ -32,7 +32,8 @@ AnyAbstractBaseUser = t.TypeVar("AnyAbstractBaseUser", bound=AbstractBaseUser)
 class BaseRequest(_Request, t.Generic[AnyDBStore, AnyAbstractBaseUser]):
     data: t.Any
     session: AnyDBStore
-    user: t.Union[AnyAbstractBaseUser, AnonymousUser]
+    # pylint: disable-next=line-too-long
+    user: t.Union[AnyAbstractBaseUser, AnonymousUser]  # type: ignore[assignment]
 
     @property
     def query_params(self) -> t.Dict[str, str]:  # type: ignore[override]

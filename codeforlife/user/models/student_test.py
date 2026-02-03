@@ -12,5 +12,6 @@ class TestIndependent(ModelTestCase[Independent]):
     def test_objects__get_queryset(self):
         """Check if only get independent students."""
         self.assert_get_queryset(
-            values=Independent.objects.filter(class_field__isnull=True)
+            # pylint: disable-next=line-too-long
+            values=Independent.objects.filter(class_field__isnull=True)  # type: ignore[arg-type]
         )
