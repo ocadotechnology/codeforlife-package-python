@@ -7,9 +7,10 @@ import typing as t
 
 from django.db import models
 
+from ...encryption import create_dek
 from ...tests import TestCase
 from ..base_data_encryption_key import BaseDataEncryptionKeyModel
-from .data_encryption_key import DataEncryptionKeyField, _Default
+from .data_encryption_key import DataEncryptionKeyField, _TrustedDek
 
 if t.TYPE_CHECKING:
     from django_stubs_ext.db.models import TypedModelMeta
@@ -44,6 +45,10 @@ class TestDataEncryptionKeyField(TestCase):
 
             Meta = FakeModelMeta
 
+            def set_dek_for_test(self):
+                """Sets the dek field for testing purposes."""
+                self.__dict__[self.__class__.dek.field.attname] = create_dek()
+
         return DekModel
 
     def _get_model_instance(self, **kwargs):
@@ -77,7 +82,6 @@ class TestDataEncryptionKeyField(TestCase):
     def test_init(self):
         """DataEncryptionKeyField is constructed correctly."""
         assert self.field.editable is False
-        assert self.field.default == _Default
         assert self.field.null is True
         assert (
             self.field.verbose_name
@@ -90,7 +94,6 @@ class TestDataEncryptionKeyField(TestCase):
         _, _, _, kwargs = self.field.deconstruct()
 
         assert kwargs["editable"] is False
-        assert kwargs["default"] == _Default
         assert kwargs["null"] is True
         assert (
             kwargs["verbose_name"]
@@ -154,26 +157,27 @@ class TestDataEncryptionKeyField(TestCase):
     def test_get__value(self):
         """Getting field from instance returns the DEK bytes."""
         instance = self._get_model_instance()
+        instance.set_dek_for_test()
         dek_value = instance.dek
         assert isinstance(dek_value, bytes)
         assert dek_value == instance.__dict__["dek"]
 
     def test_set__default(self):
-        """Setting field to _Default sets to default DEK bytes."""
+        """Setting field to _TrustedDek sets to DEK bytes."""
         instance = self._get_model_instance()
-        default = _Default()
-        instance.dek = default
-        assert default.dek == instance.__dict__["dek"]
+        trusted_dek = _TrustedDek(b"dek")
+        instance.dek = trusted_dek
+        assert trusted_dek.dek == instance.__dict__["dek"]
 
     def test_set__none(self):
         """Setting field to None sets to None."""
         instance = self._get_model_instance()
-        assert instance.dek is not None
+        instance.set_dek_for_test()
         instance.dek = None
         assert instance.__dict__["dek"] is None
 
     def test_set__cannot_set_value(self):
-        """Setting field to any value other than None or _Default raises."""
+        """Setting field to any value other than None or _TrustedDek raises."""
         instance = self._get_model_instance()
         with self.assert_raises_validation_error(code="cannot_set_value"):
             instance.dek = b"some_value"

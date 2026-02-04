@@ -12,7 +12,7 @@ import typing as t
 from cachetools import TTLCache
 from django.core.exceptions import ValidationError
 
-from ..encryption import get_dek_aead
+from ..encryption import create_dek, get_dek_aead
 from .encrypted import EncryptedModel
 
 if t.TYPE_CHECKING:
@@ -51,16 +51,16 @@ class BaseDataEncryptionKeyModel(EncryptedModel):
         """
         Provides the AEAD primitive for the DEK, caching it for performance.
         """
-        # Return None if there is no DEK.
-        if self._dek is None:
-            return None
-
         # Ensure the instance is saved before accessing the DEK AEAD.
         if self.pk is None:
             raise ValidationError(
                 "Instance must be saved before accessing dek_aead.",
                 code="unsaved_instance",
             )
+
+        # Return None if there is no DEK.
+        if self._dek is None:
+            return None
 
         # Check the cache for the DEK AEAD.
         if self.pk in self.DEK_AEAD_CACHE:
@@ -73,3 +73,26 @@ class BaseDataEncryptionKeyModel(EncryptedModel):
         self.DEK_AEAD_CACHE[self.pk] = dek_aead
 
         return dek_aead
+
+    def save(
+        self,
+        *args,
+        force_insert=False,
+        force_update=False,
+        using=None,
+        update_fields=None,
+    ):
+        # Lazily create a new DEK for new instances.
+        if self.pk is None:
+            # pylint: disable-next=protected-access
+            dek_class_attr = self.__class__._dek
+            if dek_class_attr is not None:
+                self.__dict__[dek_class_attr.field.attname] = create_dek()
+
+        return super().save(  # type: ignore[misc]
+            *args,
+            force_insert=force_insert,
+            force_update=force_update,
+            using=using,
+            update_fields=update_fields,
+        )

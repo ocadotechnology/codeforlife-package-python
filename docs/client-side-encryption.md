@@ -159,43 +159,119 @@ print(f"The secret is: {secret.secret_value}")
 
 ## 7. Sequence Diagrams
 
-### A. User Signup (Key Generation & Encryption)
+This section contains diagrams that explain what the Django ORM is doing.
+
+### 1. DEK Generation and Initial Save
+
+This diagram shows the process that occurs when a new `EncryptedModel` instance (e.g., a `User`) is created and saved for the first time. The `EncryptedModel.save()` method is overridden to lazily manage the creation of the user-specific DEK.
 
 ```mermaid
 sequenceDiagram
-    participant App as Application
-    participant KMS as Google Cloud KMS
-    participant DB as Database
+    actor Developer
+    participant User as User (EncryptedModel)
+    participant EncryptedModel as EncryptedModel (Base Class)
+    participant GcpKmsClient as Tink/KMS Client
+    participant PostgreSQL
 
-    App->>App: User.objects.create(username='johndoe', email='john.doe@example.com')
-    App->>App: DataEncryptionKeyField.pre_save()
-    App->>App: create_dek()
-    App->>KMS: Encrypt(new_dek_keyset) with KEK
-    KMS-->>App: encrypted_dek
-    App->>App: EncryptedTextField.pre_save()
-    App->>App: user.dek_aead (gets/decrypts/caches DEK)
-    App->>KMS: Decrypt(encrypted_dek) with KEK
-    KMS-->>App: dek_aead
-    App->>App: dek_aead.encrypt('john.doe@example.com')
-    App-->>App: encrypted_email
-    App->>DB: INSERT INTO auth_user (username, email, dek) VALUES ('johndoe', encrypted_email, encrypted_dek)
+    Developer->>User: user = User(name="test")
+    Developer->>User: user.save()
+    User->>EncryptedModel: save()
+    activate EncryptedModel
+
+    Note over EncryptedModel, GcpKmsClient: If self.pk is None (new user)
+    EncryptedModel->>GcpKmsClient: create_dek()
+    activate GcpKmsClient
+    GcpKmsClient-->>EncryptedModel: Returns new encrypted DEK
+    deactivate GcpKmsClient
+
+    EncryptedModel->>User: self.dek = encrypted_dek
+    Note over User, PostgreSQL: The model's save() method is called via super()
+    User->>PostgreSQL: INSERT INTO users (name, dek)
+    PostgreSQL-->>User: Returns
+    deactivate EncryptedModel
 ```
 
-### B. Data Access (Decryption)
+### 2. Data Encryption
+
+This diagram illustrates what happens when a developer sets a value on an encrypted field. The `EncryptedAttribute` descriptor intercepts the assignment, wrapping the plaintext value in a `_PendingEncryption` object. The actual encryption happens later, just before the model is saved to the database.
 
 ```mermaid
 sequenceDiagram
-    participant App as Application
-    participant KMS as Google Cloud KMS
-    participant DB as Database
+    actor Developer
+    participant User as User (Model Instance)
+    participant EncryptedAttribute as EncryptedAttribute (Descriptor)
+    participant _PendingEncryption as _PendingEncryption (Wrapper)
+    participant BaseEncryptedField as BaseEncryptedField
+    participant GcpKmsClient as Tink/KMS Client
+    participant PostgreSQL
 
-    App->>DB: SELECT id, username, email, dek FROM auth_user WHERE username='johndoe'
-    DB-->>App: user_instance (with encrypted email and dek)
-    App->>App: print(user.email)
-    App->>App: EncryptedAttribute.__get__()
-    App->>App: user.dek_aead (gets/decrypts/caches DEK)
-    App->>KMS: Decrypt(user.dek) with KEK
-    KMS-->>App: dek_aead
-    App->>App: dek_aead.decrypt(user.email_encrypted)
-    App-->>App: 'john.doe@example.com'
+    Developer->>User: user.ssn = "123-456-7890"
+    User->>EncryptedAttribute: __set__(user, "123-456-7890")
+    activate EncryptedAttribute
+    EncryptedAttribute->>_PendingEncryption: Create(value="123-456-7890")
+    _PendingEncryption-->>EncryptedAttribute: Returns _PendingEncryption instance
+    Note left of EncryptedAttribute: Caches are cleared
+    EncryptedAttribute->>User: instance.__dict__["ssn"] = _PendingEncryption(...)
+    deactivate EncryptedAttribute
+
+    Developer->>User: user.save()
+    User->>BaseEncryptedField: get_prep_value(_PendingEncryption(...))
+    activate BaseEncryptedField
+    BaseEncryptedField->>GcpKmsClient: Decrypt user's DEK
+    GcpKmsClient-->>BaseEncryptedField: Returns plaintext DEK
+    BaseEncryptedField->>GcpKmsClient: encrypt(value, associated_data)
+    GcpKmsClient-->>BaseEncryptedField: Returns ciphertext
+    BaseEncryptedField-->>User: Returns ciphertext
+    deactivate BaseEncryptedField
+    User->>PostgreSQL: UPDATE users SET ssn=ciphertext
+    PostgreSQL-->>User: Returns
+```
+
+### 3. Data Decryption
+
+This diagram shows the process of reading an encrypted value from a model instance. The `EncryptedAttribute` descriptor checks an in-memory cache for the decrypted value first. If it's not cached, it decrypts the ciphertext from the database and populates the cache.
+
+```mermaid
+sequenceDiagram
+    actor Developer
+    participant User as User (Model Instance)
+    participant EncryptedAttribute as EncryptedAttribute (Descriptor)
+    participant GcpKmsClient as Tink/KMS Client
+
+    Developer->>User: print(user.ssn)
+    User->>EncryptedAttribute: __get__(user)
+    activate EncryptedAttribute
+
+    Note over User, EncryptedAttribute: Check instance cache for decrypted value
+    alt Value is cached
+        EncryptedAttribute-->>Developer: return cached_value
+    else Value is not cached
+        EncryptedAttribute->>User: Get ciphertext from instance.__dict__
+        User-->>EncryptedAttribute: Returns ciphertext
+        EncryptedAttribute->>GcpKmsClient: Decrypt user's DEK
+        GcpKmsClient-->>EncryptedAttribute: Returns plaintext DEK
+        EncryptedAttribute->>GcpKmsClient: decrypt(ciphertext, associated_data)
+        GcpKmsClient-->>EncryptedAttribute: Returns plaintext value
+        Note left of EncryptedAttribute: setattr(instance, cache_name, plaintext_value)
+        EncryptedAttribute-->>Developer: return plaintext_value
+    end
+    deactivate EncryptedAttribute
+```
+
+### 4. Data Shredding
+
+Data shredding is achieved by nullifying the user's encrypted DEK. Once the key is gone, the data associated with it is rendered permanently unrecoverable.
+
+```mermaid
+sequenceDiagram
+    actor Developer
+    participant User as User (Model Instance)
+    participant PostgreSQL
+
+    Developer->>User: user.encrypted_dek = None
+    Developer->>User: user.save()
+    User->>PostgreSQL: UPDATE users SET encrypted_dek=NULL WHERE id=...
+    PostgreSQL-->>User: Returns
+
+    Note over Developer, PostgreSQL: The user's data (e.g., SSN) is now permanently unrecoverable.
 ```

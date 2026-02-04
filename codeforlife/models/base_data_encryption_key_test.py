@@ -6,7 +6,7 @@ Created on 26/01/2026 at 13:44:31(+00:00).
 import typing as t
 from unittest.mock import MagicMock, patch
 
-from ..encryption import FakeAead
+from ..encryption import FakeAead, create_dek
 from ..tests import ModelTestCase
 from .base_data_encryption_key import BaseDataEncryptionKeyModel
 from .fields import DataEncryptionKeyField
@@ -33,14 +33,18 @@ class TestDataEncryptionKeyModel(ModelTestCase[BaseDataEncryptionKeyModel]):
             class Meta(TypedModelMeta):
                 app_label = "codeforlife.user"
 
+            def set_dek_for_test(self):
+                """Sets the dek field for testing purposes."""
+                self.__dict__[self.__class__.dek.field.attname] = create_dek()
+
         return TestModel
 
     def get_model_instance(self, *args, **kwargs):
         return self.get_model_class()(*args, **kwargs)
 
     def test_dek_aead__none(self):
-        """Returns None when dek is None."""
-        instance = self.get_model_instance(dek=None)
+        """Returns None when dek is None on a saved instance."""
+        instance = self.get_model_instance(pk=1, dek=None)
         assert instance.dek_aead is None
 
     def test_dek_aead__unsaved_instance(self):
@@ -54,7 +58,7 @@ class TestDataEncryptionKeyModel(ModelTestCase[BaseDataEncryptionKeyModel]):
         """Returns dek_aead and caches it when not cached."""
         # Create an instance with a primary key to mimic a saved instance.
         instance = self.get_model_instance(pk=1)
-        assert instance.dek is not None
+        instance.set_dek_for_test()
 
         # Setup the mock to return a FakeAead instance.
         dek_aead_mock = FakeAead.as_mock()
@@ -74,7 +78,7 @@ class TestDataEncryptionKeyModel(ModelTestCase[BaseDataEncryptionKeyModel]):
         """Returns the cached dek_aead."""
         # Create an instance with a primary key to mimic a saved instance.
         instance = self.get_model_instance(pk=1)
-        assert instance.dek is not None
+        instance.set_dek_for_test()
 
         # Pre-populate the cache with a FakeAead instance.
         dek_aead_mock = FakeAead.as_mock()
@@ -85,3 +89,28 @@ class TestDataEncryptionKeyModel(ModelTestCase[BaseDataEncryptionKeyModel]):
 
         # Ensure the get_dek_aead function was not called as its cached.
         get_dek_aead_mock.assert_not_called()
+
+    @patch("django.db.models.base.Model.save", autospec=True)
+    @patch(
+        "codeforlife.models.base_data_encryption_key.create_dek",
+        autospec=True,
+    )
+    def test_save__creates_dek(
+        self, create_dek_mock: MagicMock, save_mock: MagicMock
+    ):
+        """Saves a new DEK when saving a new instance."""
+        instance = self.get_model_instance()
+        assert instance.dek is None
+        instance.save()
+
+        # Ensure create_dek was called and save was called correctly.
+        create_dek_mock.assert_called_once_with()
+        save_mock.assert_called_once_with(
+            instance,
+            force_insert=False,
+            force_update=False,
+            using=None,
+            update_fields=None,
+        )
+
+        assert instance.dek is not None

@@ -2,25 +2,10 @@
 © Ocado Group
 Created on 19/01/2026 at 09:57:19(+00:00).
 
-This field is responsible for managing the lifecycle of a DEK for a model
-instance. When a new model instance is created, this field automatically
-generates a new DEK, encrypts it with the KEK, and prepares it to be stored in
-the database.
-
-This is achieved using a `_Default` dataclass as a sentinel. In the
-`DataEncryptionKeyField`'s `__init__` method, the `default` is set to the
-`_Default` class. When a new model instance is created, Django sets the field's
-value to an instance of `_Default()`.
-
-The `_Default` dataclass has a field `dek` with a `default_factory` that points
-to the `create_dek` function. This means that when `_Default` is instantiated, a
-new DEK is automatically created.
-
-The field's custom descriptor, `DataEncryptionKeyAttribute`, then intercepts the
-`_Default` instance in its `__set__` method, extracts the newly created `dek`
-from it, and sets it as the field's value on the model instance. This elegant
-pattern ensures that a new DEK is generated only when a new model instance is
-created.
+This field is responsible for storing the encrypted Data Encryption Key (DEK)
+for a model instance. The actual lifecycle of the DEK, including its lazy
+creation for new model instances, is managed by the `save()` method on the
+`BaseDataEncryptionKeyModel`.
 
 The `contribute_to_class` method on `DataEncryptionKeyField` performs crucial
 validations when the field is added to a model. It ensures that the model
@@ -34,13 +19,12 @@ model instance, which would lead to ambiguity and potential data loss.
 """
 
 import typing as t
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
 from django.core.exceptions import ValidationError
 from django.db.models import BinaryField
 from django.utils.translation import gettext_lazy as _
 
-from ...encryption import create_dek
 from ...types import KwArgs
 from ..base_data_encryption_key import BaseDataEncryptionKeyModel
 from .deferred_attribute import DeferredAttribute
@@ -51,10 +35,10 @@ AnyDataEncryptionKeyField = t.TypeVar(
 
 
 @dataclass(frozen=True)
-class _Default:
-    """A default value holder that creates a new DEK on instantiation."""
+class _TrustedDek:
+    """A wrapper for a DEK that comes directly from the database."""
 
-    dek: bytes = field(default_factory=create_dek)
+    dek: bytes
 
 
 class DataEncryptionKeyAttribute(
@@ -64,18 +48,21 @@ class DataEncryptionKeyAttribute(
     t.Generic[AnyDataEncryptionKeyField],
 ):
     """
-    Descriptor for DataEncryptionKeyField that handles the automatic creation of
-    a new DEK and data shredding.
+    Descriptor for DataEncryptionKeyField that handles data shredding.
     """
 
     def __set__(
         self,
         instance,
-        value: t.Optional[_Default],  # type: ignore[override]
+        value: t.Optional[_TrustedDek],  # type: ignore[override]
     ):
-        if isinstance(value, _Default):  # new instance is being created
+        # Clear any cached DEK AEAD.
+        if instance.pk is not None and instance.pk in instance.DEK_AEAD_CACHE:
+            instance.DEK_AEAD_CACHE.pop(instance.pk, None)
+
+        if isinstance(value, _TrustedDek):  # From DB.
             internal_value = value.dek
-        elif value is None:  # data is being shredded
+        elif value is None:  # Data is being shredded.
             internal_value = None
         else:
             raise ValidationError(
@@ -107,7 +94,6 @@ class DataEncryptionKeyField(BinaryField):
     def set_init_kwargs(self, kwargs: KwArgs):
         """Sets common init kwargs."""
         kwargs["editable"] = False  # DEK should not be editable in admin forms
-        kwargs["default"] = _Default  # Default to a new DEK generator
         kwargs["null"] = True  # Allow null for data shredding
         kwargs.setdefault("verbose_name", _(self.default_verbose_name))
         kwargs.setdefault("help_text", _(self.default_help_text))
@@ -196,3 +182,16 @@ class DataEncryptionKeyField(BinaryField):
 
     # Can only be set to None to allow data shredding.
     def __set__(self, instance: BaseDataEncryptionKeyModel, value: None): ...
+
+    # pylint: disable-next=unused-argument
+    def from_db_value(self, value: t.Optional[bytes], expression, connection):
+        """
+        Converts a value as returned by the database to a Python object.
+        We wrap the raw bytes in _TrustedDek to signal that this is an
+        existing DEK from the database, not new plaintext.
+        """
+        if value is None:
+            return None
+
+        # Wrap it so __set__ knows this is NOT new user input.
+        return _TrustedDek(value)
