@@ -145,8 +145,7 @@ class DataEncryptionKeyField(BinaryField):
             )
 
         # Ensure only one DEK field per model.
-        # pylint: disable-next=protected-access
-        if cls._dek is not None:
+        if cls.DEK_FIELD is not None:
             raise ValidationError(
                 f"'{cls.__module__}.{cls.__name__}' already has a"
                 " DataEncryptionKeyField defined.",
@@ -154,8 +153,7 @@ class DataEncryptionKeyField(BinaryField):
             )
 
         # Set the class DEK field reference.
-        # pylint: disable-next=protected-access
-        cls._dek = getattr(cls, self.name)
+        cls.DEK_FIELD = getattr(cls, self.name)
 
     # --------------------------------------------------------------------------
     # Descriptor Methods

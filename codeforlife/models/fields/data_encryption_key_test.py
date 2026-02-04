@@ -136,13 +136,11 @@ class TestDataEncryptionKeyField(TestCase):
         """DataEncryptionKeyField is contributed to model correctly."""
         with self.subTest("Class attribute set correctly"):
             Model = self._get_model_class()
-            # pylint: disable-next=protected-access
-            assert Model._dek == Model.dek
+            assert Model.DEK_FIELD == Model.dek
 
         with self.subTest("Instance attribute set correctly"):
             instance = Model()
-            # pylint: disable-next=protected-access
-            assert instance._dek == instance.dek
+            assert instance.DEK_FIELD == instance.dek
 
     # --------------------------------------------------------------------------
     # Descriptor Methods Tests

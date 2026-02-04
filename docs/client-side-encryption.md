@@ -349,12 +349,12 @@ sequenceDiagram
     end
 
     Note over DataEncryptionKeyField: 2. Check for multiple DEK fields
-    alt Model._dek is not None
+    alt Model.DEK_FIELD is not None
         DataEncryptionKeyField-->>Django: raise ValidationError
     end
 
     Note over DataEncryptionKeyField: 3. Register Field on Model
-    DataEncryptionKeyField->>BaseDataEncryptionKeyModel: Model._dek = self
+    DataEncryptionKeyField->>BaseDataEncryptionKeyModel: Model.DEK_FIELD = self
     
     deactivate DataEncryptionKeyField
 ```

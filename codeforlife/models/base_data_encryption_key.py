@@ -41,7 +41,7 @@ class BaseDataEncryptionKeyModel(EncryptedModel):
 
     # A class-level reference to the DataEncryptionKeyField instance.
     # This is set by the `contribute_to_class` method of the field.
-    _dek: t.Optional["DataEncryptionKeyField"] = None
+    DEK_FIELD: t.Optional["DataEncryptionKeyField"] = None
 
     class Meta(TypedModelMeta):
         abstract = True
@@ -59,7 +59,7 @@ class BaseDataEncryptionKeyModel(EncryptedModel):
             )
 
         # Return None if there is no DEK.
-        if self._dek is None:
+        if self.DEK_FIELD is None:
             return None
 
         # Check the cache for the DEK AEAD.
@@ -67,7 +67,7 @@ class BaseDataEncryptionKeyModel(EncryptedModel):
             return self.DEK_AEAD_CACHE[self.pk]
 
         # Get the AEAD primitive for the data encryption key.
-        dek_aead = get_dek_aead(self._dek)
+        dek_aead = get_dek_aead(self.DEK_FIELD)
 
         # Cache the DEK AEAD for future access.
         self.DEK_AEAD_CACHE[self.pk] = dek_aead
@@ -83,11 +83,8 @@ class BaseDataEncryptionKeyModel(EncryptedModel):
         update_fields=None,
     ):
         # Lazily create a new DEK for new instances.
-        if self.pk is None:
-            # pylint: disable-next=protected-access
-            dek_class_attr = self.__class__._dek
-            if dek_class_attr is not None:
-                self.__dict__[dek_class_attr.field.attname] = create_dek()
+        if self.pk is None and self.__class__.DEK_FIELD is not None:
+            self.__dict__[self.__class__.DEK_FIELD.field.attname] = create_dek()
 
         return super().save(  # type: ignore[misc]
             *args,
