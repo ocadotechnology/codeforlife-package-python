@@ -358,3 +358,56 @@ sequenceDiagram
     
     deactivate DataEncryptionKeyField
 ```
+
+### 7. DEK AEAD Caching
+
+To minimize latency and cost associated with decrypting the Data Encryption Key (DEK) via GCP KMS, the system employs an in-memory, time-to-live (TTL) cache for the AEAD primitive (`DEK_AEAD_CACHE`).
+
+The following diagrams illustrate the two main caching flows: retrieval (cache hit/miss) and invalidation.
+
+#### 7.1. Cache Retrieval (Hit & Miss)
+
+This diagram shows how the `dek_aead` property on a `BaseDataEncryptionKeyModel` instance leverages the cache. A cache hit returns the stored AEAD primitive immediately, while a cache miss triggers a call to GCP KMS to decrypt the key, which is then cached for subsequent requests.
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant EncryptedField as EncryptedField (__get__)
+    participant DEKEnabledModel as DEK-Enabled Model
+    participant DEK_AEAD_CACHE as TTLCache (in-memory)
+    participant KMS as Google Cloud KMS
+
+    User->>+EncryptedField: Accesses encrypted attribute
+    EncryptedField->>+DEKEnabledModel: Accesses `dek_aead` property
+    alt Cache Miss
+        DEKEnabledModel->>DEK_AEAD_CACHE: Check for cached AEAD primitive (not found)
+        DEKEnabledModel->>+KMS: Decrypt DEK using KEK
+        KMS-->>-DEKEnabledModel: Returns AEAD primitive
+        DEKEnabledModel->>DEK_AEAD_CACHE: Store AEAD primitive with instance PK
+    else Cache Hit
+        DEKEnabledModel->>DEK_AEAD_CACHE: Check for cached AEAD primitive (found)
+        DEK_AEAD_CACHE-->>DEKEnabledModel: Return AEAD primitive
+    end
+    DEKEnabledModel-->>-EncryptedField: Return AEAD primitive
+    EncryptedField->>EncryptedField: Decrypts data using AEAD primitive
+    EncryptedField-->>-User: Returns decrypted value
+```
+
+#### 7.2. Cache Invalidation
+
+The cache must be invalidated whenever the underlying DEK changes to prevent the use of stale keys. This happens automatically when the `DataEncryptionKeyField` is set, for example, during a data shredding operation where the key is set to `None`.
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant DEKEnabledModel as DEK-Enabled Model
+    participant DataEncryptionKeyAttribute as DataEncryptionKeyAttribute (__set__)
+    participant DEK_AEAD_CACHE as TTLCache (in-memory)
+
+    User->>+DEKEnabledModel: Shred data (e.g., `instance.dek = None`)
+    DEKEnabledModel->>+DataEncryptionKeyAttribute: Sets `dek` field to new value
+    DataEncryptionKeyAttribute->>+DEK_AEAD_CACHE: Delete cached AEAD for instance PK
+    DEK_AEAD_CACHE-->>-DataEncryptionKeyAttribute: 
+    DataEncryptionKeyAttribute->>DEKEnabledModel: Update `dek` value in `__dict__`
+    DEKEnabledModel-->>-User: 
+```
