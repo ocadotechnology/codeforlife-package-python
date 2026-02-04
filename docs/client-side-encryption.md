@@ -329,3 +329,32 @@ sequenceDiagram
     
     deactivate BaseEncryptedField
 ```
+
+### 6. DEK Field Initialization
+
+This diagram details the validation that occurs when a `DataEncryptionKeyField` is added to a model. The field's `contribute_to_class` method ensures that the model is a valid `BaseDataEncryptionKeyModel` and that it contains only one DEK field.
+
+```mermaid
+sequenceDiagram
+    participant Django as Django Startup
+    participant DataEncryptionKeyField as DataEncryptionKeyField
+    participant BaseDataEncryptionKeyModel as BaseDataEncryptionKeyModel (Class)
+
+    Django->>DataEncryptionKeyField: contribute_to_class(Model, "dek")
+    activate DataEncryptionKeyField
+
+    Note over DataEncryptionKeyField: 1. Validate Model Subclass
+    alt issubclass(Model, BaseDataEncryptionKeyModel) is False
+        DataEncryptionKeyField-->>Django: raise ValidationError
+    end
+
+    Note over DataEncryptionKeyField: 2. Check for multiple DEK fields
+    alt Model._dek is not None
+        DataEncryptionKeyField-->>Django: raise ValidationError
+    end
+
+    Note over DataEncryptionKeyField: 3. Register Field on Model
+    DataEncryptionKeyField->>BaseDataEncryptionKeyModel: Model._dek = self
+    
+    deactivate DataEncryptionKeyField
+```
