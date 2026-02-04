@@ -215,8 +215,9 @@ sequenceDiagram
     deactivate EncryptedAttribute
 
     Developer->>User: user.save()
-    User->>BaseEncryptedField: get_prep_value(_PendingEncryption(...))
+    User->>BaseEncryptedField: pre_save(user, True)
     activate BaseEncryptedField
+    Note right of BaseEncryptedField: Checks for _PendingEncryption
     BaseEncryptedField->>GcpKmsClient: Decrypt user's DEK
     GcpKmsClient-->>BaseEncryptedField: Returns plaintext DEK
     BaseEncryptedField->>GcpKmsClient: encrypt(value, associated_data)
@@ -242,9 +243,9 @@ sequenceDiagram
     User->>EncryptedAttribute: __get__(user)
     activate EncryptedAttribute
 
-    Note over User, EncryptedAttribute: Check instance cache for decrypted value
+    Note over User, EncryptedAttribute: Check instance.__decrypted_values__ cache
     alt Value is cached
-        EncryptedAttribute-->>Developer: return cached_value
+        EncryptedAttribute-->>Developer: return instance.__decrypted_values__[field_name]
     else Value is not cached
         EncryptedAttribute->>User: Get ciphertext from instance.__dict__
         User-->>EncryptedAttribute: Returns ciphertext
@@ -252,7 +253,7 @@ sequenceDiagram
         GcpKmsClient-->>EncryptedAttribute: Returns plaintext DEK
         EncryptedAttribute->>GcpKmsClient: decrypt(ciphertext, associated_data)
         GcpKmsClient-->>EncryptedAttribute: Returns plaintext value
-        Note left of EncryptedAttribute: setattr(instance, cache_name, plaintext_value)
+        EncryptedAttribute->>User: instance.__decrypted_values__[field_name] = plaintext_value
         EncryptedAttribute-->>Developer: return plaintext_value
     end
     deactivate EncryptedAttribute
@@ -274,4 +275,57 @@ sequenceDiagram
     PostgreSQL-->>User: Returns
 
     Note over Developer, PostgreSQL: The user's data (e.g., SSN) is now permanently unrecoverable.
+```
+
+### 5. Encrypted Model and Field Initialization
+
+This diagram shows how an encrypted model and its fields are initialized and validated when Django starts up.
+
+```mermaid
+sequenceDiagram
+    participant Django as Django Startup
+    participant EncryptedModel as EncryptedModel (Class)
+    participant BaseEncryptedField as BaseEncryptedField
+
+    Django->>EncryptedModel: check()
+    activate EncryptedModel
+    
+    Note over EncryptedModel: 1. Validate `associated_data`
+    alt `associated_data` is not defined, not a string, or empty
+        EncryptedModel-->>Django: raise Error
+    end
+
+    Note over EncryptedModel: 2. Check `associated_data` uniqueness
+    alt `associated_data` is used by another model
+        EncryptedModel-->>Django: raise Error
+    end
+
+    Note over EncryptedModel: 3. Validate Manager
+    alt `objects` is not a subclass of `EncryptedModel.Manager`
+        EncryptedModel-->>Django: raise Error
+    end
+    deactivate EncryptedModel
+
+    Django->>BaseEncryptedField: contribute_to_class(EncryptedModel, "ssn")
+    activate BaseEncryptedField
+    
+    Note over BaseEncryptedField: 4. Validate Model Subclass
+    alt issubclass(Model, EncryptedModel) is False
+        BaseEncryptedField-->>Django: raise ValidationError
+    end
+
+    Note over BaseEncryptedField: 5. Check for Duplicate Fields
+    alt "ssn" is already in Model.ENCRYPTED_FIELDS
+        BaseEncryptedField-->>Django: raise ValidationError
+    end
+
+    Note over BaseEncryptedField: 6. Check for Duplicate Associated Data
+    alt "model:ssn" is already used by another field
+        BaseEncryptedField-->>Django: raise ValidationError
+    end
+
+    Note over BaseEncryptedField: 7. Register Field
+    BaseEncryptedField->>EncryptedModel: Model.ENCRYPTED_FIELDS.append(self)
+    
+    deactivate BaseEncryptedField
 ```
