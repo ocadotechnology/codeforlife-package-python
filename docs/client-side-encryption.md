@@ -330,7 +330,7 @@ sequenceDiagram
     deactivate BaseEncryptedField
 ```
 
-### 6. DEK Field Initialization
+### 6. DEK Model and Field Initialization
 
 This diagram details the validation that occurs when a `DataEncryptionKeyField` is added to a model. The field's `contribute_to_class` method ensures that the model is a valid `BaseDataEncryptionKeyModel` and that it contains only one DEK field.
 
