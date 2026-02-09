@@ -31,7 +31,7 @@ We utilize a hierarchy of keys to balance security and performance.
 
 ---
 
-## 4. Encryption/Decryption Utilities
+## 3. Encryption/Decryption Utilities
 
 At the core of this system are a few utility functions that interact with Google Cloud KMS and the `tink` cryptography library. In addition, to avoid a dependency on Google Cloud KMS during local development and in CI/CD pipelines, we use fake (mock) implementations of the KMS client and its AEAD primitive.
 
@@ -39,7 +39,7 @@ At the core of this system are a few utility functions that interact with Google
 
 ---
 
-## 5. Django ORM Integration
+## 4. Django ORM Integration
 
 To make working with encrypted data seamless, we've integrated the encryption logic directly into Django's ORM. This is achieved through a combination of a base model class, custom model fields, and descriptors.
 
@@ -71,7 +71,7 @@ The implementation details can be found in the docstring of these files. It's re
 
 ---
 
-## 6. Usage Patterns
+## 5. Usage Patterns
 
 Here are two common patterns for using the encryption framework.
 
@@ -157,7 +157,7 @@ print(f"The secret is: {secret.secret_value}")
 
 ---
 
-## 7. Sequence Diagrams
+## 6. Sequence Diagrams
 
 This section contains diagrams that explain what the Django ORM is doing.
 
