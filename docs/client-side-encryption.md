@@ -1,4 +1,4 @@
-# Client-Side Encryption v3
+# Client-Side Encryption
 
 Client-Side Encryption with Per-User Keys and Django ORM Integration
 
