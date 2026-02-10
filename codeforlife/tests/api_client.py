@@ -558,7 +558,8 @@ class APIClient(
             auth_user = self.login_teacher(user.email, password)
         elif isinstance(user, StudentUser):
             auth_user = self.login_student(
-                user.student.class_field.access_code,
+                # pylint: disable-next=line-too-long
+                user.student.class_field.access_code,  # type: ignore[union-attr,arg-type]
                 user.first_name,
                 password,
             )

@@ -25,7 +25,8 @@ class TestUserSerializer(ModelSerializerTestCase[User, User]):
                 "requesting_to_join_class": None,
                 "teacher": {
                     "id": user.teacher.id,
-                    "school": user.teacher.school.id,
+                    # pylint: disable-next=line-too-long
+                    "school": user.teacher.school.id,  # type: ignore[union-attr]
                     "is_admin": user.teacher.is_admin,
                 },
                 "student": None,
@@ -46,8 +47,10 @@ class TestUserSerializer(ModelSerializerTestCase[User, User]):
                 "teacher": None,
                 "student": {
                     "id": user.student.id,
-                    "klass": user.student.class_field.access_code,
-                    "school": user.student.class_field.teacher.school.id,
+                    # pylint: disable-next=line-too-long
+                    "klass": user.student.class_field.access_code,  # type: ignore[union-attr]
+                    # pylint: disable-next=line-too-long
+                    "school": user.student.class_field.teacher.school.id,  # type: ignore[union-attr]
                 },
             },
             # TODO: remove in new schema.

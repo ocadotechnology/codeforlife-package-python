@@ -20,7 +20,6 @@ from .teacher import Teacher
 
 if t.TYPE_CHECKING:
     from django.db.models import ManyToManyField
-    from game.models import Worksheet
 
 class_access_code_validators: Validators = [
     MinLengthValidator(5),
@@ -60,8 +59,6 @@ class ClassModelManager(models.Manager):
 
 
 class Class(models.Model):
-    locked_worksheets: "ManyToManyField[Worksheet]"
-
     name = models.CharField(max_length=200)
     teacher = models.ForeignKey(
         Teacher, related_name="class_teacher", on_delete=models.CASCADE
@@ -87,7 +84,8 @@ class Class(models.Model):
 
     @property
     def active_game(self):
-        games = self.game_set.filter(game_class=self, is_archived=False)
+        # pylint: disable-next=line-too-long
+        games = self.game_set.filter(game_class=self, is_archived=False)  # type: ignore[attr-defined]
         if len(games) >= 1:
             assert (
                 len(games) == 1

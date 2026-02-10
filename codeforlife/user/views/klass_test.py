@@ -47,7 +47,7 @@ class TestClassViewSet(ModelViewSetTestCase[RequestUser, Class]):
         assert user
 
         self.assert_get_queryset(
-            values=[user.student.class_field],
+            values=[user.student.class_field],  # type: ignore[list-item]
             request=self.client.request_factory.get(user=user),
         )
 
@@ -69,7 +69,8 @@ class TestClassViewSet(ModelViewSetTestCase[RequestUser, Class]):
         assert user
 
         self.client.login_as(user, password="Password1")
-        self.client.retrieve(model=user.student.class_field)
+        # pylint: disable-next=line-too-long
+        self.client.retrieve(model=user.student.class_field)  # type: ignore[type-var]
 
     def test_list(self):
         """Can successfully list classes."""
@@ -130,6 +131,6 @@ class TestClassViewSet(ModelViewSetTestCase[RequestUser, Class]):
 
         self.client.login_as(user)
         self.client.list(
-            models=classes,
+            models=classes,  # type: ignore[arg-type]
             filters={"teacher": str(user.teacher.id)},
         )

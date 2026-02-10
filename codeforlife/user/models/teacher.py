@@ -95,6 +95,9 @@ class Teacher(models.Model):
         return self.class_teacher.exists()
 
     def __str__(self):
+        if self.new_user is None:
+            return super().__str__()
+
         return f"{self.new_user.first_name} {self.new_user.last_name}"
 
 
@@ -104,7 +107,7 @@ AnyTeacher = t.TypeVar("AnyTeacher", bound=Teacher)
 class SchoolTeacher(Teacher):
     """A teacher that is in a school."""
 
-    school: School
+    school: School  # type: ignore[assignment]
 
     class Meta(TypedModelMeta):
         proxy = True
@@ -114,7 +117,8 @@ class SchoolTeacher(Teacher):
         def get_queryset(self):
             return super().get_queryset().filter(school__isnull=False)
 
-    objects: models.Manager["SchoolTeacher"] = Manager()
+    # pylint: disable-next=line-too-long
+    objects: models.Manager["SchoolTeacher"] = Manager()  # type: ignore[assignment,misc]
 
     @property
     def student_users(self):
@@ -200,7 +204,7 @@ class SchoolTeacher(Teacher):
 class AdminSchoolTeacher(SchoolTeacher):
     """An admin-teacher that is in a school."""
 
-    is_admin: t.Literal[True]
+    is_admin: t.Literal[True]  # type: ignore[assignment]
 
     class Meta(TypedModelMeta):
         proxy = True
@@ -210,7 +214,8 @@ class AdminSchoolTeacher(SchoolTeacher):
         def get_queryset(self):
             return super().get_queryset().filter(is_admin=True)
 
-    objects: models.Manager["AdminSchoolTeacher"] = Manager()
+    # pylint: disable-next=line-too-long
+    objects: models.Manager["AdminSchoolTeacher"] = Manager()  # type: ignore[misc]
 
     @property
     def is_last_admin(self):
@@ -225,7 +230,7 @@ class AdminSchoolTeacher(SchoolTeacher):
 class NonAdminSchoolTeacher(SchoolTeacher):
     """A non-admin-teacher that is in a school."""
 
-    is_admin: t.Literal[False]
+    is_admin: t.Literal[False]  # type: ignore[assignment]
 
     class Meta(TypedModelMeta):
         proxy = True
@@ -235,14 +240,15 @@ class NonAdminSchoolTeacher(SchoolTeacher):
         def get_queryset(self):
             return super().get_queryset().filter(is_admin=False)
 
-    objects: models.Manager["NonAdminSchoolTeacher"] = Manager()
+    # pylint: disable-next=line-too-long
+    objects: models.Manager["NonAdminSchoolTeacher"] = Manager()  # type: ignore[misc]
 
 
 class NonSchoolTeacher(Teacher):
     """A teacher that is not in a school."""
 
-    school: None
-    is_admin: t.Literal[False]
+    school: None  # type: ignore[assignment]
+    is_admin: t.Literal[False]  # type: ignore[assignment]
 
     class Meta(TypedModelMeta):
         proxy = True
@@ -252,7 +258,8 @@ class NonSchoolTeacher(Teacher):
         def get_queryset(self):
             return super().get_queryset().filter(school__isnull=True)
 
-    objects: models.Manager["NonSchoolTeacher"] = Manager()
+    # pylint: disable-next=line-too-long
+    objects: models.Manager["NonSchoolTeacher"] = Manager()  # type: ignore[assignment,misc]
 
 
 # pylint: disable-next=invalid-name

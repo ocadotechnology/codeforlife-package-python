@@ -84,6 +84,9 @@ class Student(models.Model):
         return not self.class_field
 
     def __str__(self):
+        if self.new_user is None:
+            return super().__str__()
+
         return f"{self.new_user.first_name} {self.new_user.last_name}"
 
 
@@ -91,7 +94,7 @@ class Student(models.Model):
 class Independent(Student):
     """An independent student."""
 
-    class_field: None
+    class_field: None  # type: ignore[assignment]
 
     class Meta(TypedModelMeta):
         proxy = True
@@ -102,4 +105,5 @@ class Independent(Student):
         def get_queryset(self):
             return super().get_queryset().filter(class_field__isnull=True)
 
-    objects: models.Manager["Independent"] = Manager()
+    # pylint: disable-next=line-too-long
+    objects: models.Manager["Independent"] = Manager()  # type: ignore[assignment,misc]

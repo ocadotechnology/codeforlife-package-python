@@ -56,16 +56,18 @@ class TestUserViewSet(ModelViewSetTestCase[RequestUser, User]):
         user = StudentUser.objects.first()
         assert user
 
-        users = [
+        users: t.List[User] = [
             user,
-            user.student.class_field.teacher.new_user,
+            # pylint: disable-next=line-too-long
+            user.student.class_field.teacher.new_user,  # type: ignore[union-attr,list-item]
             *list(
                 User.objects.exclude(pk=user.pk).filter(
-                    new_student__in=user.student.class_field.students.all()
+                    # pylint: disable-next=line-too-long
+                    new_student__in=user.student.class_field.students.all()  # type: ignore[union-attr]
                 )
             ),
         ]
-        users.sort(key=lambda user: user.pk)
+        users.sort(key=lambda user: user.pk)  # type: ignore[union-attr]
 
         self.assert_get_queryset(
             values=users,
