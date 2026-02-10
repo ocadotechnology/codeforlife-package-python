@@ -7,13 +7,12 @@ Created on 05/02/2024 at 09:50:04(+00:00).
 
 import typing as t
 
-from common.models import TotalActivity, UserProfile
 from django.db.models import F
 from django.db.models.query import QuerySet
 
 from ..school import School
 from .contactable import ContactableUser, ContactableUserManager
-from .user import User
+from .user import User, UserProfile
 
 if t.TYPE_CHECKING:  # pragma: no cover
     from django_stubs_ext.db.models import TypedModelMeta
@@ -40,8 +39,11 @@ class TeacherUserManager(ContactableUserManager[AnyUser], t.Generic[AnyUser]):
         **extra_fields,
     ):
         """Create a teacher-user."""
-        # pylint: disable-next=import-outside-toplevel
+        # pylint: disable=import-outside-toplevel
+        from ..other import TotalActivity
         from ..teacher import Teacher
+
+        # pylint: enable=import-outside-toplevel
 
         assert "username" not in extra_fields
 

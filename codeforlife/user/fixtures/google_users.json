@@ -1,6 +1,6 @@
 [
   {
-    "model": "auth.user",
+    "model": "user.user",
     "pk": 34,
     "fields": {
       "first_name": "Google",
@@ -11,7 +11,7 @@
     }
   },
   {
-    "model": "common.userprofile",
+    "model": "user.userprofile",
     "pk": 34,
     "fields": {
       "user": 34,
@@ -21,7 +21,7 @@
     }
   },
   {
-    "model": "common.teacher",
+    "model": "user.teacher",
     "pk": 13,
     "fields": {
       "user": 34,

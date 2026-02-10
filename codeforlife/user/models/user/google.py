@@ -7,14 +7,13 @@ Created on 05/02/2024 at 09:50:04(+00:00).
 
 import typing as t
 
-from common.models import UserProfile
 from django.db.models.query import QuerySet
 from requests import Session
 from requests.adapters import HTTPAdapter, Retry
 
 from ....types import JsonDict
 from .contactable import ContactableUser, ContactableUserManager
-from .user import User
+from .user import User, UserProfile
 
 if t.TYPE_CHECKING:  # pragma: no cover
     from django_stubs_ext.db.models import TypedModelMeta

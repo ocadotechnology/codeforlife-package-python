@@ -6,17 +6,17 @@ Created on 05/02/2024 at 09:50:04(+00:00).
 """
 
 import typing as t
-from datetime import datetime
-
-from common.models import UserProfile
+from datetime import datetime, timedelta
 
 # pylint: disable-next=imported-auth-user
-from django.contrib.auth.models import User as _User
+from django.contrib.auth.models import AbstractUser
 from django.contrib.auth.models import UserManager as _UserManager
+from django.db import models
 from django.db.models.query import QuerySet
+from django.utils import timezone
 from pyotp import TOTP
 
-from ....models import AbstractBaseUser
+from ....models import AbstractBaseUser, EncryptedCharField
 from ....types import Validators
 from ....validators import UnicodeAlphanumericCharSetValidator
 
@@ -57,7 +57,10 @@ class _AbstractBaseUser(AbstractBaseUser):
 
 
 # pylint: disable-next=too-many-ancestors
-class User(_AbstractBaseUser, _User):
+class User(
+    _AbstractBaseUser,
+    AbstractUser,  # TODO: remove this inheritance in new schema
+):
     """A proxy to Django's user class."""
 
     _password: t.Optional[str]
@@ -67,12 +70,9 @@ class User(_AbstractBaseUser, _User):
     # pylint: disable-next=line-too-long
     otp_bypass_tokens: QuerySet["OtpBypassToken"]  # type: ignore[assignment,misc]
     session: "Session"  # type: ignore[assignment]
-    userprofile: UserProfile
+    userprofile: "UserProfile"
 
     credential_fields = frozenset(["email", "password"])
-
-    class Meta(TypedModelMeta):
-        proxy = True
 
     @property
     def is_authenticated(self):
@@ -203,3 +203,39 @@ class UserManager(_UserManager[AnyUser], t.Generic[AnyUser]):
     # pylint: disable-next=missing-function-docstring
     def get_queryset(self):
         return self.filter_users(super().get_queryset().filter(is_active=True))
+
+
+class UserProfile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+
+    otp_secret = models.CharField(max_length=40, null=True, blank=True)
+    last_otp_for_time = models.DateTimeField(null=True, blank=True)
+    developer = models.BooleanField(default=False)
+    is_verified = models.BooleanField(default=False)
+
+    # TODO: Make not nullable once data has been transferred
+    first_name = models.CharField(max_length=200, null=True, blank=True)
+    _first_name = models.BinaryField(null=True, blank=True)
+    last_name = models.CharField(max_length=200, null=True, blank=True)
+    _last_name = models.BinaryField(null=True, blank=True)
+    email = models.CharField(max_length=200, null=True, blank=True)
+    _email = models.BinaryField(null=True, blank=True)
+    # TODO: Make not nullable once data has been transferred
+    username = models.CharField(max_length=200, null=True, blank=True)
+    _username = models.BinaryField(null=True, blank=True)
+
+    # Google.
+    google_refresh_token = EncryptedCharField(
+        # pylint: disable-next=protected-access
+        max_length=1000 + len(EncryptedCharField._prefix),
+        null=True,
+        blank=True,
+    )
+    google_sub = models.CharField(max_length=255, null=True, blank=True)
+
+    def __str__(self):
+        return f"{self.user.first_name} {self.user.last_name}"
+
+    def joined_recently(self):
+        now = timezone.now()
+        return now - timedelta(days=7) <= self.user.date_joined

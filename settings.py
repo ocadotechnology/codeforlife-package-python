@@ -26,9 +26,6 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "django.contrib.sites",
     "codeforlife.user",
-    "game",  # TODO: remove this.
-    "common",  # TODO: remove this.
-    "portal",  # TODO: remove this.
 ]
 
 MIDDLEWARE = [

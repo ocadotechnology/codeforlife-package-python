@@ -235,6 +235,11 @@ ROOT_URLCONF = "src.urls"
 
 WSGI_APPLICATION = "application.django_wsgi"
 
+# Custom user model
+# https://docs.djangoproject.com/en/6.0/topics/auth/customizing/#auth-custom-user
+
+AUTH_USER_MODEL = "user.User"
+
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
 
@@ -275,9 +280,6 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.sites",
     "django.contrib.staticfiles",
-    "game",  # TODO: remove
-    "portal",  # TODO: remove
-    "common",  # TODO: remove
     "src",
     "codeforlife.user",
     "corsheaders",
