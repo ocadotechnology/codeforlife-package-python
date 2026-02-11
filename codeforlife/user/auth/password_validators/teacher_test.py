@@ -10,6 +10,8 @@ from .teacher import TeacherPasswordValidator
 
 # pylint: disable-next=missing-class-docstring
 class TestTeacherPasswordValidator(TestCase):
+    fixtures = ["school_1"]
+
     def setUp(self):
         self.user = User.objects.filter(new_teacher__isnull=False).first()
         assert self.user is not None

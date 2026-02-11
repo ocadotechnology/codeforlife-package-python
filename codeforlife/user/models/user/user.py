@@ -14,6 +14,7 @@ from django.contrib.auth.models import UserManager as _UserManager
 from django.db import models
 from django.db.models.query import QuerySet
 from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
 from pyotp import TOTP
 
 from ....models import AbstractBaseUser, EncryptedCharField
@@ -73,6 +74,21 @@ class User(
     userprofile: "UserProfile"
 
     credential_fields = frozenset(["email", "password"])
+
+    # TODO: remove in new schema
+    password: str  # type: ignore[assignment]
+    password = models.CharField(  # type: ignore[assignment]
+        _("password"),
+        max_length=128,
+    )
+
+    # TODO: remove in new schema
+    last_login: t.Optional[datetime]  # type: ignore[assignment]
+    last_login = models.DateTimeField(  # type: ignore[assignment]
+        _("last login"),
+        blank=True,
+        null=True,
+    )
 
     @property
     def is_authenticated(self):

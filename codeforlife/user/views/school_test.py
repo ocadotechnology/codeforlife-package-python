@@ -91,5 +91,5 @@ class TestSchoolViewSet(ModelViewSetTestCase[RequestUser, School]):
         user = SchoolTeacherUser.objects.first()
         assert user
 
-        self.client.login_as(user, password="abc123")
+        self.client.login_as(user)
         self.client.retrieve(model=user.teacher.school)

@@ -116,8 +116,22 @@ class StudentUser(User):
         #     login_id = get_random_string(length=64)
 
         # TODO: replace below code with commented out code above.
-        # pylint: disable-next=import-outside-toplevel
-        from common.helpers.generators import generate_login_id
+        # pylint: disable=import-outside-toplevel
+        import hashlib
+        from uuid import uuid4
+
+        # pylint: enable=import-outside-toplevel
+
+        def get_hashed_login_id(login_id):
+            """Returns the hash of a given string used for login url"""
+            return hashlib.sha256(login_id.encode()).hexdigest()
+
+        def generate_login_id():
+            """Returns the uuid string and its hashed.
+            The string is used for URL, and the hashed is stored in the DB."""
+            login_id = uuid4().hex
+            hashed_login_id = get_hashed_login_id(login_id)
+            return login_id, hashed_login_id
 
         return generate_login_id()
 

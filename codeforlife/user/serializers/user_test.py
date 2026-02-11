@@ -10,6 +10,7 @@ from .user import UserSerializer
 
 # pylint: disable-next=missing-class-docstring,too-many-ancestors
 class TestUserSerializer(ModelSerializerTestCase[User, User]):
+    fixtures = ["school_1", "independent"]
     model_serializer_class = UserSerializer  # type: ignore[assignment,override]
 
     # test: to representation
@@ -59,7 +60,9 @@ class TestUserSerializer(ModelSerializerTestCase[User, User]):
 
     def test_to_representation__indy(self):
         """Serialize independent user to representation."""
-        user = IndependentUser.objects.first()
+        user = IndependentUser.objects.filter(
+            new_student__pending_class_request__isnull=True
+        ).first()
         assert user
 
         self.assert_to_representation(

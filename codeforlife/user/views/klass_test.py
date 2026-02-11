@@ -68,7 +68,7 @@ class TestClassViewSet(ModelViewSetTestCase[RequestUser, Class]):
         user = StudentUser.objects.first()
         assert user
 
-        self.client.login_as(user, password="Password1")
+        self.client.login_as(user)
         # pylint: disable-next=line-too-long
         self.client.retrieve(model=user.student.class_field)  # type: ignore[type-var]
 

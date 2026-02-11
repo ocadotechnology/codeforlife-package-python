@@ -95,6 +95,7 @@ class TestUserViewSet(ModelViewSetTestCase[RequestUser, User]):
         users = [
             *list(user.teacher.school_teacher_users),
             *list(user.teacher.student_users),
+            *list(user.teacher.indy_users),
         ]
         users.sort(key=lambda user: user.pk)
 
@@ -118,6 +119,7 @@ class TestUserViewSet(ModelViewSetTestCase[RequestUser, User]):
                 )
             ),
             *list(user.teacher.student_users),
+            *list(user.teacher.indy_users),
         ]
         users.sort(key=lambda user: user.pk)
 
@@ -136,10 +138,11 @@ class TestUserViewSet(ModelViewSetTestCase[RequestUser, User]):
         users = [
             *list(user.teacher.school_teacher_users),
             *list(user.teacher.student_users),
+            *list(user.teacher.indy_users),
         ]
         users.sort(key=lambda user: user.pk)
 
-        self.client.login_as(user, password="abc123")
+        self.client.login_as(user)
         self.client.list(models=users)
 
     def test_list__students_in_class(self):
@@ -172,7 +175,7 @@ class TestUserViewSet(ModelViewSetTestCase[RequestUser, User]):
 
         self.client.login_as(user)
         self.client.list(
-            models=school_teacher_users,
+            models=school_teacher_users.order_by("pk"),
             filters={"type": "teacher"},
         )
 
@@ -184,7 +187,7 @@ class TestUserViewSet(ModelViewSetTestCase[RequestUser, User]):
 
         self.client.login_as(user)
         self.client.list(
-            models=student_users,
+            models=student_users.order_by("pk"),
             filters={"type": "student"},
         )
 
@@ -196,7 +199,7 @@ class TestUserViewSet(ModelViewSetTestCase[RequestUser, User]):
 
         self.client.login_as(user)
         self.client.list(
-            models=indy_users,
+            models=indy_users.order_by("pk"),
             filters={"type": "indy"},
         )
 
@@ -208,13 +211,14 @@ class TestUserViewSet(ModelViewSetTestCase[RequestUser, User]):
         users = [
             *list(user.teacher.school_teacher_users),
             *list(user.teacher.student_users),
+            *list(user.teacher.indy_users),
         ]
         users.sort(key=lambda user: user.pk)
 
         exclude_user_1: User = users.pop()
         exclude_user_2: User = users.pop()
 
-        self.client.login_as(user, password="abc123")
+        self.client.login_as(user)
         self.client.list(
             models=users,
             filters={
@@ -233,7 +237,7 @@ class TestUserViewSet(ModelViewSetTestCase[RequestUser, User]):
         school_users = user.teacher.school_users
         first_name, last_name = user.first_name, user.last_name[:1]
 
-        self.client.login_as(user, password="abc123")
+        self.client.login_as(user)
         self.client.list(
             models=school_users.filter(
                 Q(first_name__icontains=first_name)
@@ -247,5 +251,5 @@ class TestUserViewSet(ModelViewSetTestCase[RequestUser, User]):
         user = AdminSchoolTeacherUser.objects.first()
         assert user
 
-        self.client.login_as(user, password="abc123")
+        self.client.login_as(user)
         self.client.retrieve(model=user)

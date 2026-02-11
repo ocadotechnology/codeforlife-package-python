@@ -10,6 +10,8 @@ from .independent import IndependentPasswordValidator
 
 # pylint: disable-next=missing-class-docstring
 class TestIndependentPasswordValidator(TestCase):
+    fixtures = ["school_1", "independent"]
+
     def setUp(self):
         # TODO: Update to check for not student and not teacher once we
         #  switch to new models
