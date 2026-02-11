@@ -35,10 +35,10 @@ class BaseAPITestCase(TestCase, t.Generic[AnyBaseAPIClient]):
 
         return super().setUpClass()
 
-    def _pre_setup(self):
+    def _setup_and_call(self, result, debug=False):
         # pylint: disable-next=protected-access
         self.client_class._test_case = self
-        super()._pre_setup()  # type: ignore[misc]
+        super()._setup_and_call(result, debug)  # type: ignore[misc]
 
 
 class APITestCase(
