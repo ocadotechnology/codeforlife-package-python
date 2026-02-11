@@ -10,23 +10,38 @@ from uuid import uuid4
 
 from django.db import models
 
-from .klass import Class
-from .user import User, UserProfile
+if t.TYPE_CHECKING:  # pragma: no cover
+    from datetime import datetime
 
-if t.TYPE_CHECKING:
     from django_stubs_ext.db.models import TypedModelMeta
+
+    from .klass import Class
+    from .user import User, UserProfile
 else:
     TypedModelMeta = object
 
 
 class StudentModelManager(models.Manager):
+    """Manager for Student model."""
+
     def get_random_username(self):
+        """Generate a random username that does not already exist."""
+        # NOTE: avoid circular imports by importing here
+        # pylint: disable-next=import-outside-toplevel
+        from .user import User
+
         while True:
             random_username = uuid4().hex[:30]  # generate a random username
             if not User.objects.filter(username=random_username).exists():
                 return random_username
 
+    # pylint: disable-next=invalid-name
     def schoolFactory(self, klass, name, password, login_id=None):
+        """Factory method to create a student user associated with a class."""
+        # NOTE: avoid circular imports by importing here
+        # pylint: disable-next=import-outside-toplevel
+        from .user import User, UserProfile
+
         user = User.objects.create_user(
             username=self.get_random_username(),
             password=password,
@@ -41,7 +56,13 @@ class StudentModelManager(models.Manager):
             login_id=login_id,
         )
 
+    # pylint: disable-next=invalid-name
     def independentStudentFactory(self, name, email, password):
+        """Factory method to create an independent student user."""
+        # NOTE: avoid circular imports by importing here
+        # pylint: disable-next=import-outside-toplevel
+        from .user import User, UserProfile
+
         user = User.objects.create_user(
             username=email, email=email, password=password, first_name=name
         )
@@ -52,35 +73,60 @@ class StudentModelManager(models.Manager):
 
 
 class Student(models.Model):
-    class_field = models.ForeignKey(
-        Class,
+    """A student."""
+
+    class_field: t.Optional["Class"]
+    class_field = models.ForeignKey(  # type: ignore[assignment]
+        "user.Class",
         related_name="students",
         null=True,
         blank=True,
         on_delete=models.CASCADE,
     )
+
     # hashed uuid used for the unique direct login url
-    login_id = models.CharField(max_length=64, null=True)
-    user = models.OneToOneField(UserProfile, on_delete=models.CASCADE)
-    new_user = models.OneToOneField(
-        User,
+    login_id: str
+    login_id = models.CharField(  # type: ignore[assignment]
+        max_length=64,
+        null=True,
+    )
+
+    # pylint: disable=duplicate-code
+    user: "UserProfile"
+    user = models.OneToOneField(  # type: ignore[assignment]
+        "user.UserProfile",
+        on_delete=models.CASCADE,
+    )
+
+    new_user: t.Optional["User"]
+    new_user = models.OneToOneField(  # type: ignore[assignment]
+        "user.User",
         related_name="new_student",
         null=True,
         blank=True,
         on_delete=models.CASCADE,
     )
-    pending_class_request = models.ForeignKey(
-        Class,
+    # pylint: enable=duplicate-code
+
+    pending_class_request: t.Optional["Class"]
+    pending_class_request = models.ForeignKey(  # type: ignore[assignment]
+        "user.Class",
         related_name="class_request",
         null=True,
         blank=True,
         on_delete=models.SET_NULL,
     )
-    blocked_time = models.DateTimeField(null=True, blank=True)
+
+    blocked_time: t.Optional["datetime"]
+    blocked_time = models.DateTimeField(  # type: ignore[assignment]
+        null=True,
+        blank=True,
+    )
 
     objects = StudentModelManager()
 
     def is_independent(self):
+        """Whether the student is independent (not associated with a class)."""
         return not self.class_field
 
     def __str__(self):

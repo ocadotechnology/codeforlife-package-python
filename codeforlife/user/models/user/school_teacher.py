@@ -9,28 +9,29 @@ import typing as t
 
 from django.db.models.query import QuerySet
 
-from ..school import School
 from .teacher import TeacherUser, TeacherUserManager
-from .user import User
 
 if t.TYPE_CHECKING:  # pragma: no cover
     from django_stubs_ext.db.models import TypedModelMeta
+
+    from ..school import School
+    from .user import User
 else:
     TypedModelMeta = object
 
-AnyUser = t.TypeVar("AnyUser", bound=User)
+AnyUser = t.TypeVar("AnyUser", bound="User")
 
 
 # pylint: disable-next=missing-class-docstring,too-few-public-methods
 class SchoolTeacherUserManager(TeacherUserManager[AnyUser], t.Generic[AnyUser]):
-    # pylint: disable-next=signature-differs,too-many-arguments
+    # pylint: disable-next=signature-differs,too-many-arguments,too-many-positional-arguments
     def create_user(  # type: ignore[override]
         self,
         first_name: str,
         last_name: str,
         email: str,
         password: str,
-        school: School,
+        school: "School",
         is_admin: bool = False,
         is_verified: bool = False,
         **extra_fields,
@@ -46,7 +47,7 @@ class SchoolTeacherUserManager(TeacherUserManager[AnyUser], t.Generic[AnyUser]):
             **extra_fields,
         )
 
-    def filter_users(self, queryset: QuerySet[User]):
+    def filter_users(self, queryset: QuerySet["User"]):
         return (
             super()
             .filter_users(queryset)

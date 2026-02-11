@@ -206,6 +206,8 @@ class UserManager(_UserManager[AnyUser], t.Generic[AnyUser]):
 
 
 class UserProfile(models.Model):
+    """A user's profile."""
+
     user = models.OneToOneField(User, on_delete=models.CASCADE)
 
     otp_secret = models.CharField(max_length=40, null=True, blank=True)
@@ -237,5 +239,6 @@ class UserProfile(models.Model):
         return f"{self.user.first_name} {self.user.last_name}"
 
     def joined_recently(self):
+        """Whether the user joined within the last week."""
         now = timezone.now()
         return now - timedelta(days=7) <= self.user.date_joined

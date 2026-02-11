@@ -56,7 +56,7 @@ class Server(BaseApplication):
             and sys.argv[1] == "runserver"
         )
 
-    # pylint: disable-next=too-many-arguments
+    # pylint: disable-next=too-many-arguments,too-many-positional-arguments
     def __init__(
         self,
         mode: Mode = t.cast(Mode, os.getenv("SERVER_MODE", "django")),

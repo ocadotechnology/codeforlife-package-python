@@ -206,7 +206,7 @@ class BaseModelViewSetClient(
 
         return response
 
-    # pylint: disable-next=too-many-arguments
+    # pylint: disable-next=too-many-arguments,too-many-positional-arguments
     def list(
         self,
         models: t.Collection[AnyModel],
@@ -268,7 +268,7 @@ class BaseModelViewSetClient(
     # Partial Update (HTTP PATCH)
     # --------------------------------------------------------------------------
 
-    # pylint: disable-next=too-many-arguments
+    # pylint: disable-next=too-many-arguments,too-many-positional-arguments
     def _assert_update(
         self,
         model: AnyModel,
@@ -282,7 +282,7 @@ class BaseModelViewSetClient(
             model, json_model, action, request_method, contains_subset=partial
         )
 
-    # pylint: disable-next=too-many-arguments
+    # pylint: disable-next=too-many-arguments,too-many-positional-arguments
     def partial_update(
         self,
         model: AnyModel,
@@ -333,7 +333,7 @@ class BaseModelViewSetClient(
 
         return response
 
-    # pylint: disable-next=too-many-arguments
+    # pylint: disable-next=too-many-arguments,too-many-positional-arguments
     def bulk_partial_update(
         self,
         models: t.Union[t.List[AnyModel], QuerySet[AnyModel]],
@@ -394,7 +394,7 @@ class BaseModelViewSetClient(
     # Update (HTTP PUT)
     # --------------------------------------------------------------------------
 
-    # pylint: disable-next=too-many-arguments
+    # pylint: disable-next=too-many-arguments,too-many-positional-arguments
     def update(
         self,
         model: AnyModel,
@@ -445,7 +445,7 @@ class BaseModelViewSetClient(
 
         return response
 
-    # pylint: disable-next=too-many-arguments
+    # pylint: disable-next=too-many-arguments,too-many-positional-arguments
     def bulk_update(
         self,
         models: t.Union[t.List[AnyModel], QuerySet[AnyModel]],

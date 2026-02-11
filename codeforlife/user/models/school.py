@@ -3,6 +3,7 @@
 Created on 20/02/2024 at 15:37:52(+00:00).
 """
 
+import typing as t
 from uuid import uuid4
 
 from django.db import models
@@ -11,6 +12,10 @@ from django_countries.fields import CountryField
 
 from ...types import Validators
 from ...validators import UnicodeAlphanumericCharSetValidator
+
+if t.TYPE_CHECKING:  # pragma: no cover
+    from datetime import datetime
+
 
 # TODO: add to School.name field-validators in new schema.
 school_name_validators: Validators = [
@@ -22,23 +27,49 @@ school_name_validators: Validators = [
 
 
 class SchoolModelManager(models.Manager):
+    """Manager for School model."""
+
     def get_original_queryset(self):
+        """Get the original queryset without filtering."""
         return super().get_queryset()
 
-    # Filter out inactive schools by default
     def get_queryset(self):
+        """Filter out inactive schools by default."""
         return super().get_queryset().filter(is_active=True)
 
 
 class School(models.Model):
-    name = models.CharField(max_length=200, unique=True)
-    country = CountryField(
-        blank_label="(select country)", null=True, blank=True
+    """A school."""
+
+    name: str
+    name = models.CharField(  # type: ignore[assignment]
+        max_length=200,
+        unique=True,
     )
+
+    country: t.Optional[str]
+    country = CountryField(  # type: ignore[assignment]
+        blank_label="(select country)",
+        null=True,
+        blank=True,
+    )
+
     # TODO: Create an Address model to house address details
-    county = models.CharField(max_length=50, blank=True, null=True)
-    creation_time = models.DateTimeField(default=timezone.now, null=True)
-    is_active = models.BooleanField(default=True)
+    county: t.Optional[str]
+    county = models.CharField(  # type: ignore[assignment]
+        max_length=50,
+        blank=True,
+        null=True,
+    )
+
+    creation_time: t.Optional["datetime"]
+    creation_time = models.DateTimeField(  # type: ignore[assignment]
+        default=timezone.now,
+        null=True,
+    )
+
+    is_active: bool
+    is_active = models.BooleanField(default=True)  # type: ignore[assignment]
 
     objects = SchoolModelManager()
 
@@ -46,6 +77,7 @@ class School(models.Model):
         return self.name
 
     def classes(self):
+        """Get all classes associated with the school."""
         teachers = self.teacher_school.all()
         if teachers:
             classes = []
@@ -56,6 +88,7 @@ class School(models.Model):
         return None
 
     def admins(self):
+        """Get all admin teachers associated with the school."""
         teachers = self.teacher_school.all()
         return (
             [teacher for teacher in teachers if teacher.is_admin]
@@ -64,6 +97,7 @@ class School(models.Model):
         )
 
     def anonymise(self):
+        """Anonymize the school."""
         self.name = uuid4().hex
         self.is_active = False
         self.save()

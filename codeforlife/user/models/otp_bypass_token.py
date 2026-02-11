@@ -15,10 +15,11 @@ from django.utils.translation import gettext_lazy as _
 from ...models import EncryptedCharField
 from ...types import Validators
 from ...validators import CharSetValidatorBuilder
-from .user import User
 
-if t.TYPE_CHECKING:
+if t.TYPE_CHECKING:  # pragma: no cover
     from django_stubs_ext.db.models import TypedModelMeta
+
+    from .user import User
 else:
     TypedModelMeta = object
 
@@ -40,7 +41,7 @@ class OtpBypassToken(models.Model):
 
     # pylint: disable-next=missing-class-docstring,too-few-public-methods
     class Manager(models.Manager["OtpBypassToken"]):
-        def bulk_create(self, user: User):  # type: ignore[override]
+        def bulk_create(self, user: "User"):  # type: ignore[override]
             """Bulk create OTP-bypass tokens.
 
             Args:
@@ -66,13 +67,15 @@ class OtpBypassToken(models.Model):
 
     objects: Manager = Manager()
 
-    user = models.ForeignKey(
-        User,
+    user: "User"
+    user = models.ForeignKey(  # type: ignore[assignment]
+        "user.User",
         related_name="otp_bypass_tokens",
         on_delete=models.CASCADE,
     )
 
-    token = EncryptedCharField(
+    token: str
+    token = EncryptedCharField(  # type: ignore[assignment]
         _("token"),
         max_length=100,
         help_text=_("The encrypted equivalent of the token."),

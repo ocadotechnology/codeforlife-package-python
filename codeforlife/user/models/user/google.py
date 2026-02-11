@@ -13,14 +13,15 @@ from requests.adapters import HTTPAdapter, Retry
 
 from ....types import JsonDict
 from .contactable import ContactableUser, ContactableUserManager
-from .user import User, UserProfile
 
 if t.TYPE_CHECKING:  # pragma: no cover
     from django_stubs_ext.db.models import TypedModelMeta
+
+    from .user import User
 else:
     TypedModelMeta = object
 
-AnyUser = t.TypeVar("AnyUser", bound=User)
+AnyUser = t.TypeVar("AnyUser", bound="User")
 
 
 # pylint: disable-next=missing-class-docstring,too-few-public-methods
@@ -35,6 +36,9 @@ class GoogleUserManager(ContactableUserManager[AnyUser], t.Generic[AnyUser]):
         )
 
     def _sync(self, auth_header: str, refresh_token: t.Optional[str] = None):
+        # pylint: disable=import-outside-toplevel
+        from .user import UserProfile
+
         response = self.session.get(
             url="https://www.googleapis.com/oauth2/v3/userinfo",
             headers={"Authorization": auth_header},
@@ -102,7 +106,7 @@ class GoogleUserManager(ContactableUserManager[AnyUser], t.Generic[AnyUser]):
         """Syncs an existing Google-user or creates a new one."""
         return self._sync(auth_header=auth_header, refresh_token=refresh_token)
 
-    def filter_users(self, queryset: QuerySet[User]):
+    def filter_users(self, queryset: QuerySet["User"]):
         return (
             super()
             .filter_users(queryset)

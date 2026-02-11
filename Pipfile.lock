@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "89ff1d169339b93c750837aed9cf2af6808f5fd41db2092b6c926b57228205e4"
+            "sha256": "b1b213110b3c6f5a403ba8b3442fb4aa9679d65403d6189c9cf382ea4f742cc5"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -1286,11 +1286,11 @@
         },
         "astroid": {
             "hashes": [
-                "sha256:0e14202810b30da1b735827f78f5157be2bbd4a7a59b7707ca0bfc2fb4c0063a",
-                "sha256:413658a61eeca6202a59231abb473f932038fbcbf1666587f66d482083413a25"
+                "sha256:52f39653876c7dec3e3afd4c2696920e05c83832b9737afc21928f2d2eb7a753",
+                "sha256:986fed8bcf79fb82c78b18a53352a0b287a73817d6dbcfba3162da36667c49a0"
             ],
-            "markers": "python_full_version >= '3.8.0'",
-            "version": "==3.2.4"
+            "markers": "python_full_version >= '3.10.0'",
+            "version": "==4.0.4"
         },
         "black": {
             "hashes": [
@@ -1868,21 +1868,20 @@
         },
         "pylint": {
             "hashes": [
-                "sha256:02f4aedeac91be69fb3b4bea997ce580a4ac68ce58b89eaefeaf06749df73f4b",
-                "sha256:1b7a721b575eaeaa7d39db076b6e7743c993ea44f57979127c517c6c572c803e"
+                "sha256:63e06a37d5922555ee2c20963eb42559918c20bd2b21244e4ef426e7c43b92e0",
+                "sha256:d9b71674e19b1c36d79265b5887bf8e55278cbe236c9e95d22dc82cf044fdbd2"
             ],
             "index": "pypi",
-            "markers": "python_full_version >= '3.8.0'",
-            "version": "==3.2.7"
+            "markers": "python_full_version >= '3.10.0'",
+            "version": "==4.0.4"
         },
         "pylint-django": {
             "hashes": [
-                "sha256:2f339e4bf55776958283395c5139c37700c91bd5ef1d8251ef6ac88b5abbba9b",
-                "sha256:5abd5c2228e0e5e2a4cb6d0b4fc1d1cef1e773d0be911412f4dd4fc1a1a440b7"
+                "sha256:76ef7e7bbbcf7ee86adbb2beac0ffaa7232509a17bf4a488d81467a1bbaa215b"
             ],
             "index": "pypi",
-            "markers": "python_version >= '3.7' and python_version < '4.0'",
-            "version": "==2.5.5"
+            "markers": "python_version >= '3.9' and python_version < '4.0'",
+            "version": "==2.7.0"
         },
         "pylint-plugin-utils": {
             "hashes": [

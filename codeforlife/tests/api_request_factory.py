@@ -59,7 +59,8 @@ class BaseAPIRequestFactory(
 
         return request
 
-    # pylint: disable-next=too-many-arguments
+    # pylint: disable=too-many-arguments,too-many-positional-arguments
+
     def generic(  # type: ignore[override]
         self,
         method: str,
@@ -100,7 +101,6 @@ class BaseAPIRequestFactory(
             ),
         )
 
-    # pylint: disable-next=too-many-arguments
     def post(  # type: ignore[override]
         self,
         path: t.Optional[str] = None,
@@ -126,7 +126,6 @@ class BaseAPIRequestFactory(
             ),
         )
 
-    # pylint: disable-next=too-many-arguments
     def put(  # type: ignore[override]
         self,
         path: t.Optional[str] = None,
@@ -152,7 +151,6 @@ class BaseAPIRequestFactory(
             ),
         )
 
-    # pylint: disable-next=too-many-arguments
     def patch(  # type: ignore[override]
         self,
         path: t.Optional[str] = None,
@@ -178,7 +176,6 @@ class BaseAPIRequestFactory(
             ),
         )
 
-    # pylint: disable-next=too-many-arguments
     def delete(  # type: ignore[override]
         self,
         path: t.Optional[str] = None,
@@ -204,7 +201,6 @@ class BaseAPIRequestFactory(
             ),
         )
 
-    # pylint: disable-next=too-many-arguments
     def options(  # type: ignore[override]
         self,
         path: t.Optional[str] = None,
@@ -229,6 +225,8 @@ class BaseAPIRequestFactory(
                 **extra,
             ),
         )
+
+    # pylint: enable=too-many-arguments,too-many-positional-arguments
 
 
 class APIRequestFactory(

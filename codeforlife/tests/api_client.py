@@ -119,7 +119,7 @@ class BaseAPIClient(
 
     StatusCodeAssertion = t.Optional[t.Union[int, t.Callable[[int], bool]]]
 
-    # pylint: disable=too-many-arguments,redefined-builtin
+    # pylint: disable=too-many-arguments,redefined-builtin,too-many-positional-arguments
 
     def generic(
         self,
@@ -304,7 +304,7 @@ class BaseAPIClient(
             **extra,
         )
 
-    # pylint: enable=too-many-arguments,redefined-builtin
+    # pylint: enable=too-many-arguments,redefined-builtin,too-many-positional-arguments
 
 
 class APIClient(

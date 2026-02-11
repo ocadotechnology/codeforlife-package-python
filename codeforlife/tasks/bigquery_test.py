@@ -180,7 +180,7 @@ class TestLoadDataIntoBigQueryTask(CeleryTestCase):
 
     # settings
 
-    # pylint: disable-next=too-many-arguments
+    # pylint: disable-next=too-many-arguments,too-many-positional-arguments
     def _test_settings(
         self,
         code: str,
