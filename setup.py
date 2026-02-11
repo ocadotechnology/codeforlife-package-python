@@ -12,6 +12,7 @@ import os
 import typing as t
 from pathlib import Path
 
+# pylint: disable-next=import-error
 from setuptools import find_packages, setup  # type: ignore[import-untyped]
 
 from codeforlife import DATA_DIR, TEMPLATES_DIR, __version__
