@@ -77,7 +77,8 @@ class OtpBypassToken(models.Model):
     token: str
     token = EncryptedCharField(  # type: ignore[assignment]
         _("token"),
-        max_length=100,
+        # pylint: disable-next=protected-access
+        max_length=100 + len(EncryptedCharField._prefix),
         help_text=_("The encrypted equivalent of the token."),
     )
 

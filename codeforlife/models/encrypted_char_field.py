@@ -19,16 +19,6 @@ class EncryptedCharField(models.CharField):
     _fernet = Fernet(settings.ENCRYPTION_KEY)
     _prefix = "ENC:"
 
-    def __init__(self, *args, **kwargs):
-        kwargs["max_length"] += len(self._prefix)
-        super().__init__(*args, **kwargs)
-
-    def deconstruct(self):
-        # pylint: disable-next=no-member
-        name, path, args, kwargs = super().deconstruct()
-        kwargs["max_length"] += len(self._prefix)
-        return name, path, args, kwargs
-
     # pylint: disable-next=unused-argument
     def from_db_value(self, value: t.Optional[str], expression, connection):
         """

@@ -8,6 +8,7 @@ integrated or removed in the new schema in the future.
 """
 
 import typing as t
+from uuid import uuid4
 
 from django.db import models
 from django.utils import timezone
@@ -20,6 +21,7 @@ if t.TYPE_CHECKING:  # pragma: no cover
     from .klass import Class
     from .school import School
     from .student import Student
+    from .teacher import Teacher
     from .user import User
 else:
     TypedModelMeta = object
@@ -194,3 +196,113 @@ class DailyActivity(models.Model):
     def __str__(self):
         # pylint: disable-next=line-too-long
         return f"Activity on {self.date}: CSV clicks: {self.csv_click_count}, login cards clicks: {self.login_cards_click_count}, primary pack downloads: {self.primary_coding_club_downloads}, python pack downloads: {self.python_coding_club_downloads}, level control submits: {self.level_control_submits}, teacher lockout resets: {self.teacher_lockout_resets}, indy lockout resets: {self.indy_lockout_resets}, school student lockout resets: {self.school_student_lockout_resets}, unverified teachers anonymised: {self.anonymised_unverified_teachers}, unverified independents anonymised: {self.anonymised_unverified_independents}"
+
+
+class SchoolTeacherInvitationModelManager(models.Manager):
+    """
+    A custom model manager for the SchoolTeacherInvitation model to filter out
+    inactive invitations by default.
+    """
+
+    def get_original_queryset(self):
+        """
+        Get the original queryset without filtering out inactive invitations.
+        """
+        return super().get_queryset()
+
+    def get_queryset(self):
+        """
+        Get the queryset for the SchoolTeacherInvitation model, filtering out
+        inactive invitations by default.
+        """
+        return super().get_queryset().filter(is_active=True)
+
+
+class SchoolTeacherInvitation(models.Model):
+    """
+    A model to track invitations for teachers to join a school. This is meant to
+    be used when a teacher invites another teacher to join their school, and the
+    invitation needs to be tracked until the invited teacher accepts or declines
+    the invitation, or the invitation expires.
+    """
+
+    token: str
+    token = models.CharField(max_length=88)  # type: ignore[assignment]
+
+    school: t.Optional["School"]
+    school = models.ForeignKey(  # type: ignore[assignment]
+        "user.School",
+        related_name="teacher_invitations",
+        null=True,
+        on_delete=models.SET_NULL,
+    )
+
+    from_teacher: t.Optional["Teacher"]
+    from_teacher = models.ForeignKey(  # type: ignore[assignment]
+        "user.Teacher",
+        related_name="school_invitations",
+        null=True,
+        on_delete=models.SET_NULL,
+    )
+
+    invited_teacher_first_name: str
+    invited_teacher_first_name = models.CharField(  # type: ignore[assignment]
+        max_length=150
+    )  # Same as User model
+    # TODO: Make not nullable once data has been transferred
+    _invited_teacher_first_name = models.BinaryField(null=True, blank=True)
+
+    invited_teacher_last_name: str
+    invited_teacher_last_name = models.CharField(  # type: ignore[assignment]
+        max_length=150
+    )  # Same as User model
+    # TODO: Make not nullable once data has been transferred
+    _invited_teacher_last_name = models.BinaryField(null=True, blank=True)
+
+    # TODO: Switch to a CharField to be able to hold hashed value
+    invited_teacher_email: str
+    invited_teacher_email = (
+        models.EmailField()  # type: ignore[assignment]
+    )  # Same as User model
+    # TODO: Make not nullable once data has been transferred
+    _invited_teacher_email = models.BinaryField(null=True, blank=True)
+
+    invited_teacher_is_admin: bool
+    invited_teacher_is_admin = models.BooleanField(  # type: ignore[assignment]
+        default=False
+    )
+
+    expiry: "datetime"
+    expiry = models.DateTimeField()  # type: ignore[assignment]
+
+    # pylint: disable=duplicate-code
+    creation_time: t.Optional["datetime"]
+    creation_time = models.DateTimeField(  # type: ignore[assignment]
+        default=timezone.now, null=True
+    )
+
+    is_active: bool
+    is_active = models.BooleanField(default=True)  # type: ignore[assignment]
+    # pylint: enable=duplicate-code
+
+    objects = SchoolTeacherInvitationModelManager()
+
+    @property
+    def is_expired(self):
+        """Whether the invitation has expired based on the expiry datetime."""
+        return self.expiry < timezone.now()
+
+    def __str__(self):
+        if self.school is None:
+            return super().__str__()
+
+        # pylint: disable-next=line-too-long
+        return f"School teacher invitation for {self.invited_teacher_email} to {self.school.name}"
+
+    def anonymise(self):
+        """Anonymise the invitation."""
+        self.invited_teacher_first_name = uuid4().hex
+        self.invited_teacher_last_name = uuid4().hex
+        self.invited_teacher_email = uuid4().hex
+        self.is_active = False
+        self.save()
