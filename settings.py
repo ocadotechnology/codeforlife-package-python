@@ -13,9 +13,7 @@ os.environ["SERVICE_NAME"] = "example-service"
 from codeforlife.settings import *
 
 # NOTE: This is only used locally for testing purposes.
-SECRET_KEY = "XTgWqMlZCMI_E5BvCArkif9nrJIIhe_6Ic6Q_UcWJDk="
-# TODO: remove this when cfl-common is not longer installed
-ENCRYPTION_KEY = SECRET_KEY
+ENCRYPTION_KEY = "XTgWqMlZCMI_E5BvCArkif9nrJIIhe_6Ic6Q_UcWJDk="
 
 INSTALLED_APPS = [
     "django.contrib.admin",

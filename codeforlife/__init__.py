@@ -114,7 +114,7 @@ def set_up_settings(service_base_dir: Path, service_name: str):
         secrets = dotenv_values(secrets_path)
         secrets.setdefault(
             # NOTE: This is only used locally for testing purposes.
-            "SECRET_KEY",
+            "ENCRYPTION_KEY",
             "XTgWqMlZCMI_E5BvCArkif9nrJIIhe_6Ic6Q_UcWJDk=",
         )
     else:

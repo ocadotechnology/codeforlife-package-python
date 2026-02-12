@@ -16,7 +16,7 @@ class EncryptedCharField(models.CharField):
     retrieved.
     """
 
-    _fernet = Fernet(settings.SECRET_KEY)
+    _fernet = Fernet(settings.ENCRYPTION_KEY)
     _prefix = "ENC:"
 
     def __init__(self, *args, **kwargs):

@@ -16,7 +16,7 @@ class TestOtpBypassToken(ModelTestCase[OtpBypassToken]):
     fixtures = ["school_2"]
 
     def setUp(self):
-        self.fernet = Fernet(settings.SECRET_KEY)
+        self.fernet = Fernet(settings.ENCRYPTION_KEY)
 
         user = User.objects.filter(otp_bypass_tokens__isnull=False).first()
         assert user
