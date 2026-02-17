@@ -8,6 +8,8 @@ Created on 05/02/2024 at 09:50:04(+00:00).
 import typing as t
 from datetime import datetime, timedelta
 
+from django.conf import settings
+
 # pylint: disable-next=imported-auth-user
 from django.contrib.auth.models import AbstractUser
 from django.contrib.auth.models import UserManager as _UserManager
@@ -93,10 +95,14 @@ class User(
     @property
     def is_authenticated(self):
         return (
-            not self.session.auth_factors.exists()
-            and self.userprofile.is_verified
-            if super().is_authenticated
-            else False
+            True
+            if getattr(settings, "OLD_SYSTEM", True)
+            else (
+                not self.session.auth_factors.exists()
+                and self.userprofile.is_verified
+                if super().is_authenticated
+                else False
+            )
         )
 
     @property

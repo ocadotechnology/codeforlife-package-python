@@ -127,6 +127,13 @@ def get_redis_url():
 # The URL to connect to the Redis cache.
 REDIS_URL = get_redis_url()
 
+# A flag to indicate whether the old system is the current runtime to
+# conditionally run code that is still needed for the old system to work but is
+# no longer needed in the new system. Once the old system is fully deprecated,
+# this flag and all code that depends on it should be removed.
+# WARN: This setting should never be imported in the old system.
+OLD_SYSTEM = False
+
 # Our Google OAuth 2.0 client credentials
 # https://console.cloud.google.com/auth/clients
 GOOGLE_CLIENT_ID = os.getenv(
