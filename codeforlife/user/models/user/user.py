@@ -139,10 +139,13 @@ class User(
         """Shorthand for user-profile field."""
         return self.userprofile.last_otp_for_time
 
-    @property
-    def is_verified(self):
-        """Shorthand for user-profile field."""
-        return self.userprofile.is_verified
+    # This property is set up differently in the old and new systems, so is not
+    # defined on the model in the old system.
+    is_verified: bool
+    # @property
+    # def is_verified(self):
+    #     """Shorthand for user-profile field."""
+    #     return self.userprofile.is_verified
 
     @property
     def totp(self):
@@ -204,6 +207,15 @@ class User(
                 "google_sub",
             ]
         )
+
+
+if not getattr(settings, "OLD_SYSTEM", True):
+
+    def is_verified(self: User):
+        """Shorthand for user-profile field."""
+        return self.userprofile.is_verified
+
+    User.is_verified = property(fget=is_verified)  # type: ignore[assignment]
 
 
 AnyUser = t.TypeVar("AnyUser", bound=User)
