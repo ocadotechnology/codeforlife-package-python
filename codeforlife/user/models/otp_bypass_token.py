@@ -81,7 +81,7 @@ class OtpBypassToken(EncryptedModel):
     )
 
     token: str
-    token = EncryptedTextField(
+    token = EncryptedTextField(  # type: ignore[assignment]
         associated_data="token",
         verbose_name=_("token"),
         help_text=_("The encrypted equivalent of the token."),
