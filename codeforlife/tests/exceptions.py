@@ -22,7 +22,7 @@ class InterruptPipelineError(Exception):
     """
 
     @classmethod
-    # pylint: disable-next=too-many-arguments,too-many-positional-argument
+    # pylint: disable-next=too-many-arguments,too-many-positional-argumen
     def run(
         cls,
         test_case: "TestCase",
