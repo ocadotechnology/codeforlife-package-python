@@ -21,7 +21,7 @@ Created on 10/04/2024 at 13:17:18(+01:00).
 #         user = User.objects.filter(
 #             otp_bypass_tokens__isnull=False,
 #             session__isnull=False,
-#             session__auth_factors__auth_factor__type__in=[AuthFactor.Type.OTP],
+#            session__auth_factors__auth_factor__type__in=[AuthFactor.Type.OTP],
 #         ).first()
 #         assert user
 #         self.user = user

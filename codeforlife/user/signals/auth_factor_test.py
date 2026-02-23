@@ -15,7 +15,8 @@ Created on 17/01/2025 at 16:04:46(+00:00).
 #     fixtures = ["school_2"]
 
 #     def test_post_delete(self):
-#         """Deleting an otp-auth-factor assigns a new otp-secret to its user."""
+#         """
+#         Deleting an otp-auth-factor assigns a new otp-secret to its user."""
 #         auth_factor = AuthFactor.objects.filter(
 #             type=AuthFactor.Type.OTP
 #         ).first()
