@@ -28,6 +28,14 @@ class ModelTestCase(TestCase, t.Generic[AnyModel]):
         """
         return get_arg(cls, 0)
 
+    def get_model_instance(self, *args, **kwargs) -> AnyModel:
+        """Get an instance of the model.
+
+        Returns:
+            An instance of the model.
+        """
+        return self.get_model_class()(*args, **kwargs)
+
     def assert_raises_integrity_error(self, *args, **kwargs):
         """Assert the code block raises an integrity error.
 
@@ -94,3 +102,23 @@ class ModelTestCase(TestCase, t.Generic[AnyModel]):
         if ordered and not queryset.ordered:
             queryset = queryset.order_by("pk")
         self.assertQuerySetEqual(queryset, values, ordered=ordered)
+
+    def assert_check(
+        self,
+        error_id: str,
+        model_class: t.Optional[t.Type[AnyModel]] = None,
+        **kwargs,
+    ):
+        """Assert that the model check returns an error with the given ID.
+
+        https://docs.djangoproject.com/en/5.1/topics/checks/#field-model-manager-template-engine-and-database-checks
+
+        Args:
+            error_id: The check error ID to assert.
+            model_class: The model class to check. If None, uses the test case's
+                model class.
+            **kwargs: Additional kwargs to pass to the model's check() method.
+        """
+        model_class = model_class or self.get_model_class()
+        errors = model_class.check(**kwargs)
+        assert any(error.id == error_id for error in errors)

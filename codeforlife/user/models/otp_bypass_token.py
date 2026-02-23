@@ -12,7 +12,8 @@ from django.db.utils import IntegrityError
 from django.utils.crypto import get_random_string
 from django.utils.translation import gettext_lazy as _
 
-from ...models import EncryptedCharField
+from ...models import EncryptedModel
+from ...models.fields import EncryptedTextField
 from ...types import Validators
 from ...validators import CharSetValidatorBuilder
 
@@ -24,9 +25,10 @@ else:
     TypedModelMeta = object
 
 
-class OtpBypassToken(models.Model):
+class OtpBypassToken(EncryptedModel):
     """A single use token to bypass a user's OTP authentication factor."""
 
+    associated_data = "otp_bypass_token"
     length = 8
     allowed_chars = string.ascii_lowercase
     max_count = 10
@@ -40,7 +42,7 @@ class OtpBypassToken(models.Model):
     ]
 
     # pylint: disable-next=missing-class-docstring,too-few-public-methods
-    class Manager(models.Manager["OtpBypassToken"]):
+    class Manager(EncryptedModel.Manager["OtpBypassToken"]):
         def bulk_create(self, user: "User"):  # type: ignore[override]
             """Bulk create OTP-bypass tokens.
 
@@ -61,11 +63,15 @@ class OtpBypassToken(models.Model):
 
             user.otp_bypass_tokens.all().delete()
 
-            return super().bulk_create(
-                [OtpBypassToken(user=user, token=token) for token in tokens]
-            )
+            otp_bypass_tokens = [
+                OtpBypassToken(user=user, token=token) for token in tokens
+            ]
+            for otp_bypass_token in otp_bypass_tokens:
+                otp_bypass_token.save()
 
-    objects: Manager = Manager()
+            return otp_bypass_tokens
+
+    objects: Manager = Manager()  # type: ignore[assignment]
 
     user: "User"
     user = models.ForeignKey(  # type: ignore[assignment]
@@ -75,16 +81,19 @@ class OtpBypassToken(models.Model):
     )
 
     token: str
-    token = EncryptedCharField(  # type: ignore[assignment]
-        _("token"),
-        # pylint: disable-next=protected-access
-        max_length=100 + len(EncryptedCharField._prefix),
+    token = EncryptedTextField(
+        associated_data="token",
+        verbose_name=_("token"),
         help_text=_("The encrypted equivalent of the token."),
     )
 
     class Meta(TypedModelMeta):
         verbose_name = _("OTP bypass token")
         verbose_name_plural = _("OTP bypass tokens")
+
+    @property
+    def dek_aead(self):
+        return self.user.userprofile.dek_aead
 
     def save(self, *args, **kwargs):
         raise IntegrityError("Cannot create or update a single instance.")

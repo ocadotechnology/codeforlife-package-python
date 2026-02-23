@@ -133,23 +133,3 @@ REDIS_URL = get_redis_url()
 # this flag and all code that depends on it should be removed.
 # WARN: This setting should never be imported in the old system.
 OLD_SYSTEM = False
-
-# Our Google OAuth 2.0 client credentials
-# https://console.cloud.google.com/auth/clients
-GOOGLE_CLIENT_ID = os.getenv(
-    "GOOGLE_CLIENT_ID",
-    "354656325390-o5n12nbaivhi4do8lalkh29q403uu9u4.apps.googleusercontent.com",
-)
-GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET", "REPLACE_ME")
-
-# The ID of our GCP project.
-GOOGLE_CLOUD_PROJECT_ID = os.getenv(
-    "GOOGLE_CLOUD_PROJECT_ID", "decent-digit-629"
-)
-
-# The ID of our BigQuery dataset.
-GOOGLE_CLOUD_BIGQUERY_DATASET_ID = os.getenv(
-    "GOOGLE_CLOUD_BIGQUERY_DATASET_ID", "REPLACE_ME"
-)
-
-ENCRYPTION_KEY = os.getenv("ENCRYPTION_KEY", "REPLACE_ME")
