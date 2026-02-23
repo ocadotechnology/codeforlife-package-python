@@ -7,17 +7,7 @@
       "otp_secret": null,
       "last_otp_for_time": null,
       "developer": true,
-      "is_verified": true,
-      "first_name": null,
-      "_first_name": null,
-      "last_name": null,
-      "_last_name": null,
-      "email": null,
-      "_email": null,
-      "username": null,
-      "_username": null,
-      "google_refresh_token": null,
-      "google_sub": null
+      "is_verified": true
     }
   },
   {
@@ -28,17 +18,7 @@
       "otp_secret": null,
       "last_otp_for_time": null,
       "developer": false,
-      "is_verified": true,
-      "first_name": null,
-      "_first_name": null,
-      "last_name": null,
-      "_last_name": null,
-      "email": null,
-      "_email": null,
-      "username": null,
-      "_username": null,
-      "google_refresh_token": null,
-      "google_sub": null
+      "is_verified": true
     }
   },
   {
@@ -49,17 +29,7 @@
       "otp_secret": null,
       "last_otp_for_time": null,
       "developer": false,
-      "is_verified": true,
-      "first_name": null,
-      "_first_name": null,
-      "last_name": null,
-      "_last_name": null,
-      "email": null,
-      "_email": null,
-      "username": null,
-      "_username": null,
-      "google_refresh_token": null,
-      "google_sub": null
+      "is_verified": true
     }
   },
   {
@@ -70,17 +40,7 @@
       "otp_secret": null,
       "last_otp_for_time": null,
       "developer": true,
-      "is_verified": true,
-      "first_name": null,
-      "_first_name": null,
-      "last_name": null,
-      "_last_name": null,
-      "email": null,
-      "_email": null,
-      "username": null,
-      "_username": null,
-      "google_refresh_token": null,
-      "google_sub": null
+      "is_verified": true
     }
   },
   {
@@ -91,17 +51,7 @@
       "otp_secret": null,
       "last_otp_for_time": null,
       "developer": false,
-      "is_verified": true,
-      "first_name": null,
-      "_first_name": null,
-      "last_name": null,
-      "_last_name": null,
-      "email": null,
-      "_email": null,
-      "username": null,
-      "_username": null,
-      "google_refresh_token": null,
-      "google_sub": null
+      "is_verified": true
     }
   },
   {
@@ -112,17 +62,7 @@
       "otp_secret": null,
       "last_otp_for_time": null,
       "developer": false,
-      "is_verified": true,
-      "first_name": null,
-      "_first_name": null,
-      "last_name": null,
-      "_last_name": null,
-      "email": null,
-      "_email": null,
-      "username": null,
-      "_username": null,
-      "google_refresh_token": null,
-      "google_sub": null
+      "is_verified": true
     }
   },
   {
@@ -133,17 +73,7 @@
       "otp_secret": null,
       "last_otp_for_time": null,
       "developer": false,
-      "is_verified": true,
-      "first_name": null,
-      "_first_name": null,
-      "last_name": null,
-      "_last_name": null,
-      "email": null,
-      "_email": null,
-      "username": null,
-      "_username": null,
-      "google_refresh_token": null,
-      "google_sub": null
+      "is_verified": true
     }
   },
   {
@@ -154,17 +84,7 @@
       "otp_secret": null,
       "last_otp_for_time": null,
       "developer": false,
-      "is_verified": true,
-      "first_name": null,
-      "_first_name": null,
-      "last_name": null,
-      "_last_name": null,
-      "email": null,
-      "_email": null,
-      "username": null,
-      "_username": null,
-      "google_refresh_token": null,
-      "google_sub": null
+      "is_verified": true
     }
   },
   {
@@ -175,17 +95,7 @@
       "otp_secret": null,
       "last_otp_for_time": null,
       "developer": false,
-      "is_verified": true,
-      "first_name": null,
-      "_first_name": null,
-      "last_name": null,
-      "_last_name": null,
-      "email": null,
-      "_email": null,
-      "username": null,
-      "_username": null,
-      "google_refresh_token": null,
-      "google_sub": null
+      "is_verified": true
     }
   },
   {
@@ -196,17 +106,7 @@
       "otp_secret": null,
       "last_otp_for_time": null,
       "developer": false,
-      "is_verified": true,
-      "first_name": null,
-      "_first_name": null,
-      "last_name": null,
-      "_last_name": null,
-      "email": null,
-      "_email": null,
-      "username": null,
-      "_username": null,
-      "google_refresh_token": null,
-      "google_sub": null
+      "is_verified": true
     }
   },
   {
@@ -217,17 +117,7 @@
       "otp_secret": null,
       "last_otp_for_time": null,
       "developer": false,
-      "is_verified": true,
-      "first_name": null,
-      "_first_name": null,
-      "last_name": null,
-      "_last_name": null,
-      "email": null,
-      "_email": null,
-      "username": null,
-      "_username": null,
-      "google_refresh_token": null,
-      "google_sub": null
+      "is_verified": true
     }
   },
   {
@@ -238,17 +128,7 @@
       "otp_secret": null,
       "last_otp_for_time": null,
       "developer": false,
-      "is_verified": true,
-      "first_name": null,
-      "_first_name": null,
-      "last_name": null,
-      "_last_name": null,
-      "email": null,
-      "_email": null,
-      "username": null,
-      "_username": null,
-      "google_refresh_token": null,
-      "google_sub": null
+      "is_verified": true
     }
   },
   {
@@ -259,17 +139,7 @@
       "otp_secret": null,
       "last_otp_for_time": null,
       "developer": false,
-      "is_verified": true,
-      "first_name": null,
-      "_first_name": null,
-      "last_name": null,
-      "_last_name": null,
-      "email": null,
-      "_email": null,
-      "username": null,
-      "_username": null,
-      "google_refresh_token": null,
-      "google_sub": null
+      "is_verified": true
     }
   },
   {
@@ -280,17 +150,7 @@
       "otp_secret": null,
       "last_otp_for_time": null,
       "developer": false,
-      "is_verified": true,
-      "first_name": null,
-      "_first_name": null,
-      "last_name": null,
-      "_last_name": null,
-      "email": null,
-      "_email": null,
-      "username": null,
-      "_username": null,
-      "google_refresh_token": null,
-      "google_sub": null
+      "is_verified": true
     }
   },
   {
@@ -301,17 +161,7 @@
       "otp_secret": null,
       "last_otp_for_time": null,
       "developer": false,
-      "is_verified": true,
-      "first_name": null,
-      "_first_name": null,
-      "last_name": null,
-      "_last_name": null,
-      "email": null,
-      "_email": null,
-      "username": null,
-      "_username": null,
-      "google_refresh_token": null,
-      "google_sub": null
+      "is_verified": true
     }
   },
   {
@@ -322,17 +172,7 @@
       "otp_secret": null,
       "last_otp_for_time": null,
       "developer": false,
-      "is_verified": true,
-      "first_name": null,
-      "_first_name": null,
-      "last_name": null,
-      "_last_name": null,
-      "email": null,
-      "_email": null,
-      "username": null,
-      "_username": null,
-      "google_refresh_token": null,
-      "google_sub": null
+      "is_verified": true
     }
   },
   {
@@ -343,17 +183,7 @@
       "otp_secret": null,
       "last_otp_for_time": null,
       "developer": false,
-      "is_verified": true,
-      "first_name": null,
-      "_first_name": null,
-      "last_name": null,
-      "_last_name": null,
-      "email": null,
-      "_email": null,
-      "username": null,
-      "_username": null,
-      "google_refresh_token": null,
-      "google_sub": null
+      "is_verified": true
     }
   },
   {
@@ -364,17 +194,7 @@
       "otp_secret": null,
       "last_otp_for_time": null,
       "developer": false,
-      "is_verified": true,
-      "first_name": null,
-      "_first_name": null,
-      "last_name": null,
-      "_last_name": null,
-      "email": null,
-      "_email": null,
-      "username": null,
-      "_username": null,
-      "google_refresh_token": null,
-      "google_sub": null
+      "is_verified": true
     }
   },
   {
@@ -385,17 +205,7 @@
       "otp_secret": null,
       "last_otp_for_time": null,
       "developer": false,
-      "is_verified": true,
-      "first_name": null,
-      "_first_name": null,
-      "last_name": null,
-      "_last_name": null,
-      "email": null,
-      "_email": null,
-      "username": null,
-      "_username": null,
-      "google_refresh_token": null,
-      "google_sub": null
+      "is_verified": true
     }
   },
   {
@@ -406,17 +216,7 @@
       "otp_secret": null,
       "last_otp_for_time": null,
       "developer": false,
-      "is_verified": true,
-      "first_name": null,
-      "_first_name": null,
-      "last_name": null,
-      "_last_name": null,
-      "email": null,
-      "_email": null,
-      "username": null,
-      "_username": null,
-      "google_refresh_token": null,
-      "google_sub": null
+      "is_verified": true
     }
   },
   {
@@ -427,17 +227,7 @@
       "otp_secret": null,
       "last_otp_for_time": null,
       "developer": false,
-      "is_verified": false,
-      "first_name": null,
-      "_first_name": null,
-      "last_name": null,
-      "_last_name": null,
-      "email": null,
-      "_email": null,
-      "username": null,
-      "_username": null,
-      "google_refresh_token": null,
-      "google_sub": null
+      "is_verified": false
     }
   },
   {

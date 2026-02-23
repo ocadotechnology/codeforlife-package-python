@@ -250,12 +250,14 @@ class UserProfile(models.Model):
     is_verified = models.BooleanField(default=False)
 
     # Google.
+    google_refresh_token: t.Optional[str]
     # google_refresh_token = EncryptedCharField(
     #     # pylint: disable-next=protected-access
     #     max_length=1000 + len(EncryptedCharField._prefix),
     #     null=True,
     #     blank=True,
     # )
+    google_sub: t.Optional[str]
     # google_sub = models.CharField(max_length=255, null=True, blank=True)
 
     def __str__(self):

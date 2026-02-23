@@ -15,9 +15,7 @@
     "pk": 34,
     "fields": {
       "user": 34,
-      "is_verified": true,
-      "google_refresh_token": "example",
-      "google_sub": "34"
+      "is_verified": true
     }
   },
   {

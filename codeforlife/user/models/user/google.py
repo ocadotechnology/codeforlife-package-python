@@ -82,7 +82,8 @@ class GoogleUserManager(ContactableUserManager[AnyUser], t.Generic[AnyUser]):
                 last_name=last_name,
             )
 
-            UserProfile.objects.create(
+            # TODO: remove type ignore when we add back these fields.
+            UserProfile.objects.create(  # type: ignore[misc]
                 user=user,
                 is_verified=is_verified,
                 google_refresh_token=refresh_token,
