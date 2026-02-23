@@ -19,7 +19,7 @@ from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from pyotp import TOTP
 
-from ....models import AbstractBaseUser, EncryptedCharField
+from ....models import AbstractBaseUser
 from ....types import Validators
 from ....validators import UnicodeAlphanumericCharSetValidator
 
@@ -249,25 +249,14 @@ class UserProfile(models.Model):
     developer = models.BooleanField(default=False)
     is_verified = models.BooleanField(default=False)
 
-    # TODO: Make not nullable once data has been transferred
-    first_name = models.CharField(max_length=200, null=True, blank=True)
-    _first_name = models.BinaryField(null=True, blank=True)
-    last_name = models.CharField(max_length=200, null=True, blank=True)
-    _last_name = models.BinaryField(null=True, blank=True)
-    email = models.CharField(max_length=200, null=True, blank=True)
-    _email = models.BinaryField(null=True, blank=True)
-    # TODO: Make not nullable once data has been transferred
-    username = models.CharField(max_length=200, null=True, blank=True)
-    _username = models.BinaryField(null=True, blank=True)
-
     # Google.
-    google_refresh_token = EncryptedCharField(
-        # pylint: disable-next=protected-access
-        max_length=1000 + len(EncryptedCharField._prefix),
-        null=True,
-        blank=True,
-    )
-    google_sub = models.CharField(max_length=255, null=True, blank=True)
+    # google_refresh_token = EncryptedCharField(
+    #     # pylint: disable-next=protected-access
+    #     max_length=1000 + len(EncryptedCharField._prefix),
+    #     null=True,
+    #     blank=True,
+    # )
+    # google_sub = models.CharField(max_length=255, null=True, blank=True)
 
     def __str__(self):
         return f"{self.user.first_name} {self.user.last_name}"
