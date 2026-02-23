@@ -35,6 +35,7 @@ class TestOtpBypassToken(ModelTestCase[OtpBypassToken]):
         assert len(otp_bypass_tokens) == self.user.otp_bypass_tokens.count()
 
         for otp_bypass_token in otp_bypass_tokens:
+            assert otp_bypass_token.token is not None
             assert len(otp_bypass_token.token) == OtpBypassToken.length
             assert all(
                 char in OtpBypassToken.allowed_chars
