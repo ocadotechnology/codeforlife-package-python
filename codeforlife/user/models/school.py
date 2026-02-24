@@ -10,6 +10,7 @@ from django.db import models
 from django.utils import timezone
 from django_countries.fields import CountryField
 
+from ...models import DataEncryptionKeyModel
 from ...types import Validators
 from ...validators import UnicodeAlphanumericCharSetValidator
 
@@ -26,7 +27,7 @@ school_name_validators: Validators = [
 ]
 
 
-class SchoolModelManager(models.Manager):
+class SchoolModelManager(DataEncryptionKeyModel.Manager["School"]):
     """Manager for School model."""
 
     def get_original_queryset(self):
@@ -38,8 +39,10 @@ class SchoolModelManager(models.Manager):
         return super().get_queryset().filter(is_active=True)
 
 
-class School(models.Model):
+class School(DataEncryptionKeyModel):
     """A school."""
+
+    associated_data = "school"
 
     name: str
     name = models.CharField(  # type: ignore[assignment]
@@ -71,7 +74,9 @@ class School(models.Model):
     is_active: bool
     is_active = models.BooleanField(default=True)  # type: ignore[assignment]
 
-    objects = SchoolModelManager()
+    objects: SchoolModelManager = (
+        SchoolModelManager()  # type: ignore[assignment]
+    )
 
     def __str__(self):
         return self.name

@@ -19,7 +19,7 @@ from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from pyotp import TOTP
 
-from ....models import AbstractBaseUser
+from ....models import AbstractBaseUser, DataEncryptionKeyModel
 from ....types import Validators
 from ....validators import UnicodeAlphanumericCharSetValidator
 
@@ -59,12 +59,49 @@ class _AbstractBaseUser(AbstractBaseUser):
         abstract = True
 
 
+AnyUser = t.TypeVar("AnyUser", bound="User")
+
+
+class UserManager(
+    _UserManager[AnyUser],
+    DataEncryptionKeyModel.Manager[AnyUser],
+    t.Generic[AnyUser],
+):
+    """
+    Manager for the User model that inherits Django's default manager and
+    encrypted manager to handle encrypted fields.
+    """
+
+    def filter_users(self, queryset: QuerySet["User"]):
+        """Filter the users to the specific type.
+
+        Args:
+            queryset: The queryset of users to filter.
+
+        Returns:
+            A subset of the queryset of users.
+        """
+        return queryset
+
+    # pylint: disable-next=missing-function-docstring
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        return (
+            queryset
+            if getattr(settings, "OLD_SYSTEM", True)
+            else self.filter_users(queryset.filter(is_active=True))
+        )
+
+
 # pylint: disable-next=too-many-ancestors
 class User(
     _AbstractBaseUser,
     AbstractUser,  # TODO: remove this inheritance in new schema
+    DataEncryptionKeyModel,
 ):
     """A proxy to Django's user class."""
+
+    associated_data = "user"
 
     _password: t.Optional[str]
 
@@ -91,6 +128,10 @@ class User(
         blank=True,
         null=True,
     )
+
+    objects: UserManager[  # type: ignore[misc]
+        "User"
+    ] = UserManager()  # type: ignore[assignment]
 
     @property
     def is_authenticated(self):
@@ -216,27 +257,6 @@ if not getattr(settings, "OLD_SYSTEM", True):
         return self.userprofile.is_verified
 
     User.is_verified = property(fget=is_verified)  # type: ignore[assignment]
-
-
-AnyUser = t.TypeVar("AnyUser", bound=User)
-
-
-# pylint: disable-next=missing-class-docstring
-class UserManager(_UserManager[AnyUser], t.Generic[AnyUser]):
-    def filter_users(self, queryset: QuerySet[User]):
-        """Filter the users to the specific type.
-
-        Args:
-            queryset: The queryset of users to filter.
-
-        Returns:
-            A subset of the queryset of users.
-        """
-        return queryset
-
-    # pylint: disable-next=missing-function-docstring
-    def get_queryset(self):
-        return self.filter_users(super().get_queryset().filter(is_active=True))
 
 
 class UserProfile(models.Model):

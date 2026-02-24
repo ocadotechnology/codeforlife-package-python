@@ -110,7 +110,8 @@ class EncryptedModel(Model):
         """
         errors: t.List[checks.Error] = []
 
-        if cls._meta.abstract:
+        # Skip abstract and proxy models.
+        if cls._meta.abstract or cls._meta.proxy:
             return errors
 
         # Ensure associated_data is defined.
@@ -150,6 +151,7 @@ class EncryptedModel(Model):
                     # pylint: disable-next=too-many-boolean-expressions
                     not model is cls
                     and not model._meta.abstract
+                    and not model._meta.proxy
                     and issubclass(model, EncryptedModel)
                     and hasattr(model, "associated_data")
                     and isinstance(model.associated_data, str)

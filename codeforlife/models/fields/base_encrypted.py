@@ -215,8 +215,12 @@ class BaseEncryptedField(BinaryField, t.Generic[T]):
         """
         super().contribute_to_class(cls, name, private_only)
 
-        # Skip fake models used for migrations.
-        if cls.__module__ == "__fake__":
+        # Skip fake (used for migrations), abstract and proxy models.
+        if (
+            cls.__module__ == "__fake__"
+            or cls._meta.abstract
+            or cls._meta.proxy
+        ):
             return
 
         # Ensure the model subclasses EncryptedModel.
