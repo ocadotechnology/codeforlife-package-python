@@ -12,9 +12,6 @@ os.environ["SERVICE_NAME"] = "example-service"
 # pylint: disable-next=wildcard-import,unused-wildcard-import,wrong-import-position
 from codeforlife.settings import *
 
-# NOTE: This is only used locally for testing purposes.
-ENCRYPTION_KEY = "XTgWqMlZCMI_E5BvCArkif9nrJIIhe_6Ic6Q_UcWJDk="
-
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
