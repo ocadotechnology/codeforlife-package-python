@@ -249,23 +249,17 @@ class SchoolTeacherInvitation(models.Model):
     invited_teacher_first_name = models.CharField(  # type: ignore[assignment]
         max_length=150
     )  # Same as User model
-    # TODO: Make not nullable once data has been transferred
-    _invited_teacher_first_name = models.BinaryField(null=True, blank=True)
 
     invited_teacher_last_name: str
     invited_teacher_last_name = models.CharField(  # type: ignore[assignment]
         max_length=150
     )  # Same as User model
-    # TODO: Make not nullable once data has been transferred
-    _invited_teacher_last_name = models.BinaryField(null=True, blank=True)
 
     # TODO: Switch to a CharField to be able to hold hashed value
     invited_teacher_email: str
     invited_teacher_email = (
         models.EmailField()  # type: ignore[assignment]
     )  # Same as User model
-    # TODO: Make not nullable once data has been transferred
-    _invited_teacher_email = models.BinaryField(null=True, blank=True)
 
     invited_teacher_is_admin: bool
     invited_teacher_is_admin = models.BooleanField(  # type: ignore[assignment]
