@@ -6,14 +6,17 @@ Created on 05/02/2024 at 09:50:04(+00:00).
 """
 
 import typing as t
-from datetime import datetime
+from datetime import datetime, timedelta
 
-from common.models import UserProfile
+from django.conf import settings
 
 # pylint: disable-next=imported-auth-user
-from django.contrib.auth.models import User as _User
+from django.contrib.auth.models import AbstractUser
 from django.contrib.auth.models import UserManager as _UserManager
+from django.db import models
 from django.db.models.query import QuerySet
+from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
 from pyotp import TOTP
 
 from ....models import AbstractBaseUser
@@ -57,7 +60,10 @@ class _AbstractBaseUser(AbstractBaseUser):
 
 
 # pylint: disable-next=too-many-ancestors
-class User(_AbstractBaseUser, _User):
+class User(
+    _AbstractBaseUser,
+    AbstractUser,  # TODO: remove this inheritance in new schema
+):
     """A proxy to Django's user class."""
 
     _password: t.Optional[str]
@@ -67,20 +73,36 @@ class User(_AbstractBaseUser, _User):
     # pylint: disable-next=line-too-long
     otp_bypass_tokens: QuerySet["OtpBypassToken"]  # type: ignore[assignment,misc]
     session: "Session"  # type: ignore[assignment]
-    userprofile: UserProfile
+    userprofile: "UserProfile"
 
     credential_fields = frozenset(["email", "password"])
 
-    class Meta(TypedModelMeta):
-        proxy = True
+    # TODO: remove in new schema
+    password: str  # type: ignore[assignment]
+    password = models.CharField(  # type: ignore[assignment]
+        _("password"),
+        max_length=128,
+    )
+
+    # TODO: remove in new schema
+    last_login: t.Optional[datetime]  # type: ignore[assignment]
+    last_login = models.DateTimeField(  # type: ignore[assignment]
+        _("last login"),
+        blank=True,
+        null=True,
+    )
 
     @property
     def is_authenticated(self):
         return (
-            not self.session.auth_factors.exists()
-            and self.userprofile.is_verified
-            if super().is_authenticated
-            else False
+            True
+            if getattr(settings, "OLD_SYSTEM", True)
+            else (
+                not self.session.auth_factors.exists()
+                and self.userprofile.is_verified
+                if super().is_authenticated
+                else False
+            )
         )
 
     @property
@@ -117,10 +139,13 @@ class User(_AbstractBaseUser, _User):
         """Shorthand for user-profile field."""
         return self.userprofile.last_otp_for_time
 
-    @property
-    def is_verified(self):
-        """Shorthand for user-profile field."""
-        return self.userprofile.is_verified
+    # This property is set up differently in the old and new systems, so is not
+    # defined on the model in the old system.
+    is_verified: bool
+    # @property
+    # def is_verified(self):
+    #     """Shorthand for user-profile field."""
+    #     return self.userprofile.is_verified
 
     @property
     def totp(self):
@@ -184,6 +209,15 @@ class User(_AbstractBaseUser, _User):
         )
 
 
+if not getattr(settings, "OLD_SYSTEM", True):
+
+    def is_verified(self: User):
+        """Shorthand for user-profile field."""
+        return self.userprofile.is_verified
+
+    User.is_verified = property(fget=is_verified)  # type: ignore[assignment]
+
+
 AnyUser = t.TypeVar("AnyUser", bound=User)
 
 
@@ -203,3 +237,33 @@ class UserManager(_UserManager[AnyUser], t.Generic[AnyUser]):
     # pylint: disable-next=missing-function-docstring
     def get_queryset(self):
         return self.filter_users(super().get_queryset().filter(is_active=True))
+
+
+class UserProfile(models.Model):
+    """A user's profile."""
+
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+
+    otp_secret = models.CharField(max_length=40, null=True, blank=True)
+    last_otp_for_time = models.DateTimeField(null=True, blank=True)
+    developer = models.BooleanField(default=False)
+    is_verified = models.BooleanField(default=False)
+
+    # Google.
+    google_refresh_token: t.Optional[str]
+    # google_refresh_token = EncryptedCharField(
+    #     # pylint: disable-next=protected-access
+    #     max_length=1000 + len(EncryptedCharField._prefix),
+    #     null=True,
+    #     blank=True,
+    # )
+    google_sub: t.Optional[str]
+    # google_sub = models.CharField(max_length=255, null=True, blank=True)
+
+    def __str__(self):
+        return f"{self.user.first_name} {self.user.last_name}"
+
+    def joined_recently(self):
+        """Whether the user joined within the last week."""
+        now = timezone.now()
+        return now - timedelta(days=7) <= self.user.date_joined

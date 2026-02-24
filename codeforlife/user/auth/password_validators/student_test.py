@@ -10,6 +10,8 @@ from .student import StudentPasswordValidator
 
 # pylint: disable-next=missing-class-docstring
 class TestStudentPasswordValidator(TestCase):
+    fixtures = ["school_1"]
+
     def setUp(self):
         # TODO: Remove second check once we switch to new models
         self.user = User.objects.filter(

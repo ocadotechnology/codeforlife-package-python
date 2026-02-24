@@ -8,17 +8,16 @@ Created on 05/02/2024 at 09:50:04(+00:00).
 import string
 import typing as t
 
-from common.models import TotalActivity, UserProfile
 from django.db.models import F
 from django.db.models.query import QuerySet
 from django.utils.crypto import get_random_string
 
-from ..klass import Class
-from .user import User, UserManager
+from .user import User, UserManager, UserProfile
 
 if t.TYPE_CHECKING:  # pragma: no cover
     from django_stubs_ext.db.models import TypedModelMeta
 
+    from ..klass import Class
     from ..student import Student
 else:
     TypedModelMeta = object
@@ -29,12 +28,14 @@ AnyUser = t.TypeVar("AnyUser", bound=User)
 # pylint: disable-next=missing-class-docstring,too-few-public-methods
 class StudentUserManager(UserManager["StudentUser"]):
     def create_user(  # type: ignore[override]
-        self, first_name: str, klass: Class, **extra_fields
+        self, first_name: str, klass: "Class", **extra_fields
     ):
         """Create a student-user."""
-        # pylint: disable-next=import-outside-toplevel
+        # pylint: disable=import-outside-toplevel
+        from ..other import TotalActivity
         from ..student import Student
 
+        # pylint: enable=import-outside-toplevel
         # pylint: disable=protected-access
         password = StudentUser._get_random_password()
         login_id, hashed_login_id = StudentUser._get_random_login_id()
@@ -115,8 +116,22 @@ class StudentUser(User):
         #     login_id = get_random_string(length=64)
 
         # TODO: replace below code with commented out code above.
-        # pylint: disable-next=import-outside-toplevel
-        from common.helpers.generators import generate_login_id
+        # pylint: disable=import-outside-toplevel
+        import hashlib
+        from uuid import uuid4
+
+        # pylint: enable=import-outside-toplevel
+
+        def get_hashed_login_id(login_id):
+            """Returns the hash of a given string used for login url"""
+            return hashlib.sha256(login_id.encode()).hexdigest()
+
+        def generate_login_id():
+            """Returns the uuid string and its hashed.
+            The string is used for URL, and the hashed is stored in the DB."""
+            login_id = uuid4().hex
+            hashed_login_id = get_hashed_login_id(login_id)
+            return login_id, hashed_login_id
 
         return generate_login_id()
 

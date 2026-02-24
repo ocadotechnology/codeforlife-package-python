@@ -10,6 +10,7 @@ from .user import UserSerializer
 
 # pylint: disable-next=missing-class-docstring,too-many-ancestors
 class TestUserSerializer(ModelSerializerTestCase[User, User]):
+    fixtures = ["school_1", "independent"]
     model_serializer_class = UserSerializer  # type: ignore[assignment,override]
 
     # test: to representation
@@ -25,7 +26,8 @@ class TestUserSerializer(ModelSerializerTestCase[User, User]):
                 "requesting_to_join_class": None,
                 "teacher": {
                     "id": user.teacher.id,
-                    "school": user.teacher.school.id,
+                    # pylint: disable-next=line-too-long
+                    "school": user.teacher.school.id,  # type: ignore[union-attr]
                     "is_admin": user.teacher.is_admin,
                 },
                 "student": None,
@@ -46,8 +48,10 @@ class TestUserSerializer(ModelSerializerTestCase[User, User]):
                 "teacher": None,
                 "student": {
                     "id": user.student.id,
-                    "klass": user.student.class_field.access_code,
-                    "school": user.student.class_field.teacher.school.id,
+                    # pylint: disable-next=line-too-long
+                    "klass": user.student.class_field.access_code,  # type: ignore[union-attr]
+                    # pylint: disable-next=line-too-long
+                    "school": user.student.class_field.teacher.school.id,  # type: ignore[union-attr]
                 },
             },
             # TODO: remove in new schema.
@@ -56,7 +60,9 @@ class TestUserSerializer(ModelSerializerTestCase[User, User]):
 
     def test_to_representation__indy(self):
         """Serialize independent user to representation."""
-        user = IndependentUser.objects.first()
+        user = IndependentUser.objects.filter(
+            new_student__pending_class_request__isnull=True
+        ).first()
         assert user
 
         self.assert_to_representation(

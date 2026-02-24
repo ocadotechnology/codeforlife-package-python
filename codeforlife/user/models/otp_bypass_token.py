@@ -16,10 +16,11 @@ from ...models import EncryptedModel
 from ...models.fields import EncryptedTextField
 from ...types import Validators
 from ...validators import CharSetValidatorBuilder
-from .user import User
 
-if t.TYPE_CHECKING:
+if t.TYPE_CHECKING:  # pragma: no cover
     from django_stubs_ext.db.models import TypedModelMeta
+
+    from .user import User
 else:
     TypedModelMeta = object
 
@@ -42,7 +43,7 @@ class OtpBypassToken(EncryptedModel):
 
     # pylint: disable-next=missing-class-docstring,too-few-public-methods
     class Manager(EncryptedModel.Manager["OtpBypassToken"]):
-        def bulk_create(self, user: User):  # type: ignore[override]
+        def bulk_create(self, user: "User"):  # type: ignore[override]
             """Bulk create OTP-bypass tokens.
 
             Args:
@@ -72,13 +73,15 @@ class OtpBypassToken(EncryptedModel):
 
     objects: Manager = Manager()  # type: ignore[assignment]
 
-    user = models.ForeignKey(
-        User,
+    user: "User"
+    user = models.ForeignKey(  # type: ignore[assignment]
+        "user.User",
         related_name="otp_bypass_tokens",
         on_delete=models.CASCADE,
     )
 
-    token = EncryptedTextField(
+    token: str
+    token = EncryptedTextField(  # type: ignore[assignment]
         associated_data="token",
         verbose_name=_("token"),
         help_text=_("The encrypted equivalent of the token."),
@@ -90,7 +93,7 @@ class OtpBypassToken(EncryptedModel):
 
     @property
     def dek_aead(self):
-        return self.user.userprofile.dek_aead
+        return self.user.userprofile.dek_aead  # type: ignore[attr-defined]
 
     def save(self, *args, **kwargs):
         raise IntegrityError("Cannot create or update a single instance.")

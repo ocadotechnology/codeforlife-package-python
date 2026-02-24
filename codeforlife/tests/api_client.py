@@ -119,7 +119,7 @@ class BaseAPIClient(
 
     StatusCodeAssertion = t.Optional[t.Union[int, t.Callable[[int], bool]]]
 
-    # pylint: disable=too-many-arguments,redefined-builtin
+    # pylint: disable=too-many-arguments,redefined-builtin,too-many-positional-arguments
 
     def generic(
         self,
@@ -304,7 +304,7 @@ class BaseAPIClient(
             **extra,
         )
 
-    # pylint: enable=too-many-arguments,redefined-builtin
+    # pylint: enable=too-many-arguments,redefined-builtin,too-many-positional-arguments
 
 
 class APIClient(
@@ -558,7 +558,8 @@ class APIClient(
             auth_user = self.login_teacher(user.email, password)
         elif isinstance(user, StudentUser):
             auth_user = self.login_student(
-                user.student.class_field.access_code,
+                # pylint: disable-next=line-too-long
+                user.student.class_field.access_code,  # type: ignore[union-attr,arg-type]
                 user.first_name,
                 password,
             )

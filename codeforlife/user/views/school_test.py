@@ -63,7 +63,8 @@ class TestSchoolViewSet(ModelViewSetTestCase[RequestUser, School]):
         assert user
 
         self.assert_get_queryset(
-            values=[user.student.class_field.teacher.school],
+            # pylint: disable-next=line-too-long
+            values=[user.student.class_field.teacher.school],  # type: ignore[union-attr,list-item]
             request=self.client.request_factory.get(user=user),
         )
 
@@ -78,7 +79,8 @@ class TestSchoolViewSet(ModelViewSetTestCase[RequestUser, School]):
         assert user
 
         self.assert_get_queryset(
-            values=[user.student.pending_class_request.teacher.school],
+            # pylint: disable-next=line-too-long
+            values=[user.student.pending_class_request.teacher.school],  # type: ignore[union-attr,list-item]
             request=self.client.request_factory.get(user=user),
         )
 
@@ -89,5 +91,5 @@ class TestSchoolViewSet(ModelViewSetTestCase[RequestUser, School]):
         user = SchoolTeacherUser.objects.first()
         assert user
 
-        self.client.login_as(user, password="abc123")
+        self.client.login_as(user)
         self.client.retrieve(model=user.teacher.school)

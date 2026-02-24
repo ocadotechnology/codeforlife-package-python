@@ -12,6 +12,7 @@ from ..enhanced_regex import EnhancedRegexValidator
 
 # pylint: disable=too-few-public-methods
 # pylint: disable=too-many-arguments
+# pylint: disable=too-many-positional-arguments
 
 
 class CharSetValidator(EnhancedRegexValidator):

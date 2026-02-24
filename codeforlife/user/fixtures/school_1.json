@@ -1,6 +1,6 @@
 [
   {
-    "model": "common.school",
+    "model": "user.school",
     "pk": 2,
     "fields": {
       "name": "School 1",
@@ -9,7 +9,7 @@
     }
   },
   {
-    "model": "auth.user",
+    "model": "user.user",
     "pk": 23,
     "fields": {
       "first_name": "John",
@@ -20,7 +20,7 @@
     }
   },
   {
-    "model": "common.userprofile",
+    "model": "user.userprofile",
     "pk": 23,
     "fields": {
       "user": 23,
@@ -28,7 +28,7 @@
     }
   },
   {
-    "model": "common.teacher",
+    "model": "user.teacher",
     "pk": 6,
     "fields": {
       "user": 23,
@@ -37,7 +37,7 @@
     }
   },
   {
-    "model": "common.class",
+    "model": "user.class",
     "pk": 6,
     "fields": {
       "name": "Class 1 @ School 1",
@@ -47,7 +47,7 @@
     }
   },
   {
-    "model": "auth.user",
+    "model": "user.user",
     "pk": 27,
     "fields": {
       "first_name": "Student1",
@@ -56,7 +56,7 @@
     }
   },
   {
-    "model": "common.userprofile",
+    "model": "user.userprofile",
     "pk": 27,
     "fields": {
       "user": 27,
@@ -64,7 +64,7 @@
     }
   },
   {
-    "model": "common.student",
+    "model": "user.student",
     "pk": 17,
     "fields": {
       "user": 27,
@@ -73,7 +73,7 @@
     }
   },
   {
-    "model": "auth.user",
+    "model": "user.user",
     "pk": 24,
     "fields": {
       "first_name": "Jane",
@@ -84,7 +84,7 @@
     }
   },
   {
-    "model": "common.userprofile",
+    "model": "user.userprofile",
     "pk": 24,
     "fields": {
       "user": 24,
@@ -92,7 +92,7 @@
     }
   },
   {
-    "model": "common.teacher",
+    "model": "user.teacher",
     "pk": 7,
     "fields": {
       "user": 24,
@@ -102,7 +102,7 @@
     }
   },
   {
-    "model": "common.class",
+    "model": "user.class",
     "pk": 7,
     "fields": {
       "name": "Class 2 @ School 1",
@@ -111,7 +111,7 @@
     }
   },
   {
-    "model": "auth.user",
+    "model": "user.user",
     "pk": 29,
     "fields": {
       "first_name": "Student2",
@@ -120,7 +120,7 @@
     }
   },
   {
-    "model": "common.userprofile",
+    "model": "user.userprofile",
     "pk": 29,
     "fields": {
       "user": 29,
@@ -128,7 +128,7 @@
     }
   },
   {
-    "model": "common.student",
+    "model": "user.student",
     "pk": 19,
     "fields": {
       "user": 29,
@@ -137,7 +137,7 @@
     }
   },
   {
-    "model": "common.class",
+    "model": "user.class",
     "pk": 10,
     "fields": {
       "name": "Class 3 @ School 1",

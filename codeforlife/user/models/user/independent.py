@@ -7,26 +7,25 @@ Created on 05/02/2024 at 09:50:04(+00:00).
 
 import typing as t
 
-from common.models import TotalActivity, UserProfile
 from django.db.models import F
 from django.db.models.query import QuerySet
 
 from .contactable import ContactableUser, ContactableUserManager
-from .user import User
 
 if t.TYPE_CHECKING:  # pragma: no cover
     from django_stubs_ext.db.models import TypedModelMeta
 
     from ..student import Independent
+    from .user import User
 else:
     TypedModelMeta = object
 
-AnyUser = t.TypeVar("AnyUser", bound=User)
+AnyUser = t.TypeVar("AnyUser", bound="User")
 
 
 # pylint: disable-next=missing-class-docstring,too-few-public-methods
 class IndependentUserManager(ContactableUserManager["IndependentUser"]):
-    def filter_users(self, queryset: QuerySet[User]):
+    def filter_users(self, queryset: QuerySet["User"]):
         return (
             super()
             .filter_users(queryset)
@@ -50,11 +49,16 @@ class IndependentUserManager(ContactableUserManager["IndependentUser"]):
         **extra_fields,
     ):
         """Create an independent-user."""
-        # pylint: disable-next=import-outside-toplevel
+        # pylint: disable=import-outside-toplevel
+        from ..other import TotalActivity
         from ..student import Student
+        from .user import UserProfile
+
+        # pylint: enable=import-outside-toplevel
 
         assert "username" not in extra_fields
 
+        # pylint: disable=duplicate-code
         user = super().create_user(
             username=email,
             email=email,
@@ -63,6 +67,7 @@ class IndependentUserManager(ContactableUserManager["IndependentUser"]):
             last_name=last_name,
             **extra_fields,
         )
+        # pylint: enable=duplicate-code
 
         # NOTE: Indy user needs a student object for now while we use the
         # old models.

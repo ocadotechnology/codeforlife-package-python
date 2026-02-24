@@ -98,7 +98,7 @@ class BaseModelViewSetTestCase(
     # Assertion Helpers
     # --------------------------------------------------------------------------
 
-    # pylint: disable-next=too-many-arguments
+    # pylint: disable-next=too-many-arguments,too-many-positional-arguments
     def assert_serialized_model_equals_json_model(
         self,
         model: AnyModel,

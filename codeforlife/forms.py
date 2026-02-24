@@ -62,7 +62,7 @@ class BaseLoginForm(forms.Form, t.Generic[AnyAbstractBaseUser]):
                 "Incorrect user class.",
                 code="incorrect_user_class",
             )
-        if not user.is_active:
+        if not user.is_active:  # type: ignore[attr-defined]
             raise ValidationError(
                 "User is not active",
                 code="user_not_active",

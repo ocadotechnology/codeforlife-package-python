@@ -5,6 +5,13 @@ Created on 05/02/2024 at 13:48:55(+00:00).
 
 from .auth_factor import AuthFactor
 from .klass import Class, class_name_validators
+from .other import (
+    DailyActivity,
+    JoinReleaseStudent,
+    SchoolTeacherInvitation,
+    TotalActivity,
+    UserSession,
+)
 from .otp_bypass_token import OtpBypassToken
 from .school import School, school_name_validators
 from .session import Session

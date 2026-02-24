@@ -35,7 +35,7 @@ def _lazy_re_compile(pattern, flags: int = 0):
 class EnhancedRegexValidator(RegexValidator):
     """Extends Django's default regex validator to support enhanced patterns."""
 
-    # pylint: disable-next=too-many-arguments
+    # pylint: disable-next=too-many-arguments,too-many-positional-arguments
     def __init__(
         self,
         # pylint: disable-next=redefined-outer-name

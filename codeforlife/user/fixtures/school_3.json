@@ -1,6 +1,6 @@
 [
   {
-    "model": "common.school",
+    "model": "user.school",
     "pk": 4,
     "fields": {
       "name": "School 3",
@@ -9,7 +9,7 @@
     }
   },
   {
-    "model": "auth.user",
+    "model": "user.user",
     "pk": 31,
     "fields": {
       "first_name": "Peter",
@@ -20,7 +20,7 @@
     }
   },
   {
-    "model": "common.userprofile",
+    "model": "user.userprofile",
     "pk": 31,
     "fields": {
       "user": 31,
@@ -28,7 +28,7 @@
     }
   },
   {
-    "model": "common.teacher",
+    "model": "user.teacher",
     "pk": 10,
     "fields": {
       "user": 31,
@@ -38,7 +38,7 @@
     }
   },
   {
-    "model": "auth.user",
+    "model": "user.user",
     "pk": 32,
     "fields": {
       "first_name": "Doctor",
@@ -49,7 +49,7 @@
     }
   },
   {
-    "model": "common.userprofile",
+    "model": "user.userprofile",
     "pk": 32,
     "fields": {
       "user": 32,
@@ -57,7 +57,7 @@
     }
   },
   {
-    "model": "common.teacher",
+    "model": "user.teacher",
     "pk": 11,
     "fields": {
       "user": 32,

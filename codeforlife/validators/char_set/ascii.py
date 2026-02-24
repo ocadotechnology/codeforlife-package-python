@@ -11,6 +11,7 @@ import typing as t
 from .base import CharSetValidatorBuilder
 
 # pylint: disable=too-few-public-methods
+# pylint: disable=too-many-positional-arguments
 # pylint: disable=too-many-arguments
 # pylint: disable=duplicate-code
 

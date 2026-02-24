@@ -12,10 +12,14 @@ from django.utils.translation import gettext_lazy as _
 
 from ...types import Validators
 from ...validators import AsciiNumericCharSetValidator
-from .user import User
 
 if t.TYPE_CHECKING:  # pragma: no cover
+    from django_stubs_ext.db.models import TypedModelMeta
+
     from .session_auth_factor import SessionAuthFactor
+    from .user import User
+else:
+    TypedModelMeta = object
 
 
 class AuthFactor(models.Model):
@@ -35,15 +39,17 @@ class AuthFactor(models.Model):
 
         OTP = "otp", _("one-time password")
 
-    user = models.ForeignKey(
-        User,
+    user: "User"
+    user = models.ForeignKey(  # type: ignore[assignment]
+        "user.User",
         related_name="auth_factors",
         on_delete=models.CASCADE,
     )
 
-    type = models.TextField(choices=Type.choices)
+    type: str
+    type = models.TextField(choices=Type.choices)  # type: ignore[assignment]
 
-    class Meta:
+    class Meta(TypedModelMeta):
         unique_together = ["user", "type"]
 
     def __str__(self):

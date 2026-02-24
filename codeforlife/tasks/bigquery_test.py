@@ -31,6 +31,7 @@ CsvFile = t.Union[io.BufferedReader, "_TemporaryFileWrapper[bytes]"]
 
 # pylint: disable-next=too-many-instance-attributes,too-many-public-methods
 class TestLoadDataIntoBigQueryTask(CeleryTestCase):
+    fixtures = ["school_1"]
 
     append_users: BigQueryTask
     truncate_users: BigQueryTask
@@ -180,7 +181,7 @@ class TestLoadDataIntoBigQueryTask(CeleryTestCase):
 
     # settings
 
-    # pylint: disable-next=too-many-arguments
+    # pylint: disable-next=too-many-arguments,too-many-positional-arguments
     def _test_settings(
         self,
         code: str,

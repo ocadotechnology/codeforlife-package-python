@@ -1,0 +1,948 @@
+[
+  {
+    "model": "user.userprofile",
+    "pk": 1,
+    "fields": {
+      "user": 2,
+      "otp_secret": null,
+      "last_otp_for_time": null,
+      "developer": true,
+      "is_verified": true
+    }
+  },
+  {
+    "model": "user.userprofile",
+    "pk": 2,
+    "fields": {
+      "user": 3,
+      "otp_secret": null,
+      "last_otp_for_time": null,
+      "developer": false,
+      "is_verified": true
+    }
+  },
+  {
+    "model": "user.userprofile",
+    "pk": 3,
+    "fields": {
+      "user": 4,
+      "otp_secret": null,
+      "last_otp_for_time": null,
+      "developer": false,
+      "is_verified": true
+    }
+  },
+  {
+    "model": "user.userprofile",
+    "pk": 4,
+    "fields": {
+      "user": 5,
+      "otp_secret": null,
+      "last_otp_for_time": null,
+      "developer": true,
+      "is_verified": true
+    }
+  },
+  {
+    "model": "user.userprofile",
+    "pk": 5,
+    "fields": {
+      "user": 6,
+      "otp_secret": null,
+      "last_otp_for_time": null,
+      "developer": false,
+      "is_verified": true
+    }
+  },
+  {
+    "model": "user.userprofile",
+    "pk": 6,
+    "fields": {
+      "user": 7,
+      "otp_secret": null,
+      "last_otp_for_time": null,
+      "developer": false,
+      "is_verified": true
+    }
+  },
+  {
+    "model": "user.userprofile",
+    "pk": 7,
+    "fields": {
+      "user": 8,
+      "otp_secret": null,
+      "last_otp_for_time": null,
+      "developer": false,
+      "is_verified": true
+    }
+  },
+  {
+    "model": "user.userprofile",
+    "pk": 8,
+    "fields": {
+      "user": 9,
+      "otp_secret": null,
+      "last_otp_for_time": null,
+      "developer": false,
+      "is_verified": true
+    }
+  },
+  {
+    "model": "user.userprofile",
+    "pk": 9,
+    "fields": {
+      "user": 10,
+      "otp_secret": null,
+      "last_otp_for_time": null,
+      "developer": false,
+      "is_verified": true
+    }
+  },
+  {
+    "model": "user.userprofile",
+    "pk": 10,
+    "fields": {
+      "user": 11,
+      "otp_secret": null,
+      "last_otp_for_time": null,
+      "developer": false,
+      "is_verified": true
+    }
+  },
+  {
+    "model": "user.userprofile",
+    "pk": 11,
+    "fields": {
+      "user": 12,
+      "otp_secret": null,
+      "last_otp_for_time": null,
+      "developer": false,
+      "is_verified": true
+    }
+  },
+  {
+    "model": "user.userprofile",
+    "pk": 12,
+    "fields": {
+      "user": 13,
+      "otp_secret": null,
+      "last_otp_for_time": null,
+      "developer": false,
+      "is_verified": true
+    }
+  },
+  {
+    "model": "user.userprofile",
+    "pk": 13,
+    "fields": {
+      "user": 14,
+      "otp_secret": null,
+      "last_otp_for_time": null,
+      "developer": false,
+      "is_verified": true
+    }
+  },
+  {
+    "model": "user.userprofile",
+    "pk": 14,
+    "fields": {
+      "user": 15,
+      "otp_secret": null,
+      "last_otp_for_time": null,
+      "developer": false,
+      "is_verified": true
+    }
+  },
+  {
+    "model": "user.userprofile",
+    "pk": 15,
+    "fields": {
+      "user": 16,
+      "otp_secret": null,
+      "last_otp_for_time": null,
+      "developer": false,
+      "is_verified": true
+    }
+  },
+  {
+    "model": "user.userprofile",
+    "pk": 16,
+    "fields": {
+      "user": 17,
+      "otp_secret": null,
+      "last_otp_for_time": null,
+      "developer": false,
+      "is_verified": true
+    }
+  },
+  {
+    "model": "user.userprofile",
+    "pk": 17,
+    "fields": {
+      "user": 18,
+      "otp_secret": null,
+      "last_otp_for_time": null,
+      "developer": false,
+      "is_verified": true
+    }
+  },
+  {
+    "model": "user.userprofile",
+    "pk": 18,
+    "fields": {
+      "user": 19,
+      "otp_secret": null,
+      "last_otp_for_time": null,
+      "developer": false,
+      "is_verified": true
+    }
+  },
+  {
+    "model": "user.userprofile",
+    "pk": 19,
+    "fields": {
+      "user": 20,
+      "otp_secret": null,
+      "last_otp_for_time": null,
+      "developer": false,
+      "is_verified": true
+    }
+  },
+  {
+    "model": "user.userprofile",
+    "pk": 20,
+    "fields": {
+      "user": 1,
+      "otp_secret": null,
+      "last_otp_for_time": null,
+      "developer": false,
+      "is_verified": true
+    }
+  },
+  {
+    "model": "user.userprofile",
+    "pk": 21,
+    "fields": {
+      "user": 21,
+      "otp_secret": null,
+      "last_otp_for_time": null,
+      "developer": false,
+      "is_verified": false
+    }
+  },
+  {
+    "model": "user.school",
+    "pk": 1,
+    "fields": {
+      "name": "Swiss Federal Polytechnic",
+      "country": "GB",
+      "county": "nan",
+      "creation_time": null,
+      "is_active": true
+    }
+  },
+  {
+    "model": "user.teacher",
+    "pk": 1,
+    "fields": {
+      "user": 1,
+      "new_user": 2,
+      "school": 1,
+      "is_admin": true,
+      "blocked_time": null,
+      "invited_by": null
+    }
+  },
+  {
+    "model": "user.teacher",
+    "pk": 2,
+    "fields": {
+      "user": 2,
+      "new_user": 3,
+      "school": 1,
+      "is_admin": false,
+      "blocked_time": null,
+      "invited_by": null
+    }
+  },
+  {
+    "model": "user.teacher",
+    "pk": 3,
+    "fields": {
+      "user": 3,
+      "new_user": 4,
+      "school": 1,
+      "is_admin": true,
+      "blocked_time": null,
+      "invited_by": null
+    }
+  },
+  {
+    "model": "user.teacher",
+    "pk": 4,
+    "fields": {
+      "user": 20,
+      "new_user": 1,
+      "school": 1,
+      "is_admin": true,
+      "blocked_time": null,
+      "invited_by": null
+    }
+  },
+  {
+    "model": "user.class",
+    "pk": 1,
+    "fields": {
+      "name": "Class 101",
+      "teacher": 1,
+      "access_code": "AB123",
+      "classmates_data_viewable": true,
+      "always_accept_requests": true,
+      "accept_requests_until": null,
+      "creation_time": null,
+      "is_active": true,
+      "created_by": null
+    }
+  },
+  {
+    "model": "user.class",
+    "pk": 2,
+    "fields": {
+      "name": "Class 102",
+      "teacher": 2,
+      "access_code": "AB124",
+      "classmates_data_viewable": true,
+      "always_accept_requests": true,
+      "accept_requests_until": null,
+      "creation_time": null,
+      "is_active": true,
+      "created_by": null
+    }
+  },
+  {
+    "model": "user.class",
+    "pk": 3,
+    "fields": {
+      "name": "Class 103",
+      "teacher": 2,
+      "access_code": "AB125",
+      "classmates_data_viewable": true,
+      "always_accept_requests": true,
+      "accept_requests_until": null,
+      "creation_time": null,
+      "is_active": true,
+      "created_by": null
+    }
+  },
+  {
+    "model": "user.class",
+    "pk": 4,
+    "fields": {
+      "name": "Young Coders 101",
+      "teacher": 3,
+      "access_code": "RL123",
+      "classmates_data_viewable": true,
+      "always_accept_requests": true,
+      "accept_requests_until": null,
+      "creation_time": null,
+      "is_active": true,
+      "created_by": null
+    }
+  },
+  {
+    "model": "user.class",
+    "pk": 5,
+    "fields": {
+      "name": "Portaladmin's class",
+      "teacher": 4,
+      "access_code": "PO123",
+      "classmates_data_viewable": true,
+      "always_accept_requests": true,
+      "accept_requests_until": null,
+      "creation_time": null,
+      "is_active": true,
+      "created_by": null
+    }
+  },
+  {
+    "model": "user.student",
+    "pk": 1,
+    "fields": {
+      "class_field": 1,
+      "login_id": null,
+      "user": 4,
+      "new_user": 5,
+      "pending_class_request": null,
+      "blocked_time": null
+    }
+  },
+  {
+    "model": "user.student",
+    "pk": 2,
+    "fields": {
+      "class_field": 1,
+      "login_id": null,
+      "user": 5,
+      "new_user": 6,
+      "pending_class_request": null,
+      "blocked_time": null
+    }
+  },
+  {
+    "model": "user.student",
+    "pk": 3,
+    "fields": {
+      "class_field": null,
+      "login_id": null,
+      "user": 6,
+      "new_user": 7,
+      "pending_class_request": null,
+      "blocked_time": null
+    }
+  },
+  {
+    "model": "user.student",
+    "pk": 4,
+    "fields": {
+      "class_field": 2,
+      "login_id": null,
+      "user": 7,
+      "new_user": 8,
+      "pending_class_request": null,
+      "blocked_time": null
+    }
+  },
+  {
+    "model": "user.student",
+    "pk": 5,
+    "fields": {
+      "class_field": 2,
+      "login_id": null,
+      "user": 8,
+      "new_user": 9,
+      "pending_class_request": null,
+      "blocked_time": null
+    }
+  },
+  {
+    "model": "user.student",
+    "pk": 6,
+    "fields": {
+      "class_field": 3,
+      "login_id": null,
+      "user": 9,
+      "new_user": 10,
+      "pending_class_request": null,
+      "blocked_time": null
+    }
+  },
+  {
+    "model": "user.student",
+    "pk": 7,
+    "fields": {
+      "class_field": null,
+      "login_id": null,
+      "user": 10,
+      "new_user": 11,
+      "pending_class_request": null,
+      "blocked_time": null
+    }
+  },
+  {
+    "model": "user.student",
+    "pk": 8,
+    "fields": {
+      "class_field": 4,
+      "login_id": null,
+      "user": 11,
+      "new_user": 12,
+      "pending_class_request": null,
+      "blocked_time": null
+    }
+  },
+  {
+    "model": "user.student",
+    "pk": 9,
+    "fields": {
+      "class_field": 4,
+      "login_id": null,
+      "user": 12,
+      "new_user": 13,
+      "pending_class_request": null,
+      "blocked_time": null
+    }
+  },
+  {
+    "model": "user.student",
+    "pk": 10,
+    "fields": {
+      "class_field": 4,
+      "login_id": null,
+      "user": 13,
+      "new_user": 14,
+      "pending_class_request": null,
+      "blocked_time": null
+    }
+  },
+  {
+    "model": "user.student",
+    "pk": 11,
+    "fields": {
+      "class_field": 4,
+      "login_id": null,
+      "user": 14,
+      "new_user": 15,
+      "pending_class_request": null,
+      "blocked_time": null
+    }
+  },
+  {
+    "model": "user.student",
+    "pk": 12,
+    "fields": {
+      "class_field": 4,
+      "login_id": null,
+      "user": 15,
+      "new_user": 16,
+      "pending_class_request": null,
+      "blocked_time": null
+    }
+  },
+  {
+    "model": "user.student",
+    "pk": 13,
+    "fields": {
+      "class_field": 4,
+      "login_id": null,
+      "user": 16,
+      "new_user": 17,
+      "pending_class_request": null,
+      "blocked_time": null
+    }
+  },
+  {
+    "model": "user.student",
+    "pk": 14,
+    "fields": {
+      "class_field": 4,
+      "login_id": null,
+      "user": 17,
+      "new_user": 18,
+      "pending_class_request": null,
+      "blocked_time": null
+    }
+  },
+  {
+    "model": "user.student",
+    "pk": 15,
+    "fields": {
+      "class_field": 4,
+      "login_id": null,
+      "user": 18,
+      "new_user": 19,
+      "pending_class_request": null,
+      "blocked_time": null
+    }
+  },
+  {
+    "model": "user.student",
+    "pk": 16,
+    "fields": {
+      "class_field": 5,
+      "login_id": null,
+      "user": 21,
+      "new_user": 21,
+      "pending_class_request": null,
+      "blocked_time": null
+    }
+  },
+  {
+    "model": "user.totalactivity",
+    "pk": 1,
+    "fields": {
+      "teacher_registrations": 4,
+      "student_registrations": 14,
+      "independent_registrations": 2,
+      "anonymised_unverified_teachers": 0,
+      "anonymised_unverified_independents": 0
+    }
+  },
+  {
+    "model": "user.user",
+    "pk": 1,
+    "fields": {
+      "password": "pbkdf2_sha256$1000000$y2lUeK8u5GnocWVuonlViT$TnNTL7sG9pcvz6MotXSSptrHdQzAFxmLnqNbj7syLS4=",
+      "last_login": null,
+      "is_superuser": true,
+      "username": "codeforlife-portal@ocado.com",
+      "first_name": "Portal",
+      "last_name": "Admin",
+      "email": "codeforlife-portal@ocado.com",
+      "is_staff": true,
+      "is_active": true,
+      "date_joined": "2026-02-04T16:02:33.631Z",
+      "groups": [],
+      "user_permissions": []
+    }
+  },
+  {
+    "model": "user.user",
+    "pk": 2,
+    "fields": {
+      "password": "pbkdf2_sha256$1000000$IOkFLrqDnlDiEoASMl5OSY$C7gzJeOhwbfq/nJp47LaErHOxgA/3DIkaUI93ZUqauc=",
+      "last_login": null,
+      "is_superuser": false,
+      "username": "alberteinstein@codeforlife.com",
+      "first_name": "Albert",
+      "last_name": "Einstein",
+      "email": "alberteinstein@codeforlife.com",
+      "is_staff": false,
+      "is_active": true,
+      "date_joined": "2026-02-04T16:02:34.051Z",
+      "groups": [],
+      "user_permissions": []
+    }
+  },
+  {
+    "model": "user.user",
+    "pk": 3,
+    "fields": {
+      "password": "pbkdf2_sha256$1000000$QHwukC6Cv822F2nSjQjLu0$09yKE5c8mFVwIHS5BWccM+q33Rs6XSCcc5rik3RD7eY=",
+      "last_login": null,
+      "is_superuser": false,
+      "username": "maxplanck@codeforlife.com",
+      "first_name": "Max",
+      "last_name": "Planck",
+      "email": "maxplanck@codeforlife.com",
+      "is_staff": false,
+      "is_active": true,
+      "date_joined": "2026-02-04T16:02:34.252Z",
+      "groups": [],
+      "user_permissions": []
+    }
+  },
+  {
+    "model": "user.user",
+    "pk": 4,
+    "fields": {
+      "password": "pbkdf2_sha256$1000000$OcLHQ75ALkslmiUxFwe1Ft$7hpkII5kIi1lytO4PQ0p/6HdtT6//mPcZfZNjROXqrg=",
+      "last_login": null,
+      "is_superuser": false,
+      "username": "ramleith@codeforlife.com",
+      "first_name": "Ram",
+      "last_name": "Leith",
+      "email": "ramleith@codeforlife.com",
+      "is_staff": false,
+      "is_active": true,
+      "date_joined": "2026-02-04T16:02:34.448Z",
+      "groups": [],
+      "user_permissions": []
+    }
+  },
+  {
+    "model": "user.user",
+    "pk": 5,
+    "fields": {
+      "password": "pbkdf2_sha256$1000000$6QiofvSo5LPJ0DlGshTh0h$XdFmFi/Al5vuhxw02nlZE/rUG8g2uHxFnHXs46XgT/c=",
+      "last_login": null,
+      "is_superuser": false,
+      "username": "leonardodavinci@codeforlife.com",
+      "first_name": "Leonardo",
+      "last_name": "DaVinci",
+      "email": "leonardodavinci@codeforlife.com",
+      "is_staff": false,
+      "is_active": true,
+      "date_joined": "2026-02-04T16:02:34.641Z",
+      "groups": [],
+      "user_permissions": []
+    }
+  },
+  {
+    "model": "user.user",
+    "pk": 6,
+    "fields": {
+      "password": "pbkdf2_sha256$1000000$HF1HBQVpMLdAuYb0vt55r1$gY3+SetJqidFfylntSqmmrtremtNk8QuGeAdlHNqD9A=",
+      "last_login": null,
+      "is_superuser": false,
+      "username": "galileogalilei@codeforlife.com",
+      "first_name": "Galileo",
+      "last_name": "Galilei",
+      "email": "galileogalilei@codeforlife.com",
+      "is_staff": false,
+      "is_active": true,
+      "date_joined": "2026-02-04T16:02:34.839Z",
+      "groups": [],
+      "user_permissions": []
+    }
+  },
+  {
+    "model": "user.user",
+    "pk": 7,
+    "fields": {
+      "password": "pbkdf2_sha256$1000000$BUSt8V8F4DwWZPlCZeS1Sc$WMQElSAhvIE7LRHx6lwTde9YG5P74dc7Az+639AHdYc=",
+      "last_login": null,
+      "is_superuser": false,
+      "username": "isaacnewton@codeforlife.com",
+      "first_name": "Isaac",
+      "last_name": "Newton",
+      "email": "isaacnewton@codeforlife.com",
+      "is_staff": false,
+      "is_active": true,
+      "date_joined": "2026-02-04T16:02:35.036Z",
+      "groups": [],
+      "user_permissions": []
+    }
+  },
+  {
+    "model": "user.user",
+    "pk": 8,
+    "fields": {
+      "password": "pbkdf2_sha256$1000000$TaYcwU3iqPA4c4co14ZYHx$FAwypkSE7UucZod6BY/YY+A4zV4JbySNxDwd4ypOZT8=",
+      "last_login": null,
+      "is_superuser": false,
+      "username": "richardfeynman@codeforlife.com",
+      "first_name": "Richard",
+      "last_name": "Feynman",
+      "email": "richardfeynman@codeforlife.com",
+      "is_staff": false,
+      "is_active": true,
+      "date_joined": "2026-02-04T16:02:35.230Z",
+      "groups": [],
+      "user_permissions": []
+    }
+  },
+  {
+    "model": "user.user",
+    "pk": 9,
+    "fields": {
+      "password": "pbkdf2_sha256$1000000$mCuu3Ptx9EGmKQ7FSNIqzw$dqwQK/ovljow4iGxfLIQTm8PPR8Iu5AITzQ9tVQxv9w=",
+      "last_login": null,
+      "is_superuser": false,
+      "username": "alexanderflemming@codeforlife.com",
+      "first_name": "Alexander",
+      "last_name": "Flemming",
+      "email": "alexanderflemming@codeforlife.com",
+      "is_staff": false,
+      "is_active": true,
+      "date_joined": "2026-02-04T16:02:35.422Z",
+      "groups": [],
+      "user_permissions": []
+    }
+  },
+  {
+    "model": "user.user",
+    "pk": 10,
+    "fields": {
+      "password": "pbkdf2_sha256$1000000$isUqjEe0ZtdHC0tDFilALA$k20Gy//4APEqsGNYGa8aQPUTUBqMPKe6hI5GMIWiMnE=",
+      "last_login": null,
+      "is_superuser": false,
+      "username": "danielbernoulli@codeforlife.com",
+      "first_name": "Daniel",
+      "last_name": "Bernoulli",
+      "email": "danielbernoulli@codeforlife.com",
+      "is_staff": false,
+      "is_active": true,
+      "date_joined": "2026-02-04T16:02:35.611Z",
+      "groups": [],
+      "user_permissions": []
+    }
+  },
+  {
+    "model": "user.user",
+    "pk": 11,
+    "fields": {
+      "password": "pbkdf2_sha256$1000000$mjbmbYr7G3WRyxxHlDcH6d$w1wf3D0lDP6pF3nSoTUD3vSRioCzPEloW3r8sXnLSJw=",
+      "last_login": null,
+      "is_superuser": false,
+      "username": "indianajones@codeforlife.com",
+      "first_name": "Indiana",
+      "last_name": "Jones",
+      "email": "indianajones@codeforlife.com",
+      "is_staff": false,
+      "is_active": true,
+      "date_joined": "2026-02-04T16:02:35.803Z",
+      "groups": [],
+      "user_permissions": []
+    }
+  },
+  {
+    "model": "user.user",
+    "pk": 12,
+    "fields": {
+      "password": "pbkdf2_sha256$1000000$qm1oQx3HNeIx6dpY1aRzXb$xMKwoqXoW6MuHqoABww+Yq+3A1uwkLbkpaWWytNu6l0=",
+      "last_login": null,
+      "is_superuser": false,
+      "username": "media noah",
+      "first_name": "Noah",
+      "last_name": "Monaghan",
+      "email": "",
+      "is_staff": false,
+      "is_active": true,
+      "date_joined": "2026-02-04T16:02:35.999Z",
+      "groups": [],
+      "user_permissions": []
+    }
+  },
+  {
+    "model": "user.user",
+    "pk": 13,
+    "fields": {
+      "password": "pbkdf2_sha256$1000000$vQZKG1iO3Np3cdOHSrG85F$QnuZLe1KvMt64uWXjz3RKOEnr6owhloxfgs3u8xB6GQ=",
+      "last_login": null,
+      "is_superuser": false,
+      "username": "media elliot",
+      "first_name": "Elliot",
+      "last_name": "Sharp",
+      "email": "",
+      "is_staff": false,
+      "is_active": true,
+      "date_joined": "2026-02-04T16:02:36.195Z",
+      "groups": [],
+      "user_permissions": []
+    }
+  },
+  {
+    "model": "user.user",
+    "pk": 14,
+    "fields": {
+      "password": "pbkdf2_sha256$1000000$iCO3IsvmN5C8rpX5J0d1ob$TFK2zYume/i4StDly6EUiqFej/sOnuzV/wYE9rgr/cg=",
+      "last_login": null,
+      "is_superuser": false,
+      "username": "media tajmae",
+      "first_name": "Tajmae",
+      "last_name": "Joseph",
+      "email": "",
+      "is_staff": false,
+      "is_active": true,
+      "date_joined": "2026-02-04T16:02:36.394Z",
+      "groups": [],
+      "user_permissions": []
+    }
+  },
+  {
+    "model": "user.user",
+    "pk": 15,
+    "fields": {
+      "password": "pbkdf2_sha256$1000000$6Nhm1sHtcMbFdBitdz7nxq$s5i8H7MwdH6SRQ3+DZDDfsPtqxXVDPAC5t67G4FluM4=",
+      "last_login": null,
+      "is_superuser": false,
+      "username": "media carlton",
+      "first_name": "Carlton",
+      "last_name": "Joseph",
+      "email": "",
+      "is_staff": false,
+      "is_active": true,
+      "date_joined": "2026-02-04T16:02:36.589Z",
+      "groups": [],
+      "user_permissions": []
+    }
+  },
+  {
+    "model": "user.user",
+    "pk": 16,
+    "fields": {
+      "password": "pbkdf2_sha256$1000000$FRA5lx8xBTO5Rn8J9wwZZW$KiQzLItBM40bzbwRdXpKnrI1uWXv0xsSzTMkFwAewwo=",
+      "last_login": null,
+      "is_superuser": false,
+      "username": "media nadal",
+      "first_name": "Nadal",
+      "last_name": "Spencer-Jennings",
+      "email": "",
+      "is_staff": false,
+      "is_active": true,
+      "date_joined": "2026-02-04T16:02:36.792Z",
+      "groups": [],
+      "user_permissions": []
+    }
+  },
+  {
+    "model": "user.user",
+    "pk": 17,
+    "fields": {
+      "password": "pbkdf2_sha256$1000000$LAQQycnLxi5rY9QCD15nHw$Ad5r4JEo5CCQrwuD2F12ajXnV/bDSL+FGQ99vM2l0/k=",
+      "last_login": null,
+      "is_superuser": false,
+      "username": "media freddie",
+      "first_name": "Freddie",
+      "last_name": "Goff",
+      "email": "",
+      "is_staff": false,
+      "is_active": true,
+      "date_joined": "2026-02-04T16:02:37.009Z",
+      "groups": [],
+      "user_permissions": []
+    }
+  },
+  {
+    "model": "user.user",
+    "pk": 18,
+    "fields": {
+      "password": "pbkdf2_sha256$1000000$XHhBEg6yrF9a6TR487gNrU$DOR6TONr+9q0rLXJwB43UuezRcQkQAmEmoN0nYmm4do=",
+      "last_login": null,
+      "is_superuser": false,
+      "username": "media leon",
+      "first_name": "Leon",
+      "last_name": "Scott",
+      "email": "",
+      "is_staff": false,
+      "is_active": true,
+      "date_joined": "2026-02-04T16:02:37.216Z",
+      "groups": [],
+      "user_permissions": []
+    }
+  },
+  {
+    "model": "user.user",
+    "pk": 19,
+    "fields": {
+      "password": "pbkdf2_sha256$1000000$ua0WUUCFIijIjxpLdkc25v$mvl+UejCNGop0krujly8TPlMbgWPFVZ42tH+NPDltS4=",
+      "last_login": null,
+      "is_superuser": false,
+      "username": "media betty",
+      "first_name": "Betty",
+      "last_name": "Kessell",
+      "email": "",
+      "is_staff": false,
+      "is_active": true,
+      "date_joined": "2026-02-04T16:02:37.413Z",
+      "groups": [],
+      "user_permissions": []
+    }
+  },
+  {
+    "model": "user.user",
+    "pk": 20,
+    "fields": {
+      "password": "pbkdf2_sha256$1000000$o2AfZh0JqqIFRTZGHWEQKV$c1es5kdOakAvCGkeMVgDOX5q+rFhdQgOkMZiKAtqMrk=",
+      "last_login": null,
+      "is_superuser": false,
+      "username": "4271ee7b7ce94e34a58d1f4e82025280",
+      "first_name": "Deleted",
+      "last_name": "User",
+      "email": "",
+      "is_staff": false,
+      "is_active": false,
+      "date_joined": "2026-02-04T16:02:37.614Z",
+      "groups": [],
+      "user_permissions": []
+    }
+  },
+  {
+    "model": "user.user",
+    "pk": 21,
+    "fields": {
+      "password": "pbkdf2_sha256$1000000$cv54m0PSNCQrH0MBLU56pk$nhGzkqLXL01EEtLAsoAbaWcTxuj1SOrZ7s6rBdA7eZk=",
+      "last_login": null,
+      "is_superuser": false,
+      "username": "adminstudent@codeforlife.com",
+      "first_name": "Portaladmin",
+      "last_name": "Student",
+      "email": "adminstudent@codeforlife.com",
+      "is_staff": false,
+      "is_active": true,
+      "date_joined": "2026-02-04T16:02:40.242Z",
+      "groups": [],
+      "user_permissions": []
+    }
+  }
+]

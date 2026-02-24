@@ -7,41 +7,44 @@ Created on 05/02/2024 at 09:50:04(+00:00).
 
 import typing as t
 
-from common.models import TotalActivity, UserProfile
 from django.db.models import F
 from django.db.models.query import QuerySet
 
-from ..school import School
 from .contactable import ContactableUser, ContactableUserManager
-from .user import User
 
 if t.TYPE_CHECKING:  # pragma: no cover
     from django_stubs_ext.db.models import TypedModelMeta
 
+    from ..school import School
     from ..teacher import Teacher
+    from .user import User
 else:
     TypedModelMeta = object
 
-AnyUser = t.TypeVar("AnyUser", bound=User)
+AnyUser = t.TypeVar("AnyUser", bound="User")
 
 
 # pylint: disable-next=missing-class-docstring,too-few-public-methods
 class TeacherUserManager(ContactableUserManager[AnyUser], t.Generic[AnyUser]):
-    # pylint: disable-next=too-many-arguments
+    # pylint: disable-next=too-many-arguments,too-many-positional-arguments
     def create_user(  # type: ignore[override]
         self,
         first_name: str,
         last_name: str,
         email: str,
         password: str,
-        school: t.Optional[School] = None,
+        school: t.Optional["School"] = None,
         is_admin: bool = False,
         is_verified: bool = False,
         **extra_fields,
     ):
         """Create a teacher-user."""
-        # pylint: disable-next=import-outside-toplevel
+        # pylint: disable=import-outside-toplevel
+        from ..other import TotalActivity
         from ..teacher import Teacher
+        from .user import UserProfile
+
+        # pylint: enable=import-outside-toplevel
 
         assert "username" not in extra_fields
 
@@ -70,7 +73,7 @@ class TeacherUserManager(ContactableUserManager[AnyUser], t.Generic[AnyUser]):
 
         return user
 
-    def filter_users(self, queryset: QuerySet[User]):
+    def filter_users(self, queryset: QuerySet["User"]):
         return (
             super()
             .filter_users(queryset)

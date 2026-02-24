@@ -10,21 +10,22 @@ import typing as t
 from django.db.models.query import QuerySet
 
 from .school_teacher import SchoolTeacherUser, SchoolTeacherUserManager
-from .user import User
 
 if t.TYPE_CHECKING:  # pragma: no cover
     from django_stubs_ext.db.models import TypedModelMeta
+
+    from .user import User
 else:
     TypedModelMeta = object
 
-AnyUser = t.TypeVar("AnyUser", bound=User)
+AnyUser = t.TypeVar("AnyUser", bound="User")
 
 
 # pylint: disable-next=missing-class-docstring,too-few-public-methods
 class NonAdminSchoolTeacherUserManager(
     SchoolTeacherUserManager["NonAdminSchoolTeacherUser"]
 ):
-    def filter_users(self, queryset: QuerySet[User]):
+    def filter_users(self, queryset: QuerySet["User"]):
         return (
             super().filter_users(queryset).filter(new_teacher__is_admin=False)
         )

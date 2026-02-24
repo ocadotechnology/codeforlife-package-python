@@ -38,7 +38,7 @@ class Preference:
     is_opted_in: t.Optional[bool] = None
 
 
-# pylint: disable-next=too-many-arguments
+# pylint: disable-next=too-many-arguments,too-many-positional-arguments
 def add_contact(
     email: str,
     opt_in_type: t.Optional[
@@ -218,7 +218,7 @@ class EmailAttachment:
     content: str
 
 
-# pylint: disable-next=too-many-arguments
+# pylint: disable-next=too-many-arguments,too-many-positional-arguments
 def send_mail(
     campaign_id: int,
     to_addresses: t.List[str],
