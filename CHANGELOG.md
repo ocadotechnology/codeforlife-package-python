@@ -1,6 +1,17 @@
 # CHANGELOG
 
 
+## v0.32.3 (2026-03-04)
+
+### Bug Fixes
+
+- Reference env var
+  ([`721d930`](https://github.com/ocadotechnology/codeforlife-package-python/commit/721d930de143a07643f3e442195c18ed229b830f))
+
+- Version detection
+  ([`8eec23e`](https://github.com/ocadotechnology/codeforlife-package-python/commit/8eec23e142932d95bad010a7bbe12a1641daece7))
+
+
 ## v0.32.2 (2026-03-04)
 
 ### Bug Fixes
