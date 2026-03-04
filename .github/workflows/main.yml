@@ -86,6 +86,7 @@ jobs:
         if: env.OLD_VERSION != env.NEW_VERSION
         env:
           GH_TOKEN: ${{ steps.setup-bot.outputs.token }}
+          GIT_COMMIT_AUTHOR: ${{ steps.setup-bot.outputs.git-committer }}
         run: semantic-release --config=${{ env.CONFIG }} publish
 
       - name: 🚀 Publish to PyPI
