@@ -72,6 +72,7 @@ jobs:
       - name: 📜 Detect Semantic Version
         env:
           GH_TOKEN: ${{ steps.setup-bot.outputs.token }}
+          GIT_COMMIT_AUTHOR: ${{ steps.setup-bot.outputs.git-committer }}
         run: |
           PYTHON_SCRIPT="from codeforlife import __version__; print(__version__)"
           echo OLD_VERSION=$(python -c "$PYTHON_SCRIPT") >> $GITHUB_ENV
