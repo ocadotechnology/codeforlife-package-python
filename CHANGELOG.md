@@ -1,6 +1,14 @@
 # CHANGELOG
 
 
+## v0.32.1 (2026-03-04)
+
+### Bug Fixes
+
+- Use cfl app
+  ([`baf4be3`](https://github.com/ocadotechnology/codeforlife-package-python/commit/baf4be3984cb7290d8ccda95f0eede56f2286644))
+
+
 ## v0.32.0 (2026-02-24)
 
 ### Features
