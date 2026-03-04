@@ -1,6 +1,17 @@
 # CHANGELOG
 
 
+## v0.32.2 (2026-03-04)
+
+### Bug Fixes
+
+- Commit author
+  ([`501ff17`](https://github.com/ocadotechnology/codeforlife-package-python/commit/501ff17050d7b58b2eec22f3e8744468160e6cdf))
+
+- Django 5.2.12
+  ([`597c5d1`](https://github.com/ocadotechnology/codeforlife-package-python/commit/597c5d172db087de0ba4e3e31c7c863902583d48))
+
+
 ## v0.32.1 (2026-03-04)
 
 ### Bug Fixes
