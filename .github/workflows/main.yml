@@ -42,12 +42,19 @@ jobs:
     env:
       CONFIG: releaserc.toml
     steps:
+      - name: 🤖 Set up CFL bot
+        uses: ocadotechnology/codeforlife-workspace/.github/actions/bot/setup@main
+        id: setup-bot
+        with:
+          cfl-app-private-key: ${{ secrets.CFL_APP_PRIVATE_KEY }}
+
       - name: 🛫 Checkout
         uses: actions/checkout@v5
         with:
-          token: ${{ secrets.CFL_BOT_GH_TOKEN }}
+          token: ${{ steps.setup-bot.outputs.token }}
           fetch-depth: 0
           ref: ${{ github.sha }}
+          persist-credentials: false
 
       - name: 🛫 Checkout Branch on Workflow SHA
         run: git checkout -B ${{ github.ref_name }} ${{ github.sha }}
@@ -62,12 +69,10 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install build python-semantic-release==9.*
 
-      - name: 🤖 Set up cfl-bot as Git User
-        uses: ocadotechnology/codeforlife-workspace/.github/actions/git/setup-bot@main
-
       - name: 📜 Detect Semantic Version
         env:
-          GH_TOKEN: ${{ secrets.CFL_BOT_GH_TOKEN }}
+          GH_TOKEN: ${{ steps.setup-bot.outputs.token }}
+          GIT_COMMIT_AUTHOR: ${{ steps.setup-bot.outputs.git-committer }}
         run: |
           PYTHON_SCRIPT="from codeforlife import __version__; print(__version__)"
           echo OLD_VERSION=$(python -c "$PYTHON_SCRIPT") >> $GITHUB_ENV
@@ -81,7 +86,8 @@ jobs:
       - name: 🚀 Publish to GitHub
         if: env.OLD_VERSION != env.NEW_VERSION
         env:
-          GH_TOKEN: ${{ secrets.CFL_BOT_GH_TOKEN }}
+          GH_TOKEN: ${{ steps.setup-bot.outputs.token }}
+          GIT_COMMIT_AUTHOR: ${{ steps.setup-bot.outputs.git-committer }}
         run: semantic-release --config=${{ env.CONFIG }} publish
 
       - name: 🚀 Publish to PyPI

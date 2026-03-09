@@ -2,4 +2,6 @@
 [semantic_release]
 version_variables = ["codeforlife/__init__.py:__version__"]
 commit_message = "v{version} [skip ci]"
-commit_author = "cfl-bot <codeforlife-bot@ocado.com>"
+
+[semantic_release.commit_author]
+env = "GIT_COMMIT_AUTHOR"

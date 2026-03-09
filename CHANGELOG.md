@@ -1,6 +1,47 @@
 # CHANGELOG
 
 
+## v0.32.3 (2026-03-04)
+
+### Bug Fixes
+
+- Reference env var
+  ([`721d930`](https://github.com/ocadotechnology/codeforlife-package-python/commit/721d930de143a07643f3e442195c18ed229b830f))
+
+- Version detection
+  ([`8eec23e`](https://github.com/ocadotechnology/codeforlife-package-python/commit/8eec23e142932d95bad010a7bbe12a1641daece7))
+
+
+## v0.32.2 (2026-03-04)
+
+### Bug Fixes
+
+- Commit author
+  ([`501ff17`](https://github.com/ocadotechnology/codeforlife-package-python/commit/501ff17050d7b58b2eec22f3e8744468160e6cdf))
+
+- Django 5.2.12
+  ([`597c5d1`](https://github.com/ocadotechnology/codeforlife-package-python/commit/597c5d172db087de0ba4e3e31c7c863902583d48))
+
+
+## v0.32.1 (2026-03-04)
+
+### Bug Fixes
+
+- Use cfl app
+  ([`baf4be3`](https://github.com/ocadotechnology/codeforlife-package-python/commit/baf4be3984cb7290d8ccda95f0eede56f2286644))
+
+
+## v0.32.0 (2026-02-24)
+
+### Features
+
+- Workspace 1054 ([#173](https://github.com/ocadotechnology/codeforlife-package-python/pull/173),
+  [`b90754f`](https://github.com/ocadotechnology/codeforlife-package-python/commit/b90754fbfd3aa71810be911e049ea26335ccbd83))
+
+- Workspace 1064 ([#175](https://github.com/ocadotechnology/codeforlife-package-python/pull/175),
+  [`862121f`](https://github.com/ocadotechnology/codeforlife-package-python/commit/862121f98e52055ea3c0568b901ca3d2938e7996))
+
+
 ## v0.31.1 (2026-01-30)
 
 ### Bug Fixes

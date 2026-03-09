@@ -44,21 +44,6 @@ class_name_validators: Validators = [
 class ClassModelManager(models.Manager):
     """Manager for Class model."""
 
-    def all_members(self, user):
-        """Get all members of the class associated with the user."""
-        members = []
-        if hasattr(user, "teacher"):
-            members.append(user.teacher)
-            if user.teacher.has_school():
-                classes = user.teacher.class_teacher.all()
-                for c in classes:
-                    members.extend(c.students.all())
-        else:
-            c = user.student.class_field
-            members.append(c.teacher)
-            members.extend(c.students.all())
-        return members
-
     def get_original_queryset(self):
         """Get the original queryset without filtering."""
         return super().get_queryset()
@@ -122,21 +107,6 @@ class Class(models.Model):
 
     def __str__(self):
         return self.name
-
-    @property
-    def active_game(self):
-        """
-        Get the active game for the class, if it exists. There should only be
-        one active game per class.
-        """
-        # pylint: disable-next=line-too-long
-        games = self.game_set.filter(game_class=self, is_archived=False)  # type: ignore[attr-defined]
-        if len(games) >= 1:
-            assert (
-                len(games) == 1
-            )  # there should NOT be more than one active game
-            return games[0]
-        return None
 
     def has_students(self):
         """Check if the class has any students."""
