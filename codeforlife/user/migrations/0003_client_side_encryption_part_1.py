@@ -83,10 +83,7 @@ class Migration(migrations.Migration):
         ),
         *rename_plain_text_fields_and_create_encrypted_text_fields(
             "class",
-            {
-                "name": "name",
-                "access_code": "access code",
-            },
+            {"name": "name", "access_code": "access code"},
         ),
         *rename_plain_text_fields_and_create_encrypted_text_fields(
             "schoolteacherinvitation",
@@ -97,10 +94,8 @@ class Migration(migrations.Migration):
                 "invited_teacher_email": "invited teacher email",
             },
         ),
-        # *rename_plain_text_fields_and_create_encrypted_text_fields(
-        #     "school",
-        #     {
-        #         "name": "name",
-        #     },
-        # ),
+        *rename_plain_text_fields_and_create_encrypted_text_fields(
+            "school",
+            {"name": "name"},
+        ),
     ]

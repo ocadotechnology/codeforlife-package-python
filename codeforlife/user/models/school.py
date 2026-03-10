@@ -8,9 +8,11 @@ from uuid import uuid4
 
 from django.db import models
 from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
 from django_countries.fields import CountryField
 
 from ...models import DataEncryptionKeyModel
+from ...models.fields import EncryptedTextField
 from ...types import Validators
 from ...validators import UnicodeAlphanumericCharSetValidator
 
@@ -44,11 +46,35 @@ class School(DataEncryptionKeyModel):
 
     associated_data = "school"
 
-    name: str
-    name = models.CharField(  # type: ignore[assignment]
+    # --------------------------------------------------------------------------
+    # Name
+    # --------------------------------------------------------------------------
+
+    name_plain: str
+    name_plain = models.CharField(  # type: ignore[assignment]
         max_length=200,
         unique=True,
     )
+    name_enc = EncryptedTextField(
+        associated_data="name",
+        null=True,
+        verbose_name=_("name"),
+    )
+
+    @property
+    def name(self):
+        """Get the school's name."""
+        if self.name_enc is not None:
+            return self.name_enc
+        return self.name_plain
+
+    @name.setter
+    def name(self, value: str):
+        """Set the school's name."""
+        self.name_plain = value
+        self.name_enc = value
+
+    # --------------------------------------------------------------------------
 
     country: t.Optional[str]
     country = CountryField(  # type: ignore[assignment]
