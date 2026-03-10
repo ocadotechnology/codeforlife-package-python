@@ -25,9 +25,12 @@ from django.core.exceptions import ValidationError
 from django.db.models import BinaryField
 from django.utils.translation import gettext_lazy as _
 
-from ...types import KwArgs
 from ..base_data_encryption_key import BaseDataEncryptionKeyModel
 from .deferred_attribute import DeferredAttribute
+
+if t.TYPE_CHECKING:  # pragma: no cover
+    from django_stubs_ext import StrOrPromise
+
 
 AnyDataEncryptionKeyField = t.TypeVar(
     "AnyDataEncryptionKeyField", bound="DataEncryptionKeyField"
@@ -86,19 +89,18 @@ class DataEncryptionKeyField(BinaryField):
     # Construction & Deconstruction
     # --------------------------------------------------------------------------
 
-    default_verbose_name = "data encryption key"
-    default_help_text = (
-        "The encrypted data encryption key (DEK) for this model."
-    )
-
-    def set_init_kwargs(self, kwargs: KwArgs):
-        """Sets common init kwargs."""
-        kwargs["editable"] = False  # DEK should not be editable in admin forms
-        kwargs["null"] = True  # Allow null for data shredding
-        kwargs.setdefault("verbose_name", _(self.default_verbose_name))
-        kwargs.setdefault("help_text", _(self.default_help_text))
-
-    def __init__(self, **kwargs):
+    def __init__(
+        self,
+        # DEK should not be editable in admin forms.
+        editable: t.Literal[False] = False,
+        # Allow null for data shredding.
+        null: t.Literal[True] = True,
+        verbose_name: t.Optional["StrOrPromise"] = _("data encryption key"),
+        help_text: "StrOrPromise" = _(
+            "The encrypted data encryption key (DEK) for this model."
+        ),
+        **kwargs,
+    ):
         if kwargs.get("editable", False):
             raise ValidationError(
                 "DataEncryptionKeyField cannot be editable.",
@@ -116,13 +118,13 @@ class DataEncryptionKeyField(BinaryField):
                 code="null_not_allowed",
             )
 
-        self.set_init_kwargs(kwargs)
-        super().__init__(**kwargs)
-
-    def deconstruct(self):
-        name, path, args, kwargs = super().deconstruct()
-        self.set_init_kwargs(kwargs)
-        return name, path, args, kwargs
+        super().__init__(
+            **kwargs,
+            editable=editable,
+            null=null,
+            verbose_name=verbose_name,
+            help_text=help_text,
+        )
 
     # --------------------------------------------------------------------------
     # Django Model Field Integration
