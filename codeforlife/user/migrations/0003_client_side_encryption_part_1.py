@@ -81,13 +81,13 @@ class Migration(migrations.Migration):
                 "username": "username",
             },
         ),
-        # *rename_plain_text_fields_and_create_encrypted_text_fields(
-        #     "class",
-        #     {
-        #         "name": "name",
-        #         "access_code": "access code",
-        #     },
-        # ),
+        *rename_plain_text_fields_and_create_encrypted_text_fields(
+            "class",
+            {
+                "name": "name",
+                "access_code": "access code",
+            },
+        ),
         # *rename_plain_text_fields_and_create_encrypted_text_fields(
         #     "schoolteacherinvitation",
         #     {
