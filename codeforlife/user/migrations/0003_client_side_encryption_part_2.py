@@ -21,17 +21,16 @@ def remove_plain_text_fields_and_rename_encrypted_text_fields(
 
     migrations_list = []
     for name in fields:
-        plain_name = f"{name}_plain"
-        enc_name = f"{name}_enc"
-
         migrations_list += [
+            # Remove the plain text field.
             migrations.RemoveField(
                 model_name=model_name,
-                name=plain_name,
+                name=f"{name}_plain",
             ),
+            # Rename the encrypted text field.
             migrations.RenameField(
                 model_name=model_name,
-                old_name=enc_name,
+                old_name=f"{name}_enc",
                 new_name=name,
             ),
         ]

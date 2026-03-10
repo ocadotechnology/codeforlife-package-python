@@ -173,17 +173,7 @@ class BaseEncryptedField(BinaryField, t.Generic[T]):
     # Construction & Deconstruction
     # --------------------------------------------------------------------------
 
-    def set_init_kwargs(self, kwargs: KwArgs):
-        """Sets common init kwargs."""
-        kwargs.setdefault("db_column", self.associated_data)
-
-    def __init__(
-        self,
-        associated_data: str,
-        # Set type for default to match T.
-        default: t.Optional[t.Union[T, t.Callable[[], T]]] = None,
-        **kwargs,
-    ):
+    def __init__(self, associated_data: str, **kwargs):
         if not associated_data:
             raise ValidationError(
                 "Associated data cannot be empty.",
@@ -191,15 +181,13 @@ class BaseEncryptedField(BinaryField, t.Generic[T]):
             )
         self.associated_data = associated_data
 
-        self.set_init_kwargs(kwargs)
-        super().__init__(**kwargs, default=default)
+        super().__init__(**kwargs)
 
     def deconstruct(self):
         name, path, args, kwargs = t.cast(
             t.Tuple[str, str, Args, KwArgs], super().deconstruct()
         )
 
-        self.set_init_kwargs(kwargs)
         kwargs["associated_data"] = self.associated_data
 
         return name, path, args, kwargs

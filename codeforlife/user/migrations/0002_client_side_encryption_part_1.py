@@ -24,24 +24,20 @@ def rename_plain_text_fields_and_create_encrypted_text_fields(
 
     migrations_list = []
     for name, verbose_name in fields.items():
-        plain_name = f"{name}_plain"
-        enc_name = f"{name}_enc"
-
         migrations_list += [
-            # Rename the original field.
+            # Rename the plain text field.
             migrations.RenameField(
                 model_name=model_name,
                 old_name=name,
-                new_name=plain_name,
+                new_name=f"{name}_plain",
             ),
-            # Add a new encrypted field.
+            # Add an encrypted text field.
             migrations.AddField(
                 model_name=model_name,
-                name=enc_name,
+                name=f"{name}_enc",
                 field=EncryptedTextField(
                     associated_data=name,
-                    db_column=enc_name,
-                    default=None,
+                    null=True,
                     verbose_name=verbose_name,
                 ),
             ),
