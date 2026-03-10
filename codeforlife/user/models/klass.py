@@ -25,7 +25,7 @@ if t.TYPE_CHECKING:  # pragma: no cover
 
     from django_stubs_ext.db.models import TypedModelMeta
 
-    from .teacher import SchoolTeacher
+    from .teacher import SchoolTeacher, Teacher
 else:
     TypedModelMeta = object
 
@@ -148,7 +148,7 @@ class Class(EncryptedModel):
     is_active: bool
     is_active = models.BooleanField(default=True)  # type: ignore[assignment]
 
-    created_by: t.Optional["SchoolTeacher"]
+    created_by: t.Optional["Teacher"]
     created_by = models.ForeignKey(  # type: ignore[assignment]
         "user.Teacher",
         null=True,

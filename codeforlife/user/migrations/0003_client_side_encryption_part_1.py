@@ -88,15 +88,15 @@ class Migration(migrations.Migration):
                 "access_code": "access code",
             },
         ),
-        # *rename_plain_text_fields_and_create_encrypted_text_fields(
-        #     "schoolteacherinvitation",
-        #     {
-        #         "token": "token",
-        #         "invited_teacher_first_name": "invited teacher first name",
-        #         "invited_teacher_last_name": "invited teacher last name",
-        #         "invited_teacher_email": "invited teacher email",
-        #     },
-        # ),
+        *rename_plain_text_fields_and_create_encrypted_text_fields(
+            "schoolteacherinvitation",
+            {
+                "token": "token",
+                "invited_teacher_first_name": "invited teacher first name",
+                "invited_teacher_last_name": "invited teacher last name",
+                "invited_teacher_email": "invited teacher email",
+            },
+        ),
         # *rename_plain_text_fields_and_create_encrypted_text_fields(
         #     "school",
         #     {
