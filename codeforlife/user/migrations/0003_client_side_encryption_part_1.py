@@ -2,7 +2,6 @@ import typing as t
 
 from codeforlife.models.fields.data_encryption_key import DataEncryptionKeyField
 from codeforlife.models.fields.encrypted_text import EncryptedTextField
-from codeforlife.user.models.user.user import UserManager
 from django.db import migrations
 
 
@@ -53,10 +52,6 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.AlterModelManagers(
-            name="user",
-            managers=[("objects", UserManager())],
-        ),
         migrations.AddField(
             model_name="school",
             name="dek",
