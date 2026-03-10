@@ -49,7 +49,7 @@ def rename_plain_text_fields_and_create_encrypted_text_fields(
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("user", "0001_initial"),
+        ("user", "0002_user_proxies_and_new_models"),
     ]
 
     operations = [

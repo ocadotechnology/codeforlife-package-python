@@ -41,7 +41,7 @@ def remove_plain_text_fields_and_rename_encrypted_text_fields(
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("user", "0002_client_side_encryption_part_1"),
+        ("user", "0003_client_side_encryption_part_1"),
     ]
 
     operations = [

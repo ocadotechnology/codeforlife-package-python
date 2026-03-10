@@ -11,8 +11,9 @@ from datetime import datetime, timedelta
 from django.conf import settings
 
 # pylint: disable-next=imported-auth-user
-from django.contrib.auth.models import AbstractUser
+from django.contrib.auth.models import PermissionsMixin
 from django.contrib.auth.models import UserManager as _UserManager
+from django.contrib.auth.validators import UnicodeUsernameValidator
 from django.db import models
 from django.db.models.query import QuerySet
 from django.utils import timezone
@@ -20,19 +21,16 @@ from django.utils.translation import gettext_lazy as _
 from pyotp import TOTP
 
 from ....models import AbstractBaseUser, DataEncryptionKeyModel
+from ....models.fields import EncryptedTextField
 from ....types import Validators
 from ....validators import UnicodeAlphanumericCharSetValidator
 
 if t.TYPE_CHECKING:  # pragma: no cover
-    from django_stubs_ext.db.models import TypedModelMeta
-
     from ..auth_factor import AuthFactor
     from ..otp_bypass_token import OtpBypassToken
     from ..session import Session
     from ..student import Student
     from ..teacher import Teacher
-else:
-    TypedModelMeta = object
 
 
 # TODO: add to model validators in new schema.
@@ -48,15 +46,6 @@ user_last_name_validators: Validators = [
         special_chars="-'",
     )
 ]
-
-
-# TODO: remove in new schema
-class _AbstractBaseUser(AbstractBaseUser):
-    password: str = None  # type: ignore[assignment]
-    last_login: datetime = None  # type: ignore[assignment]
-
-    class Meta(TypedModelMeta):
-        abstract = True
 
 
 AnyUser = t.TypeVar("AnyUser", bound="User")
@@ -93,15 +82,15 @@ class UserManager(
         )
 
 
-# pylint: disable-next=too-many-ancestors
-class User(
-    _AbstractBaseUser,
-    AbstractUser,  # TODO: remove this inheritance in new schema
-    DataEncryptionKeyModel,
-):
+# pylint: disable-next=too-many-ancestors,too-many-instance-attributes
+class User(AbstractBaseUser, PermissionsMixin, DataEncryptionKeyModel):
     """A proxy to Django's user class."""
 
     associated_data = "user"
+
+    EMAIL_FIELD = "email_plain"
+    USERNAME_FIELD = "username_plain"
+    REQUIRED_FIELDS = ["email_plain"]
 
     _password: t.Optional[str]
 
@@ -113,6 +102,134 @@ class User(
     userprofile: "UserProfile"
 
     credential_fields = frozenset(["email", "password"])
+
+    # --------------------------------------------------------------------------
+    # Username
+    # --------------------------------------------------------------------------
+
+    username_validator = UnicodeUsernameValidator()
+    username_plain = models.CharField(
+        _("username"),
+        max_length=150,
+        unique=True,
+        help_text=_(
+            "Required. 150 characters or fewer."
+            " Letters, digits and @/./+/-/_ only."
+        ),
+        validators=[username_validator],
+        error_messages={
+            "unique": _("A user with that username already exists."),
+        },
+    )
+    username_enc = EncryptedTextField(
+        associated_data="username", null=True, verbose_name=_("username")
+    )
+
+    @property
+    def username(self):
+        """The user's username."""
+        if self.username_enc is not None:
+            return self.username_enc
+        return self.username_plain
+
+    @username.setter
+    def username(self, value: str):
+        """Set the user's username."""
+        self.username_enc = value
+        self.username_plain = value
+
+    # --------------------------------------------------------------------------
+    # First name
+    # --------------------------------------------------------------------------
+
+    first_name_plain = models.CharField(
+        _("first name"), max_length=150, blank=True
+    )
+    first_name_enc = EncryptedTextField(
+        associated_data="first_name", null=True, verbose_name=_("first name")
+    )
+
+    @property
+    def first_name(self):
+        """The user's first name."""
+        if self.first_name_enc is not None:
+            return self.first_name_enc
+        return self.first_name_plain
+
+    @first_name.setter
+    def first_name(self, value: str):
+        """Set the user's first name."""
+        self.first_name_enc = value
+        self.first_name_plain = value
+
+    # --------------------------------------------------------------------------
+    # Last name
+    # --------------------------------------------------------------------------
+
+    last_name_plain = models.CharField(
+        _("last name"), max_length=150, blank=True
+    )
+    last_name_enc = EncryptedTextField(
+        associated_data="last_name", null=True, verbose_name=_("last name")
+    )
+
+    @property
+    def last_name(self):
+        """The user's last name."""
+        if self.last_name_enc is not None:
+            return self.last_name_enc
+        return self.last_name_plain
+
+    @last_name.setter
+    def last_name(self, value: str):
+        """Set the user's last name."""
+        self.last_name_enc = value
+        self.last_name_plain = value
+
+    # --------------------------------------------------------------------------
+    # Email
+    # --------------------------------------------------------------------------
+
+    email_plain = models.EmailField(_("email address"), blank=True)
+    email_enc = EncryptedTextField(
+        associated_data="email", null=True, verbose_name=_("email address")
+    )
+
+    @property
+    def email(self):
+        """The user's email address."""
+        if self.email_enc is not None:
+            return self.email_enc
+        return self.email_plain
+
+    @email.setter
+    def email(self, value: str):
+        """Set the user's email address."""
+        self.email_enc = value
+        self.email_plain = value
+
+    # --------------------------------------------------------------------------
+    # Other
+    # --------------------------------------------------------------------------
+
+    is_staff = models.BooleanField(
+        _("staff status"),
+        default=False,
+        help_text=_(
+            "Designates whether the user can log into this admin site."
+        ),
+    )
+
+    is_active = models.BooleanField(
+        _("active"),
+        default=True,
+        help_text=_(
+            "Designates whether this user should be treated as active. "
+            "Unselect this instead of deleting accounts."
+        ),
+    )
+
+    date_joined = models.DateTimeField(_("date joined"), default=timezone.now)
 
     # TODO: remove in new schema
     password: str  # type: ignore[assignment]
