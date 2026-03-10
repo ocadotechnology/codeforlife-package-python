@@ -1,0 +1,115 @@
+import typing as t
+
+from codeforlife.models.fields.data_encryption_key import DataEncryptionKeyField
+from codeforlife.models.fields.encrypted_text import EncryptedTextField
+from codeforlife.user.models.user.user import UserManager
+from django.db import migrations
+
+
+def rename_plain_text_fields_and_create_encrypted_text_fields(
+    model_name: str, fields: t.Dict[str, str]
+):
+    """
+    Renames all plaintext fields with the naming convention {field_name}_plain
+    and creates new encrypted text fields with the naming convention
+    {field_name}_enc.
+
+    Args:
+        model_name: The name of the model to modify.
+        fields: A dictionary mapping field names to their verbose names.
+
+    Returns:
+        A list of migration operations.
+    """
+
+    migrations_list = []
+    for name, verbose_name in fields.items():
+        plain_name = f"{name}_plain"
+        enc_name = f"{name}_enc"
+
+        migrations_list += [
+            # Rename the original field.
+            migrations.RenameField(
+                model_name=model_name,
+                old_name=name,
+                new_name=plain_name,
+            ),
+            # Add a new encrypted field.
+            migrations.AddField(
+                model_name=model_name,
+                name=enc_name,
+                field=EncryptedTextField(
+                    associated_data=name,
+                    db_column=enc_name,
+                    default=None,
+                    verbose_name=verbose_name,
+                ),
+            ),
+        ]
+
+    return migrations_list
+
+
+class Migration(migrations.Migration):
+
+    dependencies = [
+        ("user", "0001_initial"),
+    ]
+
+    operations = [
+        migrations.AlterModelManagers(
+            name="user",
+            managers=[("objects", UserManager())],
+        ),
+        migrations.AddField(
+            model_name="school",
+            name="dek",
+            field=DataEncryptionKeyField(
+                editable=False,
+                help_text="The encrypted data encryption key (DEK) for this model.",
+                null=True,
+                verbose_name="data encryption key",
+            ),
+        ),
+        migrations.AddField(
+            model_name="user",
+            name="dek",
+            field=DataEncryptionKeyField(
+                editable=False,
+                help_text="The encrypted data encryption key (DEK) for this model.",
+                null=True,
+                verbose_name="data encryption key",
+            ),
+        ),
+        *rename_plain_text_fields_and_create_encrypted_text_fields(
+            "user",
+            {
+                "first_name": "first name",
+                "last_name": "last name",
+                "email": "email address",
+                "username": "username",
+            },
+        ),
+        # *rename_plain_text_fields_and_create_encrypted_text_fields(
+        #     "class",
+        #     {
+        #         "name": "name",
+        #         "access_code": "access code",
+        #     },
+        # ),
+        # *rename_plain_text_fields_and_create_encrypted_text_fields(
+        #     "schoolteacherinvitation",
+        #     {
+        #         "token": "token",
+        #         "invited_teacher_first_name": "invited teacher first name",
+        #         "invited_teacher_last_name": "invited teacher last name",
+        #         "invited_teacher_email": "invited teacher email",
+        #     },
+        # ),
+        # *rename_plain_text_fields_and_create_encrypted_text_fields(
+        #     "school",
+        #     {
+        #         "name": "name",
+        #     },
+        # ),
+    ]
