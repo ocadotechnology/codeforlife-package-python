@@ -5,9 +5,10 @@ from django.core.management.base import BaseCommand
 from django.db.models import CharField, Model, TextField
 
 from ....models.fields import EncryptedTextField
+from ....pprint import PrettyPrinter
 
-FieldsToEncrypt: t.TypeAlias = t.List[
-    t.Tuple[t.Union[CharField, TextField], EncryptedTextField]
+FieldsToEncrypt: t.TypeAlias = t.Dict[
+    t.Union[CharField, TextField], EncryptedTextField
 ]
 
 
@@ -20,12 +21,20 @@ class Command(BaseCommand):
     )
     help = f"Encrypts plaintext fields for specified models. {format_help}"
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.pprint = PrettyPrinter(write=self.stdout.write)
+
     def add_arguments(self, parser):
         parser.add_argument(
             "model_fields", nargs="+", type=str, help=self.format_help
         )
 
     def _parse_arg(self, arg: str):
+        self.pprint.indent(
+            1, ending=self.pprint.bold("Parsing ... ", write=False)
+        )
+
         # Split the argument into model specification and field name pairs.
         if not "=" in arg:
             raise ValueError(self.format_help)
@@ -38,7 +47,7 @@ class Command(BaseCommand):
         model_class: t.Type[Model] = apps.get_model(app_label, model_name)
 
         # Parse the field name pairs and validate their existence in the model.
-        fields_to_encrypt: FieldsToEncrypt = []
+        fields_to_encrypt: FieldsToEncrypt = {}
         for field_name_pair in field_csv.split(","):
             # Split the field name pair.
             if ":" not in field_name_pair:
@@ -58,6 +67,11 @@ class Command(BaseCommand):
                     f"Plaintext field '{plain_field_name}' must be "
                     "a CharField or TextField."
                 )
+            if plain_field in fields_to_encrypt:
+                raise ValueError(
+                    f"Duplicate plaintext field '{plain_field_name}' in "
+                    "argument."
+                )
 
             # Get the encrypted field and validate its type.
             enc_field = model_class._meta.get_field(enc_field_name)
@@ -66,46 +80,42 @@ class Command(BaseCommand):
                     f"Encrypted field '{enc_field_name}' must be an "
                     "EncryptedTextField."
                 )
+            if enc_field in fields_to_encrypt.values():
+                raise ValueError(
+                    f"Duplicate encrypted field '{enc_field_name}' in "
+                    "argument."
+                )
 
-            fields_to_encrypt.append((plain_field, enc_field))
+            fields_to_encrypt[plain_field] = enc_field
+
+        self.pprint.success("Done")
 
         return model_class, fields_to_encrypt
 
     def _encrypt_fields(
         self, model_class: t.Type[Model], fields_to_encrypt: FieldsToEncrypt
     ):
-        pass
-        # Now you can iterate through the parsed arguments
-        # for model_index, (model_spec, field_names) in enumerate(
-        #     fields_to_encrypt.items(), start=1
-        # ):
-        #     app_label, model_name = model_spec.split(".", 1)
+        self.pprint.indent(
+            1, ending=self.pprint.bold("Encrypting fields:\n", write=False)
+        )
 
-        #     self.stdout.write(
-        #         self.style.SUCCESS(
-        #             f"Processing model: {app_label}.{model_name}"
-        #         )
-        #     )
+        for plain_field, enc_field in fields_to_encrypt.items():
+            self.pprint.indent(
+                2, ending=f"{plain_field.name} -> {enc_field.name} ... "
+            )
 
-        #     self.stdout.write(f"{model_index}. {app_label}.{model_name}:")
-        #     for field_index, field in enumerate(field_names, start=1):
-        #         self.stdout.write(f"{model_index}.{field_index}. {field}")
+            # TODO: encrypt the plaintext field values and save them to the
+            # encrypted field.
 
-        #     self.stdout.write(
-        #         self.style.SUCCESS(f"Processed model: {app_label}.{model_name}")
-        #     )
-
-        # Here you would add your logic to get the model and encrypt the fields
-        # For example:
-        # try:
-        #     model = apps.get_model(app_label, model_name)
-        #     # ... encryption logic for model and field_names ...
-        # except LookupError:
-        #     self.stderr.write(f"Model '{model_spec}' not found.")
+            self.pprint.success("Done")
 
     def handle(self, *args, **options):
         for arg in options["model_fields"]:
-            self.stdout.write(f"Parsing argument: {arg}")
+            self.pprint.divider()
+            self.pprint.bold("Processing argument:", ending=" ")
+            self.pprint.write(
+                f'"{arg if len(arg) <= 50 else arg[:37] + "..." + arg[-10:]}".'
+            )
 
             model_class, fields_to_encrypt = self._parse_arg(arg)
 
