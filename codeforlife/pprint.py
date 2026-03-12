@@ -71,6 +71,8 @@ class PrettyPrinter:
         self.warn = self.warning = self.combine_styles(self.yellow, self.bold)
         self.info = self.notice = self.combine_styles(self.blue, self.bold)
 
+        self.h3 = self.combine_styles(self.overline, self.underline, self.bold)
+
     def make_style(self, stylize: t.Callable[[str], str]) -> Style:
         # pylint: disable=line-too-long
         """Make a style that applies the given stylization function to messages.
@@ -138,7 +140,12 @@ class PrettyPrinter:
             style: An optional style to apply to the divider line.
         """
         # pylint: enable=line-too-long
-        message = int(os.getenv("COLUMNS", default_columns)) * char
+        try:
+            columns = os.get_terminal_size().columns
+        except OSError:
+            columns = default_columns
+
+        message = char * columns
 
         if style:
             message = style(message, write=False)
@@ -154,6 +161,26 @@ class PrettyPrinter:
             char: The character to use for indentation.
         """
         self.write(char * count * spaces, **kwargs)
+
+    def h1(self, message: str):
+        """Write a level 1 header.
+
+        Args:
+            message: The header message to write.
+        """
+        self.divider(char="=", style=self.bold)
+        self.bold(message)
+        self.divider(char="=", style=self.bold)
+
+    def h2(self, message: str):
+        """Write a level 2 header.
+
+        Args:
+            message: The header message to write.
+        """
+        self.divider(char="-", style=self.bold)
+        self.bold(message)
+        self.divider(char="-", style=self.bold)
 
 
 pprint = PrettyPrinter(write=print)
