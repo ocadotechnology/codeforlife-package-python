@@ -8,6 +8,7 @@ Pretty-printing utilities for terminal output.
 import os
 import typing as t
 from enum import Enum
+from timeit import default_timer
 
 Write: t.TypeAlias = t.Callable[[str], None]
 
@@ -86,53 +87,106 @@ class Style:
 class PrettyPrinter:
     """A utility class for pretty-printing styled messages to the terminal."""
 
-    def __init__(self, write: Write):
+    def __init__(self, write: Write, name: str, indent_level=0):
         self.write = write
+        self.name = name
+        self.indent_level = indent_level
+        self.start_time: t.Optional[float] = None
+        self.end_time: t.Optional[float] = None
 
         # Black and white.
-        self.black = Style.ansi(ANSI.BLACK, write)
-        self.white = Style.ansi(ANSI.WHITE, write)
+        self.black = Style.ansi(ANSI.BLACK, self.__call__)
+        self.white = Style.ansi(ANSI.WHITE, self.__call__)
 
         # Red, green, and blue.
-        self.red = Style.ansi(ANSI.RED, write)
-        self.green = Style.ansi(ANSI.GREEN, write)
-        self.blue = Style.ansi(ANSI.BLUE, write)
+        self.red = Style.ansi(ANSI.RED, self.__call__)
+        self.green = Style.ansi(ANSI.GREEN, self.__call__)
+        self.blue = Style.ansi(ANSI.BLUE, self.__call__)
 
         # Cyan, magenta, and yellow.
-        self.cyan = Style.ansi(ANSI.CYAN, write)
-        self.magenta = Style.ansi(ANSI.MAGENTA, write)
-        self.yellow = Style.ansi(ANSI.YELLOW, write)
+        self.cyan = Style.ansi(ANSI.CYAN, self.__call__)
+        self.magenta = Style.ansi(ANSI.MAGENTA, self.__call__)
+        self.yellow = Style.ansi(ANSI.YELLOW, self.__call__)
 
         # Common text styles.
-        self.bold = Style.ansi(ANSI.BOLD, write)
-        self.underline = Style.ansi(ANSI.UNDERLINE, write)
-        self.overline = Style.ansi(ANSI.OVERLINE, write)
+        self.bold = Style.ansi(ANSI.BOLD, self.__call__)
+        self.underline = Style.ansi(ANSI.UNDERLINE, self.__call__)
+        self.overline = Style.ansi(ANSI.OVERLINE, self.__call__)
 
         # Status styles.
-        self.success = Style.combine([self.green, self.bold], write)
-        self.error = Style.combine([self.red, self.bold], write)
+        self.success = Style.combine([self.green, self.bold], self.__call__)
+        self.error = Style.combine([self.red, self.bold], self.__call__)
         self.warn = self.warning = Style.combine(
-            [self.yellow, self.bold], write
+            [self.yellow, self.bold], self.__call__
         )
-        self.info = self.notice = Style.combine([self.blue, self.bold], write)
+        self.info = self.notice = Style.combine(
+            [self.blue, self.bold], self.__call__
+        )
 
         # Heading styles.
         h1 = Style(
             lambda message: "\n".join(
                 [self.divider("="), message, self.divider("=")]
             ),
-            write,
+            self.__call__,
         )
-        self.h1 = Style.combine([h1, self.bold], write)
+        self.h1 = Style.combine([h1, self.bold], self.__call__)
         h2 = Style(
             lambda message: "\n".join(
                 [self.divider("-"), message, self.divider("-")]
             ),
-            write,
+            self.__call__,
         )
-        self.h2 = Style.combine([h2, self.bold], write)
+        self.h2 = Style.combine([h2, self.bold], self.__call__)
         self.h3 = Style.combine(
-            [self.overline, self.underline, self.bold], write
+            [self.overline, self.underline, self.bold], self.__call__
+        )
+
+    def __call__(self, message: str, *args, **kwargs):
+        # pylint: disable=line-too-long
+        """Write a message to the terminal.
+
+        Args:
+            message: The message to write.
+            *args: Additional positional arguments to pass to the write function.
+            **kwargs: Additional keyword arguments to pass to the write function.
+        """
+        # pylint: enable=line-too-long
+        indented_message = self.indent(self.indent_level) + message
+        self.write(indented_message, *args, **kwargs)
+
+    def __enter__(self):
+        self.bold(self.name)
+        self.indent_level = max(0, self.indent_level + 1)
+
+        self.start_time = default_timer()
+
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.end_time = default_timer()
+        elapsed_time = self.end_time - (self.start_time or self.end_time)
+
+        self.indent_level = max(0, self.indent_level - 1)
+        (self.error if exc_type else self.success)(
+            f"{self.name} ({elapsed_time:.2f}s elapsed)"
+        )
+
+    def process(self, name: str, indent_level: t.Optional[int] = None):
+        """
+        A context manager for processing a message with automatic success or
+        error handling. If an exception is raised within the context, the
+        message is marked as an error; otherwise, it is marked as a success.
+
+        Any messages written within the context are indented by the specified
+        level and written when the context is entered.
+        """
+        return self.__class__(
+            write=self.write,
+            name=name,
+            indent_level=(
+                self.indent_level if indent_level is None else indent_level
+            ),
         )
 
     def divider(self, char="-", default_columns=80):
@@ -151,7 +205,7 @@ class PrettyPrinter:
 
         return char * columns
 
-    def indent(self, count: int, spaces=2, char=" "):
+    def indent(self, count: int, spaces=4, char=" "):
         """Write an indentation of the specified number of spaces.
 
         Args:
@@ -162,4 +216,4 @@ class PrettyPrinter:
         return char * count * spaces
 
 
-pprint = PrettyPrinter(write=print)
+pprint = PrettyPrinter(write=print, name="main")

@@ -7,9 +7,8 @@ from django.db.models import CharField, Model, TextField
 from ....models.fields import EncryptedTextField
 from ....pprint import PrettyPrinter
 
-FieldsToEncrypt: t.TypeAlias = t.Dict[
-    t.Union[CharField, TextField], EncryptedTextField
-]
+PlaintextField: t.TypeAlias = t.Union[CharField, TextField]
+FieldsToEncrypt: t.TypeAlias = t.Dict[PlaintextField, EncryptedTextField]
 
 
 # pylint: disable-next=missing-class-docstring
@@ -21,18 +20,18 @@ class Command(BaseCommand):
     )
     help = f"Encrypts plaintext fields for specified models. {format_help}"
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.pprint = PrettyPrinter(write=self.stdout.write)
-
     def add_arguments(self, parser):
         parser.add_argument(
             "model_fields", nargs="+", type=str, help=self.format_help
         )
+        parser.add_argument(
+            "--chunk-size",
+            type=int,
+            default=100,
+            help="The number of records to process in each batch.",
+        )
 
-    def _parse_arg(self, arg: str):
-        self.pprint.bold(self.pprint.indent(1) + "Parsing", ending=" ... ")
-
+    def _parse_arg(self, arg: str, pprint: PrettyPrinter):
         # Split the argument into model specification and field name pairs.
         if not "=" in arg:
             raise ValueError(self.format_help)
@@ -43,6 +42,7 @@ class Command(BaseCommand):
             raise ValueError(self.format_help)
         app_label, model_name = model_spec.split(".", 1)
         model_class: t.Type[Model] = apps.get_model(app_label, model_name)
+        pprint(f"Found model: {pprint.notice.apply(model_spec)}")
 
         # Parse the field name pairs and validate their existence in the model.
         fields_to_encrypt: FieldsToEncrypt = {}
@@ -70,6 +70,10 @@ class Command(BaseCommand):
                     f"Duplicate plaintext field '{plain_field_name}' in "
                     "argument."
                 )
+            pprint(
+                "Found plaintext field: "
+                + pprint.notice.apply(f"{model_spec}.{plain_field_name}")
+            )
 
             # Get the encrypted field and validate its type.
             enc_field = model_class._meta.get_field(enc_field_name)
@@ -83,39 +87,65 @@ class Command(BaseCommand):
                     f"Duplicate encrypted field '{enc_field_name}' in "
                     "argument."
                 )
+            pprint(
+                "Found encrypted field: "
+                + pprint.notice.apply(f"{model_spec}.{enc_field_name}")
+            )
 
             fields_to_encrypt[plain_field] = enc_field
 
-        self.pprint.success("Done")
-
         return model_class, fields_to_encrypt
 
-    def _encrypt_fields(
-        self, model_class: t.Type[Model], fields_to_encrypt: FieldsToEncrypt
+    # pylint: disable-next=too-many-arguments,too-many-positional-arguments
+    def _encrypt_field(
+        self,
+        chunk_size: int,
+        model_class: t.Type[Model],
+        plain_field: PlaintextField,
+        enc_field: EncryptedTextField,
+        pprint: PrettyPrinter,
     ):
-        self.pprint.bold(self.pprint.indent(1) + "Encrypting fields:")
+        models = model_class.objects.filter(  # type: ignore[attr-defined]
+            **{f"{plain_field.name}__isnull": False}
+        )
+        model_count = models.count()
+        for model_index, model in enumerate(models.iterator(chunk_size)):
+            if model_index % chunk_size == 0:
+                pprint(f"({model_index}/{model_count})")
 
-        for plain_field, enc_field in fields_to_encrypt.items():
-            self.pprint.write(
-                self.pprint.indent(2)
-                + f"{plain_field.name} -> {enc_field.name}",
-                ending=" ... ",
-            )
-
-            # TODO: encrypt the plaintext field values and save them to the
-            # encrypted field.
-
-            self.pprint.success("Done")
+            plaintext = getattr(model, plain_field.name)
+            setattr(model, enc_field.name, plaintext)
+            model.save(update_fields=[enc_field.name])
 
     def handle(self, *args, **options):
-        for arg in options["model_fields"]:
-            self.pprint.write(
-                self.pprint.divider()
-                + "\n"
-                + self.pprint.bold.apply("Processing argument:")
-                + f'"{arg if len(arg) <= 50 else f"{arg[:37]}...{arg[-10:]}"}".'
-            )
+        model_fields: t.List[str] = options["model_fields"]
+        chunk_size: int = options["chunk_size"]
 
-            model_class, fields_to_encrypt = self._parse_arg(arg)
+        pprint = PrettyPrinter(write=self.stdout.write, name=self.__module__)
 
-            self._encrypt_fields(model_class, fields_to_encrypt)
+        for arg in model_fields:
+            with pprint.process(
+                "Processing argument: "
+                f'"{arg if len(arg) <= 50 else f"{arg[:37]}...{arg[-10:]}"}"'
+            ) as arg_pprint:
+                with arg_pprint.process("Parsing argument") as parse_pprint:
+                    model_class, fields_to_encrypt = self._parse_arg(
+                        arg, parse_pprint
+                    )
+
+                with arg_pprint.process(
+                    "Encrypting model:"
+                    f" {model_class._meta.app_label}"
+                    f".{model_class._meta.model_name}"
+                ) as enc_model_pprint:
+                    for plain_field, enc_field in fields_to_encrypt.items():
+                        with enc_model_pprint.process(
+                            f"Field: {plain_field.name} -> {enc_field.name}"
+                        ) as enc_field_pprint:
+                            self._encrypt_field(
+                                chunk_size,
+                                model_class,
+                                plain_field,
+                                enc_field,
+                                enc_field_pprint,
+                            )
