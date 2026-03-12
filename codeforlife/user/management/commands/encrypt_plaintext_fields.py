@@ -31,9 +31,7 @@ class Command(BaseCommand):
         )
 
     def _parse_arg(self, arg: str):
-        self.pprint.indent(
-            1, ending=self.pprint.bold("Parsing ... ", write=False)
-        )
+        self.pprint.bold(self.pprint.indent(1) + "Parsing", ending=" ... ")
 
         # Split the argument into model specification and field name pairs.
         if not "=" in arg:
@@ -95,13 +93,13 @@ class Command(BaseCommand):
     def _encrypt_fields(
         self, model_class: t.Type[Model], fields_to_encrypt: FieldsToEncrypt
     ):
-        self.pprint.indent(
-            1, ending=self.pprint.bold("Encrypting fields:\n", write=False)
-        )
+        self.pprint.bold(self.pprint.indent(1) + "Encrypting fields:")
 
         for plain_field, enc_field in fields_to_encrypt.items():
-            self.pprint.indent(
-                2, ending=f"{plain_field.name} -> {enc_field.name} ... "
+            self.pprint.write(
+                self.pprint.indent(2)
+                + f"{plain_field.name} -> {enc_field.name}",
+                ending=" ... ",
             )
 
             # TODO: encrypt the plaintext field values and save them to the
@@ -111,10 +109,11 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         for arg in options["model_fields"]:
-            self.pprint.divider()
-            self.pprint.bold("Processing argument:", ending=" ")
             self.pprint.write(
-                f'"{arg if len(arg) <= 50 else arg[:37] + "..." + arg[-10:]}".'
+                self.pprint.divider()
+                + "\n"
+                + self.pprint.bold.apply("Processing argument:")
+                + f'"{arg if len(arg) <= 50 else f"{arg[:37]}...{arg[-10:]}"}".'
             )
 
             model_class, fields_to_encrypt = self._parse_arg(arg)

@@ -7,137 +7,141 @@ Pretty-printing utilities for terminal output.
 
 import os
 import typing as t
+from enum import Enum
 
-RESET = "\033[0m"
+Write: t.TypeAlias = t.Callable[[str], None]
 
-BLACK = "\033[30m"
-WHITE = "\033[37m"
 
-RED = "\033[31m"
-GREEN = "\033[32m"
-BLUE = "\033[34m"
+class ANSI(Enum):
+    """ANSI escape codes for styling terminal output."""
 
-YELLOW = "\033[33m"
-MAGENTA = "\033[35m"
-CYAN = "\033[36m"
+    RESET = "\033[0m"
 
-BOLD = "\033[1m"
-UNDERLINE = "\033[4m"
-OVERLINE = "\033[53m"
+    BLACK = "\033[30m"
+    WHITE = "\033[37m"
 
-if t.TYPE_CHECKING:
-    from typing_extensions import Protocol
+    RED = "\033[31m"
+    GREEN = "\033[32m"
+    BLUE = "\033[34m"
 
-    # pylint: disable-next=too-few-public-methods
-    class StyleProtocol(Protocol):
-        """A callable that applies a style to a message."""
+    YELLOW = "\033[33m"
+    MAGENTA = "\033[35m"
+    CYAN = "\033[36m"
 
-        @t.overload
-        def __call__(
-            self, message: str, write: t.Literal[True] = True, **kwargs
-        ) -> str: ...
+    BOLD = "\033[1m"
+    UNDERLINE = "\033[4m"
+    OVERLINE = "\033[53m"
 
-        @t.overload
-        def __call__(self, message: str, write: t.Literal[False]) -> str: ...
+
+class Style:
+    """A callable class that applies styles to messages."""
+
+    def __init__(self, apply: t.Callable[[str], str], write: Write = print):
+        self.apply = apply
+        self.write = write
+
+    def __call__(self, message: str, *args, **kwargs):
+        styled_message = self.apply(message)
+        self.write(styled_message, *args, **kwargs)
+
+    @classmethod
+    def ansi(cls, code: ANSI, write: Write = print):
+        """Create a style that applies the given ANSI code to messages.
+
+        Args:
+            code: The ANSI code to apply.
+            write: The function to use for writing the styled message.
+
+        Returns:
+            A style that applies the given ANSI code to messages.
+        """
+
+        def apply(message: str):
+            return code.value + message + ANSI.RESET.value
+
+        return cls(apply, write)
+
+    @classmethod
+    def combine(cls, styles: t.List["Style"], write: Write = print):
+        """Combine multiple styles into a single style.
+
+        Args:
+            styles: The styles to combine.
+            write: The function to use for writing the styled message.
+
+        Returns:
+            A style that applies all the given styles to messages.
+        """
+
+        def apply(message: str):
+            for style in styles:
+                message = style.apply(message)
+
+            return message
+
+        return cls(apply, write)
 
 
 # pylint: disable-next=too-many-instance-attributes
 class PrettyPrinter:
     """A utility class for pretty-printing styled messages to the terminal."""
 
-    Write: t.TypeAlias = t.Callable[..., None]
-    Style: t.TypeAlias = "StyleProtocol"
-
     def __init__(self, write: Write):
         self.write = write
 
-        self.black = self.make_ansi_style(BLACK)
-        self.white = self.make_ansi_style(WHITE)
+        # Black and white.
+        self.black = Style.ansi(ANSI.BLACK, write)
+        self.white = Style.ansi(ANSI.WHITE, write)
 
-        self.red = self.make_ansi_style(RED)
-        self.green = self.make_ansi_style(GREEN)
-        self.blue = self.make_ansi_style(BLUE)
+        # Red, green, and blue.
+        self.red = Style.ansi(ANSI.RED, write)
+        self.green = Style.ansi(ANSI.GREEN, write)
+        self.blue = Style.ansi(ANSI.BLUE, write)
 
-        self.yellow = self.make_ansi_style(YELLOW)
-        self.magenta = self.make_ansi_style(MAGENTA)
-        self.cyan = self.make_ansi_style(CYAN)
+        # Cyan, magenta, and yellow.
+        self.cyan = Style.ansi(ANSI.CYAN, write)
+        self.magenta = Style.ansi(ANSI.MAGENTA, write)
+        self.yellow = Style.ansi(ANSI.YELLOW, write)
 
-        self.bold = self.make_ansi_style(BOLD)
-        self.underline = self.make_ansi_style(UNDERLINE)
-        self.overline = self.make_ansi_style(OVERLINE)
+        # Common text styles.
+        self.bold = Style.ansi(ANSI.BOLD, write)
+        self.underline = Style.ansi(ANSI.UNDERLINE, write)
+        self.overline = Style.ansi(ANSI.OVERLINE, write)
 
-        self.success = self.combine_styles(self.green, self.bold)
-        self.error = self.combine_styles(self.red, self.bold)
-        self.warn = self.warning = self.combine_styles(self.yellow, self.bold)
-        self.info = self.notice = self.combine_styles(self.blue, self.bold)
+        # Status styles.
+        self.success = Style.combine([self.green, self.bold], write)
+        self.error = Style.combine([self.red, self.bold], write)
+        self.warn = self.warning = Style.combine(
+            [self.yellow, self.bold], write
+        )
+        self.info = self.notice = Style.combine([self.blue, self.bold], write)
 
-        self.h3 = self.combine_styles(self.overline, self.underline, self.bold)
+        # Heading styles.
+        h1 = Style(
+            lambda message: "\n".join(
+                [self.divider("="), message, self.divider("=")]
+            ),
+            write,
+        )
+        self.h1 = Style.combine([h1, self.bold], write)
+        h2 = Style(
+            lambda message: "\n".join(
+                [self.divider("-"), message, self.divider("-")]
+            ),
+            write,
+        )
+        self.h2 = Style.combine([h2, self.bold], write)
+        self.h3 = Style.combine(
+            [self.overline, self.underline, self.bold], write
+        )
 
-    def make_style(self, stylize: t.Callable[[str], str]) -> Style:
-        # pylint: disable=line-too-long
-        """Make a style that applies the given stylization function to messages.
-
-        Args:
-            stylize: A function that takes a message and returns a stylized version of it.
-
-        Returns:
-            A style that applies the given stylization function to messages and writes them if a write function is set.
-        """
-        # pylint: enable=line-too-long
-
-        def style(message: str, write: bool = True, **kwargs):
-            styled_message = stylize(message)
-
-            if write:
-                self.write(styled_message, **kwargs)
-
-            return styled_message
-
-        return style
-
-    def make_ansi_style(self, ansi_code: str):
-        """Make a style that applies the given ANSI code to messages.
-
-        Args:
-            ansi_code: The ANSI code to apply.
-
-        Returns:
-            A style that applies the given ANSI code to messages.
-        """
-        return self.make_style(lambda message: ansi_code + message + RESET)
-
-    def combine_styles(self, *styles: Style):
-        """Combine multiple styles into a single style.
-
-        Args:
-            *styles: The styles to combine.
-
-        Returns:
-            A function that takes a message and applies all the styles to it.
-        """
-
-        def combined_style(message: str):
-            for style in styles:
-                message = style(message, write=False)
-
-            return message
-
-        return self.make_style(combined_style)
-
-    def divider(
-        self,
-        default_columns=80,
-        char="-",
-        style: t.Optional[Style] = None,
-        **kwargs
-    ):
+    def divider(self, char="-", default_columns=80):
         # pylint: disable=line-too-long
         """Write a divider line with the specified character.
 
         Args:
             default_columns: The default number of columns to use if the terminal width cannot be determined.
             char: The character to use for the divider.
-            style: An optional style to apply to the divider line.
         """
         # pylint: enable=line-too-long
         try:
@@ -145,14 +149,9 @@ class PrettyPrinter:
         except OSError:
             columns = default_columns
 
-        message = char * columns
+        return char * columns
 
-        if style:
-            message = style(message, write=False)
-
-        self.write(message, **kwargs)
-
-    def indent(self, count: int, spaces=2, char=" ", **kwargs):
+    def indent(self, count: int, spaces=2, char=" "):
         """Write an indentation of the specified number of spaces.
 
         Args:
@@ -160,27 +159,7 @@ class PrettyPrinter:
             spaces: The number of spaces per indentation level.
             char: The character to use for indentation.
         """
-        self.write(char * count * spaces, **kwargs)
-
-    def h1(self, message: str):
-        """Write a level 1 header.
-
-        Args:
-            message: The header message to write.
-        """
-        self.divider(char="=", style=self.bold)
-        self.bold(message)
-        self.divider(char="=", style=self.bold)
-
-    def h2(self, message: str):
-        """Write a level 2 header.
-
-        Args:
-            message: The header message to write.
-        """
-        self.divider(char="-", style=self.bold)
-        self.bold(message)
-        self.divider(char="-", style=self.bold)
+        return char * count * spaces
 
 
 pprint = PrettyPrinter(write=print)
