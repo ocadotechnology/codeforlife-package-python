@@ -5,7 +5,7 @@ Created on 01/02/2024 at 14:34:04(+00:00).
 
 import typing as t
 
-from ....hashers import hash_email
+from ....hashers import hash_credential
 from ....request import HttpRequest
 from .base import BaseBackend
 
@@ -24,7 +24,7 @@ class EmailBackend(BaseBackend):
             return None
 
         email = self.user_class.objects.normalize_email(email)
-        email_hash = hash_email(email)  # type: ignore[arg-type]
+        email_hash = hash_credential(email)  # type: ignore[arg-type]
 
         # pylint: disable=duplicate-code
         try:

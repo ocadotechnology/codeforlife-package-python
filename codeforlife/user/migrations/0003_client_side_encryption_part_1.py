@@ -60,7 +60,24 @@ class Migration(migrations.Migration):
             model_name="user",
             name="email_hash",
             field=models.CharField(
-                blank=True, max_length=254, verbose_name="email hash"
+                editable=False, max_length=64, verbose_name="email hash"
+            ),
+        ),
+        migrations.AddField(
+            model_name="user",
+            name="first_name_hash",
+            field=models.CharField(
+                editable=False, max_length=64, verbose_name="first name hash"
+            ),
+        ),
+        migrations.AddField(
+            model_name="class",
+            name="access_code_hash",
+            field=models.CharField(
+                null=True,
+                editable=False,
+                max_length=64,
+                verbose_name="access code hash",
             ),
         ),
         migrations.AddField(

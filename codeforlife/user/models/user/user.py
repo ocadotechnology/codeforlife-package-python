@@ -18,7 +18,7 @@ from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from pyotp import TOTP
 
-from ....hashers import hash_email
+from ....hashers import hash_credential
 from ....models import AbstractBaseUser, DataEncryptionKeyModel
 from ....models.fields import EncryptedTextField
 from ....types import Validators
@@ -67,11 +67,11 @@ class UserManager(
         password: t.Optional[str],
         **extra_fields,
     ):
-        email = self.normalize_email(email)
-        user = self.model(email_plain=email, **extra_fields)
-        user.email_enc = email
-        user.email_hash = hash_email(email)
+        user = self.model(**extra_fields)
+        user.email = email
         user.password = make_password(password)
+        user.first_name = extra_fields.get("first_name", "")
+        user.last_name = extra_fields.get("last_name", "")
         return user
 
     # pylint: disable=missing-function-docstring
@@ -140,6 +140,7 @@ class User(AbstractBaseUser, PermissionsMixin, DataEncryptionKeyModel):
     EMAIL_FIELD = "email_plain"
     USERNAME_FIELD = "email_hash"
     REQUIRED_FIELDS = ["email_plain"]
+    credential_fields = frozenset(["email", "password"])
 
     _password: t.Optional[str]
 
@@ -150,12 +151,13 @@ class User(AbstractBaseUser, PermissionsMixin, DataEncryptionKeyModel):
     session: "Session"  # type: ignore[assignment]
     userprofile: "UserProfile"
 
-    credential_fields = frozenset(["email", "password"])
-
     # --------------------------------------------------------------------------
     # First name
     # --------------------------------------------------------------------------
 
+    first_name_hash = models.CharField(
+        _("first name hash"), max_length=64, editable=False
+    )
     first_name_plain = models.CharField(
         _("first name"), max_length=150, blank=True
     )
@@ -175,6 +177,7 @@ class User(AbstractBaseUser, PermissionsMixin, DataEncryptionKeyModel):
         """Set the user's first name."""
         self.first_name_enc = value
         self.first_name_plain = value
+        self.first_name_hash = hash_credential(value)
 
     # --------------------------------------------------------------------------
     # Last name
@@ -204,7 +207,9 @@ class User(AbstractBaseUser, PermissionsMixin, DataEncryptionKeyModel):
     # Email
     # --------------------------------------------------------------------------
 
-    email_hash = models.CharField(_("email hash"), max_length=254, blank=True)
+    email_hash = models.CharField(
+        _("email hash"), max_length=64, editable=False
+    )
     email_plain = models.EmailField(_("email address"), blank=True)
     email_enc = EncryptedTextField(
         associated_data="email", null=True, verbose_name=_("email address")
@@ -223,7 +228,7 @@ class User(AbstractBaseUser, PermissionsMixin, DataEncryptionKeyModel):
         value = self.objects.normalize_email(value)
         self.email_plain = value
         self.email_enc = value
-        self.email_hash = hash_email(value)
+        self.email_hash = hash_credential(value)
 
     # --------------------------------------------------------------------------
     # Other
@@ -367,10 +372,14 @@ class User(AbstractBaseUser, PermissionsMixin, DataEncryptionKeyModel):
         self.is_active = False
         self.save(
             update_fields=[
-                "first_name",
-                "last_name",
-                "email",
-                "username",
+                "first_name_hash",
+                "first_name_plain",
+                "first_name_enc",
+                "last_name_plain",
+                "last_name_enc",
+                "email_plain",
+                "email_enc",
+                "email_hash",
                 "is_active",
             ]
         )

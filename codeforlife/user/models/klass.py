@@ -12,6 +12,7 @@ from django.db import models
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
+from ...hashers import hash_credential
 from ...models import EncryptedModel
 from ...models.fields import EncryptedTextField
 from ...types import Validators
@@ -99,6 +100,9 @@ class Class(EncryptedModel):
     # Access code
     # --------------------------------------------------------------------------
 
+    access_code_hash = models.CharField(
+        _("access code hash"), max_length=64, editable=False, null=True
+    )
     access_code_plain: t.Optional[str]
     access_code_plain = models.CharField(  # type: ignore[assignment]
         max_length=5,
@@ -122,6 +126,9 @@ class Class(EncryptedModel):
         """Set the access code for the class."""
         self.access_code_plain = value
         self.access_code_enc = value
+        self.access_code_hash = (
+            value if value is None else hash_credential(value)
+        )
 
     # --------------------------------------------------------------------------
 

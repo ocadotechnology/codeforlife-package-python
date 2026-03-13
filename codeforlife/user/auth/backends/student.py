@@ -5,6 +5,7 @@ Created on 01/02/2024 at 14:48:17(+00:00).
 
 import typing as t
 
+from ....hashers import hash_credential
 from ....request import HttpRequest
 from ...models import StudentUser
 from .base import BaseBackend
@@ -26,16 +27,20 @@ class StudentBackend(BaseBackend):
         if first_name is None or password is None or class_id is None:
             return None
 
+        first_name_hash = hash_credential(first_name)
+        class_id_hash = hash_credential(class_id)
+
         # pylint: disable=duplicate-code
         try:
             user = self.user_class.objects.get(
-                first_name=first_name,
-                new_student__class_field__access_code=class_id,
+                first_name_hash=first_name_hash,
+                new_student__class_field__access_code_hash=class_id_hash,
             )
-            if user.check_password(password):
-                return user
         except self.user_class.DoesNotExist:
             return None
         # pylint: enable=duplicate-code
+
+        if user.check_password(password):
+            return user
 
         return None
