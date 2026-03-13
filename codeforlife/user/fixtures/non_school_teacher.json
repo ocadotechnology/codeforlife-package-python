@@ -3,10 +3,11 @@
     "model": "user.user",
     "pk": 22,
     "fields": {
-      "first_name": "John",
-      "last_name": "Doe",
-      "username": "teacher@noschool.com",
-      "email": "teacher@noschool.com",
+      "dek": "ZmFrZV9lbmM6TkhGdE1EWlFOVkJ3VDFwTVVYWmlVRzlFYVdwU1JIUTVialZ0V1RoQ2NXYz0=",
+      "first_name_plain": "John",
+      "last_name_plain": "Doe",
+      "username_plain": "teacher@noschool.com",
+      "email_plain": "teacher@noschool.com",
       "password": "pbkdf2_sha256$720000$Jp50WPBA6WZImUIpj3UcVm$OJWB8+UoW5lLaUkHLYo0cKgMkyRI6qnqVOWxYEsi9T0="
     }
   },
@@ -30,10 +31,11 @@
     "model": "user.user",
     "pk": 33,
     "fields": {
-      "first_name": "Unverified",
-      "last_name": "Teacher",
-      "username": "unverified.teacher@noschool.com",
-      "email": "unverified.teacher@noschool.com",
+      "dek": "ZmFrZV9lbmM6UVhac01Ea3dibmQxYzBkRFdVbGFRMDR4VEZkelRVWklUbHA1VVZsU1RXOD0=",
+      "first_name_plain": "Unverified",
+      "last_name_plain": "Teacher",
+      "username_plain": "unverified.teacher@noschool.com",
+      "email_plain": "unverified.teacher@noschool.com",
       "password": "pbkdf2_sha256$720000$Jp50WPBA6WZImUIpj3UcVm$OJWB8+UoW5lLaUkHLYo0cKgMkyRI6qnqVOWxYEsi9T0="
     }
   },

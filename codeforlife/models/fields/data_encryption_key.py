@@ -57,7 +57,9 @@ class DataEncryptionKeyAttribute(
     def __set__(
         self,
         instance,
-        value: t.Optional[_TrustedDek],  # type: ignore[override]
+        value: t.Optional[  # type: ignore[override]
+            t.Union[memoryview, _TrustedDek]
+        ],
     ):
         # Clear any cached DEK AEAD.
         if instance.pk is not None and instance.pk in instance.DEK_AEAD_CACHE:
@@ -67,6 +69,16 @@ class DataEncryptionKeyAttribute(
             internal_value = value.dek
         elif value is None:  # Data is being shredded.
             internal_value = None
+        # When Django loads data from a fixture (e.g., a JSON file), it
+        # provides binary data as a `memoryview` object. Our descriptor
+        # handles this by extracting the raw bytes from the `memoryview`.
+        elif isinstance(value, memoryview):
+            if not isinstance(value.obj, bytes):
+                raise ValidationError(
+                    "Expected bytes in memoryview for encrypted field.",
+                    code="invalid_memoryview_type",
+                )
+            internal_value = value.obj
         else:
             raise ValidationError(
                 "DataEncryptionKeyField can only be set to None.",

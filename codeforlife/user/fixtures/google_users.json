@@ -3,10 +3,11 @@
     "model": "user.user",
     "pk": 34,
     "fields": {
-      "first_name": "Google",
-      "last_name": "Teacher",
-      "username": "google.teacher@noschool.com",
-      "email": "google.teacher@noschool.com",
+      "dek": "ZmFrZV9lbmM6YlVkTE4xSndaRlZTTW5kc1NqQkJXa1ZxU2xKV2NWTk9WbFJ6YzFjMmVHVT0=",
+      "first_name_plain": "Google",
+      "last_name_plain": "Teacher",
+      "username_plain": "google.teacher@noschool.com",
+      "email_plain": "google.teacher@noschool.com",
       "password": "pbkdf2_sha256$720000$Jp50WPBA6WZImUIpj3UcVm$OJWB8+UoW5lLaUkHLYo0cKgMkyRI6qnqVOWxYEsi9T0="
     }
   },

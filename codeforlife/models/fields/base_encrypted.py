@@ -51,6 +51,7 @@ data without ambiguity.
 
 import typing as t
 from dataclasses import dataclass
+from enum import IntEnum, auto
 
 from django.core.exceptions import ValidationError
 from django.db.models import BinaryField
@@ -73,7 +74,14 @@ class _PendingEncryption(t.Generic[T]):
 class _TrustedCiphertext:
     """A wrapper for ciphertext that comes directly from the database."""
 
+    class Source(IntEnum):
+        """The source of the ciphertext."""
+
+        DB = auto()
+        FIXTURE = auto()
+
     ciphertext: bytes
+    source: Source
 
 
 Value: t.TypeAlias = t.Union[_TrustedCiphertext, _PendingEncryption[T]]
@@ -108,6 +116,11 @@ class EncryptedAttribute(
             return internal_value.value
 
         if isinstance(internal_value, _TrustedCiphertext):
+            # If the ciphertext came from a fixture, do not decrypt it so that
+            # it can be loaded as-is into the database.
+            if internal_value.source == _TrustedCiphertext.Source.FIXTURE:
+                return internal_value.ciphertext
+
             # If we have a cached decrypted value, return it.
             if self.field.attname in instance.__decrypted_values__:
                 return t.cast(
@@ -152,7 +165,9 @@ class EncryptedAttribute(
                     "Expected bytes in memoryview for encrypted field.",
                     code="invalid_memoryview_type",
                 )
-            internal_value = _TrustedCiphertext(value.obj)
+            internal_value = _TrustedCiphertext(
+                value.obj, _TrustedCiphertext.Source.FIXTURE
+            )
         elif isinstance(value, _TrustedCiphertext):  # From DB.
             internal_value = value
         else:  # From user input.
@@ -274,7 +289,7 @@ class BaseEncryptedField(BinaryField, t.Generic[T]):
             return None
 
         # Wrap it so __set__ knows this is NOT new user input.
-        return _TrustedCiphertext(value)
+        return _TrustedCiphertext(value, _TrustedCiphertext.Source.DB)
 
     def pre_save(
         self, model_instance: EncryptedModel, add  # type: ignore[override]
