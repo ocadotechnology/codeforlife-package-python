@@ -6,7 +6,6 @@ Created on 20/02/2024 at 09:28:27(+00:00).
 import os
 import sys
 import typing as t
-from io import StringIO
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -112,21 +111,5 @@ def set_up_settings(service_base_dir: Path, service_name: str):
                 secrets_file.write(secrets_file_comment)
 
         secrets = dotenv_values(secrets_path)
-    else:
-        # pylint: disable-next=import-outside-toplevel
-        import boto3
-
-        s3: "S3Client" = boto3.client("s3")
-        secrets_object = s3.get_object(
-            Bucket=os.environ["aws_s3_app_bucket"],
-            Key=(
-                os.environ["aws_s3_app_folder"]
-                + f"/secure/.env.secrets.{service_name}"
-            ),
-        )
-
-        secrets = dotenv_values(
-            stream=StringIO(secrets_object["Body"].read().decode("utf-8"))
-        )
 
     return Secrets(**secrets)
