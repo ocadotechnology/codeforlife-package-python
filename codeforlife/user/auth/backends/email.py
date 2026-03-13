@@ -5,6 +5,7 @@ Created on 01/02/2024 at 14:34:04(+00:00).
 
 import typing as t
 
+from ....hashers import hash_email
 from ....request import HttpRequest
 from .base import BaseBackend
 
@@ -22,13 +23,17 @@ class EmailBackend(BaseBackend):
         if email is None or password is None:
             return None
 
+        email = self.user_class.objects.normalize_email(email)
+        email_hash = hash_email(email)  # type: ignore[arg-type]
+
         # pylint: disable=duplicate-code
         try:
-            user = self.user_class.objects.get(email__iexact=email)
-            if user.check_password(password):
-                return user
+            user = self.user_class.objects.get(email_hash=email_hash)
         except self.user_class.DoesNotExist:
             return None
         # pylint: enable=duplicate-code
+
+        if user.check_password(password):
+            return user
 
         return None

@@ -16,7 +16,6 @@
       "dek": "ZmFrZV9lbmM6UkhWQ1kwaHlOa2hqYzFSV1MxcE1SblkwYnpnMGRtNUxWMnRLV1dWMlRUYz0=",
       "first_name_plain": "John",
       "last_name_plain": "Doe",
-      "username_plain": "teacher@school2.com",
       "email_plain": "teacher@school2.com",
       "password": "pbkdf2_sha256$720000$Jp50WPBA6WZImUIpj3UcVm$OJWB8+UoW5lLaUkHLYo0cKgMkyRI6qnqVOWxYEsi9T0="
     }
@@ -143,7 +142,6 @@
       "dek": "ZmFrZV9lbmM6WkdoS2FsQnNjR3R4UmtaSFdrOVJTa2huVW1wa1lVcDVhRVJ2Ulhkd2RuYz0=",
       "first_name_plain": "Jane",
       "last_name_plain": "Doe",
-      "username_plain": "admin.teacher@school2.com",
       "email_plain": "admin.teacher@school2.com",
       "password": "pbkdf2_sha256$720000$Jp50WPBA6WZImUIpj3UcVm$OJWB8+UoW5lLaUkHLYo0cKgMkyRI6qnqVOWxYEsi9T0="
     }

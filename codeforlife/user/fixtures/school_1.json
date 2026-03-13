@@ -16,7 +16,6 @@
       "dek": "ZmFrZV9lbmM6U2tGVmEzZHhlVkF4VERKR1QwaGxPVWRTWkhkVE16WTBiREV3WjFkQlVHcz0=",
       "first_name_plain": "John",
       "last_name_plain": "Doe",
-      "username_plain": "teacher@school1.com",
       "email_plain": "teacher@school1.com",
       "password": "pbkdf2_sha256$720000$Jp50WPBA6WZImUIpj3UcVm$OJWB8+UoW5lLaUkHLYo0cKgMkyRI6qnqVOWxYEsi9T0="
     }
@@ -54,7 +53,6 @@
     "fields": {
       "dek": "ZmFrZV9lbmM6ZEc1aFZ6RkhVRTFNVFdaSWQzTlZXRmxRZFRsTFZIbE1kRWxSVGs1Q1FWQT0=",
       "first_name_plain": "Student1",
-      "username_plain": "111111111111111111111111111111",
       "password": "pbkdf2_sha256$720000$Jp50WPBA6WZImUIpj3UcVm$OJWB8+UoW5lLaUkHLYo0cKgMkyRI6qnqVOWxYEsi9T0="
     }
   },
@@ -82,7 +80,6 @@
       "dek": "ZmFrZV9lbmM6YkVGQk1XVTBVWFJqTWpFelFVMWhTVE5EUWtWeVMzZGpjR1JNU2xSTVlrUT0=",
       "first_name_plain": "Jane",
       "last_name_plain": "Doe",
-      "username_plain": "admin.teacher@school1.com",
       "email_plain": "admin.teacher@school1.com",
       "password": "pbkdf2_sha256$720000$Jp50WPBA6WZImUIpj3UcVm$OJWB8+UoW5lLaUkHLYo0cKgMkyRI6qnqVOWxYEsi9T0="
     }
@@ -120,7 +117,6 @@
     "fields": {
       "dek": "ZmFrZV9lbmM6YXpWd1dGZEZOWHBXZEdnMFJWQlROWFZFV2s0eVRuVTBOVTlGZUdwNWJtND0=",
       "first_name_plain": "Student2",
-      "username_plain": "222222222222222222222222222222",
       "password": "pbkdf2_sha256$720000$Jp50WPBA6WZImUIpj3UcVm$OJWB8+UoW5lLaUkHLYo0cKgMkyRI6qnqVOWxYEsi9T0="
     }
   },

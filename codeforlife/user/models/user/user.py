@@ -9,17 +9,16 @@ import typing as t
 from datetime import datetime, timedelta
 
 from django.conf import settings
-
-# pylint: disable-next=imported-auth-user
+from django.contrib.auth.hashers import make_password
 from django.contrib.auth.models import PermissionsMixin
 from django.contrib.auth.models import UserManager as _UserManager
-from django.contrib.auth.validators import UnicodeUsernameValidator
 from django.db import models
 from django.db.models.query import QuerySet
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from pyotp import TOTP
 
+from ....hashers import hash_email
 from ....models import AbstractBaseUser, DataEncryptionKeyModel
 from ....models.fields import EncryptedTextField
 from ....types import Validators
@@ -61,6 +60,56 @@ class UserManager(
     encrypted manager to handle encrypted fields.
     """
 
+    def _create_user_object(
+        self,
+        _: t.Literal[""],  # username is not used but is required by the parent
+        email: str,
+        password: t.Optional[str],
+        **extra_fields,
+    ):
+        email = self.normalize_email(email)
+        user = self.model(email_plain=email, **extra_fields)
+        user.email_enc = email
+        user.email_hash = hash_email(email)
+        user.password = make_password(password)
+        return user
+
+    # pylint: disable=missing-function-docstring
+
+    @classmethod
+    def normalize_email(cls, email):
+        return super().normalize_email(email).lower()
+
+    def create_user(  # type: ignore[override]
+        self, email: str, password: t.Optional[str] = None, **extra_fields
+    ):
+        return super().create_user(
+            username="", email=email, password=password, **extra_fields
+        )
+
+    def acreate_user(  # type: ignore[override]
+        self, email: str, password: t.Optional[str] = None, **extra_fields
+    ):
+        return super().acreate_user(
+            username="", email=email, password=password, **extra_fields
+        )
+
+    def create_superuser(  # type: ignore[override]
+        self, email: str, password: t.Optional[str] = None, **extra_fields
+    ):
+        return super().create_superuser(
+            username="", email=email, password=password, **extra_fields
+        )
+
+    def acreate_superuser(  # type: ignore[override]
+        self, email: str, password: t.Optional[str] = None, **extra_fields
+    ):
+        return super().acreate_superuser(
+            username="", email=email, password=password, **extra_fields
+        )
+
+    # pylint: enable=missing-function-docstring
+
     def filter_users(self, queryset: QuerySet["User"]):
         """Filter the users to the specific type.
 
@@ -84,12 +133,12 @@ class UserManager(
 
 # pylint: disable-next=too-many-ancestors,too-many-instance-attributes
 class User(AbstractBaseUser, PermissionsMixin, DataEncryptionKeyModel):
-    """A proxy to Django's user class."""
+    """A Code for Life user."""
 
     associated_data = "user"
 
     EMAIL_FIELD = "email_plain"
-    USERNAME_FIELD = "username_plain"
+    USERNAME_FIELD = "email_hash"
     REQUIRED_FIELDS = ["email_plain"]
 
     _password: t.Optional[str]
@@ -102,41 +151,6 @@ class User(AbstractBaseUser, PermissionsMixin, DataEncryptionKeyModel):
     userprofile: "UserProfile"
 
     credential_fields = frozenset(["email", "password"])
-
-    # --------------------------------------------------------------------------
-    # Username
-    # --------------------------------------------------------------------------
-
-    username_validator = UnicodeUsernameValidator()
-    username_plain = models.CharField(
-        _("username"),
-        max_length=150,
-        unique=True,
-        help_text=_(
-            "Required. 150 characters or fewer."
-            " Letters, digits and @/./+/-/_ only."
-        ),
-        validators=[username_validator],
-        error_messages={
-            "unique": _("A user with that username already exists."),
-        },
-    )
-    username_enc = EncryptedTextField(
-        associated_data="username", null=True, verbose_name=_("username")
-    )
-
-    @property
-    def username(self):
-        """The user's username."""
-        if self.username_enc is not None:
-            return self.username_enc
-        return self.username_plain
-
-    @username.setter
-    def username(self, value: str):
-        """Set the user's username."""
-        self.username_enc = value
-        self.username_plain = value
 
     # --------------------------------------------------------------------------
     # First name
@@ -190,6 +204,7 @@ class User(AbstractBaseUser, PermissionsMixin, DataEncryptionKeyModel):
     # Email
     # --------------------------------------------------------------------------
 
+    email_hash = models.CharField(_("email hash"), max_length=254, blank=True)
     email_plain = models.EmailField(_("email address"), blank=True)
     email_enc = EncryptedTextField(
         associated_data="email", null=True, verbose_name=_("email address")
@@ -205,8 +220,10 @@ class User(AbstractBaseUser, PermissionsMixin, DataEncryptionKeyModel):
     @email.setter
     def email(self, value: str):
         """Set the user's email address."""
-        self.email_enc = value
+        value = self.objects.normalize_email(value)
         self.email_plain = value
+        self.email_enc = value
+        self.email_hash = hash_email(value)
 
     # --------------------------------------------------------------------------
     # Other
@@ -331,9 +348,10 @@ class User(AbstractBaseUser, PermissionsMixin, DataEncryptionKeyModel):
             pk=self.pk,
             first_name=self.first_name,
             last_name=self.last_name,
-            username=self.username,
             is_active=self.is_active,
-            email=self.email,
+            email_plain=self.email_plain,
+            email_enc=self.email_enc,
+            email_hash=self.email_hash,
             is_staff=self.is_staff,
             date_joined=self.date_joined,
             is_superuser=self.is_superuser,

@@ -2,7 +2,7 @@ import typing as t
 
 from codeforlife.models.fields.data_encryption_key import DataEncryptionKeyField
 from codeforlife.models.fields.encrypted_text import EncryptedTextField
-from django.db import migrations
+from django.db import migrations, models
 
 
 def rename_plain_text_fields_and_create_encrypted_text_fields(
@@ -52,6 +52,17 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
+        migrations.RemoveField(
+            model_name="user",
+            name="username",
+        ),
+        migrations.AddField(
+            model_name="user",
+            name="email_hash",
+            field=models.CharField(
+                blank=True, max_length=254, verbose_name="email hash"
+            ),
+        ),
         migrations.AddField(
             model_name="school",
             name="dek",
@@ -78,7 +89,6 @@ class Migration(migrations.Migration):
                 "first_name": "first name",
                 "last_name": "last name",
                 "email": "email address",
-                "username": "username",
             },
         ),
         *rename_plain_text_fields_and_create_encrypted_text_fields(

@@ -6,7 +6,6 @@
       "dek": "ZmFrZV9lbmM6Ym5oYVFqaHhUMDV4VTI4NE9YVk9TbmxvVkVzemRUWnpkMUpTWjFkMFVFRT0=",
       "first_name_plain": "Indy",
       "last_name_plain": "Requester",
-      "username_plain": "indy.requester@email.com",
       "email_plain": "indy.requester@email.com",
       "password": "pbkdf2_sha256$720000$Jp50WPBA6WZImUIpj3UcVm$OJWB8+UoW5lLaUkHLYo0cKgMkyRI6qnqVOWxYEsi9T0="
     }
@@ -35,7 +34,6 @@
       "dek": "ZmFrZV9lbmM6TTIxbFVXMWlWMnR3VXpOa2JXaENlbkJGUW05a1oyZEpkRzV6YlhGa1pVYz0=",
       "first_name_plain": "Indy",
       "last_name_plain": "NoRequest",
-      "username_plain": "indy@email.com",
       "email_plain": "indy@email.com",
       "password": "pbkdf2_sha256$720000$Jp50WPBA6WZImUIpj3UcVm$OJWB8+UoW5lLaUkHLYo0cKgMkyRI6qnqVOWxYEsi9T0="
     }
