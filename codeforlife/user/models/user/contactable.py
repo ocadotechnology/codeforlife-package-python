@@ -23,7 +23,9 @@ AnyUser = t.TypeVar("AnyUser", bound=User)
 # pylint: disable-next=missing-class-docstring,too-few-public-methods
 class ContactableUserManager(UserManager[AnyUser], t.Generic[AnyUser]):
     def filter_users(self, queryset: QuerySet[User]):
-        return queryset.exclude(email__isnull=True).exclude(email="")
+        return queryset.exclude(email_plain__isnull=True).exclude(
+            email_plain=""
+        )
 
 
 # pylint: disable-next=too-many-ancestors

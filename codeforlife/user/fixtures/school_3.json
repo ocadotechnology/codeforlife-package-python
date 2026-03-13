@@ -3,7 +3,8 @@
     "model": "user.school",
     "pk": 4,
     "fields": {
-      "name": "School 3",
+      "dek": "ZmFrZV9lbmM6Vm1ORlNIbENURmRyZEdOR1VGaHFOMFZIVFhkRE1IQjVNR1oyTkdkVFNIRT0=",
+      "name_plain": "School 3",
       "country": "GB",
       "county": "Hertfordshire"
     }
@@ -12,10 +13,15 @@
     "model": "user.user",
     "pk": 31,
     "fields": {
-      "first_name": "Peter",
-      "last_name": "Parker",
-      "username": "admin.teacher@school3.com",
-      "email": "admin.teacher@school3.com",
+      "dek": "ZmFrZV9lbmM6ZGxKVE4xTm5jRGhKT1ZWVVdqWlpPVUpDUm14V1EycDRNbkYxZUc1aVExbz0=",
+      "email_enc": "ZmFrZV9lbmM6WVdSdGFXNHVkR1ZoWTJobGNrQnpZMmh2YjJ3ekxtTnZiUT09",
+      "email_hash": "22a604d4828ae8429e8303d16c7d9967145b214b827a8ff1845b19e2a10b12c3",
+      "email_plain": "admin.teacher@school3.com",
+      "first_name_enc": "ZmFrZV9lbmM6VUdWMFpYST0=",
+      "first_name_hash": "083ec2a4fd4004ed6f9bd61965b170a9b5db5d5873c7217f65bede117f004a79",
+      "first_name_plain": "Peter",
+      "last_name_enc": "ZmFrZV9lbmM6VUdGeWEyVnk=",
+      "last_name_plain": "Parker",
       "password": "pbkdf2_sha256$720000$Jp50WPBA6WZImUIpj3UcVm$OJWB8+UoW5lLaUkHLYo0cKgMkyRI6qnqVOWxYEsi9T0="
     }
   },
@@ -41,10 +47,15 @@
     "model": "user.user",
     "pk": 32,
     "fields": {
-      "first_name": "Doctor",
-      "last_name": "Octopus",
-      "username": "teacher@school3.com",
-      "email": "teacher@school3.com",
+      "dek": "ZmFrZV9lbmM6VjA5cGVVcG1SR1pRTkdoNVptUXhOR1Z0ZEVOblVtUmtjRWhJUlZob01Faz0=",
+      "email_enc": "ZmFrZV9lbmM6ZEdWaFkyaGxja0J6WTJodmIyd3pMbU52YlE9PQ==",
+      "email_hash": "c66f480d5458f514966dd1a540e652d1c57850a11122a26b1760eb95d7833fa1",
+      "email_plain": "teacher@school3.com",
+      "first_name_enc": "ZmFrZV9lbmM6Ukc5amRHOXk=",
+      "first_name_hash": "be367a9fe2b4bf78b7f7bd98e888fac606cfafa10fc91f25745d4a60e167ba72",
+      "first_name_plain": "Doctor",
+      "last_name_enc": "ZmFrZV9lbmM6VDJOMGIzQjFjdz09",
+      "last_name_plain": "Octopus",
       "password": "pbkdf2_sha256$720000$Jp50WPBA6WZImUIpj3UcVm$OJWB8+UoW5lLaUkHLYo0cKgMkyRI6qnqVOWxYEsi9T0="
     }
   },

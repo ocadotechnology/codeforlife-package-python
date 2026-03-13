@@ -33,7 +33,7 @@ class TestUserViewSet(ModelViewSetTestCase[RequestUser, User]):
 
     def setUp(self):
         self.admin_school_teacher_user = AdminSchoolTeacherUser.objects.get(
-            email="admin.teacher@school1.com"
+            pk=24
         )
 
     # test: get queryset

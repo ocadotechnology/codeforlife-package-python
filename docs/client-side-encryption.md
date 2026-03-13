@@ -88,8 +88,9 @@ class User(DataEncryptionKeyModel):
     """
     associated_data = "user" # Required for EncryptedModel
 
-    username = models.CharField(max_length=150, unique=True)
     email = EncryptedTextField(associated_data="email")
+    first_name = models.CharField(max_length=150)
+    last_name = models.CharField(max_length=150)
 
     class Meta:
         app_label = "auth"
@@ -99,8 +100,9 @@ class User(DataEncryptionKeyModel):
 # Create a new user. A new DEK is automatically generated and stored in the
 # 'dek' field. The 'email' field is encrypted using this key.
 user = User.objects.create(
-    username="johndoe",
-    email="john.doe@example.com"
+    email="john.doe@example.com",
+    first_name="John",
+    last_name="Doe",
 )
 
 # The 'dek' and 'email' fields are stored as encrypted bytes in the database.

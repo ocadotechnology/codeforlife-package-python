@@ -10,7 +10,11 @@ from uuid import uuid4
 from django.core.validators import MaxLengthValidator, MinLengthValidator
 from django.db import models
 from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
 
+from ...hashers import hash_credential
+from ...models import EncryptedModel
+from ...models.fields import EncryptedTextField
 from ...types import Validators
 from ...validators import (
     UnicodeAlphanumericCharSetValidator,
@@ -22,7 +26,7 @@ if t.TYPE_CHECKING:  # pragma: no cover
 
     from django_stubs_ext.db.models import TypedModelMeta
 
-    from .teacher import Teacher
+    from .teacher import SchoolTeacher, Teacher
 else:
     TypedModelMeta = object
 
@@ -41,7 +45,7 @@ class_name_validators: Validators = [
 ]
 
 
-class ClassModelManager(models.Manager):
+class ClassModelManager(EncryptedModel.Manager["Class"]):
     """Manager for Class model."""
 
     def get_original_queryset(self):
@@ -53,23 +57,80 @@ class ClassModelManager(models.Manager):
         return super().get_queryset().filter(is_active=True)
 
 
-class Class(models.Model):
+class Class(EncryptedModel):
     """A class."""
 
-    name = models.CharField(max_length=200)
+    associated_data = "class"
 
-    teacher: "Teacher"
+    # --------------------------------------------------------------------------
+    # Name
+    # --------------------------------------------------------------------------
+
+    name_plain: str
+    name_plain = models.CharField(max_length=200)  # type: ignore[assignment]
+    name_enc = EncryptedTextField(
+        associated_data="name",
+        null=True,
+        verbose_name=_("name"),
+    )
+
+    @property
+    def name(self):
+        """Get the name of the class."""
+        if self.name_enc is not None:
+            return self.name_enc
+        return self.name_plain
+
+    @name.setter
+    def name(self, value: str):
+        """Set the name of the class."""
+        self.name_plain = value
+        self.name_enc = value
+
+    # --------------------------------------------------------------------------
+
+    teacher: "SchoolTeacher"
     teacher = models.ForeignKey(  # type: ignore[assignment]
         "user.Teacher",
         related_name="class_teacher",
         on_delete=models.CASCADE,
     )
 
-    access_code: t.Optional[str]
-    access_code = models.CharField(  # type: ignore[assignment]
+    # --------------------------------------------------------------------------
+    # Access code
+    # --------------------------------------------------------------------------
+
+    access_code_hash = models.CharField(
+        _("access code hash"), max_length=64, editable=False, null=True
+    )
+    access_code_plain: t.Optional[str]
+    access_code_plain = models.CharField(  # type: ignore[assignment]
         max_length=5,
         null=True,
     )
+    access_code_enc = EncryptedTextField(
+        associated_data="access_code",
+        null=True,
+        verbose_name=_("access code"),
+    )
+
+    @property
+    def access_code(self):
+        """Get the access code for the class."""
+        if self.access_code_enc is not None:
+            return self.access_code_enc
+        return self.access_code_plain
+
+    @access_code.setter
+    def access_code(self, value: t.Optional[str]):
+        """Set the access code for the class."""
+        self.access_code_plain = value
+        self.access_code_enc = value
+        self.access_code_hash = (
+            value if value is None else hash_credential(value)
+        )
+
+    # --------------------------------------------------------------------------
 
     classmates_data_viewable: bool
     classmates_data_viewable = models.BooleanField(  # type: ignore[assignment]
@@ -103,7 +164,7 @@ class Class(models.Model):
         on_delete=models.SET_NULL,
     )
 
-    objects = ClassModelManager()
+    objects: ClassModelManager = ClassModelManager()  # type: ignore[assignment]
 
     def __str__(self):
         return self.name
@@ -150,3 +211,7 @@ class Class(models.Model):
 
     class Meta(TypedModelMeta):
         verbose_name_plural = "classes"
+
+    @property
+    def dek_aead(self):
+        return self.teacher.school.dek_aead

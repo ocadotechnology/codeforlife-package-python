@@ -25,9 +25,12 @@ from django.core.exceptions import ValidationError
 from django.db.models import BinaryField
 from django.utils.translation import gettext_lazy as _
 
-from ...types import KwArgs
 from ..base_data_encryption_key import BaseDataEncryptionKeyModel
 from .deferred_attribute import DeferredAttribute
+
+if t.TYPE_CHECKING:  # pragma: no cover
+    from django_stubs_ext import StrOrPromise
+
 
 AnyDataEncryptionKeyField = t.TypeVar(
     "AnyDataEncryptionKeyField", bound="DataEncryptionKeyField"
@@ -54,7 +57,9 @@ class DataEncryptionKeyAttribute(
     def __set__(
         self,
         instance,
-        value: t.Optional[_TrustedDek],  # type: ignore[override]
+        value: t.Optional[  # type: ignore[override]
+            t.Union[memoryview, _TrustedDek]
+        ],
     ):
         # Clear any cached DEK AEAD.
         if instance.pk is not None and instance.pk in instance.DEK_AEAD_CACHE:
@@ -64,6 +69,16 @@ class DataEncryptionKeyAttribute(
             internal_value = value.dek
         elif value is None:  # Data is being shredded.
             internal_value = None
+        # When Django loads data from a fixture (e.g., a JSON file), it
+        # provides binary data as a `memoryview` object. Our descriptor
+        # handles this by extracting the raw bytes from the `memoryview`.
+        elif isinstance(value, memoryview):
+            if not isinstance(value.obj, bytes):
+                raise ValidationError(
+                    "Expected bytes in memoryview for encrypted field.",
+                    code="invalid_memoryview_type",
+                )
+            internal_value = value.obj
         else:
             raise ValidationError(
                 "DataEncryptionKeyField can only be set to None.",
@@ -86,19 +101,18 @@ class DataEncryptionKeyField(BinaryField):
     # Construction & Deconstruction
     # --------------------------------------------------------------------------
 
-    default_verbose_name = "data encryption key"
-    default_help_text = (
-        "The encrypted data encryption key (DEK) for this model."
-    )
-
-    def set_init_kwargs(self, kwargs: KwArgs):
-        """Sets common init kwargs."""
-        kwargs["editable"] = False  # DEK should not be editable in admin forms
-        kwargs["null"] = True  # Allow null for data shredding
-        kwargs.setdefault("verbose_name", _(self.default_verbose_name))
-        kwargs.setdefault("help_text", _(self.default_help_text))
-
-    def __init__(self, **kwargs):
+    def __init__(
+        self,
+        # DEK should not be editable in admin forms.
+        editable: t.Literal[False] = False,
+        # Allow null for data shredding.
+        null: t.Literal[True] = True,
+        verbose_name: t.Optional["StrOrPromise"] = _("data encryption key"),
+        help_text: "StrOrPromise" = _(
+            "The encrypted data encryption key (DEK) for this model."
+        ),
+        **kwargs,
+    ):
         if kwargs.get("editable", False):
             raise ValidationError(
                 "DataEncryptionKeyField cannot be editable.",
@@ -116,13 +130,13 @@ class DataEncryptionKeyField(BinaryField):
                 code="null_not_allowed",
             )
 
-        self.set_init_kwargs(kwargs)
-        super().__init__(**kwargs)
-
-    def deconstruct(self):
-        name, path, args, kwargs = super().deconstruct()
-        self.set_init_kwargs(kwargs)
-        return name, path, args, kwargs
+        super().__init__(
+            **kwargs,
+            editable=editable,
+            null=null,
+            verbose_name=verbose_name,
+            help_text=help_text,
+        )
 
     # --------------------------------------------------------------------------
     # Django Model Field Integration
@@ -131,8 +145,12 @@ class DataEncryptionKeyField(BinaryField):
     def contribute_to_class(self, cls, name, private_only=False):
         super().contribute_to_class(cls, name, private_only)
 
-        # Skip fake models used for migrations.
-        if cls.__module__ == "__fake__":
+        # Skip fake (used for migrations), abstract and proxy models.
+        if (
+            cls.__module__ == "__fake__"
+            or cls._meta.abstract
+            or cls._meta.proxy
+        ):
             return
 
         # Ensure the model subclasses BaseDataEncryptionKeyModel.

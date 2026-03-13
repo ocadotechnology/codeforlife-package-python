@@ -12,6 +12,10 @@ from uuid import uuid4
 
 from django.db import models
 from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
+
+from ...models import EncryptedModel
+from ...models.fields import EncryptedTextField
 
 if t.TYPE_CHECKING:  # pragma: no cover
     from datetime import datetime
@@ -198,7 +202,9 @@ class DailyActivity(models.Model):
         return f"Activity on {self.date}: CSV clicks: {self.csv_click_count}, login cards clicks: {self.login_cards_click_count}, primary pack downloads: {self.primary_coding_club_downloads}, python pack downloads: {self.python_coding_club_downloads}, level control submits: {self.level_control_submits}, teacher lockout resets: {self.teacher_lockout_resets}, indy lockout resets: {self.indy_lockout_resets}, school student lockout resets: {self.school_student_lockout_resets}, unverified teachers anonymised: {self.anonymised_unverified_teachers}, unverified independents anonymised: {self.anonymised_unverified_independents}"
 
 
-class SchoolTeacherInvitationModelManager(models.Manager):
+class SchoolTeacherInvitationModelManager(
+    EncryptedModel.Manager["SchoolTeacherInvitation"]
+):
     """
     A custom model manager for the SchoolTeacherInvitation model to filter out
     inactive invitations by default.
@@ -218,7 +224,7 @@ class SchoolTeacherInvitationModelManager(models.Manager):
         return super().get_queryset().filter(is_active=True)
 
 
-class SchoolTeacherInvitation(models.Model):
+class SchoolTeacherInvitation(EncryptedModel):
     """
     A model to track invitations for teachers to join a school. This is meant to
     be used when a teacher invites another teacher to join their school, and the
@@ -226,8 +232,34 @@ class SchoolTeacherInvitation(models.Model):
     the invitation, or the invitation expires.
     """
 
-    token: str
-    token = models.CharField(max_length=88)  # type: ignore[assignment]
+    associated_data = "school_teacher_invitation"
+
+    # --------------------------------------------------------------------------
+    # Token
+    # --------------------------------------------------------------------------
+
+    token_plain: str
+    token_plain = models.CharField(max_length=88)  # type: ignore[assignment]
+    token_enc = EncryptedTextField(
+        associated_data="token",
+        null=True,
+        verbose_name=_("token"),
+    )
+
+    @property
+    def token(self):
+        """Get the decrypted token value."""
+        if self.token_enc is not None:
+            return self.token_enc
+        return self.token_plain
+
+    @token.setter
+    def token(self, value: str):
+        """Sets the token value."""
+        self.token_plain = value
+        self.token_enc = value
+
+    # --------------------------------------------------------------------------
 
     school: t.Optional["School"]
     school = models.ForeignKey(  # type: ignore[assignment]
@@ -245,21 +277,89 @@ class SchoolTeacherInvitation(models.Model):
         on_delete=models.SET_NULL,
     )
 
-    invited_teacher_first_name: str
-    invited_teacher_first_name = models.CharField(  # type: ignore[assignment]
-        max_length=150
-    )  # Same as User model
+    # --------------------------------------------------------------------------
+    # First name
+    # --------------------------------------------------------------------------
 
-    invited_teacher_last_name: str
-    invited_teacher_last_name = models.CharField(  # type: ignore[assignment]
+    invited_teacher_first_name_plain: str
+    invited_teacher_first_name_plain = models.CharField(  # type: ignore[assignment]
         max_length=150
     )  # Same as User model
+    invited_teacher_first_name_enc = EncryptedTextField(
+        associated_data="invited_teacher_first_name",
+        null=True,
+        verbose_name=_("invited teacher first name"),
+    )
+
+    @property
+    def invited_teacher_first_name(self):
+        """Get the decrypted invited teacher first name value."""
+        if self.invited_teacher_first_name_enc is not None:
+            return self.invited_teacher_first_name_enc
+        return self.invited_teacher_first_name_plain
+
+    @invited_teacher_first_name.setter
+    def invited_teacher_first_name(self, value: str):
+        """Sets the invited teacher first name value."""
+        self.invited_teacher_first_name_plain = value
+        self.invited_teacher_first_name_enc = value
+
+    # --------------------------------------------------------------------------
+    # Last name
+    # --------------------------------------------------------------------------
+
+    invited_teacher_last_name_plain: str
+    invited_teacher_last_name_plain = models.CharField(  # type: ignore[assignment]
+        max_length=150
+    )  # Same as User model
+    invited_teacher_last_name_enc = EncryptedTextField(
+        associated_data="invited_teacher_last_name",
+        null=True,
+        verbose_name=_("invited teacher last name"),
+    )
+
+    @property
+    def invited_teacher_last_name(self):
+        """Get the decrypted invited teacher last name value."""
+        if self.invited_teacher_last_name_enc is not None:
+            return self.invited_teacher_last_name_enc
+        return self.invited_teacher_last_name_plain
+
+    @invited_teacher_last_name.setter
+    def invited_teacher_last_name(self, value: str):
+        """Sets the invited teacher last name value."""
+        self.invited_teacher_last_name_plain = value
+        self.invited_teacher_last_name_enc = value
+
+    # --------------------------------------------------------------------------
+    # Email
+    # --------------------------------------------------------------------------
 
     # TODO: Switch to a CharField to be able to hold hashed value
-    invited_teacher_email: str
-    invited_teacher_email = (
+    invited_teacher_email_plain: str
+    invited_teacher_email_plain = (
         models.EmailField()  # type: ignore[assignment]
     )  # Same as User model
+    invited_teacher_email_enc = EncryptedTextField(
+        associated_data="invited_teacher_email",
+        null=True,
+        verbose_name=_("invited teacher email"),
+    )
+
+    @property
+    def invited_teacher_email(self):
+        """Get the decrypted invited teacher email value."""
+        if self.invited_teacher_email_enc is not None:
+            return self.invited_teacher_email_enc
+        return self.invited_teacher_email_plain
+
+    @invited_teacher_email.setter
+    def invited_teacher_email(self, value: str):
+        """Sets the invited teacher email value."""
+        self.invited_teacher_email_plain = value
+        self.invited_teacher_email_enc = value
+
+    # --------------------------------------------------------------------------
 
     invited_teacher_is_admin: bool
     invited_teacher_is_admin = models.BooleanField(  # type: ignore[assignment]
@@ -279,7 +379,9 @@ class SchoolTeacherInvitation(models.Model):
     is_active = models.BooleanField(default=True)  # type: ignore[assignment]
     # pylint: enable=duplicate-code
 
-    objects = SchoolTeacherInvitationModelManager()
+    objects: SchoolTeacherInvitationModelManager = (
+        SchoolTeacherInvitationModelManager()  # type: ignore[assignment]
+    )
 
     @property
     def is_expired(self):
@@ -300,3 +402,10 @@ class SchoolTeacherInvitation(models.Model):
         self.invited_teacher_email = uuid4().hex
         self.is_active = False
         self.save()
+
+    @property
+    def dek_aead(self):
+        if self.school:
+            return self.school.dek_aead
+
+        raise KeyError("Data Encryption Key (DEK) not found.")

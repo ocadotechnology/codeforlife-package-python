@@ -3,10 +3,15 @@
     "model": "user.user",
     "pk": 22,
     "fields": {
-      "first_name": "John",
-      "last_name": "Doe",
-      "username": "teacher@noschool.com",
-      "email": "teacher@noschool.com",
+      "dek": "ZmFrZV9lbmM6TkhGdE1EWlFOVkJ3VDFwTVVYWmlVRzlFYVdwU1JIUTVialZ0V1RoQ2NXYz0=",
+      "email_enc": "ZmFrZV9lbmM6ZEdWaFkyaGxja0J1YjNOamFHOXZiQzVqYjIwPQ==",
+      "email_hash": "7cc99dd2f335a068ac421d2cec8f04687fa34d37d313718f56ebc6b6c3c09d2c",
+      "email_plain": "teacher@noschool.com",
+      "first_name_enc": "ZmFrZV9lbmM6U205b2JnPT0=",
+      "first_name_hash": "7554c6b4930e0ac2c4d7fb5e7e266797b0444953067a0d7a17e835b518229e84",
+      "first_name_plain": "John",
+      "last_name_enc": "ZmFrZV9lbmM6Ukc5bA==",
+      "last_name_plain": "Doe",
       "password": "pbkdf2_sha256$720000$Jp50WPBA6WZImUIpj3UcVm$OJWB8+UoW5lLaUkHLYo0cKgMkyRI6qnqVOWxYEsi9T0="
     }
   },
@@ -30,10 +35,15 @@
     "model": "user.user",
     "pk": 33,
     "fields": {
-      "first_name": "Unverified",
-      "last_name": "Teacher",
-      "username": "unverified.teacher@noschool.com",
-      "email": "unverified.teacher@noschool.com",
+      "dek": "ZmFrZV9lbmM6UVhac01Ea3dibmQxYzBkRFdVbGFRMDR4VEZkelRVWklUbHA1VVZsU1RXOD0=",
+      "email_enc": "ZmFrZV9lbmM6ZFc1MlpYSnBabWxsWkM1MFpXRmphR1Z5UUc1dmMyTm9iMjlzTG1OdmJRPT0=",
+      "email_hash": "7f34bbe92504e0ca5c2235f2f64bf2686a7d040690a45948074247cad2eb5c71",
+      "email_plain": "unverified.teacher@noschool.com",
+      "first_name_enc": "ZmFrZV9lbmM6Vlc1MlpYSnBabWxsWkE9PQ==",
+      "first_name_hash": "47c086ea8af2fcd653408088d2d3809d3d46fd2698755a4a208d5fb78ebc205b",
+      "first_name_plain": "Unverified",
+      "last_name_enc": "ZmFrZV9lbmM6VkdWaFkyaGxjZz09",
+      "last_name_plain": "Teacher",
       "password": "pbkdf2_sha256$720000$Jp50WPBA6WZImUIpj3UcVm$OJWB8+UoW5lLaUkHLYo0cKgMkyRI6qnqVOWxYEsi9T0="
     }
   },
