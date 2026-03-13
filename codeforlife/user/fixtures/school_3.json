@@ -14,9 +14,13 @@
     "pk": 31,
     "fields": {
       "dek": "ZmFrZV9lbmM6ZGxKVE4xTm5jRGhKT1ZWVVdqWlpPVUpDUm14V1EycDRNbkYxZUc1aVExbz0=",
-      "first_name_plain": "Peter",
-      "last_name_plain": "Parker",
+      "email_enc": "ZmFrZV9lbmM6WVdSdGFXNHVkR1ZoWTJobGNrQnpZMmh2YjJ3ekxtTnZiUT09",
+      "email_hash": "22a604d4828ae8429e8303d16c7d9967145b214b827a8ff1845b19e2a10b12c3",
       "email_plain": "admin.teacher@school3.com",
+      "first_name_enc": "ZmFrZV9lbmM6VUdWMFpYST0=",
+      "first_name_plain": "Peter",
+      "last_name_enc": "ZmFrZV9lbmM6VUdGeWEyVnk=",
+      "last_name_plain": "Parker",
       "password": "pbkdf2_sha256$720000$Jp50WPBA6WZImUIpj3UcVm$OJWB8+UoW5lLaUkHLYo0cKgMkyRI6qnqVOWxYEsi9T0="
     }
   },
@@ -43,9 +47,13 @@
     "pk": 32,
     "fields": {
       "dek": "ZmFrZV9lbmM6VjA5cGVVcG1SR1pRTkdoNVptUXhOR1Z0ZEVOblVtUmtjRWhJUlZob01Faz0=",
-      "first_name_plain": "Doctor",
-      "last_name_plain": "Octopus",
+      "email_enc": "ZmFrZV9lbmM6ZEdWaFkyaGxja0J6WTJodmIyd3pMbU52YlE9PQ==",
+      "email_hash": "c66f480d5458f514966dd1a540e652d1c57850a11122a26b1760eb95d7833fa1",
       "email_plain": "teacher@school3.com",
+      "first_name_enc": "ZmFrZV9lbmM6Ukc5amRHOXk=",
+      "first_name_plain": "Doctor",
+      "last_name_enc": "ZmFrZV9lbmM6VDJOMGIzQjFjdz09",
+      "last_name_plain": "Octopus",
       "password": "pbkdf2_sha256$720000$Jp50WPBA6WZImUIpj3UcVm$OJWB8+UoW5lLaUkHLYo0cKgMkyRI6qnqVOWxYEsi9T0="
     }
   },

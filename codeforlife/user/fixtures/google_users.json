@@ -4,9 +4,13 @@
     "pk": 34,
     "fields": {
       "dek": "ZmFrZV9lbmM6YlVkTE4xSndaRlZTTW5kc1NqQkJXa1ZxU2xKV2NWTk9WbFJ6YzFjMmVHVT0=",
-      "first_name_plain": "Google",
-      "last_name_plain": "Teacher",
+      "email_enc": "ZmFrZV9lbmM6WjI5dloyeGxMblJsWVdOb1pYSkFibTl6WTJodmIyd3VZMjl0",
+      "email_hash": "ee95f43c0012fa1a9d5771313a7034cf94af568b0588b34ca20c34c25701af78",
       "email_plain": "google.teacher@noschool.com",
+      "first_name_enc": "ZmFrZV9lbmM6UjI5dloyeGw=",
+      "first_name_plain": "Google",
+      "last_name_enc": "ZmFrZV9lbmM6VkdWaFkyaGxjZz09",
+      "last_name_plain": "Teacher",
       "password": "pbkdf2_sha256$720000$Jp50WPBA6WZImUIpj3UcVm$OJWB8+UoW5lLaUkHLYo0cKgMkyRI6qnqVOWxYEsi9T0="
     }
   },

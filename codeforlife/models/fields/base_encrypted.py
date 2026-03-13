@@ -61,6 +61,7 @@ from ..encrypted import EncryptedModel
 from .deferred_attribute import DeferredAttribute
 
 T = t.TypeVar("T")
+Ciphertext: t.TypeAlias = t.Union[bytes, memoryview]
 
 
 @dataclass(frozen=True)
@@ -80,7 +81,7 @@ class _TrustedCiphertext:
         DB = auto()
         FIXTURE = auto()
 
-    ciphertext: bytes
+    ciphertext: Ciphertext
     source: Source
 
 
@@ -127,9 +128,16 @@ class EncryptedAttribute(
                     T, instance.__decrypted_values__[self.field.attname]
                 )
 
+            # Extract the raw bytes from the ciphertext.
+            ciphertext = (
+                internal_value.ciphertext
+                if isinstance(internal_value.ciphertext, bytes)
+                else bytes(internal_value.ciphertext)
+            )
+
             # Decrypt the value before returning it.
             decrypted_value = t.cast(
-                T, self.field.decrypt_value(instance, internal_value.ciphertext)
+                T, self.field.decrypt_value(instance, ciphertext)
             )
 
             # Cache the decrypted value on the instance.
@@ -166,7 +174,7 @@ class EncryptedAttribute(
                     code="invalid_memoryview_type",
                 )
             internal_value = _TrustedCiphertext(
-                value.obj, _TrustedCiphertext.Source.FIXTURE
+                value, _TrustedCiphertext.Source.FIXTURE
             )
         elif isinstance(value, _TrustedCiphertext):  # From DB.
             internal_value = value
@@ -278,8 +286,7 @@ class BaseEncryptedField(BinaryField, t.Generic[T]):
     # Set the internal value when assigned on an instance.
     def __set__(self, instance: EncryptedModel, value: t.Optional[T]): ...
 
-    # pylint: disable-next=unused-argument
-    def from_db_value(self, value: t.Optional[bytes], expression, connection):
+    def from_db_value(self, value: t.Optional[Ciphertext], _, __):
         """
         Converts a value as returned by the database to a Python object.
         We wrap the raw bytes in _TrustedCiphertext to signal that this is
