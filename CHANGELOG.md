@@ -1,6 +1,23 @@
 # CHANGELOG
 
 
+## v0.32.4 (2026-03-14)
+
+### Bug Fixes
+
+- Mypy
+  ([`a96d614`](https://github.com/ocadotechnology/codeforlife-package-python/commit/a96d6149fe59fb83c39f9b57e8990afaf886e471))
+
+- Pylint
+  ([`1352820`](https://github.com/ocadotechnology/codeforlife-package-python/commit/1352820c8d7f5c781d5a975fdd2d89900f28ad7f))
+
+- Pylint
+  ([`e64bbf7`](https://github.com/ocadotechnology/codeforlife-package-python/commit/e64bbf72f0453110336a4900b3f06f8b1cde09eb))
+
+- Upgrade to pyjwt 2.12.1
+  ([`a8c8bb7`](https://github.com/ocadotechnology/codeforlife-package-python/commit/a8c8bb7355601bc30acc24f2ef1d7e0cfb5ebbeb))
+
+
 ## v0.32.3 (2026-03-04)
 
 ### Bug Fixes
