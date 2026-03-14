@@ -95,6 +95,7 @@ class AuthHeaderIsGitHubOidcToken(BasePermission):
                 algorithms=["RS256", "RS384", "RS512"],
                 audience=settings.SERVICE_DOMAIN,
                 issuer=self.issuer,
+                # pylint: disable-next: line-too-long
                 options={"require_exp": True, "verify_signature": True},  # type: ignore[arg-type]
             )
 
