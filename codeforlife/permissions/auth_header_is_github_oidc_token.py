@@ -91,11 +91,11 @@ class AuthHeaderIsGitHubOidcToken(BasePermission):
 
             return jwt.decode(
                 token,
-                key=RSAAlgorithm.from_jwk(jwk),
+                key=RSAAlgorithm.from_jwk(jwk),  # type: ignore[arg-type]
                 algorithms=["RS256", "RS384", "RS512"],
                 audience=settings.SERVICE_DOMAIN,
                 issuer=self.issuer,
-                options={"require_exp": True, "verify_signature": True},
+                options={"require_exp": True, "verify_signature": True},  # type: ignore[arg-type]
             )
 
         except jwt.exceptions.ExpiredSignatureError:
