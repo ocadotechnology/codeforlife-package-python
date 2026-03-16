@@ -9,6 +9,7 @@ from uuid import uuid4
 
 from django.core.validators import MaxLengthValidator, MinLengthValidator
 from django.db import models
+from django.db.models.query import QuerySet
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
@@ -26,6 +27,7 @@ if t.TYPE_CHECKING:  # pragma: no cover
 
     from django_stubs_ext.db.models import TypedModelMeta
 
+    from .student import Student
     from .teacher import SchoolTeacher, Teacher
 else:
     TypedModelMeta = object
@@ -57,8 +59,11 @@ class ClassModelManager(EncryptedModel.Manager["Class"]):
         return super().get_queryset().filter(is_active=True)
 
 
+# pylint: disable-next=too-many-instance-attributes
 class Class(EncryptedModel):
     """A class."""
+
+    students: QuerySet["Student"]
 
     associated_data = "class"
 

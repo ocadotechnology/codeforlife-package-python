@@ -84,8 +84,8 @@ class FakeEncryptedField(BaseEncryptedField[str]):
     def _bytes_to_value(data: bytes):
         return data.decode()
 
-    def __init__(self, associated_data, default=None, **kwargs):
-        super().__init__(associated_data, default, **kwargs)
+    def __init__(self, associated_data, **kwargs):
+        super().__init__(associated_data, **kwargs)
 
         self.value_to_bytes = MagicMock(side_effect=self._value_to_bytes)
         self.bytes_to_value = MagicMock(side_effect=self._bytes_to_value)
@@ -148,14 +148,12 @@ class TestBaseEncryptedField(TestCase):
     def test_init(self):
         """BaseEncryptedField is constructed correctly."""
         assert self.field.associated_data == self.field_associated_data
-        assert self.field.db_column == self.field_associated_data
 
     def test_deconstruct(self):
         """BaseEncryptedField is deconstructed correctly."""
         _, _, _, kwargs = self.field.deconstruct()
 
         assert kwargs["associated_data"] == self.field_associated_data
-        assert kwargs["db_column"] == self.field_associated_data
 
     # --------------------------------------------------------------------------
     # Django Model Field Integration Tests
@@ -318,7 +316,9 @@ class TestBaseEncryptedField(TestCase):
 
     def test_set__trusted_ciphertext(self):
         """Setting field to _TrustedCiphertext stores ciphertext directly."""
-        trusted_ciphertext = _TrustedCiphertext(b"encrypted_value")
+        trusted_ciphertext = _TrustedCiphertext(
+            b"encrypted_value", _TrustedCiphertext.Source.DB
+        )
         instance = self._get_model_instance(field=trusted_ciphertext)
         assert instance.get_stored_value(self.field) is trusted_ciphertext
 
@@ -381,7 +381,10 @@ class TestBaseEncryptedField(TestCase):
     def test_get__cached(self):
         """Getting field when cached returns cached value."""
         instance = self._get_model_instance()
-        instance.set_stored_value(self.field, _TrustedCiphertext(b"irrelevant"))
+        instance.set_stored_value(
+            self.field,
+            _TrustedCiphertext(b"irrelevant", _TrustedCiphertext.Source.DB),
+        )
 
         value = "decrypted_value"
         instance.__decrypted_values__[self.field.attname] = value
@@ -414,7 +417,10 @@ class TestBaseEncryptedField(TestCase):
 
         # Create instance with stored ciphertext.
         instance = self._get_model_instance()
-        instance.set_stored_value(self.field, _TrustedCiphertext(ciphertext))
+        instance.set_stored_value(
+            self.field,
+            _TrustedCiphertext(ciphertext, _TrustedCiphertext.Source.DB),
+        )
         # Ensure cache is not set initially.
         assert self.field.attname not in instance.__decrypted_values__
 
@@ -478,7 +484,9 @@ class TestBaseEncryptedField(TestCase):
         """pre_save with trusted ciphertext does nothing."""
         # Create instance with trusted ciphertext.
         ciphertext = b"encrypted_value"
-        trusted_ciphertext = _TrustedCiphertext(ciphertext)
+        trusted_ciphertext = _TrustedCiphertext(
+            ciphertext, _TrustedCiphertext.Source.DB
+        )
         instance = self._get_model_instance(field=trusted_ciphertext)
 
         # Assert pre_save returns the ciphertext directly.

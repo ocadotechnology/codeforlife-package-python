@@ -25,6 +25,7 @@ from django.core.exceptions import ValidationError
 from django.db.models import BinaryField
 from django.utils.translation import gettext_lazy as _
 
+from ...encryption import FakeAead
 from ..base_data_encryption_key import BaseDataEncryptionKeyModel
 from .deferred_attribute import DeferredAttribute
 
@@ -73,12 +74,13 @@ class DataEncryptionKeyAttribute(
         # provides binary data as a `memoryview` object. Our descriptor
         # handles this by extracting the raw bytes from the `memoryview`.
         elif isinstance(value, memoryview):
-            if not isinstance(value.obj, bytes):
+            internal_value = bytes(value)
+            if not internal_value.startswith(FakeAead.ciphertext_prefix):
                 raise ValidationError(
-                    "Expected bytes in memoryview for encrypted field.",
-                    code="invalid_memoryview_type",
+                    "Memoryview is expected to start with the fake ciphertext "
+                    "prefix.",
+                    code="memoryview_invalid_prefix",
                 )
-            internal_value = value.obj
         else:
             raise ValidationError(
                 "DataEncryptionKeyField can only be set to None.",
@@ -101,19 +103,22 @@ class DataEncryptionKeyField(BinaryField):
     # Construction & Deconstruction
     # --------------------------------------------------------------------------
 
+    default_verbose_name = "data encryption key"
+    default_help_text = (
+        "The encrypted data encryption key (DEK) for this model."
+    )
+
     def __init__(
         self,
         # DEK should not be editable in admin forms.
         editable: t.Literal[False] = False,
         # Allow null for data shredding.
         null: t.Literal[True] = True,
-        verbose_name: t.Optional["StrOrPromise"] = _("data encryption key"),
-        help_text: "StrOrPromise" = _(
-            "The encrypted data encryption key (DEK) for this model."
-        ),
+        verbose_name: t.Optional["StrOrPromise"] = _(default_verbose_name),
+        help_text: "StrOrPromise" = _(default_help_text),
         **kwargs,
     ):
-        if kwargs.get("editable", False):
+        if editable:
             raise ValidationError(
                 "DataEncryptionKeyField cannot be editable.",
                 code="editable_not_allowed",
@@ -123,7 +128,7 @@ class DataEncryptionKeyField(BinaryField):
                 "DataEncryptionKeyField cannot have a default value.",
                 code="default_not_allowed",
             )
-        if not kwargs.get("null", True):
+        if not null:
             raise ValidationError(
                 "DataEncryptionKeyField must allow null to support data"
                 " shredding.",

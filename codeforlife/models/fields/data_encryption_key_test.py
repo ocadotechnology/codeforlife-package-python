@@ -93,7 +93,6 @@ class TestDataEncryptionKeyField(TestCase):
         """DataEncryptionKeyField is deconstructed correctly."""
         _, _, _, kwargs = self.field.deconstruct()
 
-        assert kwargs["editable"] is False
         assert kwargs["null"] is True
         assert (
             kwargs["verbose_name"]
