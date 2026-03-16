@@ -3,10 +3,11 @@
     "model": "user.school",
     "pk": 4,
     "fields": {
-      "dek": "ZmFrZV9lbmM6Vm1ORlNIbENURmRyZEdOR1VGaHFOMFZIVFhkRE1IQjVNR1oyTkdkVFNIRT0=",
-      "name_plain": "School 3",
       "country": "GB",
-      "county": "Hertfordshire"
+      "county": "Hertfordshire",
+      "dek": "ZmFrZV9lbmM6Vm1ORlNIbENURmRyZEdOR1VGaHFOMFZIVFhkRE1IQjVNR1oyTkdkVFNIRT0=",
+      "name_enc": "ZmFrZV9lbmM6VTJOb2IyOXNJRE09",
+      "name_plain": "School 3"
     }
   },
   {

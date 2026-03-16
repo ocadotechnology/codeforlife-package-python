@@ -3,10 +3,11 @@
     "model": "user.school",
     "pk": 2,
     "fields": {
-      "dek": "ZmFrZV9lbmM6V1cxTVdtMXFibTgyVlhadGVFTlRla1p2ZDBOM2QzVnVSMEZ3WkdGeVpsQT0=",
-      "name_plain": "School 1",
       "country": "GB",
-      "county": "Hertfordshire"
+      "county": "Hertfordshire",
+      "dek": "ZmFrZV9lbmM6V1cxTVdtMXFibTgyVlhadGVFTlRla1p2ZDBOM2QzVnVSMEZ3WkdGeVpsQT0=",
+      "name_enc": "ZmFrZV9lbmM6VTJOb2IyOXNJREU9",
+      "name_plain": "School 1"
     }
   },
   {
@@ -47,8 +48,10 @@
     "pk": 6,
     "fields": {
       "accept_requests_until": "9999-02-09 20:26:08.298402+00:00",
+      "access_code_enc": "ZmFrZV9lbmM6V2xveE1URT0=",
       "access_code_hash": "ca366870cf5e795a3c9ff340f119df2ff646128cf164d992b0167bbca8c247eb",
       "access_code_plain": "ZZ111",
+      "name_enc": "ZmFrZV9lbmM6UTJ4aGMzTWdNU0JBSUZOamFHOXZiQ0F4",
       "name_plain": "Class 1 @ School 1",
       "teacher": 6
     }
@@ -119,8 +122,10 @@
     "model": "user.class",
     "pk": 7,
     "fields": {
+      "access_code_enc": "ZmFrZV9lbmM6V2xveU1qST0=",
       "access_code_hash": "e90c6683965279b92914a9e2b18716f0bc826c0dccb5976130562ff88cbd7f01",
       "access_code_plain": "ZZ222",
+      "name_enc": "ZmFrZV9lbmM6UTJ4aGMzTWdNaUJBSUZOamFHOXZiQ0F4",
       "name_plain": "Class 2 @ School 1",
       "teacher": 7
     }
@@ -158,8 +163,10 @@
     "pk": 10,
     "fields": {
       "accept_requests_until": "2023-02-09 20:26:08.298402+00:00",
+      "access_code_enc": "ZmFrZV9lbmM6V2xvek16TT0=",
       "access_code_hash": "3e3b96d4c7775a2c8d15999f6d662b164ccf3d66b8df93329bd5e426251d8cdb",
       "access_code_plain": "ZZ333",
+      "name_enc": "ZmFrZV9lbmM6UTJ4aGMzTWdNeUJBSUZOamFHOXZiQ0F4",
       "name_plain": "Class 3 @ School 1",
       "teacher": 7
     }

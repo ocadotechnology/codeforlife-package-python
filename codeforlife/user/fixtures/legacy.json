@@ -234,12 +234,13 @@
     "model": "user.school",
     "pk": 1,
     "fields": {
-      "dek": "ZmFrZV9lbmM6VHpkNWFFZzVaVUozVEdNM1MyRkJXV042YUVkcVUwWnZWVzV4YWtaaVNFbz0=",
-      "name_plain": "Swiss Federal Polytechnic",
       "country": "GB",
       "county": "nan",
       "creation_time": null,
-      "is_active": true
+      "dek": "ZmFrZV9lbmM6VHpkNWFFZzVaVUozVEdNM1MyRkJXV042YUVkcVUwWnZWVzV4YWtaaVNFbz0=",
+      "is_active": true,
+      "name_enc": "ZmFrZV9lbmM6VTNkcGMzTWdSbVZrWlhKaGJDQlFiMng1ZEdWamFHNXBZdz09",
+      "name_plain": "Swiss Federal Polytechnic"
     }
   },
   {
@@ -295,6 +296,7 @@
     "pk": 1,
     "fields": {
       "accept_requests_until": null,
+      "access_code_enc": "ZmFrZV9lbmM6UVVJeE1qTT0=",
       "access_code_hash": "7dcbfe80fd523896acdad8310fe14d804dad5ae7e4dc4975815f3d5ff76aa963",
       "access_code_plain": "AB123",
       "always_accept_requests": true,
@@ -302,6 +304,7 @@
       "created_by": null,
       "creation_time": null,
       "is_active": true,
+      "name_enc": "ZmFrZV9lbmM6UTJ4aGMzTWdNVEF4",
       "name_plain": "Class 101",
       "teacher": 1
     }
@@ -311,6 +314,7 @@
     "pk": 2,
     "fields": {
       "accept_requests_until": null,
+      "access_code_enc": "ZmFrZV9lbmM6UVVJeE1qUT0=",
       "access_code_hash": "ee16d5af3f31578ab0327da3257b212fe2beefcadef4f6b8ad6c992d153b90aa",
       "access_code_plain": "AB124",
       "always_accept_requests": true,
@@ -318,6 +322,7 @@
       "created_by": null,
       "creation_time": null,
       "is_active": true,
+      "name_enc": "ZmFrZV9lbmM6UTJ4aGMzTWdNVEF5",
       "name_plain": "Class 102",
       "teacher": 2
     }
@@ -327,6 +332,7 @@
     "pk": 3,
     "fields": {
       "accept_requests_until": null,
+      "access_code_enc": "ZmFrZV9lbmM6UVVJeE1qVT0=",
       "access_code_hash": "a895a482b72ec418311b8a9677bcf2c690425993f563f58d4a15b9586753b88b",
       "access_code_plain": "AB125",
       "always_accept_requests": true,
@@ -334,6 +340,7 @@
       "created_by": null,
       "creation_time": null,
       "is_active": true,
+      "name_enc": "ZmFrZV9lbmM6UTJ4aGMzTWdNVEF6",
       "name_plain": "Class 103",
       "teacher": 2
     }
@@ -343,6 +350,7 @@
     "pk": 4,
     "fields": {
       "accept_requests_until": null,
+      "access_code_enc": "ZmFrZV9lbmM6VWt3eE1qTT0=",
       "access_code_hash": "38045227bf3c575c643dc1b34a1e70669f35b90225495bbeba0a53ae5ba82c81",
       "access_code_plain": "RL123",
       "always_accept_requests": true,
@@ -350,6 +358,7 @@
       "created_by": null,
       "creation_time": null,
       "is_active": true,
+      "name_enc": "ZmFrZV9lbmM6V1c5MWJtY2dRMjlrWlhKeklERXdNUT09",
       "name_plain": "Young Coders 101",
       "teacher": 3
     }
@@ -359,6 +368,7 @@
     "pk": 5,
     "fields": {
       "accept_requests_until": null,
+      "access_code_enc": "ZmFrZV9lbmM6VUU4eE1qTT0=",
       "access_code_hash": "732f2cd0915bdea50771ce7c92a4e1b8ea83f6d3323b95dd07619e5ea7f0fd06",
       "access_code_plain": "PO123",
       "always_accept_requests": true,
@@ -366,6 +376,7 @@
       "created_by": null,
       "creation_time": null,
       "is_active": true,
+      "name_enc": "ZmFrZV9lbmM6VUc5eWRHRnNZV1J0YVc0bmN5QmpiR0Z6Y3c9PQ==",
       "name_plain": "Portaladmin's class",
       "teacher": 4
     }
