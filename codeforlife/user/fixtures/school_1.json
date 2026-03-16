@@ -16,10 +16,10 @@
     "fields": {
       "dek": "ZmFrZV9lbmM6U2tGVmEzZHhlVkF4VERKR1QwaGxPVWRTWkhkVE16WTBiREV3WjFkQlVHcz0=",
       "email_enc": "ZmFrZV9lbmM6ZEdWaFkyaGxja0J6WTJodmIyd3hMbU52YlE9PQ==",
-      "email_hash": "d23e2f365e919be1cf5e29a5472801d54bd75c6f360bce7c37674506bc63a9ce",
+      "email_hash": "teacher@school1.com",
       "email_plain": "teacher@school1.com",
       "first_name_enc": "ZmFrZV9lbmM6U205b2JnPT0=",
-      "first_name_hash": "7554c6b4930e0ac2c4d7fb5e7e266797b0444953067a0d7a17e835b518229e84",
+      "first_name_hash": "John",
       "first_name_plain": "John",
       "last_name_enc": "ZmFrZV9lbmM6Ukc5bA==",
       "last_name_plain": "Doe",
@@ -49,7 +49,7 @@
     "fields": {
       "accept_requests_until": "9999-02-09 20:26:08.298402+00:00",
       "access_code_enc": "ZmFrZV9lbmM6V2xveE1URT0=",
-      "access_code_hash": "ca366870cf5e795a3c9ff340f119df2ff646128cf164d992b0167bbca8c247eb",
+      "access_code_hash": "ZZ111",
       "access_code_plain": "ZZ111",
       "name_enc": "ZmFrZV9lbmM6UTJ4aGMzTWdNU0JBSUZOamFHOXZiQ0F4",
       "name_plain": "Class 1 @ School 1",
@@ -62,7 +62,7 @@
     "fields": {
       "dek": "ZmFrZV9lbmM6ZEc1aFZ6RkhVRTFNVFdaSWQzTlZXRmxRZFRsTFZIbE1kRWxSVGs1Q1FWQT0=",
       "first_name_enc": "ZmFrZV9lbmM6VTNSMVpHVnVkREU9",
-      "first_name_hash": "341d77ca3f20f1a3ddf8d9a06d076940c6e24b252a08c5dae066b43c2b236ed5",
+      "first_name_hash": "Student1",
       "first_name_plain": "Student1",
       "password": "pbkdf2_sha256$720000$Jp50WPBA6WZImUIpj3UcVm$OJWB8+UoW5lLaUkHLYo0cKgMkyRI6qnqVOWxYEsi9T0="
     }
@@ -90,10 +90,10 @@
     "fields": {
       "dek": "ZmFrZV9lbmM6YkVGQk1XVTBVWFJqTWpFelFVMWhTVE5EUWtWeVMzZGpjR1JNU2xSTVlrUT0=",
       "email_enc": "ZmFrZV9lbmM6WVdSdGFXNHVkR1ZoWTJobGNrQnpZMmh2YjJ3eExtTnZiUT09",
-      "email_hash": "01c1e0721b31cb0636da3f5b3dc1a107bdd44fd0185fa12dd87f6aad06c91a08",
+      "email_hash": "admin.teacher@school1.com",
       "email_plain": "admin.teacher@school1.com",
       "first_name_enc": "ZmFrZV9lbmM6U21GdVpRPT0=",
-      "first_name_hash": "a5945caf6491a22426f870debae98c823043af86691d336f95248daff7bb989a",
+      "first_name_hash": "Jane",
       "first_name_plain": "Jane",
       "last_name_enc": "ZmFrZV9lbmM6Ukc5bA==",
       "last_name_plain": "Doe",
@@ -123,7 +123,7 @@
     "pk": 7,
     "fields": {
       "access_code_enc": "ZmFrZV9lbmM6V2xveU1qST0=",
-      "access_code_hash": "e90c6683965279b92914a9e2b18716f0bc826c0dccb5976130562ff88cbd7f01",
+      "access_code_hash": "ZZ222",
       "access_code_plain": "ZZ222",
       "name_enc": "ZmFrZV9lbmM6UTJ4aGMzTWdNaUJBSUZOamFHOXZiQ0F4",
       "name_plain": "Class 2 @ School 1",
@@ -136,7 +136,7 @@
     "fields": {
       "dek": "ZmFrZV9lbmM6YXpWd1dGZEZOWHBXZEdnMFJWQlROWFZFV2s0eVRuVTBOVTlGZUdwNWJtND0=",
       "first_name_enc": "ZmFrZV9lbmM6VTNSMVpHVnVkREk9",
-      "first_name_hash": "f7ecf0b3ebd27342b1a6d30a6ef300b6dc23518fd5c83ca25cdc2b7135927cf8",
+      "first_name_hash": "Student2",
       "first_name_plain": "Student2",
       "password": "pbkdf2_sha256$720000$Jp50WPBA6WZImUIpj3UcVm$OJWB8+UoW5lLaUkHLYo0cKgMkyRI6qnqVOWxYEsi9T0="
     }
@@ -164,7 +164,7 @@
     "fields": {
       "accept_requests_until": "2023-02-09 20:26:08.298402+00:00",
       "access_code_enc": "ZmFrZV9lbmM6V2xvek16TT0=",
-      "access_code_hash": "3e3b96d4c7775a2c8d15999f6d662b164ccf3d66b8df93329bd5e426251d8cdb",
+      "access_code_hash": "ZZ333",
       "access_code_plain": "ZZ333",
       "name_enc": "ZmFrZV9lbmM6UTJ4aGMzTWdNeUJBSUZOamFHOXZiQ0F4",
       "name_plain": "Class 3 @ School 1",

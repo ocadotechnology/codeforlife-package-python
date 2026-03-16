@@ -16,10 +16,10 @@
     "fields": {
       "dek": "ZmFrZV9lbmM6UkhWQ1kwaHlOa2hqYzFSV1MxcE1SblkwYnpnMGRtNUxWMnRLV1dWMlRUYz0=",
       "email_enc": "ZmFrZV9lbmM6ZEdWaFkyaGxja0J6WTJodmIyd3lMbU52YlE9PQ==",
-      "email_hash": "8cdd687351ee31833adcb72d37e7b8f1c1c17c655c3fb182ac0127320af64284",
+      "email_hash": "teacher@school2.com",
       "email_plain": "teacher@school2.com",
       "first_name_enc": "ZmFrZV9lbmM6U205b2JnPT0=",
-      "first_name_hash": "7554c6b4930e0ac2c4d7fb5e7e266797b0444953067a0d7a17e835b518229e84",
+      "first_name_hash": "John",
       "first_name_plain": "John",
       "last_name_enc": "ZmFrZV9lbmM6Ukc5bA==",
       "last_name_plain": "Doe",
@@ -137,7 +137,7 @@
     "pk": 8,
     "fields": {
       "access_code_enc": "ZmFrZV9lbmM6V0ZneE1URT0=",
-      "access_code_hash": "0157477281b2aee7660889207dee1a14756bddd428162de41bada7a02c593ff6",
+      "access_code_hash": "XX111",
       "access_code_plain": "XX111",
       "name_enc": "ZmFrZV9lbmM6UTJ4aGMzTWdNU0JBSUZOamFHOXZiQ0F5",
       "name_plain": "Class 1 @ School 2",
@@ -150,10 +150,10 @@
     "fields": {
       "dek": "ZmFrZV9lbmM6WkdoS2FsQnNjR3R4UmtaSFdrOVJTa2huVW1wa1lVcDVhRVJ2Ulhkd2RuYz0=",
       "email_enc": "ZmFrZV9lbmM6WVdSdGFXNHVkR1ZoWTJobGNrQnpZMmh2YjJ3eUxtTnZiUT09",
-      "email_hash": "4841a8d3657918adffdab6cb4a0a6b64ad771aa56a53f80fed0ee8d074841ca3",
+      "email_hash": "admin.teacher@school2.com",
       "email_plain": "admin.teacher@school2.com",
       "first_name_enc": "ZmFrZV9lbmM6U21GdVpRPT0=",
-      "first_name_hash": "a5945caf6491a22426f870debae98c823043af86691d336f95248daff7bb989a",
+      "first_name_hash": "Jane",
       "first_name_plain": "Jane",
       "last_name_enc": "ZmFrZV9lbmM6Ukc5bA==",
       "last_name_plain": "Doe",
@@ -192,7 +192,7 @@
     "pk": 9,
     "fields": {
       "access_code_enc": "ZmFrZV9lbmM6V0ZneU1qST0=",
-      "access_code_hash": "750df33e8a531e83fddf652344b680983a1555c6dcd8fda80f4af785357b444d",
+      "access_code_hash": "XX222",
       "access_code_plain": "XX222",
       "name_enc": "ZmFrZV9lbmM6UTJ4aGMzTWdNaUJBSUZOamFHOXZiQ0F5",
       "name_plain": "Class 2 @ School 2",

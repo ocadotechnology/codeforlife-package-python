@@ -18,9 +18,8 @@ from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from pyotp import TOTP
 
-from ....hashers import hash_credential
 from ....models import AbstractBaseUser, DataEncryptionKeyModel
-from ....models.fields import EncryptedTextField
+from ....models.fields import EncryptedTextField, Sha256Field
 from ....types import Validators
 from ....validators import UnicodeAlphanumericCharSetValidator
 
@@ -167,9 +166,7 @@ class User(AbstractBaseUser, PermissionsMixin, DataEncryptionKeyModel):
     # First name
     # --------------------------------------------------------------------------
 
-    first_name_hash = models.CharField(
-        _("first name hash"), max_length=64, editable=False
-    )
+    first_name_hash = Sha256Field(verbose_name=_("first name hash"))
     first_name_plain = models.CharField(
         _("first name"), max_length=150, blank=True
     )
@@ -189,7 +186,7 @@ class User(AbstractBaseUser, PermissionsMixin, DataEncryptionKeyModel):
         """Set the user's first name."""
         self.first_name_enc = value
         self.first_name_plain = value
-        self.first_name_hash = hash_credential(value)
+        self.first_name_hash = value
 
     # --------------------------------------------------------------------------
     # Last name
@@ -219,8 +216,8 @@ class User(AbstractBaseUser, PermissionsMixin, DataEncryptionKeyModel):
     # Email
     # --------------------------------------------------------------------------
 
-    email_hash = models.CharField(
-        _("email hash"), max_length=64, editable=False, unique=True, null=True
+    email_hash = Sha256Field(
+        verbose_name=_("email hash"), unique=True, null=True
     )
     email_plain = models.EmailField(_("email address"), null=True, unique=True)
     email_enc = EncryptedTextField(
@@ -240,7 +237,7 @@ class User(AbstractBaseUser, PermissionsMixin, DataEncryptionKeyModel):
         value = self.objects.normalize_email(value)
         self.email_plain = value
         self.email_enc = value
-        self.email_hash = None if value is None else hash_credential(value)
+        self.email_hash = value
 
     # --------------------------------------------------------------------------
     # Other
