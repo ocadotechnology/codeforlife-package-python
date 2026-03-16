@@ -11,15 +11,11 @@ import typing as t
 from pathlib import Path
 
 if t.TYPE_CHECKING:
-    from ..server import Server
     from ..types import CookieSamesite, Env
 
 
 # The name of the current environment.
 ENV = t.cast("Env", os.getenv("ENV", "local"))
-
-# The mode the service is being served in.
-SERVER_MODE = t.cast("Server.Mode", os.getenv("SERVER_MODE", "django"))
 
 # The level of the logs.
 LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO")

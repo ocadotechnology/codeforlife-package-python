@@ -67,7 +67,7 @@ class TestDataEncryptionKeyField(TestCase):
     def test_init__editable_not_allowed(self):
         """Cannot create DataEncryptionKeyField with editable=True."""
         with self.assert_raises_validation_error(code="editable_not_allowed"):
-            DataEncryptionKeyField(editable=True)
+            DataEncryptionKeyField(editable=True)  # type: ignore[arg-type]
 
     def test_init__default_not_allowed(self):
         """Cannot create DataEncryptionKeyField with default value."""
@@ -77,7 +77,7 @@ class TestDataEncryptionKeyField(TestCase):
     def test_init__null_allowed(self):
         """Cannot create DataEncryptionKeyField with null=True."""
         with self.assert_raises_validation_error(code="null_not_allowed"):
-            DataEncryptionKeyField(null=False)
+            DataEncryptionKeyField(null=False)  # type: ignore[arg-type]
 
     def test_init(self):
         """DataEncryptionKeyField is constructed correctly."""
