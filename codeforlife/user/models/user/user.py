@@ -372,6 +372,7 @@ class User(AbstractBaseUser, PermissionsMixin, DataEncryptionKeyModel):
         self.is_active = False
         self.save(
             update_fields=[
+                # pylint: disable=duplicate-code
                 "first_name_hash",
                 "first_name_plain",
                 "first_name_enc",
@@ -381,17 +382,18 @@ class User(AbstractBaseUser, PermissionsMixin, DataEncryptionKeyModel):
                 "email_enc",
                 "email_hash",
                 "is_active",
+                # pylint: enable=duplicate-code
             ]
         )
 
-        self.userprofile.google_refresh_token = None
-        self.userprofile.google_sub = None
-        self.userprofile.save(
-            update_fields=[
-                "google_refresh_token",
-                "google_sub",
-            ]
-        )
+        # self.userprofile.google_refresh_token = None
+        # self.userprofile.google_sub = None
+        # self.userprofile.save(
+        #     update_fields=[
+        #         "google_refresh_token",
+        #         "google_sub",
+        #     ]
+        # )
 
     def __repr__(self):
         return f"<User: {self.email}>"

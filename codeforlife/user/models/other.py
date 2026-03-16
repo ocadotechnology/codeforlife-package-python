@@ -224,6 +224,7 @@ class SchoolTeacherInvitationModelManager(
         return super().get_queryset().filter(is_active=True)
 
 
+# pylint: disable-next=too-many-instance-attributes
 class SchoolTeacherInvitation(EncryptedModel):
     """
     A model to track invitations for teachers to join a school. This is meant to
@@ -282,6 +283,7 @@ class SchoolTeacherInvitation(EncryptedModel):
     # --------------------------------------------------------------------------
 
     invited_teacher_first_name_plain: str
+    # pylint: disable-next=line-too-long
     invited_teacher_first_name_plain = models.CharField(  # type: ignore[assignment]
         max_length=150
     )  # Same as User model
@@ -309,6 +311,7 @@ class SchoolTeacherInvitation(EncryptedModel):
     # --------------------------------------------------------------------------
 
     invited_teacher_last_name_plain: str
+    # pylint: disable-next=line-too-long
     invited_teacher_last_name_plain = models.CharField(  # type: ignore[assignment]
         max_length=150
     )  # Same as User model

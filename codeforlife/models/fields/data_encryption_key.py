@@ -27,6 +27,7 @@ from django.utils.translation import gettext_lazy as _
 
 from ...encryption import FakeAead
 from ..base_data_encryption_key import BaseDataEncryptionKeyModel
+from ..utils import is_real_model_class
 from .deferred_attribute import DeferredAttribute
 
 if t.TYPE_CHECKING:  # pragma: no cover
@@ -151,11 +152,7 @@ class DataEncryptionKeyField(BinaryField):
         super().contribute_to_class(cls, name, private_only)
 
         # Skip fake (used for migrations), abstract and proxy models.
-        if (
-            cls.__module__ == "__fake__"
-            or cls._meta.abstract
-            or cls._meta.proxy
-        ):
+        if not is_real_model_class(cls):
             return
 
         # Ensure the model subclasses BaseDataEncryptionKeyModel.

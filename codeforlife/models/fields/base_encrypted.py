@@ -58,6 +58,7 @@ from django.db.models import BinaryField
 
 from ...types import Args, KwArgs
 from ..encrypted import EncryptedModel
+from ..utils import is_real_model_class
 from .deferred_attribute import DeferredAttribute
 
 T = t.TypeVar("T")
@@ -227,11 +228,7 @@ class BaseEncryptedField(BinaryField, t.Generic[T]):
         super().contribute_to_class(cls, name, private_only)
 
         # Skip fake (used for migrations), abstract and proxy models.
-        if (
-            cls.__module__ == "__fake__"
-            or cls._meta.abstract
-            or cls._meta.proxy
-        ):
+        if not is_real_model_class(cls):
             return
 
         # Ensure the model subclasses EncryptedModel.

@@ -49,6 +49,7 @@ class School(DataEncryptionKeyModel):
     # --------------------------------------------------------------------------
     # Name
     # --------------------------------------------------------------------------
+    # pylint: disable=duplicate-code
 
     name_plain: str
     name_plain = models.CharField(  # type: ignore[assignment]
@@ -74,6 +75,7 @@ class School(DataEncryptionKeyModel):
         self.name_plain = value
         self.name_enc = value
 
+    # pylint: enable=duplicate-code
     # --------------------------------------------------------------------------
 
     country: t.Optional[str]

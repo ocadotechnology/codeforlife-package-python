@@ -6,7 +6,6 @@ Created on 14/02/2024 at 17:16:44(+00:00).
 """
 
 import typing as t
-from uuid import uuid4
 
 from django.db import models
 

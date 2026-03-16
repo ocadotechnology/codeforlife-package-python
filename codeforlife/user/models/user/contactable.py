@@ -54,6 +54,7 @@ class ContactableUser(User):
         personalization_values: t.Optional[t.Dict[str, str]] = None,
         **kwargs,
     ):
+        """Send an email to this user using DotDigital."""
         kwargs["to_addresses"] = [self.email]
         mail.send_mail(
             campaign_id=campaign_id,

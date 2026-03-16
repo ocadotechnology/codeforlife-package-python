@@ -111,5 +111,8 @@ def set_up_settings(service_base_dir: Path, service_name: str):
                 secrets_file.write(secrets_file_comment)
 
         secrets = dotenv_values(secrets_path)
+    else:
+        # TODO: load secrets from bucket in non-local environments.
+        secrets = {}
 
     return Secrets(**secrets)
