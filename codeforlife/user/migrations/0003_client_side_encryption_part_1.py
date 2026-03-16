@@ -56,11 +56,25 @@ class Migration(migrations.Migration):
             model_name="user",
             name="username",
         ),
+        migrations.AlterField(
+            model_name="user",
+            name="email",
+            field=models.EmailField(
+                max_length=254,
+                null=True,
+                unique=True,
+                verbose_name="email address",
+            ),
+        ),
         migrations.AddField(
             model_name="user",
             name="email_hash",
             field=models.CharField(
-                editable=False, max_length=64, verbose_name="email hash"
+                unique=True,
+                null=True,
+                editable=False,
+                max_length=64,
+                verbose_name="email hash",
             ),
         ),
         migrations.AddField(

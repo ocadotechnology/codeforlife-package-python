@@ -63,7 +63,7 @@ class UserManager(
     def _create_user_object(
         self,
         _: t.Literal[""],  # username is not used but is required by the parent
-        email: str,
+        email: t.Optional[str],
         password: t.Optional[str],
         **extra_fields,
     ):
@@ -78,31 +78,43 @@ class UserManager(
 
     @classmethod
     def normalize_email(cls, email):
-        return super().normalize_email(email).lower()
+        return None if email is None else email.lower()
 
     def create_user(  # type: ignore[override]
-        self, email: str, password: t.Optional[str] = None, **extra_fields
+        self,
+        email: t.Optional[str] = None,
+        password: t.Optional[str] = None,
+        **extra_fields,
     ):
         return super().create_user(
             username="", email=email, password=password, **extra_fields
         )
 
     def acreate_user(  # type: ignore[override]
-        self, email: str, password: t.Optional[str] = None, **extra_fields
+        self,
+        email: t.Optional[str] = None,
+        password: t.Optional[str] = None,
+        **extra_fields,
     ):
         return super().acreate_user(
             username="", email=email, password=password, **extra_fields
         )
 
     def create_superuser(  # type: ignore[override]
-        self, email: str, password: t.Optional[str] = None, **extra_fields
+        self,
+        email: t.Optional[str] = None,
+        password: t.Optional[str] = None,
+        **extra_fields,
     ):
         return super().create_superuser(
             username="", email=email, password=password, **extra_fields
         )
 
     def acreate_superuser(  # type: ignore[override]
-        self, email: str, password: t.Optional[str] = None, **extra_fields
+        self,
+        email: t.Optional[str] = None,
+        password: t.Optional[str] = None,
+        **extra_fields,
     ):
         return super().acreate_superuser(
             username="", email=email, password=password, **extra_fields
@@ -137,9 +149,9 @@ class User(AbstractBaseUser, PermissionsMixin, DataEncryptionKeyModel):
 
     associated_data = "user"
 
-    EMAIL_FIELD = "email_plain"
+    EMAIL_FIELD = "email_enc"
     USERNAME_FIELD = "email_hash"
-    REQUIRED_FIELDS = ["email_plain"]
+    REQUIRED_FIELDS = ["email_enc"]
     credential_fields = frozenset(["email", "password"])
 
     _password: t.Optional[str]
@@ -208,9 +220,9 @@ class User(AbstractBaseUser, PermissionsMixin, DataEncryptionKeyModel):
     # --------------------------------------------------------------------------
 
     email_hash = models.CharField(
-        _("email hash"), max_length=64, editable=False
+        _("email hash"), max_length=64, editable=False, unique=True, null=True
     )
-    email_plain = models.EmailField(_("email address"), blank=True)
+    email_plain = models.EmailField(_("email address"), null=True, unique=True)
     email_enc = EncryptedTextField(
         associated_data="email", null=True, verbose_name=_("email address")
     )
@@ -223,12 +235,12 @@ class User(AbstractBaseUser, PermissionsMixin, DataEncryptionKeyModel):
         return self.email_plain
 
     @email.setter
-    def email(self, value: str):
+    def email(self, value: t.Optional[str]):
         """Set the user's email address."""
         value = self.objects.normalize_email(value)
         self.email_plain = value
         self.email_enc = value
-        self.email_hash = hash_credential(value)
+        self.email_hash = None if value is None else hash_credential(value)
 
     # --------------------------------------------------------------------------
     # Other
