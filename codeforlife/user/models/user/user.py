@@ -148,9 +148,9 @@ class User(AbstractBaseUser, PermissionsMixin, DataEncryptionKeyModel):
 
     associated_data = "user"
 
-    EMAIL_FIELD = "email_enc"
-    USERNAME_FIELD = "email_hash"
-    REQUIRED_FIELDS = ["email_enc"]
+    EMAIL_FIELD = "_email"
+    USERNAME_FIELD = "_email_hash"
+    REQUIRED_FIELDS = ["_email"]
     credential_fields = frozenset(["email", "password"])
 
     _password: t.Optional[str]
@@ -162,86 +162,57 @@ class User(AbstractBaseUser, PermissionsMixin, DataEncryptionKeyModel):
     session: "Session"  # type: ignore[assignment]
     userprofile: "UserProfile"
 
-    # --------------------------------------------------------------------------
-    # First name
-    # --------------------------------------------------------------------------
-
-    first_name_hash = Sha256Field(verbose_name=_("first name hash"))
-    first_name_plain = models.CharField(
-        _("first name"), max_length=150, blank=True
+    _first_name_hash = Sha256Field(
+        verbose_name=_("first name hash"),
+        db_column="first_name_hash",
+        null=True,
     )
-    first_name_enc = EncryptedTextField(
-        associated_data="first_name", null=True, verbose_name=_("first name")
+    _first_name = EncryptedTextField(
+        associated_data="first_name",
+        null=True,
+        verbose_name=_("first name"),
+        db_column="first_name",
     )
 
     @property
     def first_name(self):
         """The user's first name."""
-        if self.first_name_enc is not None:
-            return self.first_name_enc
-        return self.first_name_plain
+        return self._first_name
 
     @first_name.setter
     def first_name(self, value: str):
-        """Set the user's first name."""
-        self.first_name_enc = value
-        self.first_name_plain = value
-        self.first_name_hash = value
+        """Set first name and hash immediately."""
+        self._first_name = value
+        self._first_name_hash = value
 
-    # --------------------------------------------------------------------------
-    # Last name
-    # --------------------------------------------------------------------------
-
-    last_name_plain = models.CharField(
-        _("last name"), max_length=150, blank=True
-    )
-    last_name_enc = EncryptedTextField(
+    last_name = EncryptedTextField(
         associated_data="last_name", null=True, verbose_name=_("last name")
     )
 
-    @property
-    def last_name(self):
-        """The user's last name."""
-        if self.last_name_enc is not None:
-            return self.last_name_enc
-        return self.last_name_plain
-
-    @last_name.setter
-    def last_name(self, value: str):
-        """Set the user's last name."""
-        self.last_name_enc = value
-        self.last_name_plain = value
-
-    # --------------------------------------------------------------------------
-    # Email
-    # --------------------------------------------------------------------------
-
-    email_hash = Sha256Field(
-        verbose_name=_("email hash"), unique=True, null=True
+    _email_hash = Sha256Field(
+        verbose_name=_("email hash"),
+        unique=True,
+        null=True,
+        db_column="email_hash",
     )
-    email_plain = models.EmailField(_("email address"), null=True, unique=True)
-    email_enc = EncryptedTextField(
-        associated_data="email", null=True, verbose_name=_("email address")
+    _email = EncryptedTextField(
+        associated_data="email",
+        null=True,
+        verbose_name=_("email address"),
+        db_column="email",
     )
 
     @property
     def email(self):
         """The user's email address."""
-        if self.email_enc is not None:
-            return self.email_enc
-        return self.email_plain
+        return self._email
 
     @email.setter
     def email(self, value: t.Optional[str]):
         """Set the user's email address."""
         value = self.objects.normalize_email(value)
-        self.email_plain = value
-        self.email_enc = value
-        self.email_hash = value
-
-    # --------------------------------------------------------------------------
-    # Other
-    # --------------------------------------------------------------------------
+        self._email = value
+        self._email_hash = value
 
     is_staff = models.BooleanField(
         _("staff status"),
@@ -360,12 +331,12 @@ class User(AbstractBaseUser, PermissionsMixin, DataEncryptionKeyModel):
         """
         return user_class(
             pk=self.pk,
-            first_name=self.first_name,
+            _first_name=self._first_name,
+            _first_name_hash=self._first_name_hash,
             last_name=self.last_name,
             is_active=self.is_active,
-            email_plain=self.email_plain,
-            email_enc=self.email_enc,
-            email_hash=self.email_hash,
+            _email=self._email,
+            _email_hash=self._email_hash,
             is_staff=self.is_staff,
             date_joined=self.date_joined,
             is_superuser=self.is_superuser,
@@ -382,14 +353,11 @@ class User(AbstractBaseUser, PermissionsMixin, DataEncryptionKeyModel):
         self.save(
             update_fields=[
                 # pylint: disable=duplicate-code
-                "first_name_hash",
-                "first_name_plain",
-                "first_name_enc",
-                "last_name_plain",
-                "last_name_enc",
-                "email_plain",
-                "email_enc",
-                "email_hash",
+                "_first_name_hash",
+                "_first_name",
+                "last_name",
+                "_email",
+                "_email_hash",
                 "is_active",
                 # pylint: enable=duplicate-code
             ]

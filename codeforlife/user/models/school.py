@@ -46,37 +46,11 @@ class School(DataEncryptionKeyModel):
 
     associated_data = "school"
 
-    # --------------------------------------------------------------------------
-    # Name
-    # --------------------------------------------------------------------------
-    # pylint: disable=duplicate-code
-
-    name_plain: str
-    name_plain = models.CharField(  # type: ignore[assignment]
-        max_length=200,
-        unique=True,
-    )
-    name_enc = EncryptedTextField(
+    name = EncryptedTextField(
         associated_data="name",
         null=True,
         verbose_name=_("name"),
     )
-
-    @property
-    def name(self):
-        """Get the school's name."""
-        if self.name_enc is not None:
-            return self.name_enc
-        return self.name_plain
-
-    @name.setter
-    def name(self, value: str):
-        """Set the school's name."""
-        self.name_plain = value
-        self.name_enc = value
-
-    # pylint: enable=duplicate-code
-    # --------------------------------------------------------------------------
 
     country: t.Optional[str]
     country = CountryField(  # type: ignore[assignment]

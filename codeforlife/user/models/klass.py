@@ -66,32 +66,11 @@ class Class(EncryptedModel):
 
     associated_data = "class"
 
-    # --------------------------------------------------------------------------
-    # Name
-    # --------------------------------------------------------------------------
-
-    name_plain: str
-    name_plain = models.CharField(max_length=200)  # type: ignore[assignment]
-    name_enc = EncryptedTextField(
+    name = EncryptedTextField(
         associated_data="name",
         null=True,
         verbose_name=_("name"),
     )
-
-    @property
-    def name(self):
-        """Get the name of the class."""
-        if self.name_enc is not None:
-            return self.name_enc
-        return self.name_plain
-
-    @name.setter
-    def name(self, value: str):
-        """Set the name of the class."""
-        self.name_plain = value
-        self.name_enc = value
-
-    # --------------------------------------------------------------------------
 
     teacher: "SchoolTeacher"
     teacher = models.ForeignKey(  # type: ignore[assignment]
@@ -100,39 +79,28 @@ class Class(EncryptedModel):
         on_delete=models.CASCADE,
     )
 
-    # --------------------------------------------------------------------------
-    # Access code
-    # --------------------------------------------------------------------------
-
-    access_code_hash = Sha256Field(
-        verbose_name=_("access code hash"), null=True
-    )
-    access_code_plain: t.Optional[str]
-    access_code_plain = models.CharField(  # type: ignore[assignment]
-        max_length=5,
+    _access_code_hash = Sha256Field(
+        verbose_name=_("access code hash"),
         null=True,
+        db_column="access_code_hash",
     )
-    access_code_enc = EncryptedTextField(
+    _access_code = EncryptedTextField(
         associated_data="access_code",
         null=True,
         verbose_name=_("access code"),
+        db_column="access_code",
     )
 
     @property
     def access_code(self):
         """Get the access code for the class."""
-        if self.access_code_enc is not None:
-            return self.access_code_enc
-        return self.access_code_plain
+        return self._access_code
 
     @access_code.setter
     def access_code(self, value: t.Optional[str]):
         """Set the access code for the class."""
-        self.access_code_plain = value
-        self.access_code_enc = value
-        self.access_code_hash = value
-
-    # --------------------------------------------------------------------------
+        self._access_code = value
+        self._access_code_hash = value
 
     classmates_data_viewable: bool
     classmates_data_viewable = models.BooleanField(  # type: ignore[assignment]
