@@ -7,6 +7,7 @@ from ...tests import TestCase
 from ..models import User
 
 
+# pylint: disable-next=missing-class-docstring
 class UserSignalsTests(TestCase):
     fixtures = ["school_1"]
 
