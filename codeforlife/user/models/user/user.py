@@ -9,9 +9,8 @@ import typing as t
 from datetime import datetime, timedelta
 
 from django.conf import settings
-
-# pylint: disable-next=imported-auth-user
-from django.contrib.auth.models import AbstractUser
+from django.contrib.auth.hashers import make_password
+from django.contrib.auth.models import PermissionsMixin
 from django.contrib.auth.models import UserManager as _UserManager
 from django.db import models
 from django.db.models.query import QuerySet
@@ -19,20 +18,17 @@ from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from pyotp import TOTP
 
-from ....models import AbstractBaseUser
+from ....models import AbstractBaseUser, DataEncryptionKeyModel
+from ....models.fields import EncryptedTextField, Sha256Field
 from ....types import Validators
 from ....validators import UnicodeAlphanumericCharSetValidator
 
 if t.TYPE_CHECKING:  # pragma: no cover
-    from django_stubs_ext.db.models import TypedModelMeta
-
     from ..auth_factor import AuthFactor
     from ..otp_bypass_token import OtpBypassToken
     from ..session import Session
     from ..student import Student
     from ..teacher import Teacher
-else:
-    TypedModelMeta = object
 
 
 # TODO: add to model validators in new schema.
@@ -50,24 +46,108 @@ user_last_name_validators: Validators = [
 ]
 
 
-# TODO: remove in new schema
-class _AbstractBaseUser(AbstractBaseUser):
-    password: str = None  # type: ignore[assignment]
-    last_login: datetime = None  # type: ignore[assignment]
-
-    class Meta(TypedModelMeta):
-        abstract = True
+AnyUser = t.TypeVar("AnyUser", bound="User")
 
 
-# pylint: disable-next=too-many-ancestors
-class User(
-    _AbstractBaseUser,
-    AbstractUser,  # TODO: remove this inheritance in new schema
+class UserManager(
+    _UserManager[AnyUser],
+    DataEncryptionKeyModel.Manager[AnyUser],
+    t.Generic[AnyUser],
 ):
-    """A proxy to Django's user class."""
+    """
+    Manager for the User model that inherits Django's default manager and
+    encrypted manager to handle encrypted fields.
+    """
 
+    def _create_user_object(
+        self,
+        _: t.Literal[""],  # username is not used but is required by the parent
+        email: t.Optional[str],
+        password: t.Optional[str],
+        **extra_fields,
+    ):
+        user = self.model(**extra_fields)
+        user.email = email
+        user.password = make_password(password)
+        user.first_name = extra_fields.get("first_name", "")
+        user.last_name = extra_fields.get("last_name", "")
+        return user
+
+    # pylint: disable=missing-function-docstring
+
+    @classmethod
+    def normalize_email(cls, email):
+        return None if email is None else email.lower()
+
+    def create_user(  # type: ignore[override]
+        self,
+        email: t.Optional[str] = None,
+        password: t.Optional[str] = None,
+        **extra_fields,
+    ):
+        return super().create_user(
+            username="", email=email, password=password, **extra_fields
+        )
+
+    def acreate_user(  # type: ignore[override]
+        self,
+        email: t.Optional[str] = None,
+        password: t.Optional[str] = None,
+        **extra_fields,
+    ):
+        return super().acreate_user(
+            username="", email=email, password=password, **extra_fields
+        )
+
+    def create_superuser(  # type: ignore[override]
+        self,
+        email: t.Optional[str] = None,
+        password: t.Optional[str] = None,
+        **extra_fields,
+    ):
+        return super().create_superuser(
+            username="", email=email, password=password, **extra_fields
+        )
+
+    def acreate_superuser(  # type: ignore[override]
+        self,
+        email: t.Optional[str] = None,
+        password: t.Optional[str] = None,
+        **extra_fields,
+    ):
+        return super().acreate_superuser(
+            username="", email=email, password=password, **extra_fields
+        )
+
+    # pylint: enable=missing-function-docstring
+
+    def filter_users(self, queryset: QuerySet["User"]):
+        """Filter the users to the specific type.
+
+        Args:
+            queryset: The queryset of users to filter.
+
+        Returns:
+            A subset of the queryset of users.
+        """
+        return queryset
+
+    # pylint: disable-next=missing-function-docstring
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        return (
+            queryset
+            if getattr(settings, "OLD_SYSTEM", True)
+            else self.filter_users(queryset.filter(is_active=True))
+        )
+
+
+# pylint: disable-next=too-many-ancestors,too-many-instance-attributes
+class User(AbstractBaseUser, PermissionsMixin, DataEncryptionKeyModel):
+    """A Code for Life user."""
+
+    ### Type hints for fields and related objects.
     _password: t.Optional[str]
-
     id: int  # type: ignore[assignment]
     auth_factors: QuerySet["AuthFactor"]  # type: ignore[assignment,misc]
     # pylint: disable-next=line-too-long
@@ -75,7 +155,92 @@ class User(
     session: "Session"  # type: ignore[assignment]
     userprofile: "UserProfile"
 
-    credential_fields = frozenset(["email", "password"])
+    ### Data encryption key model configuration.
+    associated_data = "user"
+
+    ### Django auth field registries.
+    EMAIL_FIELD = "_email"
+    USERNAME_FIELD = "_email_hash"
+    REQUIRED_FIELDS = ["_email"]
+
+    ### Custom field registries.
+    CREDENTIAL_FIELDS = frozenset(["email", "password"])
+    FIRST_NAME_FIELDS = frozenset(["_first_name", "_first_name_hash"])
+    EMAIL_FIELDS = frozenset(["_email", "_email_hash"])
+
+    ### First name fields.
+    _first_name_hash = Sha256Field(
+        verbose_name=_("first name hash"),
+        db_column="first_name_hash",
+        null=True,
+    )
+    _first_name = EncryptedTextField(
+        associated_data="first_name",
+        null=True,
+        verbose_name=_("first name"),
+        db_column="first_name",
+    )
+
+    @property
+    def first_name(self):
+        """The user's first name."""
+        return self._first_name
+
+    @first_name.setter
+    def first_name(self, value: str):
+        """Set first name and hash immediately."""
+        self._first_name = value
+        self._first_name_hash = value
+
+    ### Email fields.
+    _email_hash = Sha256Field(
+        verbose_name=_("email hash"),
+        unique=True,
+        null=True,
+        db_column="email_hash",
+    )
+    _email = EncryptedTextField(
+        associated_data="email",
+        null=True,
+        verbose_name=_("email address"),
+        db_column="email",
+    )
+
+    @property
+    def email(self):
+        """The user's email address."""
+        return self._email
+
+    @email.setter
+    def email(self, value: t.Optional[str]):
+        """Set the user's email address."""
+        value = self.__class__.objects.normalize_email(value)
+        self._email = value
+        self._email_hash = value
+
+    ### Other fields.
+    last_name = EncryptedTextField(
+        associated_data="last_name", null=True, verbose_name=_("last name")
+    )
+
+    is_staff = models.BooleanField(
+        _("staff status"),
+        default=False,
+        help_text=_(
+            "Designates whether the user can log into this admin site."
+        ),
+    )
+
+    is_active = models.BooleanField(
+        _("active"),
+        default=True,
+        help_text=_(
+            "Designates whether this user should be treated as active. "
+            "Unselect this instead of deleting accounts."
+        ),
+    )
+
+    date_joined = models.DateTimeField(_("date joined"), default=timezone.now)
 
     # TODO: remove in new schema
     password: str  # type: ignore[assignment]
@@ -91,6 +256,10 @@ class User(
         blank=True,
         null=True,
     )
+
+    objects: UserManager[  # type: ignore[misc]
+        "User"
+    ] = UserManager()  # type: ignore[assignment]
 
     @property
     def is_authenticated(self):
@@ -171,11 +340,12 @@ class User(
         """
         return user_class(
             pk=self.pk,
-            first_name=self.first_name,
+            _first_name=self._first_name,
+            _first_name_hash=self._first_name_hash,
             last_name=self.last_name,
-            username=self.username,
             is_active=self.is_active,
-            email=self.email,
+            _email=self._email,
+            _email_hash=self._email_hash,
             is_staff=self.is_staff,
             date_joined=self.date_joined,
             is_superuser=self.is_superuser,
@@ -191,22 +361,26 @@ class User(
         self.is_active = False
         self.save(
             update_fields=[
-                "first_name",
+                # pylint: disable=duplicate-code
+                *self.FIRST_NAME_FIELDS,
+                *self.EMAIL_FIELDS,
                 "last_name",
-                "email",
-                "username",
                 "is_active",
+                # pylint: enable=duplicate-code
             ]
         )
 
-        self.userprofile.google_refresh_token = None
-        self.userprofile.google_sub = None
-        self.userprofile.save(
-            update_fields=[
-                "google_refresh_token",
-                "google_sub",
-            ]
-        )
+        # self.userprofile.google_refresh_token = None
+        # self.userprofile.google_sub = None
+        # self.userprofile.save(
+        #     update_fields=[
+        #         "google_refresh_token",
+        #         "google_sub",
+        #     ]
+        # )
+
+    def __repr__(self):
+        return f"<User: {self.email}>"
 
 
 if not getattr(settings, "OLD_SYSTEM", True):
@@ -216,27 +390,6 @@ if not getattr(settings, "OLD_SYSTEM", True):
         return self.userprofile.is_verified
 
     User.is_verified = property(fget=is_verified)  # type: ignore[assignment]
-
-
-AnyUser = t.TypeVar("AnyUser", bound=User)
-
-
-# pylint: disable-next=missing-class-docstring
-class UserManager(_UserManager[AnyUser], t.Generic[AnyUser]):
-    def filter_users(self, queryset: QuerySet[User]):
-        """Filter the users to the specific type.
-
-        Args:
-            queryset: The queryset of users to filter.
-
-        Returns:
-            A subset of the queryset of users.
-        """
-        return queryset
-
-    # pylint: disable-next=missing-function-docstring
-    def get_queryset(self):
-        return self.filter_users(super().get_queryset().filter(is_active=True))
 
 
 class UserProfile(models.Model):

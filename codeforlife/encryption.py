@@ -52,20 +52,22 @@ _GcpKmsClient = gcpkms.GcpKmsClient
 class FakeAead:
     """A fake AEAD primitive for local testing."""
 
-    @staticmethod
-    # pylint: disable-next=unused-argument
-    def encrypt(plaintext: bytes, associated_data: bytes = b""):
-        """Simulate ciphertext by wrapping in base64 and adding a prefix."""
-        return b"fake_enc:" + b64encode(plaintext)
+    ciphertext_prefix = b"fake_enc:"
 
-    @staticmethod
+    @classmethod
     # pylint: disable-next=unused-argument
-    def decrypt(ciphertext: bytes, associated_data: bytes = b""):
+    def encrypt(cls, plaintext: bytes, associated_data: bytes = b""):
+        """Simulate ciphertext by wrapping in base64 and adding a prefix."""
+        return cls.ciphertext_prefix + b64encode(plaintext)
+
+    @classmethod
+    # pylint: disable-next=unused-argument
+    def decrypt(cls, ciphertext: bytes, associated_data: bytes = b""):
         """Simulate decryption by removing prefix and base64 decoding."""
-        if not ciphertext.startswith(b"fake_enc:"):
+        if not ciphertext.startswith(cls.ciphertext_prefix):
             raise ValueError("Invalid ciphertext for fake mock")
 
-        return b64decode(ciphertext.replace(b"fake_enc:", b""))
+        return b64decode(ciphertext.replace(cls.ciphertext_prefix, b""))
 
     @classmethod
     def as_mock(cls):

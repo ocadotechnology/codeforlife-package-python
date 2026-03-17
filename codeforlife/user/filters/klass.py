@@ -16,14 +16,26 @@ from ..models import Class  # isort: skip
 # pylint: disable-next=missing-class-docstring
 class ClassFilterSet(FilterSet):
     _id = filters.CharFilter(method="_id__method")
-    _id__method = FilterSet.make_exclude_field_list_method("access_code")
 
     id_or_name = filters.CharFilter(method="id_or_name__method")
 
+    def _id__method(self, queryset: QuerySet[Class], name: str, *args):
+        access_codes = self.request.GET.getlist(name)
+        return queryset.exclude(
+            **{"_access_code_hash__sha256_in": access_codes}
+        )
+
     def id_or_name__method(self, queryset: QuerySet[Class], _: str, value: str):
         """Get classes where the id or the name contain a substring."""
+        name = value.lower()
+        pks = [
+            klass.pk
+            for klass in queryset.only("name")
+            if klass.name and name in klass.name.lower()
+        ]
+
         return queryset.filter(
-            Q(access_code__icontains=value) | Q(name__icontains=value)
+            Q(_access_code_hash__sha256=value) | Q(pk__in=pks)
         )
 
     class Meta:

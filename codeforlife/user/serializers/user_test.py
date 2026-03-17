@@ -31,9 +31,19 @@ class TestUserSerializer(ModelSerializerTestCase[User, User]):
                     "is_admin": user.teacher.is_admin,
                 },
                 "student": None,
+                "first_name": user.first_name,
+                "last_name": user.last_name,
+                "email": user.email,
             },
             # TODO: remove in new schema.
-            non_model_fields={"requesting_to_join_class", "teacher", "student"},
+            non_model_fields={
+                "requesting_to_join_class",
+                "teacher",
+                "student",
+                "first_name",
+                "last_name",
+                "email",
+            },
         )
 
     def test_to_representation__student(self):
@@ -53,9 +63,19 @@ class TestUserSerializer(ModelSerializerTestCase[User, User]):
                     # pylint: disable-next=line-too-long
                     "school": user.student.class_field.teacher.school.id,  # type: ignore[union-attr]
                 },
+                "first_name": user.first_name,
+                "last_name": None,
+                "email": None,
             },
             # TODO: remove in new schema.
-            non_model_fields={"requesting_to_join_class", "teacher", "student"},
+            non_model_fields={
+                "requesting_to_join_class",
+                "teacher",
+                "student",
+                "first_name",
+                "last_name",
+                "email",
+            },
         )
 
     def test_to_representation__indy(self):
@@ -71,7 +91,17 @@ class TestUserSerializer(ModelSerializerTestCase[User, User]):
                 "requesting_to_join_class": None,
                 "teacher": None,
                 "student": None,
+                "first_name": user.first_name,
+                "last_name": user.last_name,
+                "email": user.email,
             },
             # TODO: remove in new schema.
-            non_model_fields={"requesting_to_join_class", "teacher", "student"},
+            non_model_fields={
+                "requesting_to_join_class",
+                "teacher",
+                "student",
+                "first_name",
+                "last_name",
+                "email",
+            },
         )

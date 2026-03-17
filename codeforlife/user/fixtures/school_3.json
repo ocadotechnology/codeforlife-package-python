@@ -3,19 +3,22 @@
     "model": "user.school",
     "pk": 4,
     "fields": {
-      "name": "School 3",
       "country": "GB",
-      "county": "Hertfordshire"
+      "county": "Hertfordshire",
+      "dek": "ZmFrZV9lbmM6Vm1ORlNIbENURmRyZEdOR1VGaHFOMFZIVFhkRE1IQjVNR1oyTkdkVFNIRT0=",
+      "name": "ZmFrZV9lbmM6VTJOb2IyOXNJRE09"
     }
   },
   {
     "model": "user.user",
     "pk": 31,
     "fields": {
-      "first_name": "Peter",
-      "last_name": "Parker",
-      "username": "admin.teacher@school3.com",
-      "email": "admin.teacher@school3.com",
+      "dek": "ZmFrZV9lbmM6ZGxKVE4xTm5jRGhKT1ZWVVdqWlpPVUpDUm14V1EycDRNbkYxZUc1aVExbz0=",
+      "_email": "ZmFrZV9lbmM6WVdSdGFXNHVkR1ZoWTJobGNrQnpZMmh2YjJ3ekxtTnZiUT09",
+      "_email_hash": "admin.teacher@school3.com",
+      "_first_name": "ZmFrZV9lbmM6VUdWMFpYST0=",
+      "_first_name_hash": "Peter",
+      "last_name": "ZmFrZV9lbmM6VUdGeWEyVnk=",
       "password": "pbkdf2_sha256$720000$Jp50WPBA6WZImUIpj3UcVm$OJWB8+UoW5lLaUkHLYo0cKgMkyRI6qnqVOWxYEsi9T0="
     }
   },
@@ -41,10 +44,12 @@
     "model": "user.user",
     "pk": 32,
     "fields": {
-      "first_name": "Doctor",
-      "last_name": "Octopus",
-      "username": "teacher@school3.com",
-      "email": "teacher@school3.com",
+      "dek": "ZmFrZV9lbmM6VjA5cGVVcG1SR1pRTkdoNVptUXhOR1Z0ZEVOblVtUmtjRWhJUlZob01Faz0=",
+      "_email": "ZmFrZV9lbmM6ZEdWaFkyaGxja0J6WTJodmIyd3pMbU52YlE9PQ==",
+      "_email_hash": "teacher@school3.com",
+      "_first_name": "ZmFrZV9lbmM6Ukc5amRHOXk=",
+      "_first_name_hash": "Doctor",
+      "last_name": "ZmFrZV9lbmM6VDJOMGIzQjFjdz09",
       "password": "pbkdf2_sha256$720000$Jp50WPBA6WZImUIpj3UcVm$OJWB8+UoW5lLaUkHLYo0cKgMkyRI6qnqVOWxYEsi9T0="
     }
   },

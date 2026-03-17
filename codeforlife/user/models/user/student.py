@@ -27,6 +27,7 @@ AnyUser = t.TypeVar("AnyUser", bound=User)
 
 # pylint: disable-next=missing-class-docstring,too-few-public-methods
 class StudentUserManager(UserManager["StudentUser"]):
+    # pylint: disable-next=arguments-renamed
     def create_user(  # type: ignore[override]
         self, first_name: str, klass: "Class", **extra_fields
     ):
@@ -44,7 +45,6 @@ class StudentUserManager(UserManager["StudentUser"]):
         user = super().create_user(
             **extra_fields,
             first_name=first_name,
-            username=StudentUser.get_random_username(),
             password=password,
         )
 
@@ -86,10 +86,11 @@ class StudentUser(User):
     # TODO: move this is to Student model in new schema.
     _login_id: t.Optional[str]
 
+    last_name: None  # type: ignore[assignment]
     teacher: None
     student: "Student"
 
-    credential_fields = frozenset(["first_name", "password"])
+    CREDENTIAL_FIELDS = frozenset(["first_name", "password"])
 
     class Meta(TypedModelMeta):
         proxy = True
@@ -134,17 +135,6 @@ class StudentUser(User):
             return login_id, hashed_login_id
 
         return generate_login_id()
-
-    @staticmethod
-    def get_random_username():
-        """Generate a random username that is unique."""
-        username = None
-        while (
-            username is None or User.objects.filter(username=username).exists()
-        ):
-            username = get_random_string(length=30)
-
-        return username
 
     # pylint: disable-next=arguments-differ
     def set_password(self, raw_password: t.Optional[str] = None):

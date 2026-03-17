@@ -51,15 +51,18 @@ data without ambiguity.
 
 import typing as t
 from dataclasses import dataclass
+from enum import IntEnum, auto
 
 from django.core.exceptions import ValidationError
 from django.db.models import BinaryField
 
 from ...types import Args, KwArgs
 from ..encrypted import EncryptedModel
+from ..utils import is_real_model_class
 from .deferred_attribute import DeferredAttribute
 
 T = t.TypeVar("T")
+Ciphertext: t.TypeAlias = t.Union[bytes, memoryview]
 
 
 @dataclass(frozen=True)
@@ -73,7 +76,14 @@ class _PendingEncryption(t.Generic[T]):
 class _TrustedCiphertext:
     """A wrapper for ciphertext that comes directly from the database."""
 
-    ciphertext: bytes
+    class Source(IntEnum):
+        """The source of the ciphertext."""
+
+        DB = auto()
+        FIXTURE = auto()
+
+    ciphertext: Ciphertext
+    source: Source
 
 
 Value: t.TypeAlias = t.Union[_TrustedCiphertext, _PendingEncryption[T]]
@@ -108,15 +118,27 @@ class EncryptedAttribute(
             return internal_value.value
 
         if isinstance(internal_value, _TrustedCiphertext):
+            # If the ciphertext came from a fixture, do not decrypt it so that
+            # it can be loaded as-is into the database.
+            if internal_value.source == _TrustedCiphertext.Source.FIXTURE:
+                return internal_value.ciphertext
+
             # If we have a cached decrypted value, return it.
             if self.field.attname in instance.__decrypted_values__:
                 return t.cast(
                     T, instance.__decrypted_values__[self.field.attname]
                 )
 
+            # Extract the raw bytes from the ciphertext.
+            ciphertext = (
+                internal_value.ciphertext
+                if isinstance(internal_value.ciphertext, bytes)
+                else bytes(internal_value.ciphertext)
+            )
+
             # Decrypt the value before returning it.
             decrypted_value = t.cast(
-                T, self.field.decrypt_value(instance, internal_value.ciphertext)
+                T, self.field.decrypt_value(instance, ciphertext)
             )
 
             # Cache the decrypted value on the instance.
@@ -152,7 +174,9 @@ class EncryptedAttribute(
                     "Expected bytes in memoryview for encrypted field.",
                     code="invalid_memoryview_type",
                 )
-            internal_value = _TrustedCiphertext(value.obj)
+            internal_value = _TrustedCiphertext(
+                value, _TrustedCiphertext.Source.FIXTURE
+            )
         elif isinstance(value, _TrustedCiphertext):  # From DB.
             internal_value = value
         else:  # From user input.
@@ -173,17 +197,7 @@ class BaseEncryptedField(BinaryField, t.Generic[T]):
     # Construction & Deconstruction
     # --------------------------------------------------------------------------
 
-    def set_init_kwargs(self, kwargs: KwArgs):
-        """Sets common init kwargs."""
-        kwargs.setdefault("db_column", self.associated_data)
-
-    def __init__(
-        self,
-        associated_data: str,
-        # Set type for default to match T.
-        default: t.Optional[t.Union[T, t.Callable[[], T]]] = None,
-        **kwargs,
-    ):
+    def __init__(self, associated_data: str, **kwargs):
         if not associated_data:
             raise ValidationError(
                 "Associated data cannot be empty.",
@@ -191,15 +205,13 @@ class BaseEncryptedField(BinaryField, t.Generic[T]):
             )
         self.associated_data = associated_data
 
-        self.set_init_kwargs(kwargs)
-        super().__init__(**kwargs, default=default)
+        super().__init__(**kwargs)
 
     def deconstruct(self):
         name, path, args, kwargs = t.cast(
             t.Tuple[str, str, Args, KwArgs], super().deconstruct()
         )
 
-        self.set_init_kwargs(kwargs)
         kwargs["associated_data"] = self.associated_data
 
         return name, path, args, kwargs
@@ -215,8 +227,8 @@ class BaseEncryptedField(BinaryField, t.Generic[T]):
         """
         super().contribute_to_class(cls, name, private_only)
 
-        # Skip fake models used for migrations.
-        if cls.__module__ == "__fake__":
+        # Skip fake (used for migrations), abstract and proxy models.
+        if not is_real_model_class(cls):
             return
 
         # Ensure the model subclasses EncryptedModel.
@@ -271,8 +283,7 @@ class BaseEncryptedField(BinaryField, t.Generic[T]):
     # Set the internal value when assigned on an instance.
     def __set__(self, instance: EncryptedModel, value: t.Optional[T]): ...
 
-    # pylint: disable-next=unused-argument
-    def from_db_value(self, value: t.Optional[bytes], expression, connection):
+    def from_db_value(self, value: t.Optional[Ciphertext], _, __):
         """
         Converts a value as returned by the database to a Python object.
         We wrap the raw bytes in _TrustedCiphertext to signal that this is
@@ -282,7 +293,7 @@ class BaseEncryptedField(BinaryField, t.Generic[T]):
             return None
 
         # Wrap it so __set__ knows this is NOT new user input.
-        return _TrustedCiphertext(value)
+        return _TrustedCiphertext(value, _TrustedCiphertext.Source.DB)
 
     def pre_save(
         self, model_instance: EncryptedModel, add  # type: ignore[override]

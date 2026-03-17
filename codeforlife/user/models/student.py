@@ -6,7 +6,6 @@ Created on 14/02/2024 at 17:16:44(+00:00).
 """
 
 import typing as t
-from uuid import uuid4
 
 from django.db import models
 
@@ -24,17 +23,6 @@ else:
 class StudentModelManager(models.Manager):
     """Manager for Student model."""
 
-    def get_random_username(self):
-        """Generate a random username that does not already exist."""
-        # NOTE: avoid circular imports by importing here
-        # pylint: disable-next=import-outside-toplevel
-        from .user import User
-
-        while True:
-            random_username = uuid4().hex[:30]  # generate a random username
-            if not User.objects.filter(username=random_username).exists():
-                return random_username
-
     # pylint: disable-next=invalid-name
     def schoolFactory(self, klass, name, password, login_id=None):
         """Factory method to create a student user associated with a class."""
@@ -43,7 +31,6 @@ class StudentModelManager(models.Manager):
         from .user import User, UserProfile
 
         user = User.objects.create_user(
-            username=self.get_random_username(),
             password=password,
             first_name=name,
         )
@@ -64,7 +51,7 @@ class StudentModelManager(models.Manager):
         from .user import User, UserProfile
 
         user = User.objects.create_user(
-            username=email, email=email, password=password, first_name=name
+            email=email, password=password, first_name=name
         )
 
         user_profile = UserProfile.objects.create(user=user)

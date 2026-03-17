@@ -9,8 +9,12 @@ from uuid import uuid4
 
 from django.core.validators import MaxLengthValidator, MinLengthValidator
 from django.db import models
+from django.db.models.query import QuerySet
 from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
 
+from ...models import EncryptedModel
+from ...models.fields import EncryptedTextField, Sha256Field
 from ...types import Validators
 from ...validators import (
     UnicodeAlphanumericCharSetValidator,
@@ -22,7 +26,8 @@ if t.TYPE_CHECKING:  # pragma: no cover
 
     from django_stubs_ext.db.models import TypedModelMeta
 
-    from .teacher import Teacher
+    from .student import Student
+    from .teacher import SchoolTeacher, Teacher
 else:
     TypedModelMeta = object
 
@@ -41,7 +46,7 @@ class_name_validators: Validators = [
 ]
 
 
-class ClassModelManager(models.Manager):
+class ClassModelManager(EncryptedModel.Manager["Class"]):
     """Manager for Class model."""
 
     def get_original_queryset(self):
@@ -53,23 +58,49 @@ class ClassModelManager(models.Manager):
         return super().get_queryset().filter(is_active=True)
 
 
-class Class(models.Model):
+# pylint: disable-next=too-many-instance-attributes
+class Class(EncryptedModel):
     """A class."""
 
-    name = models.CharField(max_length=200)
+    students: QuerySet["Student"]
 
-    teacher: "Teacher"
+    associated_data = "class"
+
+    name = EncryptedTextField(
+        associated_data="name",
+        null=True,
+        verbose_name=_("name"),
+    )
+
+    teacher: "SchoolTeacher"
     teacher = models.ForeignKey(  # type: ignore[assignment]
         "user.Teacher",
         related_name="class_teacher",
         on_delete=models.CASCADE,
     )
 
-    access_code: t.Optional[str]
-    access_code = models.CharField(  # type: ignore[assignment]
-        max_length=5,
+    _access_code_hash = Sha256Field(
+        verbose_name=_("access code hash"),
         null=True,
+        db_column="access_code_hash",
     )
+    _access_code = EncryptedTextField(
+        associated_data="access_code",
+        null=True,
+        verbose_name=_("access code"),
+        db_column="access_code",
+    )
+
+    @property
+    def access_code(self):
+        """Get the access code for the class."""
+        return self._access_code
+
+    @access_code.setter
+    def access_code(self, value: t.Optional[str]):
+        """Set the access code for the class."""
+        self._access_code = value
+        self._access_code_hash = value
 
     classmates_data_viewable: bool
     classmates_data_viewable = models.BooleanField(  # type: ignore[assignment]
@@ -103,7 +134,7 @@ class Class(models.Model):
         on_delete=models.SET_NULL,
     )
 
-    objects = ClassModelManager()
+    objects: ClassModelManager = ClassModelManager()  # type: ignore[assignment]
 
     def __str__(self):
         return self.name
@@ -150,3 +181,7 @@ class Class(models.Model):
 
     class Meta(TypedModelMeta):
         verbose_name_plural = "classes"
+
+    @property
+    def dek_aead(self):
+        return self.teacher.school.dek_aead

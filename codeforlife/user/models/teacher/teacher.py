@@ -31,7 +31,6 @@ class TeacherModelManager(models.Manager):
         from ..user import User, UserProfile
 
         user = User.objects.create_user(
-            username=email,
             email=email,
             password=password,
             first_name=first_name,

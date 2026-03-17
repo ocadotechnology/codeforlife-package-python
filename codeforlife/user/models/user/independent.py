@@ -40,6 +40,7 @@ class IndependentUserManager(ContactableUserManager["IndependentUser"]):
     def get_queryset(self):
         return super().get_queryset().prefetch_related("new_student")
 
+    # pylint: disable-next=arguments-differ
     def create_user(  # type: ignore[override]
         self,
         first_name: str,
@@ -55,12 +56,8 @@ class IndependentUserManager(ContactableUserManager["IndependentUser"]):
         from .user import UserProfile
 
         # pylint: enable=import-outside-toplevel
-
-        assert "username" not in extra_fields
-
         # pylint: disable=duplicate-code
         user = super().create_user(
-            username=email,
             email=email,
             password=password,
             first_name=first_name,

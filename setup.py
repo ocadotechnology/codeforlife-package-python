@@ -98,9 +98,10 @@ setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/ocadotechnology/codeforlife-package-python",
-    # TODO: exclude test files
-    packages=find_packages(exclude=["tests", "tests.*"]),
+    packages=find_packages(where="codeforlife"),
+    package_dir={"codeforlife": "codeforlife"},
     include_package_data=True,
+    exclude_package_data={"codeforlife": ["**/*_test.py", "**/test_*.py"]},
     data_files=[
         get_data_files(DATA_DIR),
         get_data_files(USER_FIXTURES_DIR),

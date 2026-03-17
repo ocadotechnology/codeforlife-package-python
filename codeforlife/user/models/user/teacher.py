@@ -26,7 +26,7 @@ AnyUser = t.TypeVar("AnyUser", bound="User")
 
 # pylint: disable-next=missing-class-docstring,too-few-public-methods
 class TeacherUserManager(ContactableUserManager[AnyUser], t.Generic[AnyUser]):
-    # pylint: disable-next=too-many-arguments,too-many-positional-arguments
+    # pylint: disable-next=too-many-arguments,too-many-positional-arguments,arguments-differ
     def create_user(  # type: ignore[override]
         self,
         first_name: str,
@@ -45,12 +45,8 @@ class TeacherUserManager(ContactableUserManager[AnyUser], t.Generic[AnyUser]):
         from .user import UserProfile
 
         # pylint: enable=import-outside-toplevel
-
-        assert "username" not in extra_fields
-
         # pylint: disable=duplicate-code
         user = super().create_user(
-            username=email,
             email=email,
             password=password,
             first_name=first_name,
@@ -88,6 +84,7 @@ class TeacherUserManager(ContactableUserManager[AnyUser], t.Generic[AnyUser]):
 class TeacherUser(ContactableUser):
     """A user that is a teacher."""
 
+    last_name: str  # type: ignore[assignment]
     teacher: "Teacher"
     student: None
 
