@@ -22,7 +22,7 @@ from ..models import (  # isort: skip
 # pylint: disable-next=missing-class-docstring
 class UserFilterSet(FilterSet):
     students_in_class = filters.CharFilter(
-        "new_student__class_field__access_code_hash",
+        "new_student__class_field___access_code_hash",
         "sha256",
     )
 
@@ -53,9 +53,9 @@ class UserFilterSet(FilterSet):
 
         pks = [
             user.pk
-            for user in queryset.only("first_name_enc", "last_name_enc")
-            if first_name in user.first_name.lower()
-            or last_name in user.last_name.lower()
+            for user in queryset.only("_first_name", "last_name")
+            if (user.first_name and first_name in user.first_name.lower())
+            or (user.last_name and last_name in user.last_name.lower())
         ]
 
         return queryset.filter(pk__in=pks)

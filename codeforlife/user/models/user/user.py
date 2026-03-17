@@ -146,15 +146,8 @@ class UserManager(
 class User(AbstractBaseUser, PermissionsMixin, DataEncryptionKeyModel):
     """A Code for Life user."""
 
-    associated_data = "user"
-
-    EMAIL_FIELD = "_email"
-    USERNAME_FIELD = "_email_hash"
-    REQUIRED_FIELDS = ["_email"]
-    credential_fields = frozenset(["email", "password"])
-
+    ### Type hints for fields and related objects.
     _password: t.Optional[str]
-
     id: int  # type: ignore[assignment]
     auth_factors: QuerySet["AuthFactor"]  # type: ignore[assignment,misc]
     # pylint: disable-next=line-too-long
@@ -162,6 +155,20 @@ class User(AbstractBaseUser, PermissionsMixin, DataEncryptionKeyModel):
     session: "Session"  # type: ignore[assignment]
     userprofile: "UserProfile"
 
+    ### Data encryption key model configuration.
+    associated_data = "user"
+
+    ### Django auth field registries.
+    EMAIL_FIELD = "_email"
+    USERNAME_FIELD = "_email_hash"
+    REQUIRED_FIELDS = ["_email"]
+
+    ### Custom field registries.
+    CREDENTIAL_FIELDS = frozenset(["email", "password"])
+    FIRST_NAME_FIELDS = frozenset(["_first_name", "_first_name_hash"])
+    EMAIL_FIELDS = frozenset(["_email", "_email_hash"])
+
+    ### First name fields.
     _first_name_hash = Sha256Field(
         verbose_name=_("first name hash"),
         db_column="first_name_hash",
@@ -185,10 +192,7 @@ class User(AbstractBaseUser, PermissionsMixin, DataEncryptionKeyModel):
         self._first_name = value
         self._first_name_hash = value
 
-    last_name = EncryptedTextField(
-        associated_data="last_name", null=True, verbose_name=_("last name")
-    )
-
+    ### Email fields.
     _email_hash = Sha256Field(
         verbose_name=_("email hash"),
         unique=True,
@@ -210,9 +214,14 @@ class User(AbstractBaseUser, PermissionsMixin, DataEncryptionKeyModel):
     @email.setter
     def email(self, value: t.Optional[str]):
         """Set the user's email address."""
-        value = self.objects.normalize_email(value)
+        value = self.__class__.objects.normalize_email(value)
         self._email = value
         self._email_hash = value
+
+    ### Other fields.
+    last_name = EncryptedTextField(
+        associated_data="last_name", null=True, verbose_name=_("last name")
+    )
 
     is_staff = models.BooleanField(
         _("staff status"),
@@ -353,11 +362,9 @@ class User(AbstractBaseUser, PermissionsMixin, DataEncryptionKeyModel):
         self.save(
             update_fields=[
                 # pylint: disable=duplicate-code
-                "_first_name_hash",
-                "_first_name",
+                *self.FIRST_NAME_FIELDS,
+                *self.EMAIL_FIELDS,
                 "last_name",
-                "_email",
-                "_email_hash",
                 "is_active",
                 # pylint: enable=duplicate-code
             ]

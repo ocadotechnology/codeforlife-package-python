@@ -118,8 +118,8 @@ class TestClassViewSet(ModelViewSetTestCase[RequestUser, Class]):
         self.client.list(
             models=[
                 klass
-                for klass in Class.objects.only("name_enc")
-                if partial_name in klass.name.lower()
+                for klass in Class.objects.only("name")
+                if klass.name and partial_name in klass.name.lower()
             ],
             filters={"id_or_name": partial_name},
         )

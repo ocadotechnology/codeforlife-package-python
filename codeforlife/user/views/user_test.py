@@ -237,9 +237,9 @@ class TestUserViewSet(ModelViewSetTestCase[RequestUser, User]):
 
         pks = [
             user.pk
-            for user in school_users.only("first_name_enc", "last_name_enc")
-            if first_name in user.first_name.lower()
-            or last_name in user.last_name.lower()
+            for user in school_users.only("_first_name", "last_name")
+            if (user.first_name and first_name in user.first_name.lower())
+            or (user.last_name and last_name in user.last_name.lower())
         ]
 
         self.client.login_as(user)

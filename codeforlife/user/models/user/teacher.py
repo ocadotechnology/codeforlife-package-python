@@ -84,6 +84,7 @@ class TeacherUserManager(ContactableUserManager[AnyUser], t.Generic[AnyUser]):
 class TeacherUser(ContactableUser):
     """A user that is a teacher."""
 
+    last_name: str  # type: ignore[assignment]
     teacher: "Teacher"
     student: None
 

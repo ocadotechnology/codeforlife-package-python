@@ -86,10 +86,11 @@ class StudentUser(User):
     # TODO: move this is to Student model in new schema.
     _login_id: t.Optional[str]
 
+    last_name: None  # type: ignore[assignment]
     teacher: None
     student: "Student"
 
-    credential_fields = frozenset(["first_name", "password"])
+    CREDENTIAL_FIELDS = frozenset(["first_name", "password"])
 
     class Meta(TypedModelMeta):
         proxy = True

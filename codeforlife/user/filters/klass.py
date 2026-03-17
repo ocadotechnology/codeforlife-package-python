@@ -21,19 +21,21 @@ class ClassFilterSet(FilterSet):
 
     def _id__method(self, queryset: QuerySet[Class], name: str, *args):
         access_codes = self.request.GET.getlist(name)
-        return queryset.exclude(**{"access_code_hash__sha256_in": access_codes})
+        return queryset.exclude(
+            **{"_access_code_hash__sha256_in": access_codes}
+        )
 
     def id_or_name__method(self, queryset: QuerySet[Class], _: str, value: str):
         """Get classes where the id or the name contain a substring."""
         name = value.lower()
         pks = [
             klass.pk
-            for klass in queryset.only("name_enc")
-            if name in klass.name.lower()
+            for klass in queryset.only("name")
+            if klass.name and name in klass.name.lower()
         ]
 
         return queryset.filter(
-            Q(access_code_hash__sha256=value) | Q(pk__in=pks)
+            Q(_access_code_hash__sha256=value) | Q(pk__in=pks)
         )
 
     class Meta:

@@ -24,25 +24,28 @@ class Sha256FieldTests(TestCase):
 
     def test_get__descriptor(self):
         """Getting field from class returns the descriptor."""
-        assert isinstance(User.email_hash, Sha256Field.descriptor_class)
-        assert isinstance(User.email_hash.field, Sha256Field)
+        # pylint: disable-next=protected-access
+        email_hash = User._email_hash
+        assert isinstance(email_hash, Sha256Field.descriptor_class)
+        assert isinstance(email_hash.field, Sha256Field)
 
     def test_get__value(self):
         """Getting field from instance returns the value."""
         email = "test@example.com"
-        user = User(email_hash=email)
-        assert user.email_hash == Sha256Field.hash(email)
+        user = User(_email_hash=email)
+        # pylint: disable-next=protected-access
+        assert user._email_hash == Sha256Field.hash(email)
 
     def test_set__none(self):
         """Setting field to None sets to None."""
-        user = User(email_hash=None)
-        assert user.__dict__["email_hash"] is None
+        user = User(_email_hash=None)
+        assert user.__dict__["_email_hash"] is None
 
     def test_set__str(self):
         """Setting field to a string sets the hashed value."""
         email = "test@example.com"
-        user = User(email_hash=email)
-        assert user.__dict__["email_hash"] == Sha256Field.hash(email)
+        user = User(_email_hash=email)
+        assert user.__dict__["_email_hash"] == Sha256Field.hash(email)
 
     def test_hash(self):
         """Hashing the same value produces the same hash of 64 characters."""
@@ -57,17 +60,19 @@ class Sha256FieldTests(TestCase):
         `sha256` lookup hashes the right-hand side value before doing an exact
         match.
         """
-        user = User.objects.filter(email_hash__isnull=False).first()
+        user = User.objects.filter(_email_hash__isnull=False).first()
         assert user
-        assert user.email != user.email_hash
-        assert User.objects.get(email_hash__sha256=user.email) == user
+        # pylint: disable-next=protected-access
+        assert user.email != user._email_hash
+        assert User.objects.get(_email_hash__sha256=user.email) == user
 
     def test_lookup__sha256_in(self):
         """
         `sha256_in` lookup hashes each value in the list before doing an exact
         match.
         """
-        user = User.objects.filter(email_hash__isnull=False).first()
+        user = User.objects.filter(_email_hash__isnull=False).first()
         assert user
-        assert user.email != user.email_hash
-        assert User.objects.get(email_hash__sha256_in=[user.email]) == user
+        # pylint: disable-next=protected-access
+        assert user.email != user._email_hash
+        assert User.objects.get(_email_hash__sha256_in=[user.email]) == user

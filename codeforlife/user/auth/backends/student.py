@@ -29,8 +29,8 @@ class StudentBackend(BaseBackend):
         # pylint: disable=duplicate-code
         try:
             user = self.user_class.objects.get(
-                first_name_hash__sha256=first_name,
-                new_student__class_field__access_code_hash__sha256=class_id,
+                _first_name_hash__sha256=first_name,
+                new_student__class_field___access_code_hash__sha256=class_id,
             )
         except self.user_class.DoesNotExist:
             return None
