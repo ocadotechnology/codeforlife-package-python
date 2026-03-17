@@ -4,14 +4,11 @@
     "pk": 34,
     "fields": {
       "dek": "ZmFrZV9lbmM6YlVkTE4xSndaRlZTTW5kc1NqQkJXa1ZxU2xKV2NWTk9WbFJ6YzFjMmVHVT0=",
-      "email_enc": "ZmFrZV9lbmM6WjI5dloyeGxMblJsWVdOb1pYSkFibTl6WTJodmIyd3VZMjl0",
-      "email_hash": "google.teacher@noschool.com",
-      "email_plain": "google.teacher@noschool.com",
-      "first_name_enc": "ZmFrZV9lbmM6UjI5dloyeGw=",
-      "first_name_hash": "Google",
-      "first_name_plain": "Google",
-      "last_name_enc": "ZmFrZV9lbmM6VkdWaFkyaGxjZz09",
-      "last_name_plain": "Teacher",
+      "_email": "ZmFrZV9lbmM6WjI5dloyeGxMblJsWVdOb1pYSkFibTl6WTJodmIyd3VZMjl0",
+      "_email_hash": "google.teacher@noschool.com",
+      "_first_name": "ZmFrZV9lbmM6UjI5dloyeGw=",
+      "_first_name_hash": "Google",
+      "last_name": "ZmFrZV9lbmM6VkdWaFkyaGxjZz09",
       "password": "pbkdf2_sha256$720000$Jp50WPBA6WZImUIpj3UcVm$OJWB8+UoW5lLaUkHLYo0cKgMkyRI6qnqVOWxYEsi9T0="
     }
   },
