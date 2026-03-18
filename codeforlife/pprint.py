@@ -56,12 +56,11 @@ class Style:
         self.write(styled_message, *args, **kwargs)
 
     @classmethod
-    def ansi(cls, code: ANSI, write: Write = print):
+    def ansi(cls, code: ANSI):
         """Create a style that applies the given ANSI code to messages.
 
         Args:
             code: The ANSI code to apply.
-            write: The function to use for writing the styled message.
 
         Returns:
             A style that applies the given ANSI code to messages.
@@ -73,15 +72,14 @@ class Style:
 
             return code.value + message
 
-        return cls(apply, write)
+        return cls(apply)
 
     @classmethod
-    def combine(cls, styles: t.List["Style"], write: Write = print):
+    def combine(cls, *styles: "Style"):
         """Combine multiple styles into a single style.
 
         Args:
-            styles: The styles to combine.
-            write: The function to use for writing the styled message.
+            *styles: The styles to combine.
 
         Returns:
             A style that applies all the given styles to messages.
@@ -93,7 +91,26 @@ class Style:
 
             return message
 
-        return cls(apply, write)
+        return cls(apply)
+
+    @classmethod
+    def with_write(cls, write: Write):
+        """Create a style class that uses the given write function.
+
+        Args:
+            write: The function to use for writing the styled message.
+
+        Returns:
+            A style class that uses the given write function.
+        """
+
+        class StyleWithWrite(cls):  # type: ignore[valid-type,misc]
+            """A style class that uses the given write function."""
+
+            def __init__(self, apply: "Apply"):
+                super().__init__(apply, write)
+
+        return StyleWithWrite
 
 
 # pylint: disable-next=too-many-instance-attributes
@@ -107,58 +124,56 @@ class PrettyPrinter:
         self.start_time: t.Optional[float] = None
         self.end_time: t.Optional[float] = None
 
+        StyleWithWrite = Style.with_write(self.__call__)
+
         # Black and white.
-        self.black = Style.ansi(ANSI.BLACK, self.__call__)
-        self.white = Style.ansi(ANSI.WHITE, self.__call__)
+        self.black = StyleWithWrite.ansi(ANSI.BLACK)
+        self.white = StyleWithWrite.ansi(ANSI.WHITE)
 
         # Red, green, and blue.
-        self.red = Style.ansi(ANSI.RED, self.__call__)
-        self.green = Style.ansi(ANSI.GREEN, self.__call__)
-        self.blue = Style.ansi(ANSI.BLUE, self.__call__)
+        self.red = StyleWithWrite.ansi(ANSI.RED)
+        self.green = StyleWithWrite.ansi(ANSI.GREEN)
+        self.blue = StyleWithWrite.ansi(ANSI.BLUE)
 
         # Cyan, magenta, and yellow.
-        self.cyan = Style.ansi(ANSI.CYAN, self.__call__)
-        self.magenta = Style.ansi(ANSI.MAGENTA, self.__call__)
-        self.yellow = Style.ansi(ANSI.YELLOW, self.__call__)
+        self.cyan = StyleWithWrite.ansi(ANSI.CYAN)
+        self.magenta = StyleWithWrite.ansi(ANSI.MAGENTA)
+        self.yellow = StyleWithWrite.ansi(ANSI.YELLOW)
 
         # Common text styles.
-        self.bold = Style.ansi(ANSI.BOLD, self.__call__)
-        self.underline = Style.ansi(ANSI.UNDERLINE, self.__call__)
-        self.overline = Style.ansi(ANSI.OVERLINE, self.__call__)
+        self.bold = StyleWithWrite.ansi(ANSI.BOLD)
+        self.underline = StyleWithWrite.ansi(ANSI.UNDERLINE)
+        self.overline = StyleWithWrite.ansi(ANSI.OVERLINE)
 
         # Status styles.
-        self.success = Style.combine([self.green, self.bold], self.__call__)
-        self.error = Style.combine([self.red, self.bold], self.__call__)
-        self.warn = self.warning = Style.combine(
-            [self.yellow, self.bold], self.__call__
+        self.success = StyleWithWrite.combine(self.green, self.bold)
+        self.error = StyleWithWrite.combine(self.red, self.bold)
+        self.warn = self.warning = StyleWithWrite.combine(
+            self.yellow, self.bold
         )
-        self.info = self.notice = Style.combine(
-            [self.blue, self.bold], self.__call__
-        )
+        self.info = self.notice = StyleWithWrite.combine(self.blue, self.bold)
 
         # Heading styles.
-        self.h1 = Style(
+        self.h1 = StyleWithWrite(
             lambda message, **kwargs: "\n".join(
                 [
                     self.bold.apply(self.divider("="), **kwargs),
                     self.bold.apply(message, **kwargs),
                     self.bold.apply(self.divider("="), **kwargs),
                 ]
-            ),
-            self.__call__,
+            )
         )
-        self.h2 = Style(
+        self.h2 = StyleWithWrite(
             lambda message, **kwargs: "\n".join(
                 [
                     self.bold.apply(self.divider("-"), **kwargs),
                     self.bold.apply(message, **kwargs),
                     self.bold.apply(self.divider("-"), **kwargs),
                 ]
-            ),
-            self.__call__,
+            )
         )
-        self.h3 = Style.combine(
-            [self.overline, self.underline, self.bold], self.__call__
+        self.h3 = StyleWithWrite.combine(
+            self.overline, self.underline, self.bold
         )
 
     def __call__(self, message: str, *args, **kwargs):
@@ -192,6 +207,17 @@ class PrettyPrinter:
             + (self.error.apply("✘") if exc_type else self.success.apply("✔"))
             + self.bold.apply(f" ({elapsed_time:.2f}s elapsed)")
         )
+
+    def style(self, apply: "Apply"):
+        """Create a new style based on the given apply function.
+
+        Args:
+            apply: The function to use for applying the style.
+
+        Returns:
+            A new style based on the given apply function.
+        """
+        return Style(apply, self.__call__)
 
     def process(self, name: str, indent_level: t.Optional[int] = None):
         """
