@@ -85,7 +85,10 @@ class Migration(migrations.Migration):
             model_name="user",
             name="first_name_hash",
             field=Sha256Field(
-                editable=False, max_length=64, verbose_name="first name hash"
+                null=True,
+                editable=False,
+                max_length=64,
+                verbose_name="first name hash",
             ),
         ),
         migrations.AddField(

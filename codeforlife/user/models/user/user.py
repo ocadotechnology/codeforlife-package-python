@@ -166,7 +166,7 @@ class User(AbstractBaseUser, PermissionsMixin, DataEncryptionKeyModel):
     # First name
     # --------------------------------------------------------------------------
 
-    first_name_hash = Sha256Field(verbose_name=_("first name hash"))
+    first_name_hash = Sha256Field(verbose_name=_("first name hash"), null=True)
     first_name_plain = models.CharField(
         _("first name"), max_length=150, blank=True
     )
