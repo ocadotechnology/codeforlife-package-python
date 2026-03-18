@@ -99,7 +99,7 @@ setup(
     long_description_content_type="text/markdown",
     url="https://github.com/ocadotechnology/codeforlife-package-python",
     packages=find_packages(where="codeforlife"),
-    package_dir={"codeforlife": "codeforlife"},
+    # package_dir={"codeforlife": "codeforlife"},
     include_package_data=True,
     exclude_package_data={"codeforlife": ["**/*_test.py", "**/test_*.py"]},
     data_files=[
