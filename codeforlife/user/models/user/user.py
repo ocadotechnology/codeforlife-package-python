@@ -377,7 +377,7 @@ class User(AbstractBaseUser, PermissionsMixin, DataEncryptionKeyModel):
         """Anonymize the user."""
         self.first_name = ""
         self.last_name = ""
-        self.email = ""
+        self.email = None
         self.is_active = False
         self.save(
             update_fields=[
