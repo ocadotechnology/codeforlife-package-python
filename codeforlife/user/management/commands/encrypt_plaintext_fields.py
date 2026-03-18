@@ -119,9 +119,7 @@ class Command(BaseCommand):
 
             pprint(
                 "Discovered field mapping: "
-                + pprint.notice.apply(
-                    f"{model_spec}.{field_name} -> {target_fields}"
-                )
+                + pprint.notice.apply(f"{field_name} -> {target_fields}")
             )
             fields_to_encrypt.append((plain_field, enc_field, hash_field))
 
@@ -188,9 +186,11 @@ class Command(BaseCommand):
                         continue
 
                     with app_pprint.process(
-                        "Encrypting model:"
-                        f" {model_class._meta.app_label}"
-                        f".{model_class._meta.model_name}"
+                        "Encrypting model: "
+                        + app_pprint.notice.apply(
+                            f"{model_class._meta.app_label}"
+                            f".{model_class._meta.model_name}"
+                        )
                     ) as enc_model_pprint:
                         fields_to_encrypt = self._discover_model_fields(
                             model_class,
@@ -209,8 +209,10 @@ class Command(BaseCommand):
                             ]
                             with enc_model_pprint.process(
                                 "Field: "
-                                f"{plain_field.name} -> "
-                                + ", ".join(target_field_names)
+                                + enc_model_pprint.notice.apply(
+                                    f"{plain_field.name} -> "
+                                    + ", ".join(target_field_names)
+                                )
                             ) as enc_field_pprint:
                                 self._encrypt_field(
                                     chunk_size,

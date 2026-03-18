@@ -10,6 +10,16 @@ import typing as t
 from enum import Enum
 from timeit import default_timer
 
+if t.TYPE_CHECKING:
+    from typing_extensions import Protocol
+
+    # pylint: disable-next=too-few-public-methods
+    class Apply(Protocol):
+        """A protocol for a callable that applies a style to a message."""
+
+        def __call__(self, message: str, **kwargs) -> str: ...
+
+
 Write: t.TypeAlias = t.Callable[[str], None]
 
 
@@ -37,7 +47,7 @@ class ANSI(Enum):
 class Style:
     """A callable class that applies styles to messages."""
 
-    def __init__(self, apply: t.Callable[[str], str], write: Write = print):
+    def __init__(self, apply: "Apply", write: Write = print):
         self.apply = apply
         self.write = write
 
@@ -57,8 +67,11 @@ class Style:
             A style that applies the given ANSI code to messages.
         """
 
-        def apply(message: str):
-            return code.value + message + ANSI.RESET.value
+        def apply(message: str, **kwargs):
+            if kwargs.get("reset", True):
+                message += ANSI.RESET.value
+
+            return code.value + message
 
         return cls(apply, write)
 
@@ -74,9 +87,9 @@ class Style:
             A style that applies all the given styles to messages.
         """
 
-        def apply(message: str):
+        def apply(message: str, **kwargs):
             for style in styles:
-                message = style.apply(message)
+                message = style.apply(message, **kwargs)
 
             return message
 
@@ -124,20 +137,26 @@ class PrettyPrinter:
         )
 
         # Heading styles.
-        h1 = Style(
-            lambda message: "\n".join(
-                [self.divider("="), message, self.divider("=")]
+        self.h1 = Style(
+            lambda message, **kwargs: "\n".join(
+                [
+                    self.bold.apply(self.divider("="), **kwargs),
+                    self.bold.apply(message, **kwargs),
+                    self.bold.apply(self.divider("="), **kwargs),
+                ]
             ),
             self.__call__,
         )
-        self.h1 = Style.combine([h1, self.bold], self.__call__)
-        h2 = Style(
-            lambda message: "\n".join(
-                [self.divider("-"), message, self.divider("-")]
+        self.h2 = Style(
+            lambda message, **kwargs: "\n".join(
+                [
+                    self.bold.apply(self.divider("-"), **kwargs),
+                    self.bold.apply(message, **kwargs),
+                    self.bold.apply(self.divider("-"), **kwargs),
+                ]
             ),
             self.__call__,
         )
-        self.h2 = Style.combine([h2, self.bold], self.__call__)
         self.h3 = Style.combine(
             [self.overline, self.underline, self.bold], self.__call__
         )
@@ -168,8 +187,10 @@ class PrettyPrinter:
         elapsed_time = self.end_time - (self.start_time or self.end_time)
 
         self.indent_level = max(0, self.indent_level - 1)
-        (self.error if exc_type else self.success)(
-            f"{self.name} ({elapsed_time:.2f}s elapsed)"
+        self(
+            self.bold.apply(f"{self.name} ")
+            + (self.error.apply("✘") if exc_type else self.success.apply("✔"))
+            + self.bold.apply(f" ({elapsed_time:.2f}s elapsed)")
         )
 
     def process(self, name: str, indent_level: t.Optional[int] = None):
