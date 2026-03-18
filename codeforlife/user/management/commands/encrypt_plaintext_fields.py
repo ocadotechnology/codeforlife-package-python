@@ -9,25 +9,32 @@ from django.apps import apps
 from django.core.management.base import BaseCommand
 from django.db.models import CharField, Model, TextField
 
-from ....models.fields import EncryptedTextField
+from ....models.fields import EncryptedTextField, Sha256Field
+from ....models.utils import is_real_model_class
 from ....pprint import PrettyPrinter
 
 PlaintextField: t.TypeAlias = t.Union[CharField, TextField]
-FieldsToEncrypt: t.TypeAlias = t.Dict[PlaintextField, EncryptedTextField]
+FieldsToEncrypt: t.TypeAlias = t.List[
+    t.Tuple[
+        PlaintextField,
+        t.Optional[EncryptedTextField],
+        t.Optional[Sha256Field],
+    ]
+]
 
 
 # pylint: disable-next=missing-class-docstring
 class Command(BaseCommand):
     format_help = (
-        "Arguments should be in the format 'app_label.ModelName="
-        "plain_field1:encrypted_text_field1,"
-        "plain_field2:encrypted_text_field2'."
+        "Arguments should be one or more Django app labels. "
+        "For each model in each app, fields ending with '_plain' will be "
+        "copied into matching '_enc' and '_hash' fields."
     )
-    help = f"Encrypts plaintext fields for specified models. {format_help}"
+    help = f"Encrypts and hashes plaintext fields for app models. {format_help}"
 
     def add_arguments(self, parser):
         parser.add_argument(
-            "model_fields", nargs="+", type=str, help=self.format_help
+            "app_labels", nargs="+", type=str, help=self.format_help
         )
         parser.add_argument(
             "--chunk-size",
@@ -35,71 +42,90 @@ class Command(BaseCommand):
             default=100,
             help="The number of records to process in each batch.",
         )
+        parser.add_argument(
+            "--dry-run",
+            action="store_true",
+            help="Print what would be updated without writing to the database.",
+        )
 
-    def _parse_arg(self, arg: str, pprint: PrettyPrinter):
-        # Split the argument into model specification and field name pairs.
-        if not "=" in arg:
-            raise ValueError(self.format_help)
-        model_spec, field_csv = arg.split("=", 1)
+    def _discover_model_fields(
+        self,
+        model_class: t.Type[Model],
+        pprint: PrettyPrinter,
+    ) -> FieldsToEncrypt:
+        model_spec = (
+            f"{model_class._meta.app_label}.{model_class._meta.model_name}"
+        )
+        fields_by_name = {
+            field.name: field
+            for field in model_class._meta.fields
+            if isinstance(
+                field, (CharField, TextField, EncryptedTextField, Sha256Field)
+            )
+        }
 
-        # Retrieve the model class based on the app and model name.
-        if "." not in model_spec:
-            raise ValueError(self.format_help)
-        app_label, model_name = model_spec.split(".", 1)
-        model_class: t.Type[Model] = apps.get_model(app_label, model_name)
-        pprint(f"Found model: {pprint.notice.apply(model_spec)}")
-
-        # Parse the field name pairs and validate their existence in the model.
-        fields_to_encrypt: FieldsToEncrypt = {}
-        for field_name_pair in field_csv.split(","):
-            # Split the field name pair.
-            if ":" not in field_name_pair:
-                raise ValueError(self.format_help)
-            plain_field_name, enc_field_name = field_name_pair.split(":", 1)
-
-            # Strip and validate field names.
-            plain_field_name = plain_field_name.strip()
-            enc_field_name = enc_field_name.strip()
-            if not plain_field_name or not enc_field_name:
-                raise ValueError(self.format_help)
-
-            # Get the plaintext field and validate its type.
-            plain_field = model_class._meta.get_field(plain_field_name)
+        fields_to_encrypt: FieldsToEncrypt = []
+        for field_name, plain_field in fields_by_name.items():
+            if not field_name.endswith("_plain"):
+                continue
             if not isinstance(plain_field, (CharField, TextField)):
-                raise ValueError(
-                    f"Plaintext field '{plain_field_name}' must be "
-                    "a CharField or TextField."
+                continue
+
+            field_name_prefix = field_name[: -len("_plain")]
+            enc_field_name = f"{field_name_prefix}_enc"
+            hash_field_name = f"{field_name_prefix}_hash"
+
+            enc_field: t.Optional[EncryptedTextField] = None
+            hash_field: t.Optional[Sha256Field] = None
+
+            enc_field_obj = fields_by_name.get(enc_field_name)
+            hash_field_obj = fields_by_name.get(hash_field_name)
+
+            if isinstance(enc_field_obj, EncryptedTextField):
+                enc_field = enc_field_obj
+            elif enc_field_obj is not None:
+                pprint(
+                    "Skipping encrypted field due to type mismatch: "
+                    + pprint.notice.apply(f"{model_spec}.{enc_field_name}")
                 )
-            if plain_field in fields_to_encrypt:
-                raise ValueError(
-                    f"Duplicate plaintext field '{plain_field_name}' in "
-                    "argument."
+
+            if isinstance(hash_field_obj, Sha256Field):
+                hash_field = hash_field_obj
+            elif hash_field_obj is not None:
+                pprint(
+                    "Skipping hash field due to type mismatch: "
+                    + pprint.notice.apply(f"{model_spec}.{hash_field_name}")
                 )
-            pprint(
-                "Found plaintext field: "
-                + pprint.notice.apply(f"{model_spec}.{plain_field_name}")
+
+            if enc_field is None and hash_field is None:
+                if enc_field_obj is not None:
+                    pprint(
+                        "No valid target fields found for: "
+                        + pprint.notice.apply(f"{model_spec}.{enc_field_name}")
+                    )
+                if hash_field_obj is not None:
+                    pprint(
+                        "No valid target fields found for: "
+                        + pprint.notice.apply(f"{model_spec}.{hash_field_name}")
+                    )
+                continue
+
+            target_fields = ", ".join(
+                field_name
+                for field_name in (enc_field_name, hash_field_name)
+                if (field_name == enc_field_name and enc_field is not None)
+                or (field_name == hash_field_name and hash_field is not None)
             )
 
-            # Get the encrypted field and validate its type.
-            enc_field = model_class._meta.get_field(enc_field_name)
-            if not isinstance(enc_field, EncryptedTextField):
-                raise ValueError(
-                    f"Encrypted field '{enc_field_name}' must be an "
-                    "EncryptedTextField."
-                )
-            if enc_field in fields_to_encrypt.values():
-                raise ValueError(
-                    f"Duplicate encrypted field '{enc_field_name}' in "
-                    "argument."
-                )
             pprint(
-                "Found encrypted field: "
-                + pprint.notice.apply(f"{model_spec}.{enc_field_name}")
+                "Discovered field mapping: "
+                + pprint.notice.apply(
+                    f"{model_spec}.{field_name} -> {target_fields}"
+                )
             )
+            fields_to_encrypt.append((plain_field, enc_field, hash_field))
 
-            fields_to_encrypt[plain_field] = enc_field
-
-        return model_class, fields_to_encrypt
+        return fields_to_encrypt
 
     # pylint: disable-next=too-many-arguments,too-many-positional-arguments
     def _encrypt_field(
@@ -107,50 +133,91 @@ class Command(BaseCommand):
         chunk_size: int,
         model_class: t.Type[Model],
         plain_field: PlaintextField,
-        enc_field: EncryptedTextField,
+        enc_field: t.Optional[EncryptedTextField],
+        hash_field: t.Optional[Sha256Field],
+        dry_run: bool,
         pprint: PrettyPrinter,
     ):
+        if enc_field is None and hash_field is None:
+            return
+
         models = model_class.objects.filter(  # type: ignore[attr-defined]
             **{f"{plain_field.name}__isnull": False}
         )
         model_count = models.count()
+
+        if dry_run:
+            pprint(f"Dry run: would update {model_count} records.")
+            return
+
         for model_index, model in enumerate(models.iterator(chunk_size)):
             if model_index % chunk_size == 0:
                 pprint(f"({model_index}/{model_count})")
 
             plaintext = getattr(model, plain_field.name)
-            setattr(model, enc_field.name, plaintext)
-            model.save(update_fields=[enc_field.name])
+            update_fields: t.List[str] = []
+            if enc_field is not None:
+                setattr(model, enc_field.name, plaintext)
+                update_fields.append(enc_field.name)
+            if hash_field is not None:
+                setattr(model, hash_field.name, plaintext)
+                update_fields.append(hash_field.name)
+            model.save(update_fields=update_fields)
 
     def handle(self, *args, **options):
-        model_fields: t.List[str] = options["model_fields"]
+        app_labels: t.List[str] = options["app_labels"]
         chunk_size: int = options["chunk_size"]
+        dry_run: bool = options["dry_run"]
 
         pprint = PrettyPrinter(write=self.stdout.write, name=self.__module__)
 
-        for arg in model_fields:
+        for app_label in app_labels:
             with pprint.process(
-                "Processing argument: "
-                f'"{arg if len(arg) <= 50 else f"{arg[:37]}...{arg[-10:]}"}"'
-            ) as arg_pprint:
-                with arg_pprint.process("Parsing argument") as parse_pprint:
-                    model_class, fields_to_encrypt = self._parse_arg(
-                        arg, parse_pprint
-                    )
-
-                with arg_pprint.process(
-                    "Encrypting model:"
-                    f" {model_class._meta.app_label}"
-                    f".{model_class._meta.model_name}"
-                ) as enc_model_pprint:
-                    for plain_field, enc_field in fields_to_encrypt.items():
-                        with enc_model_pprint.process(
-                            f"Field: {plain_field.name} -> {enc_field.name}"
-                        ) as enc_field_pprint:
-                            self._encrypt_field(
-                                chunk_size,
-                                model_class,
-                                plain_field,
-                                enc_field,
-                                enc_field_pprint,
+                f"Processing app: {pprint.notice.apply(app_label)}"
+            ) as app_pprint:
+                app_config = apps.get_app_config(app_label)
+                for model_class in app_config.get_models():
+                    if not is_real_model_class(model_class):
+                        app_pprint(
+                            "Skipping non-real model: "
+                            + pprint.notice.apply(
+                                f"{model_class._meta.app_label}"
+                                f".{model_class._meta.model_name}"
                             )
+                        )
+                        continue
+
+                    with app_pprint.process(
+                        "Encrypting model:"
+                        f" {model_class._meta.app_label}"
+                        f".{model_class._meta.model_name}"
+                    ) as enc_model_pprint:
+                        fields_to_encrypt = self._discover_model_fields(
+                            model_class,
+                            enc_model_pprint,
+                        )
+
+                        for (
+                            plain_field,
+                            enc_field,
+                            hash_field,
+                        ) in fields_to_encrypt:
+                            target_field_names = [
+                                field.name
+                                for field in (enc_field, hash_field)
+                                if field is not None
+                            ]
+                            with enc_model_pprint.process(
+                                "Field: "
+                                f"{plain_field.name} -> "
+                                + ", ".join(target_field_names)
+                            ) as enc_field_pprint:
+                                self._encrypt_field(
+                                    chunk_size,
+                                    model_class,
+                                    plain_field,
+                                    enc_field,
+                                    hash_field,
+                                    dry_run,
+                                    enc_field_pprint,
+                                )
