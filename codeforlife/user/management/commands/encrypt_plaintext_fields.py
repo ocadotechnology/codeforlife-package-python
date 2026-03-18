@@ -8,7 +8,7 @@ import typing as t
 from django.apps import apps
 from django.core.exceptions import FieldDoesNotExist
 from django.core.management.base import BaseCommand
-from django.db.models import CharField, Model, TextField
+from django.db.models import CharField, Field, Model, Q, TextField
 
 from ....models.fields import EncryptedTextField, Sha256Field
 from ....models.utils import is_real_model_class
@@ -128,7 +128,7 @@ class Command(BaseCommand):
 
         return fields_to_encrypt
 
-    # pylint: disable-next=too-many-arguments,too-many-positional-arguments
+    # pylint: disable-next=too-many-arguments,too-many-positional-arguments,too-many-locals
     def _encrypt_field(
         self,
         chunk_size: int,
@@ -139,12 +139,23 @@ class Command(BaseCommand):
         dry_run: bool,
         pprint: PrettyPrinter,
     ):
-        if enc_field is None and hash_field is None:
+        def null_or_empty(field: Field, empty: t.Any):
+            return Q(**{f"{field.name}__isnull": True}) | Q(
+                **{f"{field.name}": empty}
+            )
+
+        if enc_field is not None and hash_field is not None:
+            q = null_or_empty(enc_field, b"") | null_or_empty(hash_field, "")
+        elif enc_field is not None:
+            q = null_or_empty(enc_field, b"")
+        elif hash_field is not None:
+            q = null_or_empty(hash_field, "")
+        else:
             return
 
-        models = model_class.objects.filter(  # type: ignore[attr-defined]
-            **{f"{plain_field.name}__isnull": False}
-        )
+        models = model_class.objects.exclude(  # type: ignore[attr-defined]
+            null_or_empty(plain_field, "")
+        ).filter(q)
         model_count = models.count()
 
         if dry_run:
