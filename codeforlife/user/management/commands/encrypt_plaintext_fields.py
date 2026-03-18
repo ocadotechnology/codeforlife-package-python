@@ -6,6 +6,7 @@ Created on 16/03/2026 at 10:58:04(+00:00).
 import typing as t
 
 from django.apps import apps
+from django.core.exceptions import FieldDoesNotExist
 from django.core.management.base import BaseCommand
 from django.db.models import CharField, Model, TextField
 
@@ -48,6 +49,7 @@ class Command(BaseCommand):
             help="Print what would be updated without writing to the database.",
         )
 
+    # pylint: disable-next=too-many-locals
     def _discover_model_fields(
         self,
         model_class: t.Type[Model],
@@ -56,21 +58,15 @@ class Command(BaseCommand):
         model_spec = (
             f"{model_class._meta.app_label}.{model_class._meta.model_name}"
         )
-        fields_by_name = {
+        plain_fields_by_name = {
             field.name: field
             for field in model_class._meta.fields
-            if isinstance(
-                field, (CharField, TextField, EncryptedTextField, Sha256Field)
-            )
+            if isinstance(field, (CharField, TextField))
+            and field.name.endswith("_plain")
         }
 
         fields_to_encrypt: FieldsToEncrypt = []
-        for field_name, plain_field in fields_by_name.items():
-            if not field_name.endswith("_plain"):
-                continue
-            if not isinstance(plain_field, (CharField, TextField)):
-                continue
-
+        for field_name, plain_field in plain_fields_by_name.items():
             field_name_prefix = field_name[: -len("_plain")]
             enc_field_name = f"{field_name_prefix}_enc"
             hash_field_name = f"{field_name_prefix}_hash"
@@ -78,8 +74,15 @@ class Command(BaseCommand):
             enc_field: t.Optional[EncryptedTextField] = None
             hash_field: t.Optional[Sha256Field] = None
 
-            enc_field_obj = fields_by_name.get(enc_field_name)
-            hash_field_obj = fields_by_name.get(hash_field_name)
+            try:
+                enc_field_obj = model_class._meta.get_field(enc_field_name)
+            except FieldDoesNotExist:
+                enc_field_obj = None
+
+            try:
+                hash_field_obj = model_class._meta.get_field(hash_field_name)
+            except FieldDoesNotExist:
+                hash_field_obj = None
 
             if isinstance(enc_field_obj, EncryptedTextField):
                 enc_field = enc_field_obj
@@ -162,6 +165,7 @@ class Command(BaseCommand):
                 update_fields.append(hash_field.name)
             model.save(update_fields=update_fields)
 
+    # pylint: disable-next=too-many-locals
     def handle(self, *args, **options):
         app_labels: t.List[str] = options["app_labels"]
         chunk_size: int = options["chunk_size"]
