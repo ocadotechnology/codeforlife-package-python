@@ -12,7 +12,10 @@
       "first_name_plain": "Google",
       "last_name_enc": "ZmFrZV9lbmM6h2oK1LUABJFiY4Sw+SuxSW7zelXxj/LHwg1yQGoExf1iOSI=",
       "last_name_plain": "Teacher",
-      "password": "pbkdf2_sha256$720000$Jp50WPBA6WZImUIpj3UcVm$OJWB8+UoW5lLaUkHLYo0cKgMkyRI6qnqVOWxYEsi9T0="
+      "password": "pbkdf2_sha256$720000$Jp50WPBA6WZImUIpj3UcVm$OJWB8+UoW5lLaUkHLYo0cKgMkyRI6qnqVOWxYEsi9T0=",
+      "username_enc": "ZmFrZV9lbmM6WeBcsoSs/7MQ5LSuH6Xoz07Ldtmey08fVipLR2GEIswfuLpLiUMyPl44BJtE6zTu/Ior66qLFA==",
+      "username_hash": "google.teacher@noschool.com",
+      "username_plain": "google.teacher@noschool.com"
     }
   },
   {

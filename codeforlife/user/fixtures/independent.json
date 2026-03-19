@@ -12,7 +12,10 @@
       "first_name_plain": "Indy",
       "last_name_enc": "ZmFrZV9lbmM6BoA4UJLJthDhVB6I66qeuYDU1vFcJYIWPKSxIqhPm4XElwMBcQ==",
       "last_name_plain": "Requester",
-      "password": "pbkdf2_sha256$720000$Jp50WPBA6WZImUIpj3UcVm$OJWB8+UoW5lLaUkHLYo0cKgMkyRI6qnqVOWxYEsi9T0="
+      "password": "pbkdf2_sha256$720000$Jp50WPBA6WZImUIpj3UcVm$OJWB8+UoW5lLaUkHLYo0cKgMkyRI6qnqVOWxYEsi9T0=",
+      "username_enc": "ZmFrZV9lbmM6MntoQmfS/M62ESStu384LhIIIT11CKtKuCzJmVbd5eSrTat8/oTVGQuX1mE5UFSGSuWhIA==",
+      "username_hash": "indy.requester@email.com",
+      "username_plain": "indy.requester@email.com"
     }
   },
   {
@@ -45,7 +48,10 @@
       "first_name_plain": "Indy",
       "last_name_enc": "ZmFrZV9lbmM63lGZIca29mGEd1z2zFEFJ0WC8om6+elI7dJKxoDtg96lmyWV9Q==",
       "last_name_plain": "NoRequest",
-      "password": "pbkdf2_sha256$720000$Jp50WPBA6WZImUIpj3UcVm$OJWB8+UoW5lLaUkHLYo0cKgMkyRI6qnqVOWxYEsi9T0="
+      "password": "pbkdf2_sha256$720000$Jp50WPBA6WZImUIpj3UcVm$OJWB8+UoW5lLaUkHLYo0cKgMkyRI6qnqVOWxYEsi9T0=",
+      "username_enc": "ZmFrZV9lbmM6UiY+ZryNp/z8qz7n9L+4FqUuFVWMY4MzKa/hD7XMDYdYehqova2ThgrV",
+      "username_hash": "indy@email.com",
+      "username_plain": "indy@email.com"
     }
   },
   {

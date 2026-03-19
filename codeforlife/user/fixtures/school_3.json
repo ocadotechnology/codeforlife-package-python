@@ -23,7 +23,10 @@
       "first_name_plain": "Peter",
       "last_name_enc": "ZmFrZV9lbmM65ZvFRdfboWXUEJVdEee7GqobSDr0dWjqefwR5NFmhlrFMw==",
       "last_name_plain": "Parker",
-      "password": "pbkdf2_sha256$720000$Jp50WPBA6WZImUIpj3UcVm$OJWB8+UoW5lLaUkHLYo0cKgMkyRI6qnqVOWxYEsi9T0="
+      "password": "pbkdf2_sha256$720000$Jp50WPBA6WZImUIpj3UcVm$OJWB8+UoW5lLaUkHLYo0cKgMkyRI6qnqVOWxYEsi9T0=",
+      "username_enc": "ZmFrZV9lbmM6ucv3gyLks7jclPtwVE7eJ2ksRBti4qH6x0MFGiiSR+0iNhHDYr+c+4w4YQ8hkKQHfGb+8Eg=",
+      "username_hash": "admin.teacher@school3.com",
+      "username_plain": "admin.teacher@school3.com"
     }
   },
   {
@@ -57,7 +60,10 @@
       "first_name_plain": "Doctor",
       "last_name_enc": "ZmFrZV9lbmM6anEMrU3ErpA/5uZ8UpbNUdNVYO20aS3/D/rYillq2dGiH9I=",
       "last_name_plain": "Octopus",
-      "password": "pbkdf2_sha256$720000$Jp50WPBA6WZImUIpj3UcVm$OJWB8+UoW5lLaUkHLYo0cKgMkyRI6qnqVOWxYEsi9T0="
+      "password": "pbkdf2_sha256$720000$Jp50WPBA6WZImUIpj3UcVm$OJWB8+UoW5lLaUkHLYo0cKgMkyRI6qnqVOWxYEsi9T0=",
+      "username_enc": "ZmFrZV9lbmM63bjWzKZp7Tx/SURi3yVl/gijYPshi+yPQPxvBzDoy9K4czbAusXIQDXbswC/G1s=",
+      "username_hash": "teacher@school3.com",
+      "username_plain": "teacher@school3.com"
     }
   },
   {

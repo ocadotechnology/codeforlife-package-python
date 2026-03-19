@@ -2,6 +2,7 @@ import base64
 import binascii
 import json
 from pathlib import Path
+from typing import Any
 
 import django
 
@@ -90,22 +91,109 @@ def update_hashed_fields(fields: dict) -> int:
     return updated_count
 
 
-def update_fixture_file(fixture_path: Path) -> int:
+def sort_model_fields(object_data: dict) -> int:
+    fields = object_data.get("fields")
+    if not isinstance(fields, dict):
+        return 0
+
+    sorted_keys = sorted(fields)
+    if list(fields) == sorted_keys:
+        return 0
+
+    object_data["fields"] = {key: fields[key] for key in sorted_keys}
+    return 1
+
+
+def load_reference_fixture(
+    reference_fixture_path: Path,
+) -> dict[tuple[str, int], dict[str, Any]]:
+    if not reference_fixture_path.exists():
+        return {}
+
+    with reference_fixture_path.open("r", encoding="utf-8") as fixture_file:
+        fixture_data = json.load(fixture_file)
+
+    lookup: dict[tuple[str, int], dict[str, Any]] = {}
+    for object_data in fixture_data:
+        model = object_data.get("model")
+        pk = object_data.get("pk")
+        fields = object_data.get("fields")
+
+        if not isinstance(model, str) or not isinstance(pk, int):
+            continue
+        if not isinstance(fields, dict):
+            continue
+
+        lookup[(model, pk)] = fields
+
+    return lookup
+
+
+def update_username_fields(
+    object_data: dict,
+    fields: dict,
+    reference_lookup: dict[tuple[str, int], dict[str, Any]],
+) -> int:
+    if object_data.get("model") != "user.user":
+        return 0
+
+    pk = object_data.get("pk")
+    if not isinstance(pk, int):
+        return 0
+
+    reference_fields = reference_lookup.get(("user.user", pk))
+    if not reference_fields:
+        return 0
+
+    username = reference_fields.get("username")
+    if not isinstance(username, str):
+        return 0
+
+    updated_count = 0
+
+    if fields.get("username_plain") != username:
+        fields["username_plain"] = username
+        updated_count += 1
+
+    if "username_enc" not in fields:
+        fields["username_enc"] = ""
+        updated_count += 1
+
+    if "username_hash" not in fields:
+        fields["username_hash"] = ""
+        updated_count += 1
+
+    return updated_count
+
+
+def update_fixture_file(
+    fixture_path: Path, reference_fixture_path: Path
+) -> int:
     with fixture_path.open("r", encoding="utf-8") as fixture_file:
         fixture_data = json.load(fixture_file)
+
+    reference_lookup = load_reference_fixture(reference_fixture_path)
 
     updated_count = 0
     for object_data in fixture_data:
         if object_data.get("model") not in {"user.user", "user.school"}:
+            updated_count += sort_model_fields(object_data)
             continue
 
         fields = object_data.setdefault("fields", {})
+        updated_count += update_username_fields(
+            object_data,
+            fields,
+            reference_lookup,
+        )
+
         if "dek" not in fields:
             fields["dek"] = generate_dek_value()
             updated_count += 1
 
         updated_count += update_encrypted_fields(fields)
         updated_count += update_hashed_fields(fields)
+        updated_count += sort_model_fields(object_data)
 
     if updated_count:
         with fixture_path.open("w", encoding="utf-8") as fixture_file:
@@ -121,10 +209,15 @@ def main():
     fixtures_dir = (
         Path(__file__).resolve().parent / "codeforlife" / "user" / "fixtures"
     )
+    reference_dir = Path(__file__).resolve().parent / "temp"
     total_updated = 0
 
     for fixture_path in sorted(fixtures_dir.glob("*.json")):
-        updated_in_file = update_fixture_file(fixture_path)
+        reference_fixture_path = reference_dir / fixture_path.name
+        updated_in_file = update_fixture_file(
+            fixture_path,
+            reference_fixture_path,
+        )
         if updated_in_file:
             print(f"Updated {updated_in_file} objects in {fixture_path.name}")
             total_updated += updated_in_file

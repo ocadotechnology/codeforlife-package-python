@@ -604,7 +604,10 @@
       "last_name_enc": "ZmFrZV9lbmM6tyHv8gTJuHngdAbwm69XP6CtZxIFRiF826e9os4C3J49",
       "last_name_plain": "Admin",
       "password": "pbkdf2_sha256$1000000$y2lUeK8u5GnocWVuonlViT$TnNTL7sG9pcvz6MotXSSptrHdQzAFxmLnqNbj7syLS4=",
-      "user_permissions": []
+      "user_permissions": [],
+      "username_enc": "ZmFrZV9lbmM65xcWAa9/Hd9IIEqoC/ov6rJ4v18BdfWoqOT8nSxDWbbVMMdzfIyhiyMqP570C3cr/s5Y+vNisSc=",
+      "username_hash": "codeforlife-portal@ocado.com",
+      "username_plain": "codeforlife-portal@ocado.com"
     }
   },
   {
@@ -627,7 +630,10 @@
       "last_name_enc": "ZmFrZV9lbmM622qSW1M/YMXQzlLCGhVxSbI/iwctwNjxKelC9wFI+2HMUaNh",
       "last_name_plain": "Einstein",
       "password": "pbkdf2_sha256$1000000$IOkFLrqDnlDiEoASMl5OSY$C7gzJeOhwbfq/nJp47LaErHOxgA/3DIkaUI93ZUqauc=",
-      "user_permissions": []
+      "user_permissions": [],
+      "username_enc": "ZmFrZV9lbmM6192x0TGr0PaPWTPfaDQnAnisxUdKaAP0YPiOQ+NjCJiEU9FEL6K337EPhHtij49iV1xoET4M9NzHjg==",
+      "username_hash": "alberteinstein@codeforlife.com",
+      "username_plain": "alberteinstein@codeforlife.com"
     }
   },
   {
@@ -650,7 +656,10 @@
       "last_name_enc": "ZmFrZV9lbmM64pNTy4wITX1SHLIqHUHyxo02yO61QwkShFq6Ih/me5m0xA==",
       "last_name_plain": "Planck",
       "password": "pbkdf2_sha256$1000000$QHwukC6Cv822F2nSjQjLu0$09yKE5c8mFVwIHS5BWccM+q33Rs6XSCcc5rik3RD7eY=",
-      "user_permissions": []
+      "user_permissions": [],
+      "username_enc": "ZmFrZV9lbmM6bjLgexZPKQUVZVqTPQ60YmFApTHLiTXtsQMCkKarx+esCqOHTBjqty6gLgP/1gP7l23zQtY=",
+      "username_hash": "maxplanck@codeforlife.com",
+      "username_plain": "maxplanck@codeforlife.com"
     }
   },
   {
@@ -673,7 +682,10 @@
       "last_name_enc": "ZmFrZV9lbmM698v/rvCth135Av6mmwyGVlxWp1S4f32rvPqWuLRKGskV",
       "last_name_plain": "Leith",
       "password": "pbkdf2_sha256$1000000$OcLHQ75ALkslmiUxFwe1Ft$7hpkII5kIi1lytO4PQ0p/6HdtT6//mPcZfZNjROXqrg=",
-      "user_permissions": []
+      "user_permissions": [],
+      "username_enc": "ZmFrZV9lbmM63vaJEJTejsRC9kssMjbHEzV2M/eyEvYwAqTLeWLO+Ckq4Jsggv/v2SIXU1NeCYc7qrLYFg==",
+      "username_hash": "ramleith@codeforlife.com",
+      "username_plain": "ramleith@codeforlife.com"
     }
   },
   {
@@ -696,7 +708,10 @@
       "last_name_enc": "ZmFrZV9lbmM6+DNhj1q6Z0xYQ+rYu8l/70aDfA3YLnAX/ajRKUrYK76a2kU=",
       "last_name_plain": "DaVinci",
       "password": "pbkdf2_sha256$1000000$6QiofvSo5LPJ0DlGshTh0h$XdFmFi/Al5vuhxw02nlZE/rUG8g2uHxFnHXs46XgT/c=",
-      "user_permissions": []
+      "user_permissions": [],
+      "username_enc": "ZmFrZV9lbmM6lyUdY/HUyQowM72tyAH0qmEjz1Pb0csIC1WY9dNoqgSWFhA/PRSPKTMHvnjhraUK0m8nDBAkjRO3OeY=",
+      "username_hash": "leonardodavinci@codeforlife.com",
+      "username_plain": "leonardodavinci@codeforlife.com"
     }
   },
   {
@@ -719,7 +734,10 @@
       "last_name_enc": "ZmFrZV9lbmM6XyP95nXnSYz7Ueu/Gqy/xjdeSTMkYOfyo6y9J1zDDquGctY=",
       "last_name_plain": "Galilei",
       "password": "pbkdf2_sha256$1000000$HF1HBQVpMLdAuYb0vt55r1$gY3+SetJqidFfylntSqmmrtremtNk8QuGeAdlHNqD9A=",
-      "user_permissions": []
+      "user_permissions": [],
+      "username_enc": "ZmFrZV9lbmM6J5h3SBcqOXZAJ/wws+DLPkZ3L/x1t0YJTfdMN1fBimflYdTAxBRUBVreMg9gduOSyAbkR9H0rFfg6Q==",
+      "username_hash": "galileogalilei@codeforlife.com",
+      "username_plain": "galileogalilei@codeforlife.com"
     }
   },
   {
@@ -742,7 +760,10 @@
       "last_name_enc": "ZmFrZV9lbmM6g8/yC5FegcIRsiJSe2DIruh8COl7eLUPKldPNefcK5VvyQ==",
       "last_name_plain": "Newton",
       "password": "pbkdf2_sha256$1000000$BUSt8V8F4DwWZPlCZeS1Sc$WMQElSAhvIE7LRHx6lwTde9YG5P74dc7Az+639AHdYc=",
-      "user_permissions": []
+      "user_permissions": [],
+      "username_enc": "ZmFrZV9lbmM6hQvKdhYfoZw64Emn98b9VlCScGTTCF0d8xuIhv6huZJacuJK7WEcaJaT8lcGxVdcb0hq7pBSzg==",
+      "username_hash": "isaacnewton@codeforlife.com",
+      "username_plain": "isaacnewton@codeforlife.com"
     }
   },
   {
@@ -765,7 +786,10 @@
       "last_name_enc": "ZmFrZV9lbmM6jr8Q7zJowXWPckX/4BpJ2kDr48ThJp1m8bFOWeRG5O+ZoW4=",
       "last_name_plain": "Feynman",
       "password": "pbkdf2_sha256$1000000$TaYcwU3iqPA4c4co14ZYHx$FAwypkSE7UucZod6BY/YY+A4zV4JbySNxDwd4ypOZT8=",
-      "user_permissions": []
+      "user_permissions": [],
+      "username_enc": "ZmFrZV9lbmM6TCDzMIHROp3hNvb03d6O61GSrfMRZcAU9/dQ1/CrNSYzjxmC8KgXQ0BE/U3ZODanWsDOF+NA37zUSw==",
+      "username_hash": "richardfeynman@codeforlife.com",
+      "username_plain": "richardfeynman@codeforlife.com"
     }
   },
   {
@@ -788,7 +812,10 @@
       "last_name_enc": "ZmFrZV9lbmM6wDgSvz+CHqONiYo4yfcnCUqWNJqiWAIaDUp+xzOY7jJFFuj4",
       "last_name_plain": "Flemming",
       "password": "pbkdf2_sha256$1000000$mCuu3Ptx9EGmKQ7FSNIqzw$dqwQK/ovljow4iGxfLIQTm8PPR8Iu5AITzQ9tVQxv9w=",
-      "user_permissions": []
+      "user_permissions": [],
+      "username_enc": "ZmFrZV9lbmM6DQBKeQzYNdDEN7Jop/3fzbCDIHdMKG2x8z5+lL4fjRD5fKOfQJ9U/weAwJMjNnY2gTeEWP0uRdSWTYRCkQ==",
+      "username_hash": "alexanderflemming@codeforlife.com",
+      "username_plain": "alexanderflemming@codeforlife.com"
     }
   },
   {
@@ -811,7 +838,10 @@
       "last_name_enc": "ZmFrZV9lbmM6QUrqx3tFD/dA/oCSD1Bs37+IdQBJkc1EuKbC+niGVFFumMcfqg==",
       "last_name_plain": "Bernoulli",
       "password": "pbkdf2_sha256$1000000$isUqjEe0ZtdHC0tDFilALA$k20Gy//4APEqsGNYGa8aQPUTUBqMPKe6hI5GMIWiMnE=",
-      "user_permissions": []
+      "user_permissions": [],
+      "username_enc": "ZmFrZV9lbmM6h9h/6XtV3hb1f9mrs+pZK3sdys4sBvCOf7c02sK44fv1ebAniAtXmdy39DUt5/kY0GmAZlEsCOpBtZs=",
+      "username_hash": "danielbernoulli@codeforlife.com",
+      "username_plain": "danielbernoulli@codeforlife.com"
     }
   },
   {
@@ -834,7 +864,10 @@
       "last_name_enc": "ZmFrZV9lbmM6oTfUA81gVcF552sZVpKh/ihrDgBCvw/NIb7zIq0t4WBi",
       "last_name_plain": "Jones",
       "password": "pbkdf2_sha256$1000000$mjbmbYr7G3WRyxxHlDcH6d$w1wf3D0lDP6pF3nSoTUD3vSRioCzPEloW3r8sXnLSJw=",
-      "user_permissions": []
+      "user_permissions": [],
+      "username_enc": "ZmFrZV9lbmM6ush647CLjdr/wdlG96AfTFHgSe1+96L5csMMveAd5/pdGAyveyJ3ADS0OOud2jozUBNeV3zIWtg=",
+      "username_hash": "indianajones@codeforlife.com",
+      "username_plain": "indianajones@codeforlife.com"
     }
   },
   {
@@ -854,7 +887,10 @@
       "last_name_enc": "ZmFrZV9lbmM6w/2ZD0tBx7TXroIlk09UVWDKeyXQ5g3IzchZm/LwLKogl5nB",
       "last_name_plain": "Monaghan",
       "password": "pbkdf2_sha256$1000000$qm1oQx3HNeIx6dpY1aRzXb$xMKwoqXoW6MuHqoABww+Yq+3A1uwkLbkpaWWytNu6l0=",
-      "user_permissions": []
+      "user_permissions": [],
+      "username_enc": "ZmFrZV9lbmM6GeTJZ3Ae/Nj3IBw9pd1ZjreXKwN+CWkxv4g/zHwSh3Yp7wscRm8=",
+      "username_hash": "media noah",
+      "username_plain": "media noah"
     }
   },
   {
@@ -874,7 +910,10 @@
       "last_name_enc": "ZmFrZV9lbmM68Gr9zD4D6qwaXooJqS+vx+s03389pWVCcAll+9tE9nB2",
       "last_name_plain": "Sharp",
       "password": "pbkdf2_sha256$1000000$vQZKG1iO3Np3cdOHSrG85F$QnuZLe1KvMt64uWXjz3RKOEnr6owhloxfgs3u8xB6GQ=",
-      "user_permissions": []
+      "user_permissions": [],
+      "username_enc": "ZmFrZV9lbmM6G4jkpgT2h8I7ydAybwY4cEnhsPu4Jxzx5RcvePaod5O+9G4PFmgV8w==",
+      "username_hash": "media elliot",
+      "username_plain": "media elliot"
     }
   },
   {
@@ -894,7 +933,10 @@
       "last_name_enc": "ZmFrZV9lbmM6/orFu9ADTrhp0hC6CijpXMsShd4E2x7ZgXXRkmYhy81D5g==",
       "last_name_plain": "Joseph",
       "password": "pbkdf2_sha256$1000000$iCO3IsvmN5C8rpX5J0d1ob$TFK2zYume/i4StDly6EUiqFej/sOnuzV/wYE9rgr/cg=",
-      "user_permissions": []
+      "user_permissions": [],
+      "username_enc": "ZmFrZV9lbmM6Rgs0T6rKFr1uFjLm0JzGN+2/4VIjVtItrKEkK8cXBQ48f3OJS4XdXw==",
+      "username_hash": "media tajmae",
+      "username_plain": "media tajmae"
     }
   },
   {
@@ -914,7 +956,10 @@
       "last_name_enc": "ZmFrZV9lbmM6FT9dfdB+K3fREmC0tbcLx7tyi3JG6hj05bcgfm/yZRgxlQ==",
       "last_name_plain": "Joseph",
       "password": "pbkdf2_sha256$1000000$6Nhm1sHtcMbFdBitdz7nxq$s5i8H7MwdH6SRQ3+DZDDfsPtqxXVDPAC5t67G4FluM4=",
-      "user_permissions": []
+      "user_permissions": [],
+      "username_enc": "ZmFrZV9lbmM6nzAoACr3v0xeWKCB+ghcU042D09KkKQHi5u1BAFeg440wbQPNHHZNr8=",
+      "username_hash": "media carlton",
+      "username_plain": "media carlton"
     }
   },
   {
@@ -934,7 +979,10 @@
       "last_name_enc": "ZmFrZV9lbmM67otMoRuCL2CbQveRT9eRNsiQ9iOse+ADqNQm2XpOliKaaN3RHgeXDmBDKjY=",
       "last_name_plain": "Spencer-Jennings",
       "password": "pbkdf2_sha256$1000000$FRA5lx8xBTO5Rn8J9wwZZW$KiQzLItBM40bzbwRdXpKnrI1uWXv0xsSzTMkFwAewwo=",
-      "user_permissions": []
+      "user_permissions": [],
+      "username_enc": "ZmFrZV9lbmM6+69JHzd0VIoA+8UiJJYpn/ORSJlWbSrZFIamc+Y7av2foHtWtpiV",
+      "username_hash": "media nadal",
+      "username_plain": "media nadal"
     }
   },
   {
@@ -954,7 +1002,10 @@
       "last_name_enc": "ZmFrZV9lbmM6fdBSXTT/G7O/Ii7gXxQV7wuwUsmfiBM8mAOXqLEtUaY=",
       "last_name_plain": "Goff",
       "password": "pbkdf2_sha256$1000000$LAQQycnLxi5rY9QCD15nHw$Ad5r4JEo5CCQrwuD2F12ajXnV/bDSL+FGQ99vM2l0/k=",
-      "user_permissions": []
+      "user_permissions": [],
+      "username_enc": "ZmFrZV9lbmM6eCDI672bvQKOOL/qvuDWfoYiW/xGyVZZ6sVJubw11oPA0rVeP4Ycxto=",
+      "username_hash": "media freddie",
+      "username_plain": "media freddie"
     }
   },
   {
@@ -974,7 +1025,10 @@
       "last_name_enc": "ZmFrZV9lbmM62ZWVyCFNj2pt54fdd+lGpW3dOinmkPHu4dbkJiB8YCh4",
       "last_name_plain": "Scott",
       "password": "pbkdf2_sha256$1000000$XHhBEg6yrF9a6TR487gNrU$DOR6TONr+9q0rLXJwB43UuezRcQkQAmEmoN0nYmm4do=",
-      "user_permissions": []
+      "user_permissions": [],
+      "username_enc": "ZmFrZV9lbmM6D3QdFzdwE2Rqa3WMZuttGVm9TitC80AMx0KOGHrm6w/eJkkyosA=",
+      "username_hash": "media leon",
+      "username_plain": "media leon"
     }
   },
   {
@@ -994,7 +1048,10 @@
       "last_name_enc": "ZmFrZV9lbmM69wfoWudQPGpUn/0rN5ND9J12aixwSCDwBQfbkZ23s+LlFuc=",
       "last_name_plain": "Kessell",
       "password": "pbkdf2_sha256$1000000$ua0WUUCFIijIjxpLdkc25v$mvl+UejCNGop0krujly8TPlMbgWPFVZ42tH+NPDltS4=",
-      "user_permissions": []
+      "user_permissions": [],
+      "username_enc": "ZmFrZV9lbmM6luGKmXsicNdNVvaYPMBkDEqCo7F9YDknjIIeDPUqoaXCJwJdWsSP",
+      "username_hash": "media betty",
+      "username_plain": "media betty"
     }
   },
   {
@@ -1014,7 +1071,10 @@
       "last_name_enc": "ZmFrZV9lbmM6PIAaX2VTvk+hVrFkgN9hiqKztmm8KD9fpp//43axgw8=",
       "last_name_plain": "User",
       "password": "pbkdf2_sha256$1000000$o2AfZh0JqqIFRTZGHWEQKV$c1es5kdOakAvCGkeMVgDOX5q+rFhdQgOkMZiKAtqMrk=",
-      "user_permissions": []
+      "user_permissions": [],
+      "username_enc": "ZmFrZV9lbmM6ShmekxIXiwQmabvM5/gxYmYQgHv1LZ4QoBNAj2oXxA/G/+wjyshc4D5YsTKQZlo9v+vO8e1T0Y0bNrev",
+      "username_hash": "4271ee7b7ce94e34a58d1f4e82025280",
+      "username_plain": "4271ee7b7ce94e34a58d1f4e82025280"
     }
   },
   {
@@ -1037,7 +1097,10 @@
       "last_name_enc": "ZmFrZV9lbmM69MQA/CJ/5y2KnfTgWqEmxA8Pb5Wj+51j5rQ062OUdW2QT9o=",
       "last_name_plain": "Student",
       "password": "pbkdf2_sha256$1000000$cv54m0PSNCQrH0MBLU56pk$nhGzkqLXL01EEtLAsoAbaWcTxuj1SOrZ7s6rBdA7eZk=",
-      "user_permissions": []
+      "user_permissions": [],
+      "username_enc": "ZmFrZV9lbmM6cFI1T9WM0WNzQ0ogbDX8wm0ZSwuHvtGHIQO4EhjPdtfn/22jo1zQfAdQyg5UFDfNxY0VnUUo8+k=",
+      "username_hash": "adminstudent@codeforlife.com",
+      "username_plain": "adminstudent@codeforlife.com"
     }
   }
 ]
