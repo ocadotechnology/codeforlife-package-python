@@ -1,6 +1,4 @@
-import typing as t
-
-from django.db import migrations, models
+from django.db import migrations
 
 from ...models.fields import (
     DataEncryptionKeyField,
@@ -8,45 +6,244 @@ from ...models.fields import (
     Sha256Field,
 )
 
+user_migrations = [
+    migrations.AddField(
+        model_name="user",
+        name="dek",
+        field=DataEncryptionKeyField(
+            editable=False,
+            help_text="The encrypted data encryption key (DEK) for this model.",
+            null=True,
+            verbose_name="data encryption key",
+        ),
+    ),
+    # Username
+    migrations.RenameField(
+        model_name="user",
+        old_name="username",
+        new_name="username_plain",
+    ),
+    migrations.AddField(
+        model_name="user",
+        name="username_enc",
+        field=EncryptedTextField(
+            associated_data="username",
+            null=True,
+            verbose_name="username",
+        ),
+    ),
+    migrations.AddField(
+        model_name="user",
+        name="username_hash",
+        field=Sha256Field(
+            null=True,
+            unique=True,
+            editable=False,
+            max_length=64,
+            verbose_name="username hash",
+        ),
+    ),
+    # Email
+    migrations.RenameField(
+        model_name="user",
+        old_name="email",
+        new_name="email_plain",
+    ),
+    migrations.AddField(
+        model_name="user",
+        name="email_enc",
+        field=EncryptedTextField(
+            associated_data="email",
+            null=True,
+            verbose_name="email address",
+        ),
+    ),
+    migrations.AddField(
+        model_name="user",
+        name="email_hash",
+        field=Sha256Field(
+            null=True,
+            blank=True,
+            editable=False,
+            max_length=64,
+            verbose_name="email hash",
+        ),
+    ),
+    # First name
+    migrations.RenameField(
+        model_name="user",
+        old_name="first_name",
+        new_name="first_name_plain",
+    ),
+    migrations.AddField(
+        model_name="user",
+        name="first_name_enc",
+        field=EncryptedTextField(
+            associated_data="first_name",
+            null=True,
+            verbose_name="first name",
+        ),
+    ),
+    migrations.AddField(
+        model_name="user",
+        name="first_name_hash",
+        field=Sha256Field(
+            null=True,
+            editable=False,
+            max_length=64,
+            verbose_name="first name hash",
+        ),
+    ),
+    # Last name
+    migrations.RenameField(
+        model_name="user",
+        old_name="last_name",
+        new_name="last_name_plain",
+    ),
+    migrations.AddField(
+        model_name="user",
+        name="last_name_enc",
+        field=EncryptedTextField(
+            associated_data="last_name",
+            null=True,
+            verbose_name="last name",
+        ),
+    ),
+]
 
-def rename_plain_text_fields_and_create_encrypted_text_fields(
-    model_name: str, fields: t.Dict[str, str]
-):
-    """
-    Renames all plaintext fields with the naming convention {field_name}_plain
-    and creates new encrypted text fields with the naming convention
-    {field_name}_enc.
+class_migrations = [
+    # Access code
+    migrations.RenameField(
+        model_name="class",
+        old_name="access_code",
+        new_name="access_code_plain",
+    ),
+    migrations.AddField(
+        model_name="class",
+        name="access_code_enc",
+        field=EncryptedTextField(
+            associated_data="access_code",
+            null=True,
+            verbose_name="access code",
+        ),
+    ),
+    migrations.AddField(
+        model_name="class",
+        name="access_code_hash",
+        field=Sha256Field(
+            null=True,
+            editable=False,
+            max_length=64,
+            verbose_name="access code hash",
+        ),
+    ),
+    # Name
+    migrations.RenameField(
+        model_name="class",
+        old_name="name",
+        new_name="name_plain",
+    ),
+    migrations.AddField(
+        model_name="class",
+        name="name_enc",
+        field=EncryptedTextField(
+            associated_data="name",
+            null=True,
+            verbose_name="name",
+        ),
+    ),
+]
 
-    Args:
-        model_name: The name of the model to modify.
-        fields: A dictionary mapping field names to their verbose names.
+school_teacher_invitation_migrations = [
+    # Token
+    migrations.RenameField(
+        model_name="schoolteacherinvitation",
+        old_name="token",
+        new_name="token_plain",
+    ),
+    migrations.AddField(
+        model_name="schoolteacherinvitation",
+        name="token_enc",
+        field=EncryptedTextField(
+            associated_data="token",
+            null=True,
+            verbose_name="token",
+        ),
+    ),
+    # Invited teacher first name
+    migrations.RenameField(
+        model_name="schoolteacherinvitation",
+        old_name="invited_teacher_first_name",
+        new_name="invited_teacher_first_name_plain",
+    ),
+    migrations.AddField(
+        model_name="schoolteacherinvitation",
+        name="invited_teacher_first_name_enc",
+        field=EncryptedTextField(
+            associated_data="invited_teacher_first_name",
+            null=True,
+            verbose_name="invited teacher first name",
+        ),
+    ),
+    # Invited teacher last name
+    migrations.RenameField(
+        model_name="schoolteacherinvitation",
+        old_name="invited_teacher_last_name",
+        new_name="invited_teacher_last_name_plain",
+    ),
+    migrations.AddField(
+        model_name="schoolteacherinvitation",
+        name="invited_teacher_last_name_enc",
+        field=EncryptedTextField(
+            associated_data="invited_teacher_last_name",
+            null=True,
+            verbose_name="invited teacher last name",
+        ),
+    ),
+    # Invited teacher email
+    migrations.RenameField(
+        model_name="schoolteacherinvitation",
+        old_name="invited_teacher_email",
+        new_name="invited_teacher_email_plain",
+    ),
+    migrations.AddField(
+        model_name="schoolteacherinvitation",
+        name="invited_teacher_email_enc",
+        field=EncryptedTextField(
+            associated_data="invited_teacher_email",
+            null=True,
+            verbose_name="invited teacher email",
+        ),
+    ),
+]
 
-    Returns:
-        A list of migration operations.
-    """
-
-    migrations_list = []
-    for name, verbose_name in fields.items():
-        migrations_list += [
-            # Rename the plain text field.
-            migrations.RenameField(
-                model_name=model_name,
-                old_name=name,
-                new_name=f"{name}_plain",
-            ),
-            # Add an encrypted text field.
-            migrations.AddField(
-                model_name=model_name,
-                name=f"{name}_enc",
-                field=EncryptedTextField(
-                    associated_data=name,
-                    null=True,
-                    verbose_name=verbose_name,
-                ),
-            ),
-        ]
-
-    return migrations_list
+school_migrations = [
+    migrations.AddField(
+        model_name="school",
+        name="dek",
+        field=DataEncryptionKeyField(
+            editable=False,
+            help_text="The encrypted data encryption key (DEK) for this model.",
+            null=True,
+            verbose_name="data encryption key",
+        ),
+    ),
+    # Name
+    migrations.RenameField(
+        model_name="school",
+        old_name="name",
+        new_name="name_plain",
+    ),
+    migrations.AddField(
+        model_name="school",
+        name="name_enc",
+        field=EncryptedTextField(
+            associated_data="name",
+            null=True,
+            verbose_name="name",
+        ),
+    ),
+]
 
 
 class Migration(migrations.Migration):
@@ -56,94 +253,8 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RemoveField(
-            model_name="user",
-            name="username",
-        ),
-        migrations.AlterField(
-            model_name="user",
-            name="email",
-            field=models.EmailField(
-                max_length=254,
-                null=True,
-                unique=True,
-                verbose_name="email address",
-            ),
-        ),
-        migrations.AddField(
-            model_name="user",
-            name="email_hash",
-            field=Sha256Field(
-                unique=True,
-                null=True,
-                editable=False,
-                max_length=64,
-                verbose_name="email hash",
-            ),
-        ),
-        migrations.AddField(
-            model_name="user",
-            name="first_name_hash",
-            field=Sha256Field(
-                null=True,
-                editable=False,
-                max_length=64,
-                verbose_name="first name hash",
-            ),
-        ),
-        migrations.AddField(
-            model_name="class",
-            name="access_code_hash",
-            field=Sha256Field(
-                null=True,
-                editable=False,
-                max_length=64,
-                verbose_name="access code hash",
-            ),
-        ),
-        migrations.AddField(
-            model_name="school",
-            name="dek",
-            field=DataEncryptionKeyField(
-                editable=False,
-                help_text="The encrypted data encryption key (DEK) for this model.",
-                null=True,
-                verbose_name="data encryption key",
-            ),
-        ),
-        migrations.AddField(
-            model_name="user",
-            name="dek",
-            field=DataEncryptionKeyField(
-                editable=False,
-                help_text="The encrypted data encryption key (DEK) for this model.",
-                null=True,
-                verbose_name="data encryption key",
-            ),
-        ),
-        *rename_plain_text_fields_and_create_encrypted_text_fields(
-            "user",
-            {
-                "first_name": "first name",
-                "last_name": "last name",
-                "email": "email address",
-            },
-        ),
-        *rename_plain_text_fields_and_create_encrypted_text_fields(
-            "class",
-            {"name": "name", "access_code": "access code"},
-        ),
-        *rename_plain_text_fields_and_create_encrypted_text_fields(
-            "schoolteacherinvitation",
-            {
-                "token": "token",
-                "invited_teacher_first_name": "invited teacher first name",
-                "invited_teacher_last_name": "invited teacher last name",
-                "invited_teacher_email": "invited teacher email",
-            },
-        ),
-        *rename_plain_text_fields_and_create_encrypted_text_fields(
-            "school",
-            {"name": "name"},
-        ),
+        *user_migrations,
+        *class_migrations,
+        *school_teacher_invitation_migrations,
+        *school_migrations,
     ]
