@@ -3,14 +3,14 @@
     "model": "user.user",
     "pk": 28,
     "fields": {
-      "dek": "ZmFrZV9lbmM6Ym5oYVFqaHhUMDV4VTI4NE9YVk9TbmxvVkVzemRUWnpkMUpTWjFkMFVFRT0=",
-      "email_enc": "ZmFrZV9lbmM6YVc1a2VTNXlaWEYxWlhOMFpYSkFaVzFoYVd3dVkyOXQ=",
+      "dek": "ZmFrZV9lbmM6L2LWK8EitcxU86uC69XSb5nbOso2Hsy7FjBH14+a3er944CPFMfyBfV0x3Hs3fxjYHMqP/hUpoPxRx6g",
+      "email_enc": "ZmFrZV9lbmM6mEoktNgHuMtOB5tHoQRsl122vJRtokhgmTLJxm6nv0NYv33NHjr8WtGRR/ycVT+CDFrifA==",
       "email_hash": "indy.requester@email.com",
       "email_plain": "indy.requester@email.com",
-      "first_name_enc": "ZmFrZV9lbmM6U1c1a2VRPT0=",
+      "first_name_enc": "ZmFrZV9lbmM6eEEBzMn7+PLuRQrBK2S1j8Iq2jcXNPG4Nu8LZMmw7PI=",
       "first_name_hash": "Indy",
       "first_name_plain": "Indy",
-      "last_name_enc": "ZmFrZV9lbmM6VW1WeGRXVnpkR1Z5",
+      "last_name_enc": "ZmFrZV9lbmM6BoA4UJLJthDhVB6I66qeuYDU1vFcJYIWPKSxIqhPm4XElwMBcQ==",
       "last_name_plain": "Requester",
       "password": "pbkdf2_sha256$720000$Jp50WPBA6WZImUIpj3UcVm$OJWB8+UoW5lLaUkHLYo0cKgMkyRI6qnqVOWxYEsi9T0="
     }
@@ -19,31 +19,31 @@
     "model": "user.userprofile",
     "pk": 28,
     "fields": {
-      "user": 28,
-      "is_verified": true
+      "is_verified": true,
+      "user": 28
     }
   },
   {
     "model": "user.student",
     "pk": 18,
     "fields": {
-      "user": 28,
       "new_user": 28,
-      "pending_class_request": 6
+      "pending_class_request": 6,
+      "user": 28
     }
   },
   {
     "model": "user.user",
     "pk": 30,
     "fields": {
-      "dek": "ZmFrZV9lbmM6TTIxbFVXMWlWMnR3VXpOa2JXaENlbkJGUW05a1oyZEpkRzV6YlhGa1pVYz0=",
-      "email_enc": "ZmFrZV9lbmM6YVc1a2VVQmxiV0ZwYkM1amIyMD0=",
+      "dek": "ZmFrZV9lbmM6kNpc5tLn74rFhZeIxmToumntwifCY5oqPfrL3VTp7Xa962lNlx3jEdSyUbn2WjHaAHLrKWINQQX9f6dp",
+      "email_enc": "ZmFrZV9lbmM6UMhZ4I3KN3+iSql6JNJSiK7bu0nsr5jy6A6ocnIffJG915dEzl9mb7tM",
       "email_hash": "indy@email.com",
       "email_plain": "indy@email.com",
-      "first_name_enc": "ZmFrZV9lbmM6U1c1a2VRPT0=",
+      "first_name_enc": "ZmFrZV9lbmM6nHRbQB30t31NFdM3ql+CwJvmEakS4z4qcXOc6k+V4EY=",
       "first_name_hash": "Indy",
       "first_name_plain": "Indy",
-      "last_name_enc": "ZmFrZV9lbmM6VG05U1pYRjFaWE4w",
+      "last_name_enc": "ZmFrZV9lbmM63lGZIca29mGEd1z2zFEFJ0WC8om6+elI7dJKxoDtg96lmyWV9Q==",
       "last_name_plain": "NoRequest",
       "password": "pbkdf2_sha256$720000$Jp50WPBA6WZImUIpj3UcVm$OJWB8+UoW5lLaUkHLYo0cKgMkyRI6qnqVOWxYEsi9T0="
     }
@@ -52,16 +52,16 @@
     "model": "user.userprofile",
     "pk": 30,
     "fields": {
-      "user": 30,
-      "is_verified": true
+      "is_verified": true,
+      "user": 30
     }
   },
   {
     "model": "user.student",
     "pk": 20,
     "fields": {
-      "user": 30,
-      "new_user": 30
+      "new_user": 30,
+      "user": 30
     }
   }
 ]

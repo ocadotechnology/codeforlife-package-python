@@ -27,13 +27,12 @@ assertions like `assert_called_once()`.
 """
 
 import typing as t
-from base64 import b64decode, b64encode
-from dataclasses import dataclass
 from io import BytesIO
+from os import urandom
 from unittest.mock import MagicMock, create_autospec
 
+from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 from django.conf import settings
-from django.utils.crypto import get_random_string
 from tink import (  # type: ignore[import-untyped]
     BinaryKeysetReader,
     BinaryKeysetWriter,
@@ -48,29 +47,39 @@ from tink.integration import gcpkms  # type: ignore[import-untyped]
 _GcpKmsClient = gcpkms.GcpKmsClient
 
 
-@dataclass
 class FakeAead:
     """A fake AEAD primitive for local testing."""
 
     ciphertext_prefix = b"fake_enc:"
+    nonce_size = 12
 
-    @classmethod
-    # pylint: disable-next=unused-argument
-    def encrypt(cls, plaintext: bytes, associated_data: bytes = b""):
-        """Simulate ciphertext by wrapping in base64 and adding a prefix."""
-        return cls.ciphertext_prefix + b64encode(plaintext)
+    def __init__(self, key: bytes):
+        self.aesgcm = AESGCM(key)
 
-    @classmethod
-    # pylint: disable-next=unused-argument
-    def decrypt(cls, ciphertext: bytes, associated_data: bytes = b""):
-        """Simulate decryption by removing prefix and base64 decoding."""
-        if not ciphertext.startswith(cls.ciphertext_prefix):
+    def encrypt(self, plaintext: bytes, associated_data: bytes):
+        """Encrypt data using AES-GCM and return a prefixed blob."""
+        nonce = urandom(self.nonce_size)
+        ciphertext = self.aesgcm.encrypt(
+            nonce=nonce,
+            data=plaintext,
+            associated_data=associated_data,
+        )
+
+        return self.ciphertext_prefix + nonce + ciphertext
+
+    def decrypt(self, ciphertext: bytes, associated_data: bytes):
+        """Decrypt a prefixed AES-GCM blob."""
+        if not ciphertext.startswith(self.ciphertext_prefix):
             raise ValueError("Invalid ciphertext for fake mock")
+        ciphertext = ciphertext.removeprefix(self.ciphertext_prefix)
 
-        return b64decode(ciphertext.replace(cls.ciphertext_prefix, b""))
+        return self.aesgcm.decrypt(
+            nonce=ciphertext[: self.nonce_size],
+            data=ciphertext[self.nonce_size :],
+            associated_data=associated_data,
+        )
 
-    @classmethod
-    def as_mock(cls):
+    def as_mock(self):
         """
         Returns the class as a functional MagicMock for testing. The mock tracks
         calls while still performing the fake encryption and decryption by using
@@ -78,17 +87,21 @@ class FakeAead:
         the mock behaves as an instance of the class, not the class itself.
         """
         mock: MagicMock = create_autospec(Aead, instance=True)
-        mock.encrypt.side_effect = cls.encrypt
-        mock.decrypt.side_effect = cls.decrypt
+        mock.encrypt.side_effect = self.encrypt
+        mock.decrypt.side_effect = self.decrypt
 
         return mock
 
 
-@dataclass
 class FakeGcpKmsClient:
     """A fake GcpKmsClient for local testing."""
 
-    key_uri: str
+    # Fake key encryption key (KEK) for local testing.
+    # pylint: disable-next=line-too-long
+    kek = b"fake_kek:\xba\xcc\x8c;\xa9\x85k\n\x93\xb7\x1b2\xab\x86\x9d\xea\xb1+\x88\xc0\xc4y3"
+
+    def __init__(self, key_uri: str):
+        self.key_uri = key_uri
 
     @staticmethod
     def register_client(
@@ -99,7 +112,7 @@ class FakeGcpKmsClient:
     # pylint: disable-next=unused-argument
     def get_aead(self, key_uri: str) -> Aead:
         """Return the fake AEAD primitive."""
-        return FakeAead()
+        return FakeAead(self.kek)
 
     @classmethod
     def as_mock(cls):
@@ -110,7 +123,7 @@ class FakeGcpKmsClient:
         itself.
         """
         mock: MagicMock = create_autospec(_GcpKmsClient, instance=True)
-        mock.get_aead.return_value = FakeAead.as_mock()
+        mock.get_aead.return_value = FakeAead(cls.kek).as_mock()
 
         return mock
 
@@ -129,7 +142,7 @@ def create_dek():
     """
     # In local environment, return a fake encrypted DEK.
     if settings.ENV == "local":
-        return FakeAead.encrypt(get_random_string(32).encode())
+        return _get_kek_aead().encrypt(urandom(32), b"")
 
     stream = BytesIO()
     new_keyset_handle(key_template=aead_key_templates.AES256_GCM).write(
@@ -150,7 +163,7 @@ def get_dek_aead(dek: bytes) -> Aead:
 
     # In local environment, return the fake AEAD primitive.
     if settings.ENV == "local":
-        return FakeAead()
+        return FakeAead(_get_kek_aead().decrypt(dek, b""))
 
     return read_keyset_handle(
         keyset_reader=BinaryKeysetReader(dek),

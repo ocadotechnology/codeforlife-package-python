@@ -3,14 +3,14 @@
     "model": "user.user",
     "pk": 22,
     "fields": {
-      "dek": "ZmFrZV9lbmM6TkhGdE1EWlFOVkJ3VDFwTVVYWmlVRzlFYVdwU1JIUTVialZ0V1RoQ2NXYz0=",
-      "email_enc": "ZmFrZV9lbmM6ZEdWaFkyaGxja0J1YjNOamFHOXZiQzVqYjIwPQ==",
+      "dek": "ZmFrZV9lbmM6t5dLPgCaHfVJ+ZUMvIpOeZEo7pODNwUpd8exyX9ilp3COjdmNReUbCIeYVVyppQpim4aOw3EaOo6AInr",
+      "email_enc": "ZmFrZV9lbmM6VmZgbq6CiHtQK1Gt9QHKrs2RJZLSSfufJyzD37PvWGqtLgMctpuvbFzmHrJRQvED",
       "email_hash": "teacher@noschool.com",
       "email_plain": "teacher@noschool.com",
-      "first_name_enc": "ZmFrZV9lbmM6U205b2JnPT0=",
+      "first_name_enc": "ZmFrZV9lbmM6KmcGw9jE7JBiNZstAFWxtFyRMz18G8KgV/Ob10GduYo=",
       "first_name_hash": "John",
       "first_name_plain": "John",
-      "last_name_enc": "ZmFrZV9lbmM6Ukc5bA==",
+      "last_name_enc": "ZmFrZV9lbmM6tqqi8Qc1MuO5sPiRTGC626xdcB8Fvath25CAT/pYNw==",
       "last_name_plain": "Doe",
       "password": "pbkdf2_sha256$720000$Jp50WPBA6WZImUIpj3UcVm$OJWB8+UoW5lLaUkHLYo0cKgMkyRI6qnqVOWxYEsi9T0="
     }
@@ -19,30 +19,30 @@
     "model": "user.userprofile",
     "pk": 22,
     "fields": {
-      "user": 22,
-      "is_verified": true
+      "is_verified": true,
+      "user": 22
     }
   },
   {
     "model": "user.teacher",
     "pk": 5,
     "fields": {
-      "user": 22,
-      "new_user": 22
+      "new_user": 22,
+      "user": 22
     }
   },
   {
     "model": "user.user",
     "pk": 33,
     "fields": {
-      "dek": "ZmFrZV9lbmM6UVhac01Ea3dibmQxYzBkRFdVbGFRMDR4VEZkelRVWklUbHA1VVZsU1RXOD0=",
-      "email_enc": "ZmFrZV9lbmM6ZFc1MlpYSnBabWxsWkM1MFpXRmphR1Z5UUc1dmMyTm9iMjlzTG1OdmJRPT0=",
+      "dek": "ZmFrZV9lbmM6CxNXI5JH7pjDVV3SMaAS/lVuDNePBDKJPAiV4Gi/4iVcgxG6hvQ20IJX34nFw/U4mHaHCpTwSgWfSydl",
+      "email_enc": "ZmFrZV9lbmM6UeY8Lav3wRlPqQbTOgxMfEClIqZ4eEQ4VXsd0r/vhjhgU8nEDwWhvo5mD0F/vSXgPASHogrd+wKoyUA=",
       "email_hash": "unverified.teacher@noschool.com",
       "email_plain": "unverified.teacher@noschool.com",
-      "first_name_enc": "ZmFrZV9lbmM6Vlc1MlpYSnBabWxsWkE9PQ==",
+      "first_name_enc": "ZmFrZV9lbmM6+SoIq507aTiEzUiq25AynZ1f20AgEJUFly70IH/Zz0iArUfYM9Q=",
       "first_name_hash": "Unverified",
       "first_name_plain": "Unverified",
-      "last_name_enc": "ZmFrZV9lbmM6VkdWaFkyaGxjZz09",
+      "last_name_enc": "ZmFrZV9lbmM6KlnJkay5wjjcR7vfhrvnGiGDRc63MWgmritfVLDwkhht/44=",
       "last_name_plain": "Teacher",
       "password": "pbkdf2_sha256$720000$Jp50WPBA6WZImUIpj3UcVm$OJWB8+UoW5lLaUkHLYo0cKgMkyRI6qnqVOWxYEsi9T0="
     }
@@ -51,16 +51,16 @@
     "model": "user.userprofile",
     "pk": 33,
     "fields": {
-      "user": 33,
-      "is_verified": false
+      "is_verified": false,
+      "user": 33
     }
   },
   {
     "model": "user.teacher",
     "pk": 12,
     "fields": {
-      "user": 33,
-      "new_user": 33
+      "new_user": 33,
+      "user": 33
     }
   }
 ]

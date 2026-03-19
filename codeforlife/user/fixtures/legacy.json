@@ -3,231 +3,231 @@
     "model": "user.userprofile",
     "pk": 1,
     "fields": {
-      "user": 2,
-      "otp_secret": null,
-      "last_otp_for_time": null,
       "developer": true,
-      "is_verified": true
+      "is_verified": true,
+      "last_otp_for_time": null,
+      "otp_secret": null,
+      "user": 2
     }
   },
   {
     "model": "user.userprofile",
     "pk": 2,
     "fields": {
-      "user": 3,
-      "otp_secret": null,
-      "last_otp_for_time": null,
       "developer": false,
-      "is_verified": true
+      "is_verified": true,
+      "last_otp_for_time": null,
+      "otp_secret": null,
+      "user": 3
     }
   },
   {
     "model": "user.userprofile",
     "pk": 3,
     "fields": {
-      "user": 4,
-      "otp_secret": null,
-      "last_otp_for_time": null,
       "developer": false,
-      "is_verified": true
+      "is_verified": true,
+      "last_otp_for_time": null,
+      "otp_secret": null,
+      "user": 4
     }
   },
   {
     "model": "user.userprofile",
     "pk": 4,
     "fields": {
-      "user": 5,
-      "otp_secret": null,
-      "last_otp_for_time": null,
       "developer": true,
-      "is_verified": true
+      "is_verified": true,
+      "last_otp_for_time": null,
+      "otp_secret": null,
+      "user": 5
     }
   },
   {
     "model": "user.userprofile",
     "pk": 5,
     "fields": {
-      "user": 6,
-      "otp_secret": null,
-      "last_otp_for_time": null,
       "developer": false,
-      "is_verified": true
+      "is_verified": true,
+      "last_otp_for_time": null,
+      "otp_secret": null,
+      "user": 6
     }
   },
   {
     "model": "user.userprofile",
     "pk": 6,
     "fields": {
-      "user": 7,
-      "otp_secret": null,
-      "last_otp_for_time": null,
       "developer": false,
-      "is_verified": true
+      "is_verified": true,
+      "last_otp_for_time": null,
+      "otp_secret": null,
+      "user": 7
     }
   },
   {
     "model": "user.userprofile",
     "pk": 7,
     "fields": {
-      "user": 8,
-      "otp_secret": null,
-      "last_otp_for_time": null,
       "developer": false,
-      "is_verified": true
+      "is_verified": true,
+      "last_otp_for_time": null,
+      "otp_secret": null,
+      "user": 8
     }
   },
   {
     "model": "user.userprofile",
     "pk": 8,
     "fields": {
-      "user": 9,
-      "otp_secret": null,
-      "last_otp_for_time": null,
       "developer": false,
-      "is_verified": true
+      "is_verified": true,
+      "last_otp_for_time": null,
+      "otp_secret": null,
+      "user": 9
     }
   },
   {
     "model": "user.userprofile",
     "pk": 9,
     "fields": {
-      "user": 10,
-      "otp_secret": null,
-      "last_otp_for_time": null,
       "developer": false,
-      "is_verified": true
+      "is_verified": true,
+      "last_otp_for_time": null,
+      "otp_secret": null,
+      "user": 10
     }
   },
   {
     "model": "user.userprofile",
     "pk": 10,
     "fields": {
-      "user": 11,
-      "otp_secret": null,
-      "last_otp_for_time": null,
       "developer": false,
-      "is_verified": true
+      "is_verified": true,
+      "last_otp_for_time": null,
+      "otp_secret": null,
+      "user": 11
     }
   },
   {
     "model": "user.userprofile",
     "pk": 11,
     "fields": {
-      "user": 12,
-      "otp_secret": null,
-      "last_otp_for_time": null,
       "developer": false,
-      "is_verified": true
+      "is_verified": true,
+      "last_otp_for_time": null,
+      "otp_secret": null,
+      "user": 12
     }
   },
   {
     "model": "user.userprofile",
     "pk": 12,
     "fields": {
-      "user": 13,
-      "otp_secret": null,
-      "last_otp_for_time": null,
       "developer": false,
-      "is_verified": true
+      "is_verified": true,
+      "last_otp_for_time": null,
+      "otp_secret": null,
+      "user": 13
     }
   },
   {
     "model": "user.userprofile",
     "pk": 13,
     "fields": {
-      "user": 14,
-      "otp_secret": null,
-      "last_otp_for_time": null,
       "developer": false,
-      "is_verified": true
+      "is_verified": true,
+      "last_otp_for_time": null,
+      "otp_secret": null,
+      "user": 14
     }
   },
   {
     "model": "user.userprofile",
     "pk": 14,
     "fields": {
-      "user": 15,
-      "otp_secret": null,
-      "last_otp_for_time": null,
       "developer": false,
-      "is_verified": true
+      "is_verified": true,
+      "last_otp_for_time": null,
+      "otp_secret": null,
+      "user": 15
     }
   },
   {
     "model": "user.userprofile",
     "pk": 15,
     "fields": {
-      "user": 16,
-      "otp_secret": null,
-      "last_otp_for_time": null,
       "developer": false,
-      "is_verified": true
+      "is_verified": true,
+      "last_otp_for_time": null,
+      "otp_secret": null,
+      "user": 16
     }
   },
   {
     "model": "user.userprofile",
     "pk": 16,
     "fields": {
-      "user": 17,
-      "otp_secret": null,
-      "last_otp_for_time": null,
       "developer": false,
-      "is_verified": true
+      "is_verified": true,
+      "last_otp_for_time": null,
+      "otp_secret": null,
+      "user": 17
     }
   },
   {
     "model": "user.userprofile",
     "pk": 17,
     "fields": {
-      "user": 18,
-      "otp_secret": null,
-      "last_otp_for_time": null,
       "developer": false,
-      "is_verified": true
+      "is_verified": true,
+      "last_otp_for_time": null,
+      "otp_secret": null,
+      "user": 18
     }
   },
   {
     "model": "user.userprofile",
     "pk": 18,
     "fields": {
-      "user": 19,
-      "otp_secret": null,
-      "last_otp_for_time": null,
       "developer": false,
-      "is_verified": true
+      "is_verified": true,
+      "last_otp_for_time": null,
+      "otp_secret": null,
+      "user": 19
     }
   },
   {
     "model": "user.userprofile",
     "pk": 19,
     "fields": {
-      "user": 20,
-      "otp_secret": null,
-      "last_otp_for_time": null,
       "developer": false,
-      "is_verified": true
+      "is_verified": true,
+      "last_otp_for_time": null,
+      "otp_secret": null,
+      "user": 20
     }
   },
   {
     "model": "user.userprofile",
     "pk": 20,
     "fields": {
-      "user": 1,
-      "otp_secret": null,
-      "last_otp_for_time": null,
       "developer": false,
-      "is_verified": true
+      "is_verified": true,
+      "last_otp_for_time": null,
+      "otp_secret": null,
+      "user": 1
     }
   },
   {
     "model": "user.userprofile",
     "pk": 21,
     "fields": {
-      "user": 21,
-      "otp_secret": null,
-      "last_otp_for_time": null,
       "developer": false,
-      "is_verified": false
+      "is_verified": false,
+      "last_otp_for_time": null,
+      "otp_secret": null,
+      "user": 21
     }
   },
   {
@@ -237,9 +237,9 @@
       "country": "GB",
       "county": "nan",
       "creation_time": null,
-      "dek": "ZmFrZV9lbmM6VHpkNWFFZzVaVUozVEdNM1MyRkJXV042YUVkcVUwWnZWVzV4YWtaaVNFbz0=",
+      "dek": "ZmFrZV9lbmM6+bOK8/jOfj3VDE4HWSqQTMr9+j/QCITdy63oBgTo7tLAfLBvdQBtdP9NkAe1hRpvA8yHhxE9Wd+nBwvh",
       "is_active": true,
-      "name_enc": "ZmFrZV9lbmM6VTNkcGMzTWdSbVZrWlhKaGJDQlFiMng1ZEdWamFHNXBZdz09",
+      "name_enc": "ZmFrZV9lbmM68xS4Kpryy6ANKkpGNXFKp1XN2PKeyK27kMjS2uG+6ejiUX7V68Miui8w2wCDdTmaHcUGcIg=",
       "name_plain": "Swiss Federal Polytechnic"
     }
   },
@@ -247,48 +247,48 @@
     "model": "user.teacher",
     "pk": 1,
     "fields": {
-      "user": 1,
+      "blocked_time": null,
+      "invited_by": null,
+      "is_admin": true,
       "new_user": 2,
       "school": 1,
-      "is_admin": true,
-      "blocked_time": null,
-      "invited_by": null
+      "user": 1
     }
   },
   {
     "model": "user.teacher",
     "pk": 2,
     "fields": {
-      "user": 2,
+      "blocked_time": null,
+      "invited_by": null,
+      "is_admin": false,
       "new_user": 3,
       "school": 1,
-      "is_admin": false,
-      "blocked_time": null,
-      "invited_by": null
+      "user": 2
     }
   },
   {
     "model": "user.teacher",
     "pk": 3,
     "fields": {
-      "user": 3,
+      "blocked_time": null,
+      "invited_by": null,
+      "is_admin": true,
       "new_user": 4,
       "school": 1,
-      "is_admin": true,
-      "blocked_time": null,
-      "invited_by": null
+      "user": 3
     }
   },
   {
     "model": "user.teacher",
     "pk": 4,
     "fields": {
-      "user": 20,
+      "blocked_time": null,
+      "invited_by": null,
+      "is_admin": true,
       "new_user": 1,
       "school": 1,
-      "is_admin": true,
-      "blocked_time": null,
-      "invited_by": null
+      "user": 20
     }
   },
   {
@@ -385,203 +385,203 @@
     "model": "user.student",
     "pk": 1,
     "fields": {
+      "blocked_time": null,
       "class_field": 1,
       "login_id": null,
-      "user": 4,
       "new_user": 5,
       "pending_class_request": null,
-      "blocked_time": null
+      "user": 4
     }
   },
   {
     "model": "user.student",
     "pk": 2,
     "fields": {
+      "blocked_time": null,
       "class_field": 1,
       "login_id": null,
-      "user": 5,
       "new_user": 6,
       "pending_class_request": null,
-      "blocked_time": null
+      "user": 5
     }
   },
   {
     "model": "user.student",
     "pk": 3,
     "fields": {
+      "blocked_time": null,
       "class_field": null,
       "login_id": null,
-      "user": 6,
       "new_user": 7,
       "pending_class_request": null,
-      "blocked_time": null
+      "user": 6
     }
   },
   {
     "model": "user.student",
     "pk": 4,
     "fields": {
+      "blocked_time": null,
       "class_field": 2,
       "login_id": null,
-      "user": 7,
       "new_user": 8,
       "pending_class_request": null,
-      "blocked_time": null
+      "user": 7
     }
   },
   {
     "model": "user.student",
     "pk": 5,
     "fields": {
+      "blocked_time": null,
       "class_field": 2,
       "login_id": null,
-      "user": 8,
       "new_user": 9,
       "pending_class_request": null,
-      "blocked_time": null
+      "user": 8
     }
   },
   {
     "model": "user.student",
     "pk": 6,
     "fields": {
+      "blocked_time": null,
       "class_field": 3,
       "login_id": null,
-      "user": 9,
       "new_user": 10,
       "pending_class_request": null,
-      "blocked_time": null
+      "user": 9
     }
   },
   {
     "model": "user.student",
     "pk": 7,
     "fields": {
+      "blocked_time": null,
       "class_field": null,
       "login_id": null,
-      "user": 10,
       "new_user": 11,
       "pending_class_request": null,
-      "blocked_time": null
+      "user": 10
     }
   },
   {
     "model": "user.student",
     "pk": 8,
     "fields": {
+      "blocked_time": null,
       "class_field": 4,
       "login_id": null,
-      "user": 11,
       "new_user": 12,
       "pending_class_request": null,
-      "blocked_time": null
+      "user": 11
     }
   },
   {
     "model": "user.student",
     "pk": 9,
     "fields": {
+      "blocked_time": null,
       "class_field": 4,
       "login_id": null,
-      "user": 12,
       "new_user": 13,
       "pending_class_request": null,
-      "blocked_time": null
+      "user": 12
     }
   },
   {
     "model": "user.student",
     "pk": 10,
     "fields": {
+      "blocked_time": null,
       "class_field": 4,
       "login_id": null,
-      "user": 13,
       "new_user": 14,
       "pending_class_request": null,
-      "blocked_time": null
+      "user": 13
     }
   },
   {
     "model": "user.student",
     "pk": 11,
     "fields": {
+      "blocked_time": null,
       "class_field": 4,
       "login_id": null,
-      "user": 14,
       "new_user": 15,
       "pending_class_request": null,
-      "blocked_time": null
+      "user": 14
     }
   },
   {
     "model": "user.student",
     "pk": 12,
     "fields": {
+      "blocked_time": null,
       "class_field": 4,
       "login_id": null,
-      "user": 15,
       "new_user": 16,
       "pending_class_request": null,
-      "blocked_time": null
+      "user": 15
     }
   },
   {
     "model": "user.student",
     "pk": 13,
     "fields": {
+      "blocked_time": null,
       "class_field": 4,
       "login_id": null,
-      "user": 16,
       "new_user": 17,
       "pending_class_request": null,
-      "blocked_time": null
+      "user": 16
     }
   },
   {
     "model": "user.student",
     "pk": 14,
     "fields": {
+      "blocked_time": null,
       "class_field": 4,
       "login_id": null,
-      "user": 17,
       "new_user": 18,
       "pending_class_request": null,
-      "blocked_time": null
+      "user": 17
     }
   },
   {
     "model": "user.student",
     "pk": 15,
     "fields": {
+      "blocked_time": null,
       "class_field": 4,
       "login_id": null,
-      "user": 18,
       "new_user": 19,
       "pending_class_request": null,
-      "blocked_time": null
+      "user": 18
     }
   },
   {
     "model": "user.student",
     "pk": 16,
     "fields": {
+      "blocked_time": null,
       "class_field": 5,
       "login_id": null,
-      "user": 21,
       "new_user": 21,
       "pending_class_request": null,
-      "blocked_time": null
+      "user": 21
     }
   },
   {
     "model": "user.totalactivity",
     "pk": 1,
     "fields": {
-      "teacher_registrations": 4,
-      "student_registrations": 14,
-      "independent_registrations": 2,
+      "anonymised_unverified_independents": 0,
       "anonymised_unverified_teachers": 0,
-      "anonymised_unverified_independents": 0
+      "independent_registrations": 2,
+      "student_registrations": 14,
+      "teacher_registrations": 4
     }
   },
   {
@@ -589,11 +589,11 @@
     "pk": 1,
     "fields": {
       "date_joined": "2026-02-04T16:02:33.631Z",
-      "dek": "ZmFrZV9lbmM6UkZkTlNrYzVhR05aVlZwRVZFaFlTMHhUVTJnMlVVbzNORVZUZERjeFIxTT0=",
-      "email_enc": "ZmFrZV9lbmM6WTI5a1pXWnZjbXhwWm1VdGNHOXlkR0ZzUUc5allXUnZMbU52YlE9PQ==",
+      "dek": "ZmFrZV9lbmM6nS1csorNRFGQ3FknHozzLOObhQ/iXXf2hH92eeOBy8roL2HNlrK14npw6TYEV7VJpPVyXo17WZp/C6J+",
+      "email_enc": "ZmFrZV9lbmM668by61G9l1pSs1/FKYWZY/hDQf+3q7X9Ndb1vaLYMCL5qqHMUZtUmFTxRacqaoE4gn5jBWZGv4E=",
       "email_hash": "codeforlife-portal@ocado.com",
       "email_plain": "codeforlife-portal@ocado.com",
-      "first_name_enc": "ZmFrZV9lbmM6VUc5eWRHRnM=",
+      "first_name_enc": "ZmFrZV9lbmM6l7m3ybcCqFw/DGPStUj+7K0G9L94BgR3q81ehV4MZre5Ig==",
       "first_name_hash": "Portal",
       "first_name_plain": "Portal",
       "groups": [],
@@ -601,7 +601,7 @@
       "is_staff": true,
       "is_superuser": true,
       "last_login": null,
-      "last_name_enc": "ZmFrZV9lbmM6UVdSdGFXND0=",
+      "last_name_enc": "ZmFrZV9lbmM6tyHv8gTJuHngdAbwm69XP6CtZxIFRiF826e9os4C3J49",
       "last_name_plain": "Admin",
       "password": "pbkdf2_sha256$1000000$y2lUeK8u5GnocWVuonlViT$TnNTL7sG9pcvz6MotXSSptrHdQzAFxmLnqNbj7syLS4=",
       "user_permissions": []
@@ -612,11 +612,11 @@
     "pk": 2,
     "fields": {
       "date_joined": "2026-02-04T16:02:34.051Z",
-      "dek": "ZmFrZV9lbmM6VlZkaFpuUlZha2hNUjJGTU5XSlNaR3hsVUhFMVkzSjBNR1l4TUZwa1IxQT0=",
-      "email_enc": "ZmFrZV9lbmM6WVd4aVpYSjBaV2x1YzNSbGFXNUFZMjlrWldadmNteHBabVV1WTI5dA==",
+      "dek": "ZmFrZV9lbmM6BLODLjFqwOGQ2F1gfhBxUDu0x+ysKL/THNOI4YaJWkERqeJ176yQerprvm1m8/kUquwMqV56MMYOcJg+",
+      "email_enc": "ZmFrZV9lbmM6Vzf8+bnkXcLnplY1BqSjUGX7zEzsPYKaypg2hsw6dA3p00F60DH7GRqgF8cihNeMlpSekZZEWntIcg==",
       "email_hash": "alberteinstein@codeforlife.com",
       "email_plain": "alberteinstein@codeforlife.com",
-      "first_name_enc": "ZmFrZV9lbmM6UVd4aVpYSjA=",
+      "first_name_enc": "ZmFrZV9lbmM6vlWFZlScaClszbHRCaGKZx1fRhBCjd0yQ1jYSigimNawoA==",
       "first_name_hash": "Albert",
       "first_name_plain": "Albert",
       "groups": [],
@@ -624,7 +624,7 @@
       "is_staff": false,
       "is_superuser": false,
       "last_login": null,
-      "last_name_enc": "ZmFrZV9lbmM6UldsdWMzUmxhVzQ9",
+      "last_name_enc": "ZmFrZV9lbmM622qSW1M/YMXQzlLCGhVxSbI/iwctwNjxKelC9wFI+2HMUaNh",
       "last_name_plain": "Einstein",
       "password": "pbkdf2_sha256$1000000$IOkFLrqDnlDiEoASMl5OSY$C7gzJeOhwbfq/nJp47LaErHOxgA/3DIkaUI93ZUqauc=",
       "user_permissions": []
@@ -635,11 +635,11 @@
     "pk": 3,
     "fields": {
       "date_joined": "2026-02-04T16:02:34.252Z",
-      "dek": "ZmFrZV9lbmM6ZDIwMmQyaGFNMlJHWWxNM2EyaEVaVlZUTXpGbFRsZEhUMjlrTnpoMmRUaz0=",
-      "email_enc": "ZmFrZV9lbmM6YldGNGNHeGhibU5yUUdOdlpHVm1iM0pzYVdabExtTnZiUT09",
+      "dek": "ZmFrZV9lbmM6V20JnUxKv0GdaX13KdF574HPbkmjD7RJj7/rFr4wQVtQfCIjK2MHcFryVDsMq2eIJ72uaxXc/1FFSkDp",
+      "email_enc": "ZmFrZV9lbmM6P4WJKD5u46XLNvBZ8TtuVbe+VzgKGeGACAn7eUQEVi42JBkFINFQDh25raHyM/IEvNwgUq0=",
       "email_hash": "maxplanck@codeforlife.com",
       "email_plain": "maxplanck@codeforlife.com",
-      "first_name_enc": "ZmFrZV9lbmM6VFdGNA==",
+      "first_name_enc": "ZmFrZV9lbmM6utKwEvcNaO0PrzGftqP6R+jlYIAZFIxEw8YaihZyDg==",
       "first_name_hash": "Max",
       "first_name_plain": "Max",
       "groups": [],
@@ -647,7 +647,7 @@
       "is_staff": false,
       "is_superuser": false,
       "last_login": null,
-      "last_name_enc": "ZmFrZV9lbmM6VUd4aGJtTnI=",
+      "last_name_enc": "ZmFrZV9lbmM64pNTy4wITX1SHLIqHUHyxo02yO61QwkShFq6Ih/me5m0xA==",
       "last_name_plain": "Planck",
       "password": "pbkdf2_sha256$1000000$QHwukC6Cv822F2nSjQjLu0$09yKE5c8mFVwIHS5BWccM+q33Rs6XSCcc5rik3RD7eY=",
       "user_permissions": []
@@ -658,11 +658,11 @@
     "pk": 4,
     "fields": {
       "date_joined": "2026-02-04T16:02:34.448Z",
-      "dek": "ZmFrZV9lbmM6WW5CTGJHRnBSMDVrVGt4eVFWbFljMDU2VjJwM1dqWmlia2xPUlhwVVdqVT0=",
-      "email_enc": "ZmFrZV9lbmM6Y21GdGJHVnBkR2hBWTI5a1pXWnZjbXhwWm1VdVkyOXQ=",
+      "dek": "ZmFrZV9lbmM6TcuSFYFFWC8rXPukd/0YiijU8IaKU4lHNAHMjD2eDz8ncLZsgebHW5bRnJAx+WvX8vZoCtlDPcHrEAuh",
+      "email_enc": "ZmFrZV9lbmM6DkIEtFB9uWPQCvhkhD0/09Rh/gJ6O2gan8qfCfDkc/AUdoOo2byyP4e76uLD2dAKTjTkKg==",
       "email_hash": "ramleith@codeforlife.com",
       "email_plain": "ramleith@codeforlife.com",
-      "first_name_enc": "ZmFrZV9lbmM6VW1GdA==",
+      "first_name_enc": "ZmFrZV9lbmM6ozvDDJS5Z7dbUtr6wyhbGh7tqpTn1yyDzbd4w0lYKg==",
       "first_name_hash": "Ram",
       "first_name_plain": "Ram",
       "groups": [],
@@ -670,7 +670,7 @@
       "is_staff": false,
       "is_superuser": false,
       "last_login": null,
-      "last_name_enc": "ZmFrZV9lbmM6VEdWcGRHZz0=",
+      "last_name_enc": "ZmFrZV9lbmM698v/rvCth135Av6mmwyGVlxWp1S4f32rvPqWuLRKGskV",
       "last_name_plain": "Leith",
       "password": "pbkdf2_sha256$1000000$OcLHQ75ALkslmiUxFwe1Ft$7hpkII5kIi1lytO4PQ0p/6HdtT6//mPcZfZNjROXqrg=",
       "user_permissions": []
@@ -681,11 +681,11 @@
     "pk": 5,
     "fields": {
       "date_joined": "2026-02-04T16:02:34.641Z",
-      "dek": "ZmFrZV9lbmM6ZVhsRFZWQkRXWEJVVWxvM1QzbDJhM05yV0VkblIyUldRVlpHVG5CVVRqST0=",
-      "email_enc": "ZmFrZV9lbmM6YkdWdmJtRnlaRzlrWVhacGJtTnBRR052WkdWbWIzSnNhV1psTG1OdmJRPT0=",
+      "dek": "ZmFrZV9lbmM6Muw/vyJnAHIelig6sSUZZCY8bk1SS5TCasFP5Sk7U8o5llwR60mq7jAJoLkVme26sZJ0ULm27NyLEvKm",
+      "email_enc": "ZmFrZV9lbmM6ve22rwF3vwVJoL+6O4QyLk7+HBw0b71E3yRuB2fT26hgJCvwe9KMczk5P/5JSWMnnvlTnDVBM8XjjyQ=",
       "email_hash": "leonardodavinci@codeforlife.com",
       "email_plain": "leonardodavinci@codeforlife.com",
-      "first_name_enc": "ZmFrZV9lbmM6VEdWdmJtRnlaRzg9",
+      "first_name_enc": "ZmFrZV9lbmM6CohEtYIIbtlYE4n1MDXJE6iHhIopfiIkP7RyEXQMcJ4c23Ee",
       "first_name_hash": "Leonardo",
       "first_name_plain": "Leonardo",
       "groups": [],
@@ -693,7 +693,7 @@
       "is_staff": false,
       "is_superuser": false,
       "last_login": null,
-      "last_name_enc": "ZmFrZV9lbmM6UkdGV2FXNWphUT09",
+      "last_name_enc": "ZmFrZV9lbmM6+DNhj1q6Z0xYQ+rYu8l/70aDfA3YLnAX/ajRKUrYK76a2kU=",
       "last_name_plain": "DaVinci",
       "password": "pbkdf2_sha256$1000000$6QiofvSo5LPJ0DlGshTh0h$XdFmFi/Al5vuhxw02nlZE/rUG8g2uHxFnHXs46XgT/c=",
       "user_permissions": []
@@ -704,11 +704,11 @@
     "pk": 6,
     "fields": {
       "date_joined": "2026-02-04T16:02:34.839Z",
-      "dek": "ZmFrZV9lbmM6ZW10aVZtbHVibWxpYXpKSmMxUlhWWHBzTmsxMFRYcHZkblJOV1hGUGJERT0=",
-      "email_enc": "ZmFrZV9lbmM6WjJGc2FXeGxiMmRoYkdsc1pXbEFZMjlrWldadmNteHBabVV1WTI5dA==",
+      "dek": "ZmFrZV9lbmM60JSmixBDvrfWaRyP8idNvMR78k1YyavGZ+lBOARPt05D1PqVrxAP+HK3qajPuD2iizikhEgSh6dF5iyb",
+      "email_enc": "ZmFrZV9lbmM6Bg5pMEqDsQA26JC7TdSdsjfMzTC2kOdtvJ4oWyEy9vxr6AWBBoUWkSGAJJCl3ctnelnv8kdJ/mePMw==",
       "email_hash": "galileogalilei@codeforlife.com",
       "email_plain": "galileogalilei@codeforlife.com",
-      "first_name_enc": "ZmFrZV9lbmM6UjJGc2FXeGxidz09",
+      "first_name_enc": "ZmFrZV9lbmM6g+MFA4FA2uPo44GgZam18ELJtpC0MMYuT/D0C3FhACIqiZ0=",
       "first_name_hash": "Galileo",
       "first_name_plain": "Galileo",
       "groups": [],
@@ -716,7 +716,7 @@
       "is_staff": false,
       "is_superuser": false,
       "last_login": null,
-      "last_name_enc": "ZmFrZV9lbmM6UjJGc2FXeGxhUT09",
+      "last_name_enc": "ZmFrZV9lbmM6XyP95nXnSYz7Ueu/Gqy/xjdeSTMkYOfyo6y9J1zDDquGctY=",
       "last_name_plain": "Galilei",
       "password": "pbkdf2_sha256$1000000$HF1HBQVpMLdAuYb0vt55r1$gY3+SetJqidFfylntSqmmrtremtNk8QuGeAdlHNqD9A=",
       "user_permissions": []
@@ -727,11 +727,11 @@
     "pk": 7,
     "fields": {
       "date_joined": "2026-02-04T16:02:35.036Z",
-      "dek": "ZmFrZV9lbmM6VGtWVWVHeFlXSEpaUTBKcGJFVk9TV3hYWkhCSmRtbERRa2h3WmtKQ01FUT0=",
-      "email_enc": "ZmFrZV9lbmM6YVhOaFlXTnVaWGQwYjI1QVkyOWtaV1p2Y214cFptVXVZMjl0",
+      "dek": "ZmFrZV9lbmM6AgiWjZ7GQyBK5l4VurLVygmXkszQHL3kZhN33iYzyC1HMfWWMVI/ggxa+oNbq2olRmVHguF8uNzBvTo3",
+      "email_enc": "ZmFrZV9lbmM66ir8Pv5hA+rqZz2MS6hf61lFNurLnl22Mfhiwco2a1aipVSJucukuKAo3Tj5gbwGKfoAnPybOw==",
       "email_hash": "isaacnewton@codeforlife.com",
       "email_plain": "isaacnewton@codeforlife.com",
-      "first_name_enc": "ZmFrZV9lbmM6U1hOaFlXTT0=",
+      "first_name_enc": "ZmFrZV9lbmM6ipakIUDO1MR/hMUYrwZI7az2oJLYNI3O9NnIelJDngfk",
       "first_name_hash": "Isaac",
       "first_name_plain": "Isaac",
       "groups": [],
@@ -739,7 +739,7 @@
       "is_staff": false,
       "is_superuser": false,
       "last_login": null,
-      "last_name_enc": "ZmFrZV9lbmM6VG1WM2RHOXU=",
+      "last_name_enc": "ZmFrZV9lbmM6g8/yC5FegcIRsiJSe2DIruh8COl7eLUPKldPNefcK5VvyQ==",
       "last_name_plain": "Newton",
       "password": "pbkdf2_sha256$1000000$BUSt8V8F4DwWZPlCZeS1Sc$WMQElSAhvIE7LRHx6lwTde9YG5P74dc7Az+639AHdYc=",
       "user_permissions": []
@@ -750,11 +750,11 @@
     "pk": 8,
     "fields": {
       "date_joined": "2026-02-04T16:02:35.230Z",
-      "dek": "ZmFrZV9lbmM6U1ZCNFNVbFRkR1JvY2xodmRGSXpOM0ZrYmpsb2MycGFXblZTTVZaemFWWT0=",
-      "email_enc": "ZmFrZV9lbmM6Y21samFHRnlaR1psZVc1dFlXNUFZMjlrWldadmNteHBabVV1WTI5dA==",
+      "dek": "ZmFrZV9lbmM67Iqyt69l+yrc2BMF1r5L+UE0BIUZ0HfFN3baguyKwLTeNtTFj1HOcVJAuFtoV+hvIT+1oY7x0Fqul03j",
+      "email_enc": "ZmFrZV9lbmM6SMiy7s3CUH9lCgzI0PV/p7O3iK9HlWJBJcFW6N99dJ7wx0Nrv/FpiF0brKxFmMCgRqyc08SlAdGdOA==",
       "email_hash": "richardfeynman@codeforlife.com",
       "email_plain": "richardfeynman@codeforlife.com",
-      "first_name_enc": "ZmFrZV9lbmM6VW1samFHRnlaQT09",
+      "first_name_enc": "ZmFrZV9lbmM6XgAAynjNL6Ieb9P+JPbfE/lno/fkdLTi2Xhurwy8KNHAPJQ=",
       "first_name_hash": "Richard",
       "first_name_plain": "Richard",
       "groups": [],
@@ -762,7 +762,7 @@
       "is_staff": false,
       "is_superuser": false,
       "last_login": null,
-      "last_name_enc": "ZmFrZV9lbmM6Um1WNWJtMWhiZz09",
+      "last_name_enc": "ZmFrZV9lbmM6jr8Q7zJowXWPckX/4BpJ2kDr48ThJp1m8bFOWeRG5O+ZoW4=",
       "last_name_plain": "Feynman",
       "password": "pbkdf2_sha256$1000000$TaYcwU3iqPA4c4co14ZYHx$FAwypkSE7UucZod6BY/YY+A4zV4JbySNxDwd4ypOZT8=",
       "user_permissions": []
@@ -773,11 +773,11 @@
     "pk": 9,
     "fields": {
       "date_joined": "2026-02-04T16:02:35.422Z",
-      "dek": "ZmFrZV9lbmM6YVc5eFlYcHVjMWsxVEZWVFRXaFRRVFpEVkhWMWNUZG9abmR5UVRCT2RERT0=",
-      "email_enc": "ZmFrZV9lbmM6WVd4bGVHRnVaR1Z5Wm14bGJXMXBibWRBWTI5a1pXWnZjbXhwWm1VdVkyOXQ=",
+      "dek": "ZmFrZV9lbmM6hGzSBoLIbLU4BDj32rxVFgg6uArfWek5BfmFo5ZoBjV2MhQN5m0dBvuVjzb0t6fTY5d2nMzlUcdIofrF",
+      "email_enc": "ZmFrZV9lbmM6S6Lzrat+fYlRgKjihxpVq32h9J2l+pN4CP7BBCsgfbLj5AwvJdgQvWH/5L6t4+0HWR7EVLAOEdQy7i1bzQ==",
       "email_hash": "alexanderflemming@codeforlife.com",
       "email_plain": "alexanderflemming@codeforlife.com",
-      "first_name_enc": "ZmFrZV9lbmM6UVd4bGVHRnVaR1Z5",
+      "first_name_enc": "ZmFrZV9lbmM67Pkg16sulLMBvTZ1RZno3lubW4/xIzTbPkd8s6Lld9E6FUS4bg==",
       "first_name_hash": "Alexander",
       "first_name_plain": "Alexander",
       "groups": [],
@@ -785,7 +785,7 @@
       "is_staff": false,
       "is_superuser": false,
       "last_login": null,
-      "last_name_enc": "ZmFrZV9lbmM6Um14bGJXMXBibWM9",
+      "last_name_enc": "ZmFrZV9lbmM6wDgSvz+CHqONiYo4yfcnCUqWNJqiWAIaDUp+xzOY7jJFFuj4",
       "last_name_plain": "Flemming",
       "password": "pbkdf2_sha256$1000000$mCuu3Ptx9EGmKQ7FSNIqzw$dqwQK/ovljow4iGxfLIQTm8PPR8Iu5AITzQ9tVQxv9w=",
       "user_permissions": []
@@ -796,11 +796,11 @@
     "pk": 10,
     "fields": {
       "date_joined": "2026-02-04T16:02:35.611Z",
-      "dek": "ZmFrZV9lbmM6WjJscWNqWlFRbEZCVkZCaGVsRTRWVFl3ZDBWRFltbEROM2x4UXpCQmVGUT0=",
-      "email_enc": "ZmFrZV9lbmM6WkdGdWFXVnNZbVZ5Ym05MWJHeHBRR052WkdWbWIzSnNhV1psTG1OdmJRPT0=",
+      "dek": "ZmFrZV9lbmM6J4zSpKtOmn7y3Y3C6x4OVGcb+e0E+AW85tNIEZb2pSDinQqzUkft/oBWqEYTqk8llh1JDVFmia1hKBjl",
+      "email_enc": "ZmFrZV9lbmM6YFGlhBw+UuwPfSi+pVZpJiRZRpmJ6CHS4bJaEDX6lB59tZpKKPbKySJ5vEd9WuGe9HourL179gZIts8=",
       "email_hash": "danielbernoulli@codeforlife.com",
       "email_plain": "danielbernoulli@codeforlife.com",
-      "first_name_enc": "ZmFrZV9lbmM6UkdGdWFXVnM=",
+      "first_name_enc": "ZmFrZV9lbmM6R7pDbvPvE5UGNrSzHaK0k++EdvwnXm7sb44hCCzBgGhqFw==",
       "first_name_hash": "Daniel",
       "first_name_plain": "Daniel",
       "groups": [],
@@ -808,7 +808,7 @@
       "is_staff": false,
       "is_superuser": false,
       "last_login": null,
-      "last_name_enc": "ZmFrZV9lbmM6UW1WeWJtOTFiR3hw",
+      "last_name_enc": "ZmFrZV9lbmM6QUrqx3tFD/dA/oCSD1Bs37+IdQBJkc1EuKbC+niGVFFumMcfqg==",
       "last_name_plain": "Bernoulli",
       "password": "pbkdf2_sha256$1000000$isUqjEe0ZtdHC0tDFilALA$k20Gy//4APEqsGNYGa8aQPUTUBqMPKe6hI5GMIWiMnE=",
       "user_permissions": []
@@ -819,11 +819,11 @@
     "pk": 11,
     "fields": {
       "date_joined": "2026-02-04T16:02:35.803Z",
-      "dek": "ZmFrZV9lbmM6UW5KQ2JUYzFSRU54VVhCd05rRmxka2w0ZVRoMFdGWkhhbEpCUzBnMGRuWT0=",
-      "email_enc": "ZmFrZV9lbmM6YVc1a2FXRnVZV3B2Ym1WelFHTnZaR1ZtYjNKc2FXWmxMbU52YlE9PQ==",
+      "dek": "ZmFrZV9lbmM6RJvZthmhY//D7zh7NTsTeIBZxSsBClnGVaP30RcuabLz1xYLUNNnumUOdygscg+BDZwxu8cwTD2anSyk",
+      "email_enc": "ZmFrZV9lbmM6uYd8J+TaTuSrxBbkLtIrrPrqJOMdJfaRS4+kWhjOglF1HypTCZbw8JpwiOmyGlbVH2J401fvQL0=",
       "email_hash": "indianajones@codeforlife.com",
       "email_plain": "indianajones@codeforlife.com",
-      "first_name_enc": "ZmFrZV9lbmM6U1c1a2FXRnVZUT09",
+      "first_name_enc": "ZmFrZV9lbmM625tAfcnLDCjqPjQPz36mVcHguTCO4nU+YsAbmKyVrQvUTrI=",
       "first_name_hash": "Indiana",
       "first_name_plain": "Indiana",
       "groups": [],
@@ -831,7 +831,7 @@
       "is_staff": false,
       "is_superuser": false,
       "last_login": null,
-      "last_name_enc": "ZmFrZV9lbmM6U205dVpYTT0=",
+      "last_name_enc": "ZmFrZV9lbmM6oTfUA81gVcF552sZVpKh/ihrDgBCvw/NIb7zIq0t4WBi",
       "last_name_plain": "Jones",
       "password": "pbkdf2_sha256$1000000$mjbmbYr7G3WRyxxHlDcH6d$w1wf3D0lDP6pF3nSoTUD3vSRioCzPEloW3r8sXnLSJw=",
       "user_permissions": []
@@ -842,8 +842,8 @@
     "pk": 12,
     "fields": {
       "date_joined": "2026-02-04T16:02:35.999Z",
-      "dek": "ZmFrZV9lbmM6TVhGU1NtSlhaVkpwYlRWWVR6QTNlVE5UV2xaNWRHNUlkbFJtVG1GMVJHVT0=",
-      "first_name_enc": "ZmFrZV9lbmM6VG05aGFBPT0=",
+      "dek": "ZmFrZV9lbmM6ODiZ6w5NfOc9/9oP8JH+F0AKguKkTdwnguKY7IUw4yMv7bkTGS0ZDr6lRMeUSB2bUDAAeG/s4o4Rvbsa",
+      "first_name_enc": "ZmFrZV9lbmM64P409Gn0BASXTOgWV6bHgLWTB9I+Ty/AklEPE5pozyg=",
       "first_name_hash": "Noah",
       "first_name_plain": "Noah",
       "groups": [],
@@ -851,7 +851,7 @@
       "is_staff": false,
       "is_superuser": false,
       "last_login": null,
-      "last_name_enc": "ZmFrZV9lbmM6VFc5dVlXZG9ZVzQ9",
+      "last_name_enc": "ZmFrZV9lbmM6w/2ZD0tBx7TXroIlk09UVWDKeyXQ5g3IzchZm/LwLKogl5nB",
       "last_name_plain": "Monaghan",
       "password": "pbkdf2_sha256$1000000$qm1oQx3HNeIx6dpY1aRzXb$xMKwoqXoW6MuHqoABww+Yq+3A1uwkLbkpaWWytNu6l0=",
       "user_permissions": []
@@ -862,8 +862,8 @@
     "pk": 13,
     "fields": {
       "date_joined": "2026-02-04T16:02:36.195Z",
-      "dek": "ZmFrZV9lbmM6ZFZwVmRGbHpTVkoxTkVaMU5XRk9WMDlwV25CS1EzVlRaR28yV2tac1QzVT0=",
-      "first_name_enc": "ZmFrZV9lbmM6Uld4c2FXOTA=",
+      "dek": "ZmFrZV9lbmM6E2af4DEGdnVy8AdysOxQWAr/XZjM1paohrFtzwcU8ErHa4Mds1bm5zK1WoPEwxqoEPD99/XZfBuw7/oa",
+      "first_name_enc": "ZmFrZV9lbmM6KdsKPAI4ODN0L6pCLF515kxsXFKOTiaoJ85QAcv3mgBvxg==",
       "first_name_hash": "Elliot",
       "first_name_plain": "Elliot",
       "groups": [],
@@ -871,7 +871,7 @@
       "is_staff": false,
       "is_superuser": false,
       "last_login": null,
-      "last_name_enc": "ZmFrZV9lbmM6VTJoaGNuQT0=",
+      "last_name_enc": "ZmFrZV9lbmM68Gr9zD4D6qwaXooJqS+vx+s03389pWVCcAll+9tE9nB2",
       "last_name_plain": "Sharp",
       "password": "pbkdf2_sha256$1000000$vQZKG1iO3Np3cdOHSrG85F$QnuZLe1KvMt64uWXjz3RKOEnr6owhloxfgs3u8xB6GQ=",
       "user_permissions": []
@@ -882,8 +882,8 @@
     "pk": 14,
     "fields": {
       "date_joined": "2026-02-04T16:02:36.394Z",
-      "dek": "ZmFrZV9lbmM6UW1sWlVsSjNNM0JHVW1Sd1puQkNaVU4xUkdSVGVHRk1kV2x5ZFRoUGNFST0=",
-      "first_name_enc": "ZmFrZV9lbmM6VkdGcWJXRmw=",
+      "dek": "ZmFrZV9lbmM6lHwaHwEAEkTsDE+w+LnUw/c/ra+TdL5/dU9xPFIW92I98HzZg50AxHu4n2lKGe/FTzNrR4uCFzFQ/+IL",
+      "first_name_enc": "ZmFrZV9lbmM62O6g2F8ahqoYDF8gj3pbvGgyJSJiicYawktPGj10nsizZw==",
       "first_name_hash": "Tajmae",
       "first_name_plain": "Tajmae",
       "groups": [],
@@ -891,7 +891,7 @@
       "is_staff": false,
       "is_superuser": false,
       "last_login": null,
-      "last_name_enc": "ZmFrZV9lbmM6U205elpYQm8=",
+      "last_name_enc": "ZmFrZV9lbmM6/orFu9ADTrhp0hC6CijpXMsShd4E2x7ZgXXRkmYhy81D5g==",
       "last_name_plain": "Joseph",
       "password": "pbkdf2_sha256$1000000$iCO3IsvmN5C8rpX5J0d1ob$TFK2zYume/i4StDly6EUiqFej/sOnuzV/wYE9rgr/cg=",
       "user_permissions": []
@@ -902,8 +902,8 @@
     "pk": 15,
     "fields": {
       "date_joined": "2026-02-04T16:02:36.589Z",
-      "dek": "ZmFrZV9lbmM6ZEhWRlUxSjFZMUpxZFdoaU5XTnNiWEpqZVdSUVdFdGtOVWhFVkVGVWRrND0=",
-      "first_name_enc": "ZmFrZV9lbmM6UTJGeWJIUnZiZz09",
+      "dek": "ZmFrZV9lbmM6An/cveM3ZXcZM7QxIgYd4WK7/M3yJiWAe8Vo+pc7PL0TNogWsWByiNucIQqlmfIZARMQcJC/p3pJx1QQ",
+      "first_name_enc": "ZmFrZV9lbmM63By2IeO/MbcOiOBDUwbMc5ju3BqyrH8KQAy2wL8sDL86+QI=",
       "first_name_hash": "Carlton",
       "first_name_plain": "Carlton",
       "groups": [],
@@ -911,7 +911,7 @@
       "is_staff": false,
       "is_superuser": false,
       "last_login": null,
-      "last_name_enc": "ZmFrZV9lbmM6U205elpYQm8=",
+      "last_name_enc": "ZmFrZV9lbmM6FT9dfdB+K3fREmC0tbcLx7tyi3JG6hj05bcgfm/yZRgxlQ==",
       "last_name_plain": "Joseph",
       "password": "pbkdf2_sha256$1000000$6Nhm1sHtcMbFdBitdz7nxq$s5i8H7MwdH6SRQ3+DZDDfsPtqxXVDPAC5t67G4FluM4=",
       "user_permissions": []
@@ -922,8 +922,8 @@
     "pk": 16,
     "fields": {
       "date_joined": "2026-02-04T16:02:36.792Z",
-      "dek": "ZmFrZV9lbmM6TW5SM1FUQnNUMlJ2VFU1RFQwUllVSEp1VFc1aWQxSmxOWHBqVDJKeFZtTT0=",
-      "first_name_enc": "ZmFrZV9lbmM6VG1Ga1lXdz0=",
+      "dek": "ZmFrZV9lbmM6VtLPjgaz4N8xsAHY6fKs7B4Q6dUNJLcu0e8i02/cbPVf+Xcx/OYE//dzmldTRcj0BEhRE5HG6EV9yJGB",
+      "first_name_enc": "ZmFrZV9lbmM6s/tQ3xGqJ1yxI1ANeHUH9QdIrdd+xNfX722tmQIR9z5c",
       "first_name_hash": "Nadal",
       "first_name_plain": "Nadal",
       "groups": [],
@@ -931,7 +931,7 @@
       "is_staff": false,
       "is_superuser": false,
       "last_login": null,
-      "last_name_enc": "ZmFrZV9lbmM6VTNCbGJtTmxjaTFLWlc1dWFXNW5jdz09",
+      "last_name_enc": "ZmFrZV9lbmM67otMoRuCL2CbQveRT9eRNsiQ9iOse+ADqNQm2XpOliKaaN3RHgeXDmBDKjY=",
       "last_name_plain": "Spencer-Jennings",
       "password": "pbkdf2_sha256$1000000$FRA5lx8xBTO5Rn8J9wwZZW$KiQzLItBM40bzbwRdXpKnrI1uWXv0xsSzTMkFwAewwo=",
       "user_permissions": []
@@ -942,8 +942,8 @@
     "pk": 17,
     "fields": {
       "date_joined": "2026-02-04T16:02:37.009Z",
-      "dek": "ZmFrZV9lbmM6UlZKbll6UjJhM1JPU2tvemRIQTVSRUZZYUZsMGFtOVZla05HYzI5bmQyaz0=",
-      "first_name_enc": "ZmFrZV9lbmM6Um5KbFpHUnBaUT09",
+      "dek": "ZmFrZV9lbmM6e0QkyGSRPJxtPLH/c5zTXK5jkOET732kHyRwCTpiQhiSqj3Ar80GkMDhWaXGvqx4qpDLrzZDLZftBe/8",
+      "first_name_enc": "ZmFrZV9lbmM6rm6AQoRCClqqOViaIhh9zVZdqSSbQZrwSk3pshBwTDQutzs=",
       "first_name_hash": "Freddie",
       "first_name_plain": "Freddie",
       "groups": [],
@@ -951,7 +951,7 @@
       "is_staff": false,
       "is_superuser": false,
       "last_login": null,
-      "last_name_enc": "ZmFrZV9lbmM6UjI5bVpnPT0=",
+      "last_name_enc": "ZmFrZV9lbmM6fdBSXTT/G7O/Ii7gXxQV7wuwUsmfiBM8mAOXqLEtUaY=",
       "last_name_plain": "Goff",
       "password": "pbkdf2_sha256$1000000$LAQQycnLxi5rY9QCD15nHw$Ad5r4JEo5CCQrwuD2F12ajXnV/bDSL+FGQ99vM2l0/k=",
       "user_permissions": []
@@ -962,8 +962,8 @@
     "pk": 18,
     "fields": {
       "date_joined": "2026-02-04T16:02:37.216Z",
-      "dek": "ZmFrZV9lbmM6YzIxdGRIbzVRbEkyVlRKdVRVVk1lSFE1TmtRMFFXeFVUamRaYldWbFpFUT0=",
-      "first_name_enc": "ZmFrZV9lbmM6VEdWdmJnPT0=",
+      "dek": "ZmFrZV9lbmM6ivzHA5Vfn50gnAP3KwRspc9mnTuE4qCr43qbCfPHpFP5D5YwNqW8OQnDdDwe/o5a9DdNJ3n85j7MpPU2",
+      "first_name_enc": "ZmFrZV9lbmM6JYkt0Ye4mRJ8PMtj8Zxvi1TaFuqqwqsqxTFl7fzLDwk=",
       "first_name_hash": "Leon",
       "first_name_plain": "Leon",
       "groups": [],
@@ -971,7 +971,7 @@
       "is_staff": false,
       "is_superuser": false,
       "last_login": null,
-      "last_name_enc": "ZmFrZV9lbmM6VTJOdmRIUT0=",
+      "last_name_enc": "ZmFrZV9lbmM62ZWVyCFNj2pt54fdd+lGpW3dOinmkPHu4dbkJiB8YCh4",
       "last_name_plain": "Scott",
       "password": "pbkdf2_sha256$1000000$XHhBEg6yrF9a6TR487gNrU$DOR6TONr+9q0rLXJwB43UuezRcQkQAmEmoN0nYmm4do=",
       "user_permissions": []
@@ -982,8 +982,8 @@
     "pk": 19,
     "fields": {
       "date_joined": "2026-02-04T16:02:37.413Z",
-      "dek": "ZmFrZV9lbmM6T0VoaU5rRTVWalZTVUVkbVpVTlllRmhOVlVoVVZVRnVUR1pvVVU5bVUybz0=",
-      "first_name_enc": "ZmFrZV9lbmM6UW1WMGRIaz0=",
+      "dek": "ZmFrZV9lbmM648Mk4GDSMJHDA77reE0u/16wjHi8ujc2YxH6XPgOWc4S85G389Y5//r/RJKhonqH7X1pTIhiUZFbHz5F",
+      "first_name_enc": "ZmFrZV9lbmM6w7IQ/DJuPlw4F0EdBUcwa/+nuF7gWXOGUbxy9jZmZ/vz",
       "first_name_hash": "Betty",
       "first_name_plain": "Betty",
       "groups": [],
@@ -991,7 +991,7 @@
       "is_staff": false,
       "is_superuser": false,
       "last_login": null,
-      "last_name_enc": "ZmFrZV9lbmM6UzJWemMyVnNiQT09",
+      "last_name_enc": "ZmFrZV9lbmM69wfoWudQPGpUn/0rN5ND9J12aixwSCDwBQfbkZ23s+LlFuc=",
       "last_name_plain": "Kessell",
       "password": "pbkdf2_sha256$1000000$ua0WUUCFIijIjxpLdkc25v$mvl+UejCNGop0krujly8TPlMbgWPFVZ42tH+NPDltS4=",
       "user_permissions": []
@@ -1002,8 +1002,8 @@
     "pk": 20,
     "fields": {
       "date_joined": "2026-02-04T16:02:37.614Z",
-      "dek": "ZmFrZV9lbmM6Y25SMVIwYzNNbXBVUWtkTk1IVmhjMUI2YVdWb2VtNVBaRUUyVFdsMldrcz0=",
-      "first_name_enc": "ZmFrZV9lbmM6UkdWc1pYUmxaQT09",
+      "dek": "ZmFrZV9lbmM6Ct68dRt74lesvjRcTVtlbUlPC8xt85anig+MaarMMZAUvcFmkJmno57KkQUR8S5/o5ElV9Bpn3RDpxeS",
+      "first_name_enc": "ZmFrZV9lbmM6T5JprOlxBp3hFVqJXMYJP+wNm0Nhs+N+be7GGpyApcrQNPk=",
       "first_name_hash": "Deleted",
       "first_name_plain": "Deleted",
       "groups": [],
@@ -1011,7 +1011,7 @@
       "is_staff": false,
       "is_superuser": false,
       "last_login": null,
-      "last_name_enc": "ZmFrZV9lbmM6VlhObGNnPT0=",
+      "last_name_enc": "ZmFrZV9lbmM6PIAaX2VTvk+hVrFkgN9hiqKztmm8KD9fpp//43axgw8=",
       "last_name_plain": "User",
       "password": "pbkdf2_sha256$1000000$o2AfZh0JqqIFRTZGHWEQKV$c1es5kdOakAvCGkeMVgDOX5q+rFhdQgOkMZiKAtqMrk=",
       "user_permissions": []
@@ -1022,11 +1022,11 @@
     "pk": 21,
     "fields": {
       "date_joined": "2026-02-04T16:02:40.242Z",
-      "dek": "ZmFrZV9lbmM6WmtGRFlYQjBUek5OU1VjeGVXczNVbmRTVmxsRGRtOXlWREZzVFU5Q1dqQT0=",
-      "email_enc": "ZmFrZV9lbmM6WVdSdGFXNXpkSFZrWlc1MFFHTnZaR1ZtYjNKc2FXWmxMbU52YlE9PQ==",
+      "dek": "ZmFrZV9lbmM6BoYrbuFtVkzXFPjmHBZLlD971sOH30A01sG1em/a2PlmhBmN/i1FPqXZEBXkx9GU/QG5J1EQzGQqM0A3",
+      "email_enc": "ZmFrZV9lbmM6MHkUwfHd7v7eopRSKas8BhraP7bDE4p2GqZ+6oU8gfQ7IPmlZKeqza7di34uCqsNl3/WEvUrAKo=",
       "email_hash": "adminstudent@codeforlife.com",
       "email_plain": "adminstudent@codeforlife.com",
-      "first_name_enc": "ZmFrZV9lbmM6VUc5eWRHRnNZV1J0YVc0PQ==",
+      "first_name_enc": "ZmFrZV9lbmM6lcd0PomOxJehhMs0flNpcLsSjb5d7/1xVJOjrIokPRBXgGHzh4Bq",
       "first_name_hash": "Portaladmin",
       "first_name_plain": "Portaladmin",
       "groups": [],
@@ -1034,7 +1034,7 @@
       "is_staff": false,
       "is_superuser": false,
       "last_login": null,
-      "last_name_enc": "ZmFrZV9lbmM6VTNSMVpHVnVkQT09",
+      "last_name_enc": "ZmFrZV9lbmM69MQA/CJ/5y2KnfTgWqEmxA8Pb5Wj+51j5rQ062OUdW2QT9o=",
       "last_name_plain": "Student",
       "password": "pbkdf2_sha256$1000000$cv54m0PSNCQrH0MBLU56pk$nhGzkqLXL01EEtLAsoAbaWcTxuj1SOrZ7s6rBdA7eZk=",
       "user_permissions": []
