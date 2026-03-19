@@ -9,7 +9,7 @@ from unittest.mock import MagicMock
 
 from django.db import models
 
-from ...encryption import FakeAead
+from ...encryption import FakeAead, create_dek, get_dek_aead
 from ...tests import InterruptPipelineError, TestCase
 from ..encrypted import EncryptedModel
 from .base_encrypted import (
@@ -38,7 +38,7 @@ class FakeEncryptedModel(EncryptedModel):
 
     @cached_property
     def dek_aead(self):
-        return FakeAead.as_mock()
+        return t.cast(FakeAead, get_dek_aead(create_dek())).as_mock()
 
     def get_stored_value(self, field: BaseEncryptedField):
         """Gets the stored value for the given field."""
@@ -243,7 +243,9 @@ class TestBaseEncryptedField(TestCase):
         bytes_to_value_mock.assert_not_called()
 
         # When ciphertext is provided, decryption occurs.
-        ciphertext = FakeAead.encrypt(b"value")
+        ciphertext = instance.dek_aead.encrypt(
+            b"value", associated_data=self.field.full_associated_data
+        )
         decrypted_value = self.field.decrypt_value(instance, ciphertext)
         decrypt_kwargs = {
             "ciphertext": ciphertext,
@@ -279,7 +281,7 @@ class TestBaseEncryptedField(TestCase):
             "associated_data": self.field.full_associated_data,
         }
         encrypt_mock.assert_called_once_with(**encrypt_kwargs)
-        assert encrypted_bytes == encrypt_mock.side_effect(**encrypt_kwargs)
+        assert self.field.decrypt_value(instance, encrypted_bytes) == plaintext
 
     # --------------------------------------------------------------------------
     # Descriptor Methods Tests
@@ -413,10 +415,12 @@ class TestBaseEncryptedField(TestCase):
     def test_get__decrypted_value(self):
         """Getting field when stored value is ciphertext returns decrypted."""
         plaintext = "decrypted_value"
-        ciphertext = FakeAead.encrypt(plaintext.encode())
 
         # Create instance with stored ciphertext.
         instance = self._get_model_instance()
+        ciphertext = instance.dek_aead.encrypt(
+            plaintext.encode(), self.field.full_associated_data
+        )
         instance.set_stored_value(
             self.field,
             _TrustedCiphertext(ciphertext, _TrustedCiphertext.Source.DB),
@@ -447,8 +451,10 @@ class TestBaseEncryptedField(TestCase):
             self.field.encrypt_value.assert_called_once_with(
                 instance, pending_encryption.value
             )
-            assert result == self.field.encrypt_value.side_effect(
-                instance, pending_encryption.value
+            assert result != pending_encryption.value
+            assert (
+                self.field.decrypt_value.side_effect(instance, result)
+                == pending_encryption.value
             )
 
         # Run the save pipeline, interrupting at pre_save.

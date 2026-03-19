@@ -37,13 +37,14 @@ if t.TYPE_CHECKING:  # pragma: no cover
 AnyDataEncryptionKeyField = t.TypeVar(
     "AnyDataEncryptionKeyField", bound="DataEncryptionKeyField"
 )
+Dek: t.TypeAlias = t.Union[bytes, memoryview]
 
 
 @dataclass(frozen=True)
 class _TrustedDek:
     """A wrapper for a DEK that comes directly from the database."""
 
-    dek: bytes
+    dek: Dek
 
 
 class DataEncryptionKeyAttribute(
@@ -55,6 +56,17 @@ class DataEncryptionKeyAttribute(
     """
     Descriptor for DataEncryptionKeyField that handles data shredding.
     """
+
+    def __get__(self, instance, cls=None):
+        # Get the internal value from the instance.
+        internal_value = super().__get__(instance, cls)
+
+        # Return the descriptor itself when accessed on the class.
+        if internal_value is self:
+            return self
+
+        # Convert memoryview to bytes if needed.
+        return None if internal_value is None else bytes(internal_value)
 
     def __set__(
         self,
@@ -173,7 +185,7 @@ class DataEncryptionKeyField(BinaryField):
             )
 
         # Set the class DEK field reference.
-        cls.DEK_FIELD = getattr(cls, self.name)
+        cls.DEK_FIELD = self.attname
 
     # --------------------------------------------------------------------------
     # Descriptor Methods
@@ -202,7 +214,7 @@ class DataEncryptionKeyField(BinaryField):
     def __set__(self, instance: BaseDataEncryptionKeyModel, value: None): ...
 
     # pylint: disable-next=unused-argument
-    def from_db_value(self, value: t.Optional[bytes], expression, connection):
+    def from_db_value(self, value: t.Optional[Dek], expression, connection):
         """
         Converts a value as returned by the database to a Python object.
         We wrap the raw bytes in _TrustedDek to signal that this is an

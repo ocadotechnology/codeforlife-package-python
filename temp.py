@@ -29,13 +29,14 @@ def build_fake_aead_from_fixture_dek(dek_value: str):
     return FakeAead(raw_dek)
 
 
-def update_encrypted_fields(fields: dict) -> int:
+def update_encrypted_fields(fields: dict, model_name: str) -> int:
     dek_value = fields.get("dek")
     if not dek_value:
         return 0
 
     fake_aead = build_fake_aead_from_fixture_dek(dek_value)
     updated_count = 0
+    short_model_name = model_name.split(".", 1)[-1]
 
     for key, value in fields.items():
         if not key.endswith("_enc"):
@@ -48,7 +49,7 @@ def update_encrypted_fields(fields: dict) -> int:
             continue
 
         plain_bytes = str(plain_value).encode("utf-8")
-        associated_data = prefix.encode("utf-8")
+        associated_data = f"{short_model_name}:{prefix}".encode("utf-8")
 
         should_update = True
         if isinstance(value, str) and value:
@@ -191,7 +192,10 @@ def update_fixture_file(
             fields["dek"] = generate_dek_value()
             updated_count += 1
 
-        updated_count += update_encrypted_fields(fields)
+        updated_count += update_encrypted_fields(
+            fields,
+            model_name=object_data["model"],
+        )
         updated_count += update_hashed_fields(fields)
         updated_count += sort_model_fields(object_data)
 

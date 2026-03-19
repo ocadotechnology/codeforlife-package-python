@@ -135,11 +135,11 @@ class TestDataEncryptionKeyField(TestCase):
         """DataEncryptionKeyField is contributed to model correctly."""
         with self.subTest("Class attribute set correctly"):
             Model = self._get_model_class()
-            assert Model.DEK_FIELD == Model.dek
+            assert Model.DEK_FIELD == Model.dek.field.attname
 
         with self.subTest("Instance attribute set correctly"):
             instance = Model()
-            assert instance.DEK_FIELD == instance.dek
+            assert instance.DEK_FIELD == Model.dek.field.attname
 
     # --------------------------------------------------------------------------
     # Descriptor Methods Tests

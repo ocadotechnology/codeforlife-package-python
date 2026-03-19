@@ -54,12 +54,12 @@ class FakeAead:
     nonce_size = 12
 
     def __init__(self, key: bytes):
-        self.aesgcm = AESGCM(key)
+        self._aesgcm = AESGCM(key)
 
     def encrypt(self, plaintext: bytes, associated_data: bytes):
         """Encrypt data using AES-GCM and return a prefixed blob."""
         nonce = urandom(self.nonce_size)
-        ciphertext = self.aesgcm.encrypt(
+        ciphertext = self._aesgcm.encrypt(
             nonce=nonce,
             data=plaintext,
             associated_data=associated_data,
@@ -73,7 +73,7 @@ class FakeAead:
             raise ValueError("Invalid ciphertext for fake mock")
         ciphertext = ciphertext.removeprefix(self.ciphertext_prefix)
 
-        return self.aesgcm.decrypt(
+        return self._aesgcm.decrypt(
             nonce=ciphertext[: self.nonce_size],
             data=ciphertext[self.nonce_size :],
             associated_data=associated_data,
