@@ -49,7 +49,11 @@ class _TrustedDek:
 
 class DataEncryptionKeyAttribute(
     DeferredAttribute[
-        BaseDataEncryptionKeyModel, AnyDataEncryptionKeyField, Dek
+        BaseDataEncryptionKeyModel,
+        AnyDataEncryptionKeyField,
+        t.Union[Dek, _TrustedDek],
+        Dek,
+        bytes,
     ],
     t.Generic[AnyDataEncryptionKeyField],
 ):
@@ -57,36 +61,15 @@ class DataEncryptionKeyAttribute(
     Descriptor for DataEncryptionKeyField that handles data shredding.
     """
 
-    def __get__(self, instance, cls=None):
-        # Get the internal value from the instance.
-        internal_value = super().__get__(instance, cls)
-
-        # Return the descriptor itself when accessed on the class.
-        if internal_value is self:
-            return self
-
-        # Return None if there is no DEK.
-        if internal_value is None:
-            return None
-
+    def from_internal_value(self, instance, cls, internal_value):
         # Convert memoryview to bytes if needed.
         return bytes(internal_value)
 
-    def __set__(
-        self,
-        instance,
-        value: t.Optional[t.Union[Dek, _TrustedDek]],  # type: ignore[override]
-    ):
-        # Clear any cached DEK AEAD.
-        if instance.pk is not None and instance.pk in instance.DEK_AEAD_CACHE:
-            instance.DEK_AEAD_CACHE.pop(instance.pk, None)
-
-        # Determine the internal value to set.
+    def to_internal_value(self, instance, value):
         if isinstance(value, _TrustedDek):  # From DB.
-            internal_value = value.dek
-        elif value is None:  # Data is being shredded.
-            internal_value = None
-        elif isinstance(value, (bytes, memoryview)):  # From fixture.
+            return value.dek
+
+        if isinstance(value, (bytes, memoryview)):  # From fixture.
             internal_value = bytes(value)
             if not internal_value.startswith(FakeAead.ciphertext_prefix):
                 raise ValidationError(
@@ -94,14 +77,20 @@ class DataEncryptionKeyAttribute(
                     "ciphertext prefix.",
                     code="invalid_prefix",
                 )
-        else:
-            raise ValidationError(
-                "DataEncryptionKeyField can only be set to None.",
-                code="cannot_set_value",
-            )
+            return internal_value
+
+        raise ValidationError(
+            "DataEncryptionKeyField can only be set to None.",
+            code="cannot_set_value",
+        )
+
+    def __set__(self, instance, value):
+        # Clear any cached DEK AEAD.
+        if instance.pk is not None and instance.pk in instance.DEK_AEAD_CACHE:
+            instance.DEK_AEAD_CACHE.pop(instance.pk, None)
 
         # Set the internal value on the instance.
-        super().__set__(instance, internal_value)
+        super().__set__(instance, value)
 
 
 class DataEncryptionKeyField(BinaryField):

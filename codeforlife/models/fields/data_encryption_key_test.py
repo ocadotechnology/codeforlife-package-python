@@ -151,6 +151,11 @@ class TestDataEncryptionKeyField(TestCase):
         assert isinstance(Model.dek, DataEncryptionKeyField.descriptor_class)
         assert Model.dek.field == self.field
 
+    def test_get__none(self):
+        """Getting field from instance returns None if DEK is not set."""
+        instance = self._get_model_instance()
+        assert instance.dek is None
+
     def test_get__value(self):
         """Getting field from instance returns the DEK bytes."""
         instance = self._get_model_instance()

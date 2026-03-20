@@ -86,7 +86,7 @@ class _TrustedCiphertext:
     source: Source
 
 
-Value: t.TypeAlias = t.Union[_TrustedCiphertext, _PendingEncryption[T]]
+InternalValue: t.TypeAlias = t.Union[_TrustedCiphertext, _PendingEncryption[T]]
 
 AnyBaseEncryptedField = t.TypeVar(
     "AnyBaseEncryptedField", bound="BaseEncryptedField"
@@ -94,25 +94,20 @@ AnyBaseEncryptedField = t.TypeVar(
 
 
 class EncryptedAttribute(
-    DeferredAttribute[EncryptedModel, AnyBaseEncryptedField, Value[T]],
+    DeferredAttribute[
+        EncryptedModel,
+        AnyBaseEncryptedField,
+        t.Union[memoryview, _TrustedCiphertext, T],
+        InternalValue[T],
+        T,
+    ],
     t.Generic[AnyBaseEncryptedField, T],
 ):
     """
     Descriptor that handles the get/set mechanics for encrypted fields.
     """
 
-    def __get__(self, instance, cls=None):
-        # Get the internal value from the instance.
-        internal_value = super().__get__(instance, cls)
-
-        # Return the descriptor itself when accessed on the class.
-        if internal_value is self:
-            return self
-
-        # No data to decrypt.
-        if internal_value is None:
-            return None
-
+    def from_internal_value(self, instance, cls, internal_value):
         # The user just set this value, return it directly.
         if isinstance(internal_value, _PendingEncryption):
             return internal_value.value
@@ -147,36 +142,26 @@ class EncryptedAttribute(
             code="invalid_internal_value_type",
         )
 
-    def __set__(
-        self,
-        instance,
-        value: t.Optional[  # type: ignore[override]
-            t.Union[memoryview, _TrustedCiphertext, T]
-        ],
-    ):
-        # Clear any cached decrypted value.
-        instance.__decrypted_values__.pop(self.field.attname, None)
-
-        # Determine the internal value to set.
-        internal_value: t.Optional[Value[T]]
-        if value is None:
-            internal_value = None
-        elif isinstance(value, memoryview):  # From fixture.
+    def to_internal_value(self, instance, value):
+        if isinstance(value, memoryview):  # From fixture.
             if not isinstance(value.obj, bytes):
                 raise ValidationError(
                     "Expected bytes in memoryview for encrypted field.",
                     code="invalid_memoryview_type",
                 )
-            internal_value = _TrustedCiphertext(
-                value, _TrustedCiphertext.Source.FIXTURE
-            )
-        elif isinstance(value, _TrustedCiphertext):  # From DB.
-            internal_value = value
-        else:  # From user input.
-            internal_value = _PendingEncryption(value)
+            return _TrustedCiphertext(value, _TrustedCiphertext.Source.FIXTURE)
+
+        if isinstance(value, _TrustedCiphertext):  # From DB.
+            return value
+
+        return _PendingEncryption(t.cast(T, value))  # From user input.
+
+    def __set__(self, instance, value):
+        # Clear any cached decrypted value.
+        instance.__decrypted_values__.pop(self.field.attname, None)
 
         # Set the internal value on the instance.
-        super().__set__(instance, internal_value)
+        super().__set__(instance, value)
 
 
 class BaseEncryptedField(BinaryField, t.Generic[T]):
@@ -292,7 +277,9 @@ class BaseEncryptedField(BinaryField, t.Generic[T]):
         self, model_instance: EncryptedModel, add  # type: ignore[override]
     ):
         """Before saving, encrypt any pending values."""
-        value: t.Optional[Value[T]] = model_instance.__dict__.get(self.attname)
+        value: t.Optional[InternalValue[T]] = model_instance.__dict__.get(
+            self.attname
+        )
 
         # No data to encrypt.
         if value is None:

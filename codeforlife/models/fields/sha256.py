@@ -14,15 +14,13 @@ from django.db.models import CharField, Model, lookups
 from .deferred_attribute import DeferredAttribute
 
 
-class Sha256Attribute(DeferredAttribute[Model, "Sha256Field", str]):
+class Sha256Attribute(DeferredAttribute[Model, "Sha256Field", str, str, str]):
     """
     Custom attribute for Sha256Field to handle hashing on assignment.
     """
 
-    def __set__(self, instance, value):
-        super().__set__(
-            instance, value=None if value is None else Sha256Field.hash(value)
-        )
+    def to_internal_value(self, instance, value):
+        return Sha256Field.hash(value)
 
 
 class Sha256Field(CharField):
