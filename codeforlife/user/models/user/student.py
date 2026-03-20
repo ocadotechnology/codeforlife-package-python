@@ -141,7 +141,8 @@ class StudentUser(User):
         """Generate a random username that is unique."""
         username = None
         while (
-            username is None or User.objects.filter(username=username).exists()
+            username is None
+            or User.objects.filter(username_hash__sha256=username).exists()
         ):
             username = get_random_string(length=30)
 
