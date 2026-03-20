@@ -49,7 +49,7 @@ class _TrustedDek:
 
 class DataEncryptionKeyAttribute(
     DeferredAttribute[
-        AnyDataEncryptionKeyField, BaseDataEncryptionKeyModel, bytes
+        BaseDataEncryptionKeyModel, AnyDataEncryptionKeyField, Dek
     ],
     t.Generic[AnyDataEncryptionKeyField],
 ):
@@ -65,34 +65,34 @@ class DataEncryptionKeyAttribute(
         if internal_value is self:
             return self
 
+        # Return None if there is no DEK.
+        if internal_value is None:
+            return None
+
         # Convert memoryview to bytes if needed.
-        return None if internal_value is None else bytes(internal_value)
+        return bytes(internal_value)
 
     def __set__(
         self,
         instance,
-        value: t.Optional[  # type: ignore[override]
-            t.Union[memoryview, _TrustedDek]
-        ],
+        value: t.Optional[t.Union[Dek, _TrustedDek]],  # type: ignore[override]
     ):
         # Clear any cached DEK AEAD.
         if instance.pk is not None and instance.pk in instance.DEK_AEAD_CACHE:
             instance.DEK_AEAD_CACHE.pop(instance.pk, None)
 
+        # Determine the internal value to set.
         if isinstance(value, _TrustedDek):  # From DB.
             internal_value = value.dek
         elif value is None:  # Data is being shredded.
             internal_value = None
-        # When Django loads data from a fixture (e.g., a JSON file), it
-        # provides binary data as a `memoryview` object. Our descriptor
-        # handles this by extracting the raw bytes from the `memoryview`.
-        elif isinstance(value, memoryview):
+        elif isinstance(value, (bytes, memoryview)):  # From fixture.
             internal_value = bytes(value)
             if not internal_value.startswith(FakeAead.ciphertext_prefix):
                 raise ValidationError(
-                    "Memoryview is expected to start with the fake ciphertext "
-                    "prefix.",
-                    code="memoryview_invalid_prefix",
+                    "Fixture data is expected to start with the fake "
+                    "ciphertext prefix.",
+                    code="invalid_prefix",
                 )
         else:
             raise ValidationError(
@@ -100,6 +100,7 @@ class DataEncryptionKeyAttribute(
                 code="cannot_set_value",
             )
 
+        # Set the internal value on the instance.
         super().__set__(instance, internal_value)
 
 

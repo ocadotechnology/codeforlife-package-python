@@ -53,7 +53,7 @@ class UserFilterSet(FilterSet):
 
         pks = [
             user.pk
-            for user in queryset.only("first_name_enc", "last_name_enc")
+            for user in queryset.only("dek", "first_name_enc", "last_name_enc")
             if first_name in user.first_name.lower()
             or last_name in user.last_name.lower()
         ]

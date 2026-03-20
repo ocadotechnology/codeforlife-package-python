@@ -7,7 +7,7 @@ import typing as t
 
 from django.db import models
 
-from ...encryption import create_dek
+from ...encryption import FakeAead, create_dek
 from ...tests import TestCase
 from ..base_data_encryption_key import BaseDataEncryptionKeyModel
 from .data_encryption_key import DataEncryptionKeyField, _TrustedDek
@@ -173,8 +173,15 @@ class TestDataEncryptionKeyField(TestCase):
         instance.dek = None
         assert instance.__dict__["dek"] is None
 
-    def test_set__cannot_set_value(self):
-        """Setting field to any value other than None or _TrustedDek raises."""
+    def test_set__bytes(self):
+        """Setting field to bytes with valid prefix sets to DEK bytes."""
         instance = self._get_model_instance()
-        with self.assert_raises_validation_error(code="cannot_set_value"):
+        dek = FakeAead.ciphertext_prefix + b"some_value"
+        instance.dek = dek
+        assert instance.__dict__["dek"] == dek
+
+    def test_set__invalid_prefix(self):
+        """Setting field to bytes without valid prefix raises error."""
+        instance = self._get_model_instance()
+        with self.assert_raises_validation_error(code="invalid_prefix"):
             instance.dek = b"some_value"

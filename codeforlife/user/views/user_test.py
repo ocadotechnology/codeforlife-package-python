@@ -237,7 +237,9 @@ class TestUserViewSet(ModelViewSetTestCase[RequestUser, User]):
 
         pks = [
             user.pk
-            for user in school_users.only("first_name_enc", "last_name_enc")
+            for user in school_users.only(
+                "dek", "first_name_enc", "last_name_enc"
+            )
             if first_name in user.first_name.lower()
             or last_name in user.last_name.lower()
         ]

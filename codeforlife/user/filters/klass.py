@@ -28,7 +28,9 @@ class ClassFilterSet(FilterSet):
         name = value.lower()
         pks = [
             klass.pk
-            for klass in queryset.only("name_enc")
+            for klass in queryset.select_related("teacher__school").only(
+                "name_enc", "teacher__school__dek"
+            )
             if name in klass.name.lower()
         ]
 

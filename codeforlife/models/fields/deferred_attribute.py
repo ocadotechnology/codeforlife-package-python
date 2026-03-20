@@ -14,7 +14,7 @@ T = t.TypeVar("T")
 
 
 # pylint: disable-next=too-few-public-methods
-class DeferredAttribute(_DeferredAttribute, t.Generic[AnyField, AnyModel, T]):
+class DeferredAttribute(_DeferredAttribute, t.Generic[AnyModel, AnyField, T]):
     """Custom DeferredAttribute with type hints ref to the field."""
 
     _field: AnyField
@@ -34,7 +34,7 @@ class DeferredAttribute(_DeferredAttribute, t.Generic[AnyField, AnyModel, T]):
         self, instance: t.Optional[AnyModel], cls=None  # type: ignore[override]
     ):
         return t.cast(
-            t.Optional[T],
+            t.Union[t.Self, t.Optional[T]],
             super().__get__(instance, cls),  # type: ignore[misc]
         )
 

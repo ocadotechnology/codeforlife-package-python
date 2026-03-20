@@ -14,7 +14,7 @@ from django.db.models import CharField, Model, lookups
 from .deferred_attribute import DeferredAttribute
 
 
-class Sha256Attribute(DeferredAttribute["Sha256Field", Model, t.Optional[str]]):
+class Sha256Attribute(DeferredAttribute[Model, "Sha256Field", str]):
     """
     Custom attribute for Sha256Field to handle hashing on assignment.
     """

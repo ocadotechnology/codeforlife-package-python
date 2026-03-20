@@ -94,7 +94,7 @@ AnyBaseEncryptedField = t.TypeVar(
 
 
 class EncryptedAttribute(
-    DeferredAttribute[AnyBaseEncryptedField, EncryptedModel, Value[T]],
+    DeferredAttribute[EncryptedModel, AnyBaseEncryptedField, Value[T]],
     t.Generic[AnyBaseEncryptedField, T],
 ):
     """
@@ -165,10 +165,7 @@ class EncryptedAttribute(
         internal_value: t.Optional[Value[T]]
         if value is None:
             internal_value = None
-        # When Django loads data from a fixture (e.g., a JSON file), it
-        # provides binary data as a `memoryview` object. Our descriptor
-        # handles this by extracting the raw bytes from the `memoryview`.
-        elif isinstance(value, memoryview):
+        elif isinstance(value, memoryview):  # From fixture.
             if not isinstance(value.obj, bytes):
                 raise ValidationError(
                     "Expected bytes in memoryview for encrypted field.",
