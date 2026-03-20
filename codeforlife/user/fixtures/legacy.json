@@ -235,7 +235,8 @@
     "pk": 1,
     "fields": {
       "country": "GB",
-      "county": "nan",
+      "county_enc": "ZmFrZV9lbmM6l7av2jdw+0G9Q+RDIsM7lR9somu89lQem87teDVsvg==",
+      "county_plain": "nan",
       "creation_time": null,
       "dek": "ZmFrZV9lbmM6+bOK8/jOfj3VDE4HWSqQTMr9+j/QCITdy63oBgTo7tLAfLBvdQBtdP9NkAe1hRpvA8yHhxE9Wd+nBwvh",
       "is_active": true,

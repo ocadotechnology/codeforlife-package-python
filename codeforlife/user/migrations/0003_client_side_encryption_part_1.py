@@ -243,6 +243,21 @@ school_migrations = [
             verbose_name="name",
         ),
     ),
+    # County
+    migrations.RenameField(
+        model_name="school",
+        old_name="county",
+        new_name="county_plain",
+    ),
+    migrations.AddField(
+        model_name="school",
+        name="county_enc",
+        field=EncryptedTextField(
+            associated_data="county",
+            null=True,
+            verbose_name="county",
+        ),
+    ),
 ]
 
 

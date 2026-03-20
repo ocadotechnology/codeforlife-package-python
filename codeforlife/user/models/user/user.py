@@ -430,12 +430,18 @@ if not getattr(settings, "OLD_SYSTEM", True):
     User.is_verified = property(fget=is_verified)  # type: ignore[assignment]
 
 
+# TODO: merge the UserProfile model into the User model and delete it.
 class UserProfile(models.Model):
     """A user's profile."""
 
     user = models.OneToOneField(User, on_delete=models.CASCADE)
 
+    # NOTE: this is not currently used in production. when it is, it should be:
+    # 1. moved to the User model
+    # 2. made non-nullable with a default generator of a random string
+    # 3. converted into an EncryptedTextField
     otp_secret = models.CharField(max_length=40, null=True, blank=True)
+
     last_otp_for_time = models.DateTimeField(null=True, blank=True)
     developer = models.BooleanField(default=False)
     is_verified = models.BooleanField(default=False)

@@ -4,7 +4,8 @@
     "pk": 3,
     "fields": {
       "country": "GB",
-      "county": "Hertfordshire",
+      "county_enc": "ZmFrZV9lbmM6Oh+rePN6//jcDKcBdR+eANBv7XfgdpU2454OETUApP+Ho3RbVKhrDBo=",
+      "county_plain": "Hertfordshire",
       "dek": "ZmFrZV9lbmM6bC7l4CSlvQMlUQ3LGmAgdXlinpUVIUxRCKl15mBnGovwpYqrwQhpqx47OXVPRQnzsIh5oX5/it+bnEw2",
       "name_enc": "ZmFrZV9lbmM6rDyP9kxRgaY6xKUohQdWebf8Gs94JU03UH5NCdROWyGOpUk5",
       "name_plain": "School 2"
