@@ -82,15 +82,15 @@ class UserManager(
 
     # pylint: disable=missing-function-docstring
 
-    @classmethod
-    def normalize_email(cls, email):
-        return super().normalize_email(email).lower()
+    # @classmethod
+    # def normalize_email(cls, email):
+    #     return super().normalize_email(email).lower()
 
-    def get_by_natural_key(self, username):
-        return self.get(username_hash__sha256=username)
+    # def get_by_natural_key(self, username):
+    #     return self.get(username_hash__sha256=username)
 
-    async def aget_by_natural_key(self, username):
-        return await self.aget(username_hash__sha256=username)
+    # async def aget_by_natural_key(self, username):
+    #     return await self.aget(username_hash__sha256=username)
 
     # pylint: enable=missing-function-docstring
 
@@ -121,9 +121,9 @@ class User(AbstractBaseUser, PermissionsMixin, DataEncryptionKeyModel):
 
     associated_data = "user"
 
-    EMAIL_FIELD = "email_enc"
-    USERNAME_FIELD = "username_hash"
-    REQUIRED_FIELDS = ["email_enc"]
+    EMAIL_FIELD = "email_plain"
+    USERNAME_FIELD = "username_plain"
+    REQUIRED_FIELDS = ["email_plain"]
     credential_fields = frozenset(["email", "password"])
 
     _password: t.Optional[str]
@@ -227,9 +227,7 @@ class User(AbstractBaseUser, PermissionsMixin, DataEncryptionKeyModel):
     # Email
     # --------------------------------------------------------------------------
 
-    email_hash = Sha256Field(
-        verbose_name=_("email hash"), null=True, blank=True
-    )
+    email_hash = Sha256Field(verbose_name=_("email hash"), null=True)
     email_plain = models.EmailField(_("email address"), blank=True)
     email_enc = EncryptedTextField(
         associated_data="email",
@@ -373,8 +371,14 @@ class User(AbstractBaseUser, PermissionsMixin, DataEncryptionKeyModel):
         """
         return user_class(
             pk=self.pk,
-            first_name=self.first_name,
-            last_name=self.last_name,
+            first_name_hash=self.first_name_hash,
+            first_name_plain=self.first_name_plain,
+            first_name_enc=self.first_name_enc,
+            last_name_plain=self.last_name_plain,
+            last_name_enc=self.last_name_enc,
+            username_hash=self.username_hash,
+            username_plain=self.username_plain,
+            username_enc=self.username_enc,
             is_active=self.is_active,
             email_plain=self.email_plain,
             email_enc=self.email_enc,
@@ -388,21 +392,19 @@ class User(AbstractBaseUser, PermissionsMixin, DataEncryptionKeyModel):
 
     def anonymize(self):
         """Anonymize the user."""
-        self.first_name = ""
-        self.last_name = ""
-        self.email = None
+        self.dek = None
+        self.first_name_plain = ""
+        self.last_name_plain = ""
+        self.email_plain = ""
         self.is_active = False
         self.save(
             update_fields=[
                 # pylint: disable=duplicate-code
-                "first_name_hash",
+                "dek",
                 "first_name_plain",
-                "first_name_enc",
                 "last_name_plain",
-                "last_name_enc",
                 "email_plain",
-                "email_enc",
-                "email_hash",
+                "username_plain",
                 "is_active",
                 # pylint: enable=duplicate-code
             ]

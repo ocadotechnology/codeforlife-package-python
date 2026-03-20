@@ -155,6 +155,7 @@ class School(DataEncryptionKeyModel):
 
     def anonymise(self):
         """Anonymize the school."""
+        self.dek = None
         self.name = uuid4().hex
         self.is_active = False
         self.save()

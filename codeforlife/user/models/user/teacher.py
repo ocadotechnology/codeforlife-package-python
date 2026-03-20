@@ -45,8 +45,12 @@ class TeacherUserManager(ContactableUserManager[AnyUser], t.Generic[AnyUser]):
         from .user import UserProfile
 
         # pylint: enable=import-outside-toplevel
+
+        assert "username" not in extra_fields
+
         # pylint: disable=duplicate-code
         user = super().create_user(
+            username=email,
             email=email,
             password=password,
             first_name=first_name,

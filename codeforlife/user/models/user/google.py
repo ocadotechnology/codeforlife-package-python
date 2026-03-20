@@ -56,11 +56,15 @@ class GoogleUserManager(ContactableUserManager[AnyUser], t.Generic[AnyUser]):
         try:
             user = self.get(userprofile__google_sub=google_sub)
 
+            user.username = email
             user.email = email
             user.first_name = first_name
             user.last_name = last_name
             user.save(
                 update_fields=[
+                    "username_hash",
+                    "username_plain",
+                    "username_enc",
                     "email_hash",
                     "email_plain",
                     "email_enc",
@@ -79,6 +83,7 @@ class GoogleUserManager(ContactableUserManager[AnyUser], t.Generic[AnyUser]):
                 raise does_not_exist
 
             user = self.create_user(
+                username=email,
                 email=email,
                 first_name=first_name,
                 last_name=last_name,

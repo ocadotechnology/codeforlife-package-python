@@ -63,7 +63,6 @@ user_migrations = [
         name="email_hash",
         field=Sha256Field(
             null=True,
-            blank=True,
             editable=False,
             max_length=64,
             verbose_name="email hash",
@@ -168,6 +167,16 @@ school_teacher_invitation_migrations = [
             associated_data="token",
             null=True,
             verbose_name="token",
+        ),
+    ),
+    migrations.AddField(
+        model_name="schoolteacherinvitation",
+        name="token_hash",
+        field=Sha256Field(
+            null=True,
+            editable=False,
+            max_length=64,
+            verbose_name="token hash",
         ),
     ),
     # Invited teacher first name

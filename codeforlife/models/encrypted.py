@@ -34,6 +34,7 @@ from django.core.exceptions import ValidationError
 from django.db import models
 
 from .base import Model
+from .utils import is_real_model_class
 
 if t.TYPE_CHECKING:
     from django_stubs_ext.db.models import TypedModelMeta
@@ -110,8 +111,8 @@ class EncryptedModel(Model):
         """
         errors: t.List[checks.Error] = []
 
-        # Skip abstract and proxy models.
-        if cls._meta.abstract or cls._meta.proxy:
+        # Skip non-real models.
+        if not is_real_model_class(cls):
             return errors
 
         # Ensure associated_data is defined.
@@ -150,8 +151,7 @@ class EncryptedModel(Model):
                 if (
                     # pylint: disable-next=too-many-boolean-expressions
                     not model is cls
-                    and not model._meta.abstract
-                    and not model._meta.proxy
+                    and is_real_model_class(model)
                     and issubclass(model, EncryptedModel)
                     and hasattr(model, "associated_data")
                     and isinstance(model.associated_data, str)

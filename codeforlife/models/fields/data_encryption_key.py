@@ -164,7 +164,7 @@ class DataEncryptionKeyField(BinaryField):
     def contribute_to_class(self, cls, name, private_only=False):
         super().contribute_to_class(cls, name, private_only)
 
-        # Skip fake (used for migrations), abstract and proxy models.
+        # Skip non-real models.
         if not is_real_model_class(cls):
             return
 

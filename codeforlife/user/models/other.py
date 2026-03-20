@@ -15,7 +15,7 @@ from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 from ...models import EncryptedModel
-from ...models.fields import EncryptedTextField
+from ...models.fields import EncryptedTextField, Sha256Field
 
 if t.TYPE_CHECKING:  # pragma: no cover
     from datetime import datetime
@@ -239,6 +239,7 @@ class SchoolTeacherInvitation(EncryptedModel):
     # Token
     # --------------------------------------------------------------------------
 
+    token_hash = Sha256Field(verbose_name=_("token hash"), null=True)
     token_plain: str
     token_plain = models.CharField(max_length=88)  # type: ignore[assignment]
     token_enc = EncryptedTextField(
@@ -259,6 +260,7 @@ class SchoolTeacherInvitation(EncryptedModel):
         """Sets the token value."""
         self.token_plain = value
         self.token_enc = value
+        self.token_hash = value
 
     # --------------------------------------------------------------------------
 

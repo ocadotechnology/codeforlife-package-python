@@ -129,16 +129,12 @@ class EncryptedAttribute(
                     T, instance.__decrypted_values__[self.field.attname]
                 )
 
-            # Extract the raw bytes from the ciphertext.
-            ciphertext = (
-                internal_value.ciphertext
-                if isinstance(internal_value.ciphertext, bytes)
-                else bytes(internal_value.ciphertext)
-            )
-
             # Decrypt the value before returning it.
             decrypted_value = t.cast(
-                T, self.field.decrypt_value(instance, ciphertext)
+                T,
+                self.field.decrypt_value(
+                    instance, bytes(internal_value.ciphertext)
+                ),
             )
 
             # Cache the decrypted value on the instance.
@@ -224,7 +220,7 @@ class BaseEncryptedField(BinaryField, t.Generic[T]):
         """
         super().contribute_to_class(cls, name, private_only)
 
-        # Skip fake (used for migrations), abstract and proxy models.
+        # Skip non-real models.
         if not is_real_model_class(cls):
             return
 
