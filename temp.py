@@ -29,8 +29,13 @@ def build_fake_aead_from_fixture_dek(dek_value: str):
     return FakeAead(raw_dek)
 
 
-def update_encrypted_fields(fields: dict, model_name: str) -> int:
-    dek_value = fields.get("dek")
+def update_encrypted_fields(
+    fields: dict,
+    model_name: str,
+    dek_value: str | None = None,
+) -> int:
+    if dek_value is None:
+        dek_value = fields.get("dek")
     if not dek_value:
         return 0
 
@@ -167,6 +172,73 @@ def update_username_fields(
     return updated_count
 
 
+def build_fixture_indexes(
+    fixture_data: list[dict[str, Any]],
+) -> tuple[dict[int, str], dict[int, str], dict[int, int]]:
+    user_dek_by_pk: dict[int, str] = {}
+    school_dek_by_pk: dict[int, str] = {}
+    teacher_school_by_pk: dict[int, int] = {}
+
+    for object_data in fixture_data:
+        model = object_data.get("model")
+        pk = object_data.get("pk")
+        fields = object_data.get("fields")
+
+        if not isinstance(pk, int) or not isinstance(fields, dict):
+            continue
+
+        if model == "user.user":
+            dek_value = fields.get("dek")
+            if isinstance(dek_value, str):
+                user_dek_by_pk[pk] = dek_value
+        elif model == "user.school":
+            dek_value = fields.get("dek")
+            if isinstance(dek_value, str):
+                school_dek_by_pk[pk] = dek_value
+        elif model == "user.teacher":
+            school_pk = fields.get("school")
+            if isinstance(school_pk, int):
+                teacher_school_by_pk[pk] = school_pk
+
+    return user_dek_by_pk, school_dek_by_pk, teacher_school_by_pk
+
+
+def resolve_dek_for_object(
+    object_data: dict,
+    user_dek_by_pk: dict[int, str],
+    school_dek_by_pk: dict[int, str],
+    teacher_school_by_pk: dict[int, int],
+) -> str | None:
+    model = object_data.get("model")
+    pk = object_data.get("pk")
+    fields = object_data.get("fields")
+
+    if not isinstance(fields, dict):
+        return None
+
+    if model == "user.user" and isinstance(pk, int):
+        return user_dek_by_pk.get(pk)
+
+    if model == "user.school" and isinstance(pk, int):
+        return school_dek_by_pk.get(pk)
+
+    if model == "user.class":
+        school_pk = fields.get("school")
+        if not isinstance(school_pk, int):
+            teacher_pk = fields.get("teacher")
+            if isinstance(teacher_pk, int):
+                school_pk = teacher_school_by_pk.get(teacher_pk)
+        if isinstance(school_pk, int):
+            return school_dek_by_pk.get(school_pk)
+
+    if model == "user.schoolteacherinvitation":
+        school_pk = fields.get("school")
+        if isinstance(school_pk, int):
+            return school_dek_by_pk.get(school_pk)
+
+    return None
+
+
 def update_fixture_file(
     fixture_path: Path, reference_fixture_path: Path
 ) -> int:
@@ -178,7 +250,6 @@ def update_fixture_file(
     updated_count = 0
     for object_data in fixture_data:
         if object_data.get("model") not in {"user.user", "user.school"}:
-            updated_count += sort_model_fields(object_data)
             continue
 
         fields = object_data.setdefault("fields", {})
@@ -192,11 +263,39 @@ def update_fixture_file(
             fields["dek"] = generate_dek_value()
             updated_count += 1
 
-        updated_count += update_encrypted_fields(
-            fields,
-            model_name=object_data["model"],
-        )
-        updated_count += update_hashed_fields(fields)
+    (
+        user_dek_by_pk,
+        school_dek_by_pk,
+        teacher_school_by_pk,
+    ) = build_fixture_indexes(fixture_data)
+
+    models_using_model_specific_deks = {
+        "user.user",
+        "user.school",
+        "user.class",
+        "user.schoolteacherinvitation",
+    }
+
+    for object_data in fixture_data:
+        fields = object_data.get("fields")
+        if not isinstance(fields, dict):
+            continue
+
+        model_name = object_data.get("model")
+        if model_name in models_using_model_specific_deks:
+            dek_value = resolve_dek_for_object(
+                object_data,
+                user_dek_by_pk=user_dek_by_pk,
+                school_dek_by_pk=school_dek_by_pk,
+                teacher_school_by_pk=teacher_school_by_pk,
+            )
+            updated_count += update_encrypted_fields(
+                fields,
+                model_name=model_name,
+                dek_value=dek_value,
+            )
+            updated_count += update_hashed_fields(fields)
+
         updated_count += sort_model_fields(object_data)
 
     if updated_count:

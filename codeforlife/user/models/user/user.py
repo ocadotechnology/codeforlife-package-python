@@ -418,7 +418,7 @@ class User(AbstractBaseUser, PermissionsMixin, DataEncryptionKeyModel):
         # )
 
     def __repr__(self):
-        return f"<User: {self.email}>"
+        return f"<User: {self.pk}>"
 
 
 if not getattr(settings, "OLD_SYSTEM", True):
