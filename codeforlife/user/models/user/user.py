@@ -9,7 +9,6 @@ import typing as t
 from datetime import datetime, timedelta
 
 from django.conf import settings
-from django.contrib.auth.hashers import make_password
 from django.contrib.auth.models import PermissionsMixin
 from django.contrib.auth.models import UserManager as _UserManager
 from django.contrib.auth.validators import UnicodeUsernameValidator
