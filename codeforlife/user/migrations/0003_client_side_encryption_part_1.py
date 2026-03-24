@@ -21,11 +21,11 @@ user_migrations = [
     migrations.RenameField(
         model_name="user",
         old_name="username",
-        new_name="username_plain",
+        new_name="_username_plain",
     ),
     migrations.AddField(
         model_name="user",
-        name="username_enc",
+        name="_username_enc",
         field=EncryptedTextField(
             associated_data="username",
             null=True,
@@ -34,7 +34,7 @@ user_migrations = [
     ),
     migrations.AddField(
         model_name="user",
-        name="username_hash",
+        name="_username_hash",
         field=Sha256Field(
             null=True,
             unique=True,
@@ -47,11 +47,11 @@ user_migrations = [
     migrations.RenameField(
         model_name="user",
         old_name="email",
-        new_name="email_plain",
+        new_name="_email_plain",
     ),
     migrations.AddField(
         model_name="user",
-        name="email_enc",
+        name="_email_enc",
         field=EncryptedTextField(
             associated_data="email",
             null=True,
@@ -60,7 +60,7 @@ user_migrations = [
     ),
     migrations.AddField(
         model_name="user",
-        name="email_hash",
+        name="_email_hash",
         field=Sha256Field(
             null=True,
             editable=False,
@@ -72,11 +72,11 @@ user_migrations = [
     migrations.RenameField(
         model_name="user",
         old_name="first_name",
-        new_name="first_name_plain",
+        new_name="_first_name_plain",
     ),
     migrations.AddField(
         model_name="user",
-        name="first_name_enc",
+        name="_first_name_enc",
         field=EncryptedTextField(
             associated_data="first_name",
             null=True,
@@ -85,7 +85,7 @@ user_migrations = [
     ),
     migrations.AddField(
         model_name="user",
-        name="first_name_hash",
+        name="_first_name_hash",
         field=Sha256Field(
             null=True,
             editable=False,
@@ -97,11 +97,11 @@ user_migrations = [
     migrations.RenameField(
         model_name="user",
         old_name="last_name",
-        new_name="last_name_plain",
+        new_name="_last_name_plain",
     ),
     migrations.AddField(
         model_name="user",
-        name="last_name_enc",
+        name="_last_name_enc",
         field=EncryptedTextField(
             associated_data="last_name",
             null=True,
@@ -115,11 +115,11 @@ class_migrations = [
     migrations.RenameField(
         model_name="class",
         old_name="access_code",
-        new_name="access_code_plain",
+        new_name="_access_code_plain",
     ),
     migrations.AddField(
         model_name="class",
-        name="access_code_enc",
+        name="_access_code_enc",
         field=EncryptedTextField(
             associated_data="access_code",
             null=True,
@@ -128,7 +128,7 @@ class_migrations = [
     ),
     migrations.AddField(
         model_name="class",
-        name="access_code_hash",
+        name="_access_code_hash",
         field=Sha256Field(
             null=True,
             editable=False,
@@ -140,11 +140,11 @@ class_migrations = [
     migrations.RenameField(
         model_name="class",
         old_name="name",
-        new_name="name_plain",
+        new_name="_name_plain",
     ),
     migrations.AddField(
         model_name="class",
-        name="name_enc",
+        name="_name_enc",
         field=EncryptedTextField(
             associated_data="name",
             null=True,
@@ -158,11 +158,11 @@ school_teacher_invitation_migrations = [
     migrations.RenameField(
         model_name="schoolteacherinvitation",
         old_name="token",
-        new_name="token_plain",
+        new_name="_token_plain",
     ),
     migrations.AddField(
         model_name="schoolteacherinvitation",
-        name="token_enc",
+        name="_token_enc",
         field=EncryptedTextField(
             associated_data="token",
             null=True,
@@ -171,7 +171,7 @@ school_teacher_invitation_migrations = [
     ),
     migrations.AddField(
         model_name="schoolteacherinvitation",
-        name="token_hash",
+        name="_token_hash",
         field=Sha256Field(
             null=True,
             editable=False,
@@ -183,11 +183,11 @@ school_teacher_invitation_migrations = [
     migrations.RenameField(
         model_name="schoolteacherinvitation",
         old_name="invited_teacher_first_name",
-        new_name="invited_teacher_first_name_plain",
+        new_name="_invited_teacher_first_name_plain",
     ),
     migrations.AddField(
         model_name="schoolteacherinvitation",
-        name="invited_teacher_first_name_enc",
+        name="_invited_teacher_first_name_enc",
         field=EncryptedTextField(
             associated_data="invited_teacher_first_name",
             null=True,
@@ -198,11 +198,11 @@ school_teacher_invitation_migrations = [
     migrations.RenameField(
         model_name="schoolteacherinvitation",
         old_name="invited_teacher_last_name",
-        new_name="invited_teacher_last_name_plain",
+        new_name="_invited_teacher_last_name_plain",
     ),
     migrations.AddField(
         model_name="schoolteacherinvitation",
-        name="invited_teacher_last_name_enc",
+        name="_invited_teacher_last_name_enc",
         field=EncryptedTextField(
             associated_data="invited_teacher_last_name",
             null=True,
@@ -213,11 +213,11 @@ school_teacher_invitation_migrations = [
     migrations.RenameField(
         model_name="schoolteacherinvitation",
         old_name="invited_teacher_email",
-        new_name="invited_teacher_email_plain",
+        new_name="_invited_teacher_email_plain",
     ),
     migrations.AddField(
         model_name="schoolteacherinvitation",
-        name="invited_teacher_email_enc",
+        name="_invited_teacher_email_enc",
         field=EncryptedTextField(
             associated_data="invited_teacher_email",
             null=True,
@@ -241,11 +241,11 @@ school_migrations = [
     migrations.RenameField(
         model_name="school",
         old_name="name",
-        new_name="name_plain",
+        new_name="_name_plain",
     ),
     migrations.AddField(
         model_name="school",
-        name="name_enc",
+        name="_name_enc",
         field=EncryptedTextField(
             associated_data="name",
             null=True,
@@ -256,11 +256,11 @@ school_migrations = [
     migrations.RenameField(
         model_name="school",
         old_name="county",
-        new_name="county_plain",
+        new_name="_county_plain",
     ),
     migrations.AddField(
         model_name="school",
-        name="county_enc",
+        name="_county_enc",
         field=EncryptedTextField(
             associated_data="county",
             null=True,

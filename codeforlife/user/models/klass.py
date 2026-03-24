@@ -66,11 +66,11 @@ class Class(EncryptedModel):
 
     associated_data = "class"
     field_aliases = {
-        "name": {"name_plain", "name_enc"},
+        "name": {"_name_plain", "_name_enc"},
         "access_code": {
-            "access_code_plain",
-            "access_code_enc",
-            "access_code_hash",
+            "_access_code_plain",
+            "_access_code_enc",
+            "_access_code_hash",
         },
     }
 
@@ -78,9 +78,9 @@ class Class(EncryptedModel):
     # Name
     # --------------------------------------------------------------------------
 
-    name_plain: str
-    name_plain = models.CharField(max_length=200)  # type: ignore[assignment]
-    name_enc = EncryptedTextField(
+    _name_plain: str
+    _name_plain = models.CharField(max_length=200)  # type: ignore[assignment]
+    _name_enc = EncryptedTextField(
         associated_data="name",
         null=True,
         verbose_name=_("name"),
@@ -89,15 +89,15 @@ class Class(EncryptedModel):
     @property
     def name(self):
         """Get the name of the class."""
-        if self.name_enc is not None:
-            return EncryptedTextField.decrypt(self, "name_enc")
-        return self.name_plain
+        if self._name_enc is not None:
+            return EncryptedTextField.decrypt(self, "_name_enc")
+        return self._name_plain
 
     @name.setter
     def name(self, value: str):
         """Set the name of the class."""
-        self.name_plain = value
-        EncryptedTextField.set(self, value, "name_enc")
+        self._name_plain = value
+        EncryptedTextField.set(self, value, "_name_enc")
 
     # --------------------------------------------------------------------------
 
@@ -112,15 +112,15 @@ class Class(EncryptedModel):
     # Access code
     # --------------------------------------------------------------------------
 
-    access_code_hash = Sha256Field(
+    _access_code_hash = Sha256Field(
         verbose_name=_("access code hash"), null=True
     )
-    access_code_plain: t.Optional[str]
-    access_code_plain = models.CharField(  # type: ignore[assignment]
+    _access_code_plain: t.Optional[str]
+    _access_code_plain = models.CharField(  # type: ignore[assignment]
         max_length=5,
         null=True,
     )
-    access_code_enc = EncryptedTextField(
+    _access_code_enc = EncryptedTextField(
         associated_data="access_code",
         null=True,
         verbose_name=_("access code"),
@@ -129,16 +129,16 @@ class Class(EncryptedModel):
     @property
     def access_code(self):
         """Get the access code for the class."""
-        if self.access_code_enc is not None:
-            return EncryptedTextField.decrypt(self, "access_code_enc")
-        return self.access_code_plain
+        if self._access_code_enc is not None:
+            return EncryptedTextField.decrypt(self, "_access_code_enc")
+        return self._access_code_plain
 
     @access_code.setter
     def access_code(self, value: t.Optional[str]):
         """Set the access code for the class."""
-        self.access_code_plain = value
-        EncryptedTextField.set(self, value, "access_code_enc")
-        self.access_code_hash = Sha256Field.hash(value)
+        self._access_code_plain = value
+        EncryptedTextField.set(self, value, "_access_code_enc")
+        self._access_code_hash = Sha256Field.hash(value)
 
     # --------------------------------------------------------------------------
 

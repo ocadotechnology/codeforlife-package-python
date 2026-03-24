@@ -142,7 +142,7 @@ class StudentUser(User):
         username = None
         while (
             username is None
-            or User.objects.filter(username_hash__sha256=username).exists()
+            or User.objects.filter(_username_hash__sha256=username).exists()
         ):
             username = get_random_string(length=30)
 

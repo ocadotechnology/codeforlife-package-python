@@ -87,10 +87,10 @@ class UserManager(
     #     return super().normalize_email(email).lower()
 
     # def get_by_natural_key(self, username):
-    #     return self.get(username_hash__sha256=username)
+    #     return self.get(_username_hash__sha256=username)
 
     # async def aget_by_natural_key(self, username):
-    #     return await self.aget(username_hash__sha256=username)
+    #     return await self.aget(_username_hash__sha256=username)
 
     # pylint: enable=missing-function-docstring
 
@@ -121,15 +121,19 @@ class User(AbstractBaseUser, PermissionsMixin, DataEncryptionKeyModel):
 
     associated_data = "user"
     field_aliases = {
-        "username": {"username_plain", "username_enc", "username_hash"},
-        "first_name": {"first_name_plain", "first_name_enc", "first_name_hash"},
-        "last_name": {"last_name_plain", "last_name_enc"},
-        "email": {"email_plain", "email_enc", "email_hash"},
+        "username": {"_username_plain", "_username_enc", "_username_hash"},
+        "first_name": {
+            "_first_name_plain",
+            "_first_name_enc",
+            "_first_name_hash",
+        },
+        "last_name": {"_last_name_plain", "_last_name_enc"},
+        "email": {"_email_plain", "_email_enc", "_email_hash"},
     }
 
-    EMAIL_FIELD = "email_plain"
-    USERNAME_FIELD = "username_plain"
-    REQUIRED_FIELDS = ["email_plain"]
+    EMAIL_FIELD = "_email_plain"
+    USERNAME_FIELD = "_username_plain"
+    REQUIRED_FIELDS = ["_email_plain"]
     credential_fields = frozenset(["email", "password"])
 
     _password: t.Optional[str]
@@ -145,10 +149,10 @@ class User(AbstractBaseUser, PermissionsMixin, DataEncryptionKeyModel):
     # Username
     # --------------------------------------------------------------------------
 
-    username_hash = Sha256Field(
+    _username_hash = Sha256Field(
         verbose_name=_("username hash"), unique=True, null=True
     )
-    username_plain = models.CharField(
+    _username_plain = models.CharField(
         _("username"),
         max_length=150,
         unique=True,
@@ -161,81 +165,81 @@ class User(AbstractBaseUser, PermissionsMixin, DataEncryptionKeyModel):
             "unique": _("A user with that username already exists."),
         },
     )
-    username_enc = EncryptedTextField(
+    _username_enc = EncryptedTextField(
         associated_data="username", null=True, verbose_name=_("username")
     )
 
     @property
     def username(self):
         """The user's username."""
-        if self.username_enc is not None:
-            return EncryptedTextField.decrypt(self, "username_enc")
-        return self.username_plain
+        if self._username_enc is not None:
+            return EncryptedTextField.decrypt(self, "_username_enc")
+        return self._username_plain
 
     @username.setter
     def username(self, value: str):
         """Set the user's username."""
-        self.username_plain = value
-        EncryptedTextField.set(self, value, "username_enc")
-        self.username_hash = Sha256Field.hash(value)
+        self._username_plain = value
+        EncryptedTextField.set(self, value, "_username_enc")
+        self._username_hash = Sha256Field.hash(value)
 
     # --------------------------------------------------------------------------
     # First name
     # --------------------------------------------------------------------------
 
-    first_name_hash = Sha256Field(verbose_name=_("first name hash"), null=True)
-    first_name_plain = models.CharField(
+    _first_name_hash = Sha256Field(verbose_name=_("first name hash"), null=True)
+    _first_name_plain = models.CharField(
         _("first name"), max_length=150, blank=True
     )
-    first_name_enc = EncryptedTextField(
+    _first_name_enc = EncryptedTextField(
         associated_data="first_name", null=True, verbose_name=_("first name")
     )
 
     @property
     def first_name(self):
         """The user's first name."""
-        if self.first_name_enc is not None:
-            return EncryptedTextField.decrypt(self, "first_name_enc")
-        return self.first_name_plain
+        if self._first_name_enc is not None:
+            return EncryptedTextField.decrypt(self, "_first_name_enc")
+        return self._first_name_plain
 
     @first_name.setter
     def first_name(self, value: str):
         """Set the user's first name."""
-        EncryptedTextField.set(self, value, "first_name_enc")
-        self.first_name_plain = value
-        self.first_name_hash = Sha256Field.hash(value)
+        EncryptedTextField.set(self, value, "_first_name_enc")
+        self._first_name_plain = value
+        self._first_name_hash = Sha256Field.hash(value)
 
     # --------------------------------------------------------------------------
     # Last name
     # --------------------------------------------------------------------------
 
-    last_name_plain = models.CharField(
+    _last_name_plain = models.CharField(
         _("last name"), max_length=150, blank=True
     )
-    last_name_enc = EncryptedTextField(
+    _last_name_enc = EncryptedTextField(
         associated_data="last_name", null=True, verbose_name=_("last name")
     )
 
     @property
     def last_name(self):
         """The user's last name."""
-        if self.last_name_enc is not None:
-            return EncryptedTextField.decrypt(self, "last_name_enc")
-        return self.last_name_plain
+        if self._last_name_enc is not None:
+            return EncryptedTextField.decrypt(self, "_last_name_enc")
+        return self._last_name_plain
 
     @last_name.setter
     def last_name(self, value: str):
         """Set the user's last name."""
-        EncryptedTextField.set(self, value, "last_name_enc")
-        self.last_name_plain = value
+        EncryptedTextField.set(self, value, "_last_name_enc")
+        self._last_name_plain = value
 
     # --------------------------------------------------------------------------
     # Email
     # --------------------------------------------------------------------------
 
-    email_hash = Sha256Field(verbose_name=_("email hash"), null=True)
-    email_plain = models.EmailField(_("email address"), blank=True)
-    email_enc = EncryptedTextField(
+    _email_hash = Sha256Field(verbose_name=_("email hash"), null=True)
+    _email_plain = models.EmailField(_("email address"), blank=True)
+    _email_enc = EncryptedTextField(
         associated_data="email",
         null=True,
         verbose_name=_("email address"),
@@ -244,17 +248,17 @@ class User(AbstractBaseUser, PermissionsMixin, DataEncryptionKeyModel):
     @property
     def email(self):
         """The user's email address."""
-        if self.email_enc is not None:
-            return EncryptedTextField.decrypt(self, "email_enc")
-        return self.email_plain
+        if self._email_enc is not None:
+            return EncryptedTextField.decrypt(self, "_email_enc")
+        return self._email_plain
 
     @email.setter
     def email(self, value: str):
         """Set the user's email address."""
         value = self.objects.normalize_email(value)
-        self.email_plain = value
-        EncryptedTextField.set(self, value, "email_enc")
-        self.email_hash = Sha256Field.hash(value)
+        self._email_plain = value
+        EncryptedTextField.set(self, value, "_email_enc")
+        self._email_hash = Sha256Field.hash(value)
 
     # --------------------------------------------------------------------------
     # Other
@@ -377,18 +381,18 @@ class User(AbstractBaseUser, PermissionsMixin, DataEncryptionKeyModel):
         """
         return user_class(
             pk=self.pk,
-            first_name_hash=self.first_name_hash,
-            first_name_plain=self.first_name_plain,
-            first_name_enc=self.first_name_enc,
-            last_name_plain=self.last_name_plain,
-            last_name_enc=self.last_name_enc,
-            username_hash=self.username_hash,
-            username_plain=self.username_plain,
-            username_enc=self.username_enc,
+            _first_name_hash=self._first_name_hash,
+            _first_name_plain=self._first_name_plain,
+            _first_name_enc=self._first_name_enc,
+            _last_name_plain=self._last_name_plain,
+            _last_name_enc=self._last_name_enc,
+            _username_hash=self._username_hash,
+            _username_plain=self._username_plain,
+            _username_enc=self._username_enc,
+            _email_plain=self._email_plain,
+            _email_enc=self._email_enc,
+            _email_hash=self._email_hash,
             is_active=self.is_active,
-            email_plain=self.email_plain,
-            email_enc=self.email_enc,
-            email_hash=self.email_hash,
             is_staff=self.is_staff,
             date_joined=self.date_joined,
             is_superuser=self.is_superuser,
@@ -399,17 +403,17 @@ class User(AbstractBaseUser, PermissionsMixin, DataEncryptionKeyModel):
     def anonymize(self):
         """Anonymize the user."""
         self.dek = None
-        self.first_name_plain = ""
-        self.last_name_plain = ""
-        self.email_plain = ""
+        self._first_name_plain = ""
+        self._last_name_plain = ""
+        self._email_plain = ""
         self.is_active = False
         self.save(
             update_fields=[
                 # pylint: disable=duplicate-code
                 "dek",
-                "first_name_plain",
-                "last_name_plain",
-                "email_plain",
+                "_first_name_plain",
+                "_last_name_plain",
+                "_email_plain",
                 "username_plain",
                 "is_active",
                 # pylint: enable=duplicate-code

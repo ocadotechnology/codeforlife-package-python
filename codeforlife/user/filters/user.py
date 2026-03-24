@@ -22,7 +22,7 @@ from ..models import (  # isort: skip
 # pylint: disable-next=missing-class-docstring
 class UserFilterSet(FilterSet):
     students_in_class = filters.CharFilter(
-        "new_student__class_field__access_code_hash",
+        "new_student__class_field___access_code_hash",
         "sha256",
     )
 
@@ -53,7 +53,9 @@ class UserFilterSet(FilterSet):
 
         pks = [
             user.pk
-            for user in queryset.only("dek", "first_name_enc", "last_name_enc")
+            for user in queryset.only(
+                "dek", "_first_name_enc", "_last_name_enc"
+            )
             if first_name in user.first_name.lower()
             or last_name in user.last_name.lower()
         ]

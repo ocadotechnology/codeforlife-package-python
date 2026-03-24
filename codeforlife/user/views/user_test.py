@@ -30,7 +30,7 @@ class TestUserViewSet(ModelViewSetTestCase[RequestUser, User]):
 
     def setUp(self):
         self.admin_school_teacher_user = AdminSchoolTeacherUser.objects.get(
-            email_hash__sha256="admin.teacher@school1.com"
+            _email_hash__sha256="admin.teacher@school1.com"
         )
 
     # test: get queryset
@@ -238,7 +238,7 @@ class TestUserViewSet(ModelViewSetTestCase[RequestUser, User]):
         pks = [
             user.pk
             for user in school_users.only(
-                "dek", "first_name_enc", "last_name_enc"
+                "dek", "_first_name_enc", "_last_name_enc"
             )
             if first_name in user.first_name.lower()
             or last_name in user.last_name.lower()

@@ -46,8 +46,8 @@ class School(DataEncryptionKeyModel):
 
     associated_data = "school"
     field_aliases = {
-        "name": {"name_plain", "name_enc"},
-        "county": {"county_plain", "county_enc"},
+        "name": {"_name_plain", "_name_enc"},
+        "county": {"_county_plain", "_county_enc"},
     }
 
     # --------------------------------------------------------------------------
@@ -55,12 +55,12 @@ class School(DataEncryptionKeyModel):
     # --------------------------------------------------------------------------
     # pylint: disable=duplicate-code
 
-    name_plain: str
-    name_plain = models.CharField(  # type: ignore[assignment]
+    _name_plain: str
+    _name_plain = models.CharField(  # type: ignore[assignment]
         max_length=200,
         unique=True,
     )
-    name_enc = EncryptedTextField(
+    _name_enc = EncryptedTextField(
         associated_data="name",
         null=True,
         verbose_name=_("name"),
@@ -69,15 +69,15 @@ class School(DataEncryptionKeyModel):
     @property
     def name(self):
         """Get the school's name."""
-        if self.name_enc is not None:
-            return EncryptedTextField.decrypt(self, "name_enc")
-        return self.name_plain
+        if self._name_enc is not None:
+            return EncryptedTextField.decrypt(self, "_name_enc")
+        return self._name_plain
 
     @name.setter
     def name(self, value: str):
         """Set the school's name."""
-        self.name_plain = value
-        EncryptedTextField.set(self, value, "name_enc")
+        self._name_plain = value
+        EncryptedTextField.set(self, value, "_name_enc")
 
     # pylint: enable=duplicate-code
     # --------------------------------------------------------------------------
@@ -94,13 +94,13 @@ class School(DataEncryptionKeyModel):
     # --------------------------------------------------------------------------
 
     # TODO: Create an Address model to house address details
-    county_plain: t.Optional[str]
-    county_plain = models.CharField(  # type: ignore[assignment]
+    _county_plain: t.Optional[str]
+    _county_plain = models.CharField(  # type: ignore[assignment]
         max_length=50,
         blank=True,
         null=True,
     )
-    county_enc = EncryptedTextField(
+    _county_enc = EncryptedTextField(
         associated_data="county",
         null=True,
         verbose_name=_("county"),
@@ -109,15 +109,15 @@ class School(DataEncryptionKeyModel):
     @property
     def county(self):
         """Get the school's county."""
-        if self.county_enc is not None:
-            return EncryptedTextField.decrypt(self, "county_enc")
-        return self.county_plain
+        if self._county_enc is not None:
+            return EncryptedTextField.decrypt(self, "_county_enc")
+        return self._county_plain
 
     @county.setter
     def county(self, value: str):
         """Set the school's county."""
-        self.county_plain = value
-        EncryptedTextField.set(self, value, "county_enc")
+        self._county_plain = value
+        EncryptedTextField.set(self, value, "_county_enc")
 
     # --------------------------------------------------------------------------
 

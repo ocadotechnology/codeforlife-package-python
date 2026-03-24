@@ -62,17 +62,17 @@ class GoogleUserManager(ContactableUserManager[AnyUser], t.Generic[AnyUser]):
             user.last_name = last_name
             user.save(
                 update_fields=[
-                    "username_hash",
-                    "username_plain",
-                    "username_enc",
-                    "email_hash",
-                    "email_plain",
-                    "email_enc",
-                    "first_name_hash",
-                    "first_name_plain",
-                    "first_name_enc",
-                    "last_name_plain",
-                    "last_name_enc",
+                    "_username_hash",
+                    "_username_plain",
+                    "_username_enc",
+                    "_email_hash",
+                    "_email_plain",
+                    "_email_enc",
+                    "_first_name_hash",
+                    "_first_name_plain",
+                    "_first_name_enc",
+                    "_last_name_plain",
+                    "_last_name_enc",
                 ]
             )
 

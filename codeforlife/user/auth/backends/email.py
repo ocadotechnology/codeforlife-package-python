@@ -26,7 +26,7 @@ class EmailBackend(BaseBackend):
 
         # pylint: disable=duplicate-code
         try:
-            user = self.user_class.objects.get(email_hash__sha256=email)
+            user = self.user_class.objects.get(_email_hash__sha256=email)
         except self.user_class.DoesNotExist:
             return None
         # pylint: enable=duplicate-code

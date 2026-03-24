@@ -16,7 +16,7 @@ from ..models import Class  # isort: skip
 class ClassFilterSet(FilterSet):
     _id = filters.CharFilter(method="_id__method")
     _id__method = FilterSet.make_exclude_field_list_method(
-        "access_code_hash", "sha256_in"
+        "_access_code_hash", "sha256_in"
     )
 
     id_or_name = filters.CharFilter(method="id_or_name__method")
@@ -27,7 +27,7 @@ class ClassFilterSet(FilterSet):
         pks = [
             klass.pk
             for klass in queryset.select_related("teacher__school").only(
-                "access_code_enc", "name_enc", "teacher__school__dek"
+                "_access_code_enc", "_name_enc", "teacher__school__dek"
             )
             if value in klass.name.lower() or value in klass.access_code.lower()
         ]

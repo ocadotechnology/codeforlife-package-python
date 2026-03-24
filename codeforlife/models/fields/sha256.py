@@ -65,7 +65,7 @@ class Sha256ExactLookup(lookups.Exact):
     A lookup that hashes the right-hand side value before comparing.
 
     This allows querying a hashed field with a plain text value, e.g.:
-    `User.objects.filter(email_hash__sha256="user@example.com")`
+    `User.objects.filter(_email_hash__sha256="user@example.com")`
     """
 
     rhs: t.Optional[str]
@@ -92,7 +92,7 @@ class Sha256InLookup(lookups.In):
     A lookup that hashes the right-hand side values before comparing.
 
     This allows querying a hashed field with plain text values, e.g.:
-    `User.objects.filter(email_hash__sha256_in=["user@example.com"])`
+    `User.objects.filter(_email_hash__sha256_in=["user@example.com"])`
     """
 
     rhs: t.Optional[t.Iterable[str]]

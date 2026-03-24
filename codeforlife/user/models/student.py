@@ -32,7 +32,9 @@ class StudentModelManager(models.Manager):
 
         while True:
             random_username = uuid4().hex[:30]  # generate a random username
-            if not User.objects.filter(username_plain=random_username).exists():
+            if not User.objects.filter(
+                _username_plain=random_username
+            ).exists():
                 return random_username
 
     # pylint: disable-next=invalid-name

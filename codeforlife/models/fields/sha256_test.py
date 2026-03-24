@@ -24,8 +24,8 @@ class Sha256FieldTests(TestCase):
 
     def test_set__none(self):
         """Setting field to None sets to None."""
-        user = User(email_hash=None)
-        assert user.__dict__["email_hash"] is None
+        user = User(_email_hash=None)
+        assert user.__dict__["_email_hash"] is None
 
     def test_hash(self):
         """Hashing the same value produces the same hash of 64 characters."""
@@ -40,17 +40,17 @@ class Sha256FieldTests(TestCase):
         `sha256` lookup hashes the right-hand side value before doing an exact
         match.
         """
-        user = User.objects.filter(email_hash__isnull=False).first()
+        user = User.objects.filter(_email_hash__isnull=False).first()
         assert user
-        assert user.email != user.email_hash
-        assert User.objects.get(email_hash__sha256=user.email) == user
+        assert user.email != user._email_hash
+        assert User.objects.get(_email_hash__sha256=user.email) == user
 
     def test_lookup__sha256_in(self):
         """
         `sha256_in` lookup hashes each value in the list before doing an exact
         match.
         """
-        user = User.objects.filter(email_hash__isnull=False).first()
+        user = User.objects.filter(_email_hash__isnull=False).first()
         assert user
-        assert user.email != user.email_hash
-        assert User.objects.get(email_hash__sha256_in=[user.email]) == user
+        assert user.email != user._email_hash
+        assert User.objects.get(_email_hash__sha256_in=[user.email]) == user
