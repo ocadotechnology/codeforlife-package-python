@@ -198,6 +198,6 @@ class EncryptedModel(Model):
         return errors
 
     @property
-    def dek_aead(self) -> t.Optional["Aead"]:
+    def dek_aead(self) -> "Aead":
         """Gets the AEAD primitive for this model's DEK."""
         raise NotImplementedError()

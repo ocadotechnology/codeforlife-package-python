@@ -42,10 +42,11 @@ class TestDataEncryptionKeyModel(ModelTestCase[BaseDataEncryptionKeyModel]):
     def get_model_instance(self, *args, **kwargs):
         return self.get_model_class()(*args, **kwargs)
 
-    def test_dek_aead__none(self):
-        """Returns None when dek is None on a saved instance."""
+    def test_dek_aead__dek_is_none(self):
+        """Raise ValidationError when dek is None on a saved instance."""
         instance = self.get_model_instance(pk=1, dek=None)
-        assert instance.dek_aead is None
+        with self.assert_raises_validation_error(code="dek_is_none"):
+            _ = instance.dek_aead
 
     def test_dek_aead__not_cached(self):
         """Returns dek_aead and caches it when not cached."""

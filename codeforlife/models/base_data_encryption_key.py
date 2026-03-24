@@ -11,7 +11,7 @@ import typing as t
 
 from cachetools import TTLCache
 from django.core import checks
-from django.core.exceptions import FieldDoesNotExist
+from django.core.exceptions import FieldDoesNotExist, ValidationError
 
 from ..encryption import create_dek, get_dek_aead
 from ..types import KwArgs
@@ -146,7 +146,11 @@ class BaseDataEncryptionKeyModel(EncryptedModel):
         # Get the DEK and return None if it's not set.
         dek: t.Optional["Dek"] = getattr(self, self.DEK_FIELD)
         if dek is None:
-            return None
+            raise ValidationError(
+                "Cannot retrieve the AEAD primitive for the data encryption "
+                "key (DEK) because the DEK is None.",
+                code="dek_is_none",
+            )
 
         # Check the cache for the DEK AEAD.
         if self.pk is not None and self.pk in self.DEK_AEAD_CACHE:
