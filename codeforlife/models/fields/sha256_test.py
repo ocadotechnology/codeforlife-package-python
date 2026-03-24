@@ -42,6 +42,7 @@ class Sha256FieldTests(TestCase):
         """
         user = User.objects.filter(_email_hash__isnull=False).first()
         assert user
+        # pylint: disable-next=protected-access
         assert user.email != user._email_hash
         assert User.objects.get(_email_hash__sha256=user.email) == user
 
@@ -52,5 +53,6 @@ class Sha256FieldTests(TestCase):
         """
         user = User.objects.filter(_email_hash__isnull=False).first()
         assert user
+        # pylint: disable-next=protected-access
         assert user.email != user._email_hash
         assert User.objects.get(_email_hash__sha256_in=[user.email]) == user
