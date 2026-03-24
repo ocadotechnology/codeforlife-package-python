@@ -30,6 +30,7 @@ user_migrations = [
             associated_data="username",
             null=True,
             verbose_name="username",
+            db_column="username_enc",
         ),
     ),
     migrations.AddField(
@@ -41,6 +42,7 @@ user_migrations = [
             editable=False,
             max_length=64,
             verbose_name="username hash",
+            db_column="username_hash",
         ),
     ),
     # Email
@@ -56,6 +58,7 @@ user_migrations = [
             associated_data="email",
             null=True,
             verbose_name="email address",
+            db_column="email_enc",
         ),
     ),
     migrations.AddField(
@@ -66,6 +69,7 @@ user_migrations = [
             editable=False,
             max_length=64,
             verbose_name="email hash",
+            db_column="email_hash",
         ),
     ),
     # First name
@@ -81,6 +85,7 @@ user_migrations = [
             associated_data="first_name",
             null=True,
             verbose_name="first name",
+            db_column="first_name_enc",
         ),
     ),
     migrations.AddField(
@@ -91,6 +96,7 @@ user_migrations = [
             editable=False,
             max_length=64,
             verbose_name="first name hash",
+            db_column="first_name_hash",
         ),
     ),
     # Last name
@@ -106,6 +112,7 @@ user_migrations = [
             associated_data="last_name",
             null=True,
             verbose_name="last name",
+            db_column="last_name_enc",
         ),
     ),
 ]
@@ -124,6 +131,7 @@ class_migrations = [
             associated_data="access_code",
             null=True,
             verbose_name="access code",
+            db_column="access_code_enc",
         ),
     ),
     migrations.AddField(
@@ -134,6 +142,7 @@ class_migrations = [
             editable=False,
             max_length=64,
             verbose_name="access code hash",
+            db_column="access_code_hash",
         ),
     ),
     # Name
@@ -149,6 +158,7 @@ class_migrations = [
             associated_data="name",
             null=True,
             verbose_name="name",
+            db_column="name_enc",
         ),
     ),
 ]
@@ -167,6 +177,7 @@ school_teacher_invitation_migrations = [
             associated_data="token",
             null=True,
             verbose_name="token",
+            db_column="token_enc",
         ),
     ),
     migrations.AddField(
@@ -177,6 +188,7 @@ school_teacher_invitation_migrations = [
             editable=False,
             max_length=64,
             verbose_name="token hash",
+            db_column="token_hash",
         ),
     ),
     # Invited teacher first name
@@ -192,6 +204,7 @@ school_teacher_invitation_migrations = [
             associated_data="invited_teacher_first_name",
             null=True,
             verbose_name="invited teacher first name",
+            db_column="invited_teacher_first_name_enc",
         ),
     ),
     # Invited teacher last name
@@ -207,6 +220,7 @@ school_teacher_invitation_migrations = [
             associated_data="invited_teacher_last_name",
             null=True,
             verbose_name="invited teacher last name",
+            db_column="invited_teacher_last_name_enc",
         ),
     ),
     # Invited teacher email
@@ -222,6 +236,7 @@ school_teacher_invitation_migrations = [
             associated_data="invited_teacher_email",
             null=True,
             verbose_name="invited teacher email",
+            db_column="invited_teacher_email_enc",
         ),
     ),
 ]
@@ -250,6 +265,7 @@ school_migrations = [
             associated_data="name",
             null=True,
             verbose_name="name",
+            db_column="name_enc",
         ),
     ),
     # County
@@ -265,6 +281,7 @@ school_migrations = [
             associated_data="county",
             null=True,
             verbose_name="county",
+            db_column="county_enc",
         ),
     ),
 ]

@@ -150,7 +150,10 @@ class User(AbstractBaseUser, PermissionsMixin, DataEncryptionKeyModel):
     # --------------------------------------------------------------------------
 
     _username_hash = Sha256Field(
-        verbose_name=_("username hash"), unique=True, null=True
+        verbose_name=_("username hash"),
+        db_column="username_hash",
+        unique=True,
+        null=True,
     )
     _username_plain = models.CharField(
         _("username"),
@@ -166,7 +169,10 @@ class User(AbstractBaseUser, PermissionsMixin, DataEncryptionKeyModel):
         },
     )
     _username_enc = EncryptedTextField(
-        associated_data="username", null=True, verbose_name=_("username")
+        associated_data="username",
+        db_column="username_enc",
+        null=True,
+        verbose_name=_("username"),
     )
 
     @property
@@ -187,12 +193,19 @@ class User(AbstractBaseUser, PermissionsMixin, DataEncryptionKeyModel):
     # First name
     # --------------------------------------------------------------------------
 
-    _first_name_hash = Sha256Field(verbose_name=_("first name hash"), null=True)
+    _first_name_hash = Sha256Field(
+        verbose_name=_("first name hash"),
+        db_column="first_name_hash",
+        null=True,
+    )
     _first_name_plain = models.CharField(
         _("first name"), max_length=150, blank=True
     )
     _first_name_enc = EncryptedTextField(
-        associated_data="first_name", null=True, verbose_name=_("first name")
+        associated_data="first_name",
+        db_column="first_name_enc",
+        null=True,
+        verbose_name=_("first name"),
     )
 
     @property
@@ -217,7 +230,10 @@ class User(AbstractBaseUser, PermissionsMixin, DataEncryptionKeyModel):
         _("last name"), max_length=150, blank=True
     )
     _last_name_enc = EncryptedTextField(
-        associated_data="last_name", null=True, verbose_name=_("last name")
+        associated_data="last_name",
+        db_column="last_name_enc",
+        null=True,
+        verbose_name=_("last name"),
     )
 
     @property
@@ -237,10 +253,15 @@ class User(AbstractBaseUser, PermissionsMixin, DataEncryptionKeyModel):
     # Email
     # --------------------------------------------------------------------------
 
-    _email_hash = Sha256Field(verbose_name=_("email hash"), null=True)
+    _email_hash = Sha256Field(
+        verbose_name=_("email hash"),
+        db_column="email_hash",
+        null=True,
+    )
     _email_plain = models.EmailField(_("email address"), blank=True)
     _email_enc = EncryptedTextField(
         associated_data="email",
+        db_column="email_enc",
         null=True,
         verbose_name=_("email address"),
     )

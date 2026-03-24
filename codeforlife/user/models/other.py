@@ -254,13 +254,18 @@ class SchoolTeacherInvitation(EncryptedModel):
     # Token
     # --------------------------------------------------------------------------
 
-    _token_hash = Sha256Field(verbose_name=_("token hash"), null=True)
+    _token_hash = Sha256Field(
+        verbose_name=_("token hash"),
+        null=True,
+        db_column="token_hash",
+    )
     _token_plain: str
     _token_plain = models.CharField(max_length=88)  # type: ignore[assignment]
     _token_enc = EncryptedTextField(
         associated_data="token",
         null=True,
         verbose_name=_("token"),
+        db_column="token_enc",
     )
 
     @property
@@ -308,6 +313,7 @@ class SchoolTeacherInvitation(EncryptedModel):
         associated_data="invited_teacher_first_name",
         null=True,
         verbose_name=_("invited teacher first name"),
+        db_column="invited_teacher_first_name_enc",
     )
 
     @property
@@ -338,6 +344,7 @@ class SchoolTeacherInvitation(EncryptedModel):
         associated_data="invited_teacher_last_name",
         null=True,
         verbose_name=_("invited teacher last name"),
+        db_column="invited_teacher_last_name_enc",
     )
 
     @property
@@ -368,6 +375,7 @@ class SchoolTeacherInvitation(EncryptedModel):
         associated_data="invited_teacher_email",
         null=True,
         verbose_name=_("invited teacher email"),
+        db_column="invited_teacher_email_enc",
     )
 
     @property

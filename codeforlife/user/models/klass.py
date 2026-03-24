@@ -82,6 +82,7 @@ class Class(EncryptedModel):
     _name_plain = models.CharField(max_length=200)  # type: ignore[assignment]
     _name_enc = EncryptedTextField(
         associated_data="name",
+        db_column="name_enc",
         null=True,
         verbose_name=_("name"),
     )
@@ -113,7 +114,9 @@ class Class(EncryptedModel):
     # --------------------------------------------------------------------------
 
     _access_code_hash = Sha256Field(
-        verbose_name=_("access code hash"), null=True
+        verbose_name=_("access code hash"),
+        null=True,
+        db_column="access_code_hash",
     )
     _access_code_plain: t.Optional[str]
     _access_code_plain = models.CharField(  # type: ignore[assignment]
@@ -124,6 +127,7 @@ class Class(EncryptedModel):
         associated_data="access_code",
         null=True,
         verbose_name=_("access code"),
+        db_column="access_code_enc",
     )
 
     @property

@@ -64,6 +64,7 @@ class School(DataEncryptionKeyModel):
         associated_data="name",
         null=True,
         verbose_name=_("name"),
+        db_column="name_enc",
     )
 
     @property
@@ -104,6 +105,7 @@ class School(DataEncryptionKeyModel):
         associated_data="county",
         null=True,
         verbose_name=_("county"),
+        db_column="county_enc",
     )
 
     @property
