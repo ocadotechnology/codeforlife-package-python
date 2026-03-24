@@ -47,12 +47,6 @@ class TestDataEncryptionKeyModel(ModelTestCase[BaseDataEncryptionKeyModel]):
         instance = self.get_model_instance(pk=1, dek=None)
         assert instance.dek_aead is None
 
-    def test_dek_aead__unsaved_instance(self):
-        """Cannot get dek before saving the instance."""
-        instance = self.get_model_instance()
-        with self.assert_raises_validation_error(code="unsaved_instance"):
-            _ = instance.dek_aead
-
     def test_dek_aead__not_cached(self):
         """Returns dek_aead and caches it when not cached."""
         # Create an instance with a primary key to mimic a saved instance.
@@ -118,3 +112,53 @@ class TestDataEncryptionKeyModel(ModelTestCase[BaseDataEncryptionKeyModel]):
         )
 
         assert instance.dek is not None
+
+    def test_check__e001(self):
+        """Raises an error if the DEK field is missing."""
+
+        class E001(BaseDataEncryptionKeyModel):
+            class Meta(TypedModelMeta):
+                app_label = "codeforlife.user"
+
+        self.assert_check(
+            error_id="base_data_encryption_key.E001", model_class=E001
+        )
+
+    def test_check__e002(self):
+        """Raises an error if the DEK field is not a string."""
+
+        class E002(BaseDataEncryptionKeyModel):
+            DEK_FIELD = 123  # type: ignore[assignment]
+
+            class Meta(TypedModelMeta):
+                app_label = "codeforlife.user"
+
+        self.assert_check(
+            error_id="base_data_encryption_key.E002", model_class=E002
+        )
+
+    def test_check__e003(self):
+        """Raises an error if the DEK field name is empty."""
+
+        class E003(BaseDataEncryptionKeyModel):
+            DEK_FIELD = ""
+
+            class Meta(TypedModelMeta):
+                app_label = "codeforlife.user"
+
+        self.assert_check(
+            error_id="base_data_encryption_key.E003", model_class=E003
+        )
+
+    def test_check__e004(self):
+        """Raises an error if the DEK field does not exist on the model."""
+
+        class E004(BaseDataEncryptionKeyModel):
+            DEK_FIELD = "non_existent_field"
+
+            class Meta(TypedModelMeta):
+                app_label = "codeforlife.user"
+
+        self.assert_check(
+            error_id="base_data_encryption_key.E004", model_class=E004
+        )

@@ -60,25 +60,17 @@ class UserManager(
     encrypted manager to handle encrypted fields.
     """
 
-    # pylint: disable-next=too-many-arguments,too-many-positional-arguments
     def _create_user_object(
         self,
         username: str,
-        email: str,
+        email: t.Optional[str],
         password: t.Optional[str],
-        first_name="",
-        last_name="",
         **extra_fields,
     ):
-        if not username:
-            raise ValueError("The given username must be set")
-        user = self.model(**extra_fields)
-        user.username = username
-        user.email = email
-        user.password = make_password(password)
-        user.first_name = first_name
-        user.last_name = last_name
-        return user
+        self._inject_dek_kwarg(extra_fields)
+        return super()._create_user_object(  # type: ignore[misc]
+            username=username, email=email, password=password, **extra_fields
+        )
 
     # pylint: disable=missing-function-docstring
 
@@ -276,7 +268,7 @@ class User(AbstractBaseUser, PermissionsMixin, DataEncryptionKeyModel):
     @email.setter
     def email(self, value: str):
         """Set the user's email address."""
-        value = self.objects.normalize_email(value)
+        value = self.__class__.objects.normalize_email(value)
         self._email_plain = value
         EncryptedTextField.set(self, value, "_email_enc")
         self._email_hash = Sha256Field.hash(value)

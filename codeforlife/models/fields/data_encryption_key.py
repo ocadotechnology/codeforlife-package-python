@@ -131,7 +131,7 @@ class DataEncryptionKeyField(BinaryField):
             )
 
         # Ensure only one DEK field per model.
-        if cls.DEK_FIELD is not None:
+        if hasattr(cls, "DEK_FIELD"):
             raise ValidationError(
                 f"'{cls.__module__}.{cls.__name__}' already has a"
                 " DataEncryptionKeyField defined.",

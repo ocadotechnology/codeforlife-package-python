@@ -37,10 +37,6 @@ class TestEncryptedModel(ModelTestCase[EncryptedModel]):
         with self.assert_raises_validation_error(code="cannot_update"):
             Person.objects.update(name="Alice")
 
-    def test_objects___aupdate(self):
-        """Cannot aupdate encrypted field via objects.aupdate()."""
-        assert Person.objects.aupdate is None
-
     def test_objects___bulk_update(self):
         """Cannot bulk update encrypted field via objects.bulk_update()."""
         assert Person.objects.bulk_update is None

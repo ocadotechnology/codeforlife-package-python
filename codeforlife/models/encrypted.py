@@ -92,7 +92,6 @@ class EncryptedModel(Model):
             return super().update(**kwargs)
 
         # Disable bulk operations that would bypass field-level encryption.
-        aupdate: t.Never = None  # type: ignore[assignment]
         bulk_update: t.Never = None  # type: ignore[assignment]
         abulk_update: t.Never = None  # type: ignore[assignment]
         bulk_create: t.Never = None  # type: ignore[assignment]
@@ -100,13 +99,14 @@ class EncryptedModel(Model):
         in_bulk: t.Never = None  # type: ignore[assignment]
         ain_bulk: t.Never = None  # type: ignore[assignment]
 
+    base_manager_class: t.Type[Manager] = Manager
     objects: Manager["EncryptedModel"] = Manager()  # type: ignore[assignment]
 
     class Meta(TypedModelMeta):
         abstract = True
 
     @classmethod
-    def _check_associated_data(cls, **kwargs):
+    def _check_associated_data(cls):
         """
         Check 'associated_data' values are unique across all EncryptedModel
         subclasses.
@@ -179,16 +179,16 @@ class EncryptedModel(Model):
     def check(cls, **kwargs):
         """Run model checks, including custom checks for encrypted models."""
         errors = super().check(**kwargs)
-        errors.extend(cls._check_associated_data(**kwargs))
+        errors.extend(cls._check_associated_data())
 
-        if not issubclass(cls.objects.__class__, EncryptedModel.Manager):
+        if not issubclass(cls.objects.__class__, cls.base_manager_class):
             errors.append(
                 checks.Error(
-                    "EncryptedModel subclasses must use the"
-                    " EncryptedModel.Manager.",
+                    f"{cls.__name__} must have a manager that is a subclass of"
+                    f" {cls.base_manager_class.__name__}.",
                     hint=(
-                        f"Set 'objects = EncryptedModel.Manager()' on"
-                        f" {cls.__module__}.{cls.__name__}."
+                        f"Set 'objects = {cls.base_manager_class.__name__}()' "
+                        f"on {cls.__module__}.{cls.__name__}."
                     ),
                     obj=cls,
                     id="encrypted.E005",
@@ -198,6 +198,6 @@ class EncryptedModel(Model):
         return errors
 
     @property
-    def dek_aead(self) -> "Aead":
+    def dek_aead(self) -> t.Optional["Aead"]:
         """Gets the AEAD primitive for this model's DEK."""
         raise NotImplementedError()
