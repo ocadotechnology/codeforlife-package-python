@@ -9,18 +9,7 @@ from hashlib import sha256
 
 from django.conf import settings
 from django.core.exceptions import ValidationError
-from django.db.models import CharField, Model, lookups
-
-from .deferred_attribute import DeferredAttribute
-
-
-class Sha256Attribute(DeferredAttribute[Model, "Sha256Field", str, str, str]):
-    """
-    Custom attribute for Sha256Field to handle hashing on assignment.
-    """
-
-    def to_internal_value(self, instance, value):
-        return Sha256Field.hash(value)
+from django.db.models import CharField, lookups
 
 
 class Sha256Field(CharField):
@@ -28,8 +17,6 @@ class Sha256Field(CharField):
 
     Values are automatically hashed on assignment.
     """
-
-    descriptor_class = Sha256Attribute
 
     def __init__(
         self,
@@ -51,25 +38,8 @@ class Sha256Field(CharField):
 
         super().__init__(editable=editable, max_length=max_length, **kwargs)
 
-    # Get the descriptor.
-    @t.overload  # type: ignore[override]
-    def __get__(self, instance: None, owner: t.Any) -> Sha256Attribute: ...
-
-    @t.overload  # Get the value.
-    def __get__(self, instance: Model, owner: t.Any) -> t.Optional[str]: ...
-
-    # Actual implementation of __get__.
-    def __get__(self, instance: t.Optional[Model], owner: t.Any):
-        return t.cast(
-            t.Union[Sha256Attribute, t.Optional[str]],
-            # pylint: disable-next=no-member
-            super().__get__(instance, owner),
-        )
-
-    def __set__(self, instance: Model, value: t.Optional[str]): ...
-
     @staticmethod
-    def hash(value: str):
+    def hash(value: t.Optional[str]):
         """Create a consistent, salted hash of a value.
 
         Args:
@@ -78,11 +48,15 @@ class Sha256Field(CharField):
         Returns:
             A hash of the value salted with the Django secret key.
         """
-        return hmac.new(
-            key=settings.SECRET_KEY.encode("utf-8"),
-            msg=value.encode("utf-8"),
-            digestmod=sha256,
-        ).hexdigest()
+        return (
+            None
+            if value is None
+            else hmac.new(
+                key=settings.SECRET_KEY.encode("utf-8"),
+                msg=value.encode("utf-8"),
+                digestmod=sha256,
+            ).hexdigest()
+        )
 
 
 # pylint: disable-next=abstract-method

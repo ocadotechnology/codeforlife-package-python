@@ -45,6 +45,10 @@ class School(DataEncryptionKeyModel):
     """A school."""
 
     associated_data = "school"
+    field_aliases = {
+        "name": {"name_plain", "name_enc"},
+        "county": {"county_plain", "county_enc"},
+    }
 
     # --------------------------------------------------------------------------
     # Name
@@ -66,14 +70,14 @@ class School(DataEncryptionKeyModel):
     def name(self):
         """Get the school's name."""
         if self.name_enc is not None:
-            return self.name_enc
+            return EncryptedTextField.decrypt(self, "name_enc")
         return self.name_plain
 
     @name.setter
     def name(self, value: str):
         """Set the school's name."""
         self.name_plain = value
-        self.name_enc = value
+        EncryptedTextField.set(self, value, "name_enc")
 
     # pylint: enable=duplicate-code
     # --------------------------------------------------------------------------
@@ -106,14 +110,14 @@ class School(DataEncryptionKeyModel):
     def county(self):
         """Get the school's county."""
         if self.county_enc is not None:
-            return self.county_enc
+            return EncryptedTextField.decrypt(self, "county_enc")
         return self.county_plain
 
     @county.setter
     def county(self, value: str):
         """Set the school's county."""
         self.county_plain = value
-        self.county_enc = value
+        EncryptedTextField.set(self, value, "county_enc")
 
     # --------------------------------------------------------------------------
 

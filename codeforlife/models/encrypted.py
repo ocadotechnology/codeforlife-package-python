@@ -56,7 +56,9 @@ class EncryptedModel(Model):
     ENCRYPTED_FIELDS: t.List["BaseEncryptedField"]
 
     def __init__(self, *args, **kwargs):
-        # Each instance gets its own dict of decrypted values.
+        # Each instance gets its own dict of pending-encryption and decrypted
+        # values.
+        self.__pending_encryption_values__: t.Dict[str, t.Any] = {}
         self.__decrypted_values__: t.Dict[str, t.Any] = {}
         super().__init__(*args, **kwargs)
 

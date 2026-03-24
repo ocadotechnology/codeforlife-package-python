@@ -19,13 +19,11 @@ model instance, which would lead to ambiguity and potential data loss.
 """
 
 import typing as t
-from dataclasses import dataclass
 
 from django.core.exceptions import ValidationError
 from django.db.models import BinaryField
 from django.utils.translation import gettext_lazy as _
 
-from ...encryption import FakeAead
 from ..base_data_encryption_key import BaseDataEncryptionKeyModel
 from ..utils import is_real_model_class
 from .deferred_attribute import DeferredAttribute
@@ -40,49 +38,15 @@ AnyDataEncryptionKeyField = t.TypeVar(
 Dek: t.TypeAlias = t.Union[bytes, memoryview]
 
 
-@dataclass(frozen=True)
-class _TrustedDek:
-    """A wrapper for a DEK that comes directly from the database."""
-
-    dek: Dek
-
-
 class DataEncryptionKeyAttribute(
     DeferredAttribute[
-        BaseDataEncryptionKeyModel,
-        AnyDataEncryptionKeyField,
-        t.Union[Dek, _TrustedDek],
-        Dek,
-        bytes,
+        AnyDataEncryptionKeyField, BaseDataEncryptionKeyModel, Dek
     ],
     t.Generic[AnyDataEncryptionKeyField],
 ):
     """
     Descriptor for DataEncryptionKeyField that handles data shredding.
     """
-
-    def from_internal_value(self, instance, cls, internal_value):
-        # Convert memoryview to bytes if needed.
-        return bytes(internal_value)
-
-    def to_internal_value(self, instance, value):
-        if isinstance(value, _TrustedDek):  # From DB.
-            return value.dek
-
-        if isinstance(value, (bytes, memoryview)):  # From fixture.
-            internal_value = bytes(value)
-            if not internal_value.startswith(FakeAead.ciphertext_prefix):
-                raise ValidationError(
-                    "Fixture data is expected to start with the fake "
-                    "ciphertext prefix.",
-                    code="invalid_prefix",
-                )
-            return internal_value
-
-        raise ValidationError(
-            "DataEncryptionKeyField can only be set to None.",
-            code="cannot_set_value",
-        )
 
     def __set__(self, instance, value):
         # Clear any cached DEK AEAD.
@@ -202,16 +166,3 @@ class DataEncryptionKeyField(BinaryField):
 
     # Can only be set to None to allow data shredding.
     def __set__(self, instance: BaseDataEncryptionKeyModel, value: None): ...
-
-    # pylint: disable-next=unused-argument
-    def from_db_value(self, value: t.Optional[Dek], expression, connection):
-        """
-        Converts a value as returned by the database to a Python object.
-        We wrap the raw bytes in _TrustedDek to signal that this is an
-        existing DEK from the database, not new plaintext.
-        """
-        if value is None:
-            return None
-
-        # Wrap it so __set__ knows this is NOT new user input.
-        return _TrustedDek(value)

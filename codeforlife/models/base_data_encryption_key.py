@@ -17,6 +17,8 @@ from .encrypted import EncryptedModel
 
 if t.TYPE_CHECKING:
     from django_stubs_ext.db.models import TypedModelMeta
+
+    from .fields.data_encryption_key import Dek
 else:
     TypedModelMeta = object
 
@@ -61,7 +63,7 @@ class BaseDataEncryptionKeyModel(EncryptedModel):
             return None
 
         # Get the DEK and return None if it's not set.
-        dek = getattr(self, self.DEK_FIELD)
+        dek: t.Optional["Dek"] = getattr(self, self.DEK_FIELD)
         if dek is None:
             return None
 
@@ -70,7 +72,7 @@ class BaseDataEncryptionKeyModel(EncryptedModel):
             return self.DEK_AEAD_CACHE[self.pk]
 
         # Get the AEAD primitive for the data encryption key.
-        dek_aead = get_dek_aead(dek)
+        dek_aead = get_dek_aead(bytes(dek))
 
         # Cache the DEK AEAD for future access.
         self.DEK_AEAD_CACHE[self.pk] = dek_aead

@@ -22,27 +22,10 @@ class Sha256FieldTests(TestCase):
         with self.assert_raises_validation_error(code="max_length_not_64"):
             Sha256Field(max_length=32)  # type: ignore[arg-type]
 
-    def test_get__descriptor(self):
-        """Getting field from class returns the descriptor."""
-        assert isinstance(User.email_hash, Sha256Field.descriptor_class)
-        assert isinstance(User.email_hash.field, Sha256Field)
-
-    def test_get__value(self):
-        """Getting field from instance returns the value."""
-        email = "test@example.com"
-        user = User(email_hash=email)
-        assert user.email_hash == Sha256Field.hash(email)
-
     def test_set__none(self):
         """Setting field to None sets to None."""
         user = User(email_hash=None)
         assert user.__dict__["email_hash"] is None
-
-    def test_set__str(self):
-        """Setting field to a string sets the hashed value."""
-        email = "test@example.com"
-        user = User(email_hash=email)
-        assert user.__dict__["email_hash"] == Sha256Field.hash(email)
 
     def test_hash(self):
         """Hashing the same value produces the same hash of 64 characters."""

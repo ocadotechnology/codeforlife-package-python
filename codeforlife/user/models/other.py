@@ -234,6 +234,21 @@ class SchoolTeacherInvitation(EncryptedModel):
     """
 
     associated_data = "school_teacher_invitation"
+    field_aliases = {
+        "token": {"token_plain", "token_enc", "token_hash"},
+        "invited_teacher_first_name": {
+            "invited_teacher_first_name_plain",
+            "invited_teacher_first_name_enc",
+        },
+        "invited_teacher_last_name": {
+            "invited_teacher_last_name_plain",
+            "invited_teacher_last_name_enc",
+        },
+        "invited_teacher_email": {
+            "invited_teacher_email_plain",
+            "invited_teacher_email_enc",
+        },
+    }
 
     # --------------------------------------------------------------------------
     # Token
@@ -252,15 +267,15 @@ class SchoolTeacherInvitation(EncryptedModel):
     def token(self):
         """Get the decrypted token value."""
         if self.token_enc is not None:
-            return self.token_enc
+            return EncryptedTextField.decrypt(self, "token_enc")
         return self.token_plain
 
     @token.setter
     def token(self, value: str):
         """Sets the token value."""
         self.token_plain = value
-        self.token_enc = value
-        self.token_hash = value
+        EncryptedTextField.set(self, value, "token_enc")
+        self.token_hash = Sha256Field.hash(value)
 
     # --------------------------------------------------------------------------
 
@@ -299,14 +314,16 @@ class SchoolTeacherInvitation(EncryptedModel):
     def invited_teacher_first_name(self):
         """Get the decrypted invited teacher first name value."""
         if self.invited_teacher_first_name_enc is not None:
-            return self.invited_teacher_first_name_enc
+            return EncryptedTextField.decrypt(
+                self, "invited_teacher_first_name_enc"
+            )
         return self.invited_teacher_first_name_plain
 
     @invited_teacher_first_name.setter
     def invited_teacher_first_name(self, value: str):
         """Sets the invited teacher first name value."""
         self.invited_teacher_first_name_plain = value
-        self.invited_teacher_first_name_enc = value
+        EncryptedTextField.set(self, value, "invited_teacher_first_name_enc")
 
     # --------------------------------------------------------------------------
     # Last name
@@ -327,14 +344,16 @@ class SchoolTeacherInvitation(EncryptedModel):
     def invited_teacher_last_name(self):
         """Get the decrypted invited teacher last name value."""
         if self.invited_teacher_last_name_enc is not None:
-            return self.invited_teacher_last_name_enc
+            return EncryptedTextField.decrypt(
+                self, "invited_teacher_last_name_enc"
+            )
         return self.invited_teacher_last_name_plain
 
     @invited_teacher_last_name.setter
     def invited_teacher_last_name(self, value: str):
         """Sets the invited teacher last name value."""
         self.invited_teacher_last_name_plain = value
-        self.invited_teacher_last_name_enc = value
+        EncryptedTextField.set(self, value, "invited_teacher_last_name_enc")
 
     # --------------------------------------------------------------------------
     # Email
@@ -355,14 +374,14 @@ class SchoolTeacherInvitation(EncryptedModel):
     def invited_teacher_email(self):
         """Get the decrypted invited teacher email value."""
         if self.invited_teacher_email_enc is not None:
-            return self.invited_teacher_email_enc
+            return EncryptedTextField.decrypt(self, "invited_teacher_email_enc")
         return self.invited_teacher_email_plain
 
     @invited_teacher_email.setter
     def invited_teacher_email(self, value: str):
         """Sets the invited teacher email value."""
         self.invited_teacher_email_plain = value
-        self.invited_teacher_email_enc = value
+        EncryptedTextField.set(self, value, "invited_teacher_email_enc")
 
     # --------------------------------------------------------------------------
 

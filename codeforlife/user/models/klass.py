@@ -65,6 +65,14 @@ class Class(EncryptedModel):
     students: QuerySet["Student"]
 
     associated_data = "class"
+    field_aliases = {
+        "name": {"name_plain", "name_enc"},
+        "access_code": {
+            "access_code_plain",
+            "access_code_enc",
+            "access_code_hash",
+        },
+    }
 
     # --------------------------------------------------------------------------
     # Name
@@ -82,14 +90,14 @@ class Class(EncryptedModel):
     def name(self):
         """Get the name of the class."""
         if self.name_enc is not None:
-            return self.name_enc
+            return EncryptedTextField.decrypt(self, "name_enc")
         return self.name_plain
 
     @name.setter
     def name(self, value: str):
         """Set the name of the class."""
         self.name_plain = value
-        self.name_enc = value
+        EncryptedTextField.set(self, value, "name_enc")
 
     # --------------------------------------------------------------------------
 
@@ -122,15 +130,15 @@ class Class(EncryptedModel):
     def access_code(self):
         """Get the access code for the class."""
         if self.access_code_enc is not None:
-            return self.access_code_enc
+            return EncryptedTextField.decrypt(self, "access_code_enc")
         return self.access_code_plain
 
     @access_code.setter
     def access_code(self, value: t.Optional[str]):
         """Set the access code for the class."""
         self.access_code_plain = value
-        self.access_code_enc = value
-        self.access_code_hash = value
+        EncryptedTextField.set(self, value, "access_code_enc")
+        self.access_code_hash = Sha256Field.hash(value)
 
     # --------------------------------------------------------------------------
 
