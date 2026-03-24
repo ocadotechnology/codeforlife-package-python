@@ -95,6 +95,7 @@ class BaseDataEncryptionKeyModel(EncryptedModel):
         ):
             self.__dict__[self.DEK_FIELD] = create_dek()
 
+        # pylint: disable=duplicate-code
         return super().save(  # type: ignore[misc]
             *args,
             force_insert=force_insert,
@@ -102,3 +103,4 @@ class BaseDataEncryptionKeyModel(EncryptedModel):
             using=using,
             update_fields=update_fields,
         )
+        # pylint: enable=duplicate-code
