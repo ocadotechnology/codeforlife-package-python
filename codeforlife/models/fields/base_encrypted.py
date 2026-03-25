@@ -2,51 +2,22 @@
 © Ocado Group
 Created on 19/01/2026 at 09:57:04(+00:00).
 
-This is where the core logic of transparent encryption and decryption happens.
-`BaseEncryptedField` is a generic field that stores encrypted data as bytes. The
-magic is in its descriptor, `EncryptedAttribute`.
+This module contains the core field-level logic for transparent encryption and
+decryption.
 
-The descriptor intercepts get and set operations:
+`BaseEncryptedField` stores ciphertext in the model field (bytes/memoryview)
+and exposes static convenience methods, `get()` and `set()`, to work with
+typed plaintext values.
 
-- On `set`: The value is not immediately encrypted. It's wrapped in a
-  `_PendingEncryption` object and stored in the model instance's `__dict__`.
-  This is a performance optimization to avoid encrypting a value multiple
-  times if it's changed repeatedly before saving. Any previously cached
-  decrypted value is cleared.
-- On `get`: The descriptor first checks if a decrypted value is already cached
-  on the model instance. If so, it returns it immediately. Otherwise, it checks
-  the value in `__dict__`. If it's ciphertext (bytes), it's decrypted
-  on-the-fly, cached on the instance, and then returned. If it's a pending
-  plaintext value, it's returned directly.
-- On `save`: The field's `pre_save` method is called. It checks for a
-  `_PendingEncryption` object. If found, it encrypts the plaintext value using
-  the `dek_aead` and replaces it with the resulting ciphertext bytes, which are
-  then written to the database.
+- `set(instance, value, field_name)` stores plaintext in
+    `instance.__pending_encryption_values__`.
+- `pre_save()` encrypts pending plaintext and writes ciphertext to the DB.
+- `get(instance, field_name)` returns plaintext by reading pending data,
+    returning a cached decrypted value, or decrypting stored ciphertext.
 
-A key challenge is differentiating between a value that has just been loaded
-from the database (and is therefore encrypted ciphertext) and a new plaintext
-value that a developer is setting.
-
-- When a developer sets `user.email = "new@example.com"`, this is **new
-  plaintext** that needs to be encrypted on save.
-- When Django loads a `User` from the database, the `email` field contains
-  **existing ciphertext** (raw bytes).
-
-We solve this with two wrapper classes:
-
-1. `_PendingEncryption(value)`: When a developer sets a value on the field, the
-   `EncryptedAttribute` descriptor wraps it in this class. This marks the data
-   as "dirty" or "pending encryption." The `pre_save` method looks for this
-   wrapper to know what needs to be encrypted.
-2. `_TrustedCiphertext(value)`: When Django loads data from the database, the
-   `from_db_value` method on the field is called. We wrap the raw bytes from the
-   database in this class. The `EncryptedAttribute` descriptor's `__set__`
-   method sees this wrapper and knows the value is already-encrypted ciphertext,
-   preventing it from being re-wrapped as `_PendingEncryption`. This avoids
-   unnecessary re-encryption of data that hasn't changed.
-
-This distinction allows the field to correctly handle both new data and existing
-data without ambiguity.
+The descriptor class remains intentionally minimal: it only clears cached
+decrypted values when the underlying binary value changes. It does not perform
+type conversion or wrapper-based state transitions.
 """
 
 import typing as t
@@ -70,7 +41,7 @@ class EncryptedAttribute(
     DeferredAttribute[AnyBaseEncryptedField, EncryptedModel, Ciphertext],
     t.Generic[AnyBaseEncryptedField],
 ):
-    """Descriptor that handles clearing cached decrypted values."""
+    """Descriptor that clears cached decrypted values on assignment."""
 
     def __set__(self, instance, value):
         # Clear any cached decrypted value.
@@ -81,7 +52,7 @@ class EncryptedAttribute(
 
 
 class BaseEncryptedField(BinaryField, t.Generic[T]):
-    """Encrypted field base class."""
+    """Binary field base class for storing encrypted typed values."""
 
     model: t.Type[EncryptedModel]
 
@@ -172,7 +143,7 @@ class BaseEncryptedField(BinaryField, t.Generic[T]):
     def pre_save(
         self, model_instance: EncryptedModel, add  # type: ignore[override]
     ):
-        """Before saving, encrypt any pending values."""
+        """Encrypt pending plaintext values before writing to the database."""
 
         # Data needs encrypting.
         if self.attname in model_instance.__pending_encryption_values__:
@@ -222,14 +193,18 @@ class BaseEncryptedField(BinaryField, t.Generic[T]):
 
     @staticmethod
     def get(instance: EncryptedModel, field_name: str):
-        """Convenience method to get the decrypted value of an encrypted field.
+        """Get a typed plaintext value for an encrypted field.
 
         Args:
             instance: The model instance from which to decrypt the value.
             field_name: The name of the encrypted field to decrypt.
 
         Returns:
-            The decrypted plaintext value, or None if the field is empty.
+            The plaintext value, or None if the field is empty.
+
+        Notes:
+            Internal model storage remains ciphertext bytes. This helper applies
+            the conversion/decryption path and cache handling.
         """
         field = t.cast(
             BaseEncryptedField[T], instance._meta.get_field(field_name)
@@ -261,12 +236,10 @@ class BaseEncryptedField(BinaryField, t.Generic[T]):
 
     @staticmethod
     def set(instance: EncryptedModel, value: t.Optional[T], field_name: str):
-        """Convenience method to set a value for an encrypted field.
+        """Set a typed plaintext value for an encrypted field.
 
-        If the field's decrypted value is already cached on the instance, this
-        method will clear the cache since the value is changing. If not None,
-        the new value will be set as pending encryption to indicate it needs
-        encryption on save.
+        The plaintext is staged in pending-encryption storage and encrypted at
+        save time by `pre_save`.
 
         Args:
             instance: The model instance on which to set the value.

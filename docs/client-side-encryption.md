@@ -41,7 +41,7 @@ At the core of this system are a few utility functions that interact with Google
 
 ## 4. Django ORM Integration
 
-To make working with encrypted data seamless, we've integrated the encryption logic directly into Django's ORM. This is achieved through a combination of a base model class, custom model fields, and descriptors.
+To make working with encrypted data seamless, we've integrated the encryption logic directly into Django's ORM. This is achieved through a combination of a base model class, custom model fields, and explicit property accessors.
 
 ### Associated Data for Integrity
 
@@ -69,6 +69,37 @@ The implementation details can be found in the docstring of these files. It's re
 1. **[codeforlife/models/data_encryption_key.py](../codeforlife/models/data_encryption_key.py):** This model inherits from `BaseDataEncryptionKeyModel` and conveniently includes the `dek` field by default.
 1. **[codeforlife/models/fields/data_encryption_key.py](../codeforlife/models/fields/data_encryption_key.py):** This field is responsible for managing the lifecycle of a DEK for a model instance.
 
+### Field Access and Transformation Pattern
+
+The current `BaseEncryptedField` flow is based on explicit helpers rather than descriptor-based type mutation.
+
+1. **Internal storage type:** encrypted model columns store ciphertext bytes.
+2. **Set path:** call `BaseEncryptedField.set(instance, plaintext, field_name)` to stage plaintext in pending-encryption storage.
+3. **Save path:** `pre_save()` encrypts staged plaintext and writes ciphertext bytes to the DB.
+4. **Get path:** call `BaseEncryptedField.get(instance, field_name)` to return plaintext by reading pending values, decrypted cache, or decrypted ciphertext.
+
+When domain logic requires additional transforms, expose a property and perform all transformation logic in that property getter/setter.
+
+Examples:
+
+* **On set:** normalize the plaintext value, then encrypt and hash it.
+* **On get:** decrypt the encrypted value.
+
+### Querying by Sensitive Values
+
+Encrypted ciphertext is non-deterministic by design, so it cannot be queried with equality semantics. For lookup use-cases (e.g., username/email), store a deterministic one-way hash in a parallel `Sha256Field`.
+
+* Use `Sha256Field.set(instance, plaintext, "field_hash")` in property setters.
+* Query exact matches with `User.objects.filter(_email_hash__sha256="user@example.com")`.
+* Query multi-value matches with `User.objects.filter(_email_hash__sha256_in=["a@b.com", "c@d.com"])`.
+
+### Field Aliases and Partial Saves
+
+When saving with `update_fields`, aliases are expanded to their real fields by `Model.save()`.
+
+* Define alias mappings with `field_aliases`.
+* Save using alias names (e.g., `update_fields={"email"}`) and all dependent columns (e.g., encrypted, hash) are persisted.
+
 ---
 
 ## 5. Usage Patterns
@@ -87,30 +118,44 @@ class User(DataEncryptionKeyModel):
     its own encryption key.
     """
     associated_data = "user" # Required for EncryptedModel
+    field_aliases = { # Keys/Aliases are replaced with values on save().
+        "email": {"_email_enc", "_email_hash"},
+    }
 
-    username = models.CharField(max_length=150, unique=True)
-    email = EncryptedTextField(associated_data="email")
+    _email_enc = EncryptedTextField(associated_data="email")
+    _email_hash = Sha256Field()
+
+    @property
+    def email(self):
+        return EncryptedTextField.get(self, "_email_enc")
+
+    @email.setter
+    def email(self, value: str):
+        value = self.__class__.objects.normalize_email(value)
+        EncryptedTextField.set(self, value, "_email_enc")
+        Sha256Field.set(self, value, "_email_hash")
 
     class Meta:
         app_label = "auth"
 
 # --- Usage ---
 
-# Create a new user. A new DEK is automatically generated and stored in the
-# 'dek' field. The 'email' field is encrypted using this key.
-user = User.objects.create(
-    username="johndoe",
+# Create a new user.
+# A new DEK is automatically generated and stored in the 'dek' field.
+# The property setter handles encrypted + hash values.
+user = User.objects.create_user(
     email="john.doe@example.com"
 )
 
-# The 'dek' and 'email' fields are stored as encrypted bytes in the database.
-# But when we access the 'email' attribute, it's decrypted automatically.
+# The encrypted value is stored as bytes in '_email_enc'.
+# The property getter returns plaintext.
 print(f"User's email: {user.email}")
 # >>> User's email: john.doe@example.com
 
 # You can update the email as you would with a normal field.
 user.email = "john.doe.new@example.com"
-user.save()
+# Alias expansion saves all backing columns.
+user.save(update_fields={"email"})
 ```
 
 ### Pattern 2: Delegated Encryption Key
@@ -128,7 +173,16 @@ class Secret(EncryptedModel):
     associated_data = "secret" # Required for EncryptedModel
 
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="secrets")
-    secret_value = EncryptedTextField(associated_data="secret-value")
+
+    _secret_value = EncryptedTextField(associated_data="secret-value")
+
+    @property
+    def secret_value(self):
+        return EncryptedTextField.get(self, "_secret_value")
+
+    @secret_value.setter
+    def secret_value(self, value: str):
+        EncryptedTextField.set(self, value, "_secret_value")
 
     class Meta:
         app_label = "app"
@@ -163,7 +217,7 @@ This section contains diagrams that explain what the Django ORM is doing.
 
 ### 1. DEK Generation and Initial Save
 
-This diagram shows the process that occurs when a new `EncryptedModel` instance (e.g., a `User`) is created and saved for the first time. The `EncryptedModel.save()` method is overridden to lazily manage the creation of the user-specific DEK.
+This diagram shows the process that occurs when a new DEK-enabled model instance (e.g., a `User`) is created and saved for the first time. `BaseDataEncryptionKeyModel.save()` lazily manages creation of the user-specific DEK.
 
 ```mermaid
 sequenceDiagram
@@ -193,70 +247,76 @@ sequenceDiagram
 
 ### 2. Data Encryption
 
-This diagram illustrates what happens when a developer sets a value on an encrypted field. The `EncryptedAttribute` descriptor intercepts the assignment, wrapping the plaintext value in a `_PendingEncryption` object. The actual encryption happens later, just before the model is saved to the database.
+This diagram illustrates what happens when a developer sets a value via a property that uses `BaseEncryptedField.set()`. The value is staged for encryption, and encryption happens later during `save()`.
 
 ```mermaid
 sequenceDiagram
     actor Developer
     participant User as User (Model Instance)
-    participant EncryptedAttribute as EncryptedAttribute (Descriptor)
-    participant _PendingEncryption as _PendingEncryption (Wrapper)
-    participant BaseEncryptedField as BaseEncryptedField
+    participant Property as User.email setter
+    participant SetHelper as BaseEncryptedField.set()
+    participant Pending as __pending_encryption_values__
+    participant SaveField as BaseEncryptedField.pre_save()
     participant GcpKmsClient as Tink/KMS Client
     participant PostgreSQL
 
-    Developer->>User: user.ssn = "123-456-7890"
-    User->>EncryptedAttribute: __set__(user, "123-456-7890")
-    activate EncryptedAttribute
-    EncryptedAttribute->>_PendingEncryption: Create(value="123-456-7890")
-    _PendingEncryption-->>EncryptedAttribute: Returns _PendingEncryption instance
-    Note left of EncryptedAttribute: Caches are cleared
-    EncryptedAttribute->>User: instance.__dict__["ssn"] = _PendingEncryption(...)
-    deactivate EncryptedAttribute
+    Developer->>User: user.email = "user@example.com"
+    User->>Property: set transformed values
+    Property->>SetHelper: set(user, "user@example.com", "_email_enc")
+    activate SetHelper
+    SetHelper->>Pending: store plaintext by field attname
+    SetHelper->>User: clear internal binary value
+    deactivate SetHelper
 
     Developer->>User: user.save()
-    User->>BaseEncryptedField: pre_save(user, True)
-    activate BaseEncryptedField
-    Note right of BaseEncryptedField: Checks for _PendingEncryption
-    BaseEncryptedField->>GcpKmsClient: Decrypt user's DEK
-    GcpKmsClient-->>BaseEncryptedField: Returns plaintext DEK
-    BaseEncryptedField->>GcpKmsClient: encrypt(value, associated_data)
-    GcpKmsClient-->>BaseEncryptedField: Returns ciphertext
-    BaseEncryptedField-->>User: Returns ciphertext
-    deactivate BaseEncryptedField
-    User->>PostgreSQL: UPDATE users SET ssn=ciphertext
+    User->>SaveField: pre_save(user, True)
+    activate SaveField
+    Note right of SaveField: Reads pending plaintext for field
+    SaveField->>GcpKmsClient: Decrypt user's DEK
+    GcpKmsClient-->>SaveField: Returns plaintext DEK
+    SaveField->>GcpKmsClient: encrypt(value, associated_data)
+    GcpKmsClient-->>SaveField: Returns ciphertext
+    SaveField-->>User: Returns ciphertext
+    deactivate SaveField
+    User->>PostgreSQL: UPDATE users SET email_enc=ciphertext
     PostgreSQL-->>User: Returns
 ```
 
 ### 3. Data Decryption
 
-This diagram shows the process of reading an encrypted value from a model instance. The `EncryptedAttribute` descriptor checks an in-memory cache for the decrypted value first. If it's not cached, it decrypts the ciphertext from the database and populates the cache.
+This diagram shows the process of reading a value via a property that uses `BaseEncryptedField.get()`. It checks pending plaintext first, then decrypted cache, then decrypts ciphertext from storage.
 
 ```mermaid
 sequenceDiagram
     actor Developer
     participant User as User (Model Instance)
-    participant EncryptedAttribute as EncryptedAttribute (Descriptor)
+    participant Property as User.email getter
+    participant BaseEncryptedField as BaseEncryptedField.get()
+    participant Pending as __pending_encryption_values__
+    participant Cache as __decrypted_values__
     participant GcpKmsClient as Tink/KMS Client
 
-    Developer->>User: print(user.ssn)
-    User->>EncryptedAttribute: __get__(user)
-    activate EncryptedAttribute
+    Developer->>User: print(user.email)
+    User->>Property: read email
+    Property->>BaseEncryptedField: get(user, "_email_enc")
+    activate BaseEncryptedField
 
-    Note over User, EncryptedAttribute: Check instance.__decrypted_values__ cache
-    alt Value is cached
-        EncryptedAttribute-->>Developer: return instance.__decrypted_values__[field_name]
+    alt Pending plaintext exists
+        BaseEncryptedField->>Pending: read pending plaintext
+        BaseEncryptedField-->>Property: return plaintext
+    else Decrypted cache hit
+        BaseEncryptedField->>Cache: read cached plaintext
+        BaseEncryptedField-->>Property: return plaintext
     else Value is not cached
-        EncryptedAttribute->>User: Get ciphertext from instance.__dict__
-        User-->>EncryptedAttribute: Returns ciphertext
-        EncryptedAttribute->>GcpKmsClient: Decrypt user's DEK
-        GcpKmsClient-->>EncryptedAttribute: Returns plaintext DEK
-        EncryptedAttribute->>GcpKmsClient: decrypt(ciphertext, associated_data)
-        GcpKmsClient-->>EncryptedAttribute: Returns plaintext value
-        EncryptedAttribute->>User: instance.__decrypted_values__[field_name] = plaintext_value
-        EncryptedAttribute-->>Developer: return plaintext_value
+        BaseEncryptedField->>User: get internal ciphertext bytes
+        User-->>BaseEncryptedField: returns ciphertext
+        BaseEncryptedField->>GcpKmsClient: decrypt(ciphertext, associated_data)
+        GcpKmsClient-->>BaseEncryptedField: returns plaintext
+        BaseEncryptedField->>Cache: cache plaintext by field attname
+        BaseEncryptedField-->>Property: return plaintext
     end
-    deactivate EncryptedAttribute
+    Property-->>Developer: return plaintext value
+    deactivate BaseEncryptedField
 ```
 
 ### 4. Data Shredding
@@ -372,13 +432,13 @@ This diagram shows how the `dek_aead` property on a `BaseDataEncryptionKeyModel`
 ```mermaid
 sequenceDiagram
     participant User
-    participant EncryptedField as EncryptedField (__get__)
+    participant GetHelper as BaseEncryptedField.get()
     participant DEKEnabledModel as DEK-Enabled Model
     participant DEK_AEAD_CACHE as TTLCache (in-memory)
     participant KMS as Google Cloud KMS
 
-    User->>+EncryptedField: Accesses encrypted attribute
-    EncryptedField->>+DEKEnabledModel: Accesses `dek_aead` property
+    User->>+GetHelper: Reads encrypted-backed property
+    GetHelper->>+DEKEnabledModel: Accesses `dek_aead` property
     alt Cache Miss
         DEKEnabledModel->>DEK_AEAD_CACHE: Check for cached AEAD primitive (not found)
         DEKEnabledModel->>+KMS: Decrypt DEK using KEK
@@ -388,9 +448,9 @@ sequenceDiagram
         DEKEnabledModel->>DEK_AEAD_CACHE: Check for cached AEAD primitive (found)
         DEK_AEAD_CACHE-->>DEKEnabledModel: Return AEAD primitive
     end
-    DEKEnabledModel-->>-EncryptedField: Return AEAD primitive
-    EncryptedField->>EncryptedField: Decrypts data using AEAD primitive
-    EncryptedField-->>-User: Returns decrypted value
+    DEKEnabledModel-->>-GetHelper: Return AEAD primitive
+    GetHelper->>GetHelper: Decrypt ciphertext + cache plaintext
+    GetHelper-->>-User: Returns decrypted value
 ```
 
 #### 7.2. Cache Invalidation

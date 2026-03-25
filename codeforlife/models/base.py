@@ -3,6 +3,11 @@
 Created on 19/01/2024 at 15:18:48(+00:00).
 
 Base model for all Django models.
+
+Supports optional `field_aliases` expansion during `save(update_fields=...)`.
+When an alias is present in `update_fields`, it is replaced by its mapped real
+field names so property-driven transformations can persist all dependent
+columns in a single save.
 """
 
 import typing as t
@@ -33,6 +38,7 @@ class Model(models.Model):
         using: t.Optional[str] = None,
         update_fields: t.Optional[t.Iterable[str]] = None
     ):
+        """Save the model, expanding any field aliases in `update_fields`."""
         if update_fields:
             new_update_fields = set(update_fields)
             # Replace any fields in update_fields with their aliased fields.

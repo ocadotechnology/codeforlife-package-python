@@ -1,6 +1,20 @@
 """
 © Ocado Group
 Created on 16/03/2026 at 17:35:19(+00:00).
+
+Deterministic one-way hashing helpers for queryable sensitive values.
+
+`Sha256Field` stores an HMAC-SHA256 digest (hex string) derived from a
+plaintext input and the Django `SECRET_KEY`. This makes equality matching
+possible without storing plaintext values.
+
+Custom lookups are registered to keep querying ergonomic:
+
+- `__sha256`: hashes a single right-hand side plaintext value.
+- `__sha256_in`: hashes each plaintext value in an iterable.
+
+This pattern is typically paired with encrypted fields when data must remain
+encrypted at rest but still needs deterministic lookup support.
 """
 
 import hmac
@@ -13,10 +27,7 @@ from django.db.models import CharField, Model, lookups
 
 
 class Sha256Field(CharField):
-    """A CharField that stores the hashed version of a credential.
-
-    Values are automatically hashed on assignment.
-    """
+    """A CharField for deterministic, one-way hashed values."""
 
     def __init__(
         self,
@@ -57,7 +68,7 @@ class Sha256Field(CharField):
     @classmethod
     def set(cls, instance: Model, value: t.Optional[str], field_name: str):
         """
-        Convenience method to set a value for a Sha256Field, hashing it first.
+        Hash and assign a plaintext value to a Sha256Field.
 
         Args:
             instance: The model instance on which to set the value.
@@ -73,7 +84,7 @@ class Sha256Field(CharField):
 # pylint: disable-next=abstract-method
 class Sha256ExactLookup(lookups.Exact):
     """
-    A lookup that hashes the right-hand side value before comparing.
+    A lookup that hashes a plaintext right-hand side value before comparing.
 
     This allows querying a hashed field with a plain text value, e.g.:
     `User.objects.filter(_email_hash__sha256="user@example.com")`
@@ -100,7 +111,7 @@ class Sha256ExactLookup(lookups.Exact):
 # pylint: disable-next=abstract-method,too-many-ancestors
 class Sha256InLookup(lookups.In):
     """
-    A lookup that hashes the right-hand side values before comparing.
+    A lookup that hashes plaintext right-hand side values before comparing.
 
     This allows querying a hashed field with plain text values, e.g.:
     `User.objects.filter(_email_hash__sha256_in=["user@example.com"])`
