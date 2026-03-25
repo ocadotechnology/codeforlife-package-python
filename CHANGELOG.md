@@ -1,6 +1,23 @@
 # CHANGELOG
 
 
+## v0.32.5 (2026-03-25)
+
+### Bug Fixes
+
+- Relock
+  ([`915893e`](https://github.com/ocadotechnology/codeforlife-package-python/commit/915893e37c44da1bd18d16d441f3cb0d17fee727))
+
+- Sort migrations pt. 2
+  ([`2ceb829`](https://github.com/ocadotechnology/codeforlife-package-python/commit/2ceb82969c7e572fda7b7422d0363f556c091f6d))
+
+- Sort migrations pt. 3
+  ([`c166df5`](https://github.com/ocadotechnology/codeforlife-package-python/commit/c166df5b896ed79fcce0f26198bbaaf1f4bb6203))
+
+- User proxies and new models migration
+  ([`5518fd5`](https://github.com/ocadotechnology/codeforlife-package-python/commit/5518fd55f58dc1375edfe182ec6eb67483d21ee6))
+
+
 ## v0.32.4 (2026-03-14)
 
 ### Bug Fixes
