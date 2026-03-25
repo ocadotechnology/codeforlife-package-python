@@ -21,12 +21,12 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.AlterModelManagers(
-            name="user",
-            managers=[
-                ("objects", codeforlife.user.models.user.user.UserManager())
-            ],
-        ),
+        # migrations.AlterModelManagers(
+        #     name="user",
+        #     managers=[
+        #         ("objects", codeforlife.user.models.user.user.UserManager())
+        #     ],
+        # ),
         migrations.CreateModel(
             name="ContactableUser",
             fields=[],

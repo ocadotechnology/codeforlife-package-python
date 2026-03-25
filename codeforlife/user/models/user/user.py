@@ -77,6 +77,10 @@ class User(
 
     credential_fields = frozenset(["email", "password"])
 
+    class Meta:
+        verbose_name = _("user")
+        verbose_name_plural = _("users")
+
     # TODO: remove in new schema
     password: str  # type: ignore[assignment]
     password = models.CharField(  # type: ignore[assignment]
