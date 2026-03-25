@@ -295,6 +295,10 @@ class User(AbstractBaseUser, PermissionsMixin, DataEncryptionKeyModel):
 
     date_joined = models.DateTimeField(_("date joined"), default=timezone.now)
 
+    class Meta:
+        verbose_name = _("user")
+        verbose_name_plural = _("users")
+
     # TODO: remove in new schema
     password: str  # type: ignore[assignment]
     password = models.CharField(  # type: ignore[assignment]
