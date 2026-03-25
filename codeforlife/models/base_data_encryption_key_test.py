@@ -117,49 +117,49 @@ class TestDataEncryptionKeyModel(ModelTestCase[BaseDataEncryptionKeyModel]):
     def test_check__e001(self):
         """Raises an error if the DEK field is missing."""
 
-        class E001(BaseDataEncryptionKeyModel):
+        class BaseDekE001(BaseDataEncryptionKeyModel):
             class Meta(TypedModelMeta):
                 app_label = "codeforlife.user"
 
         self.assert_check(
-            error_id="base_data_encryption_key.E001", model_class=E001
+            error_id="base_data_encryption_key.E001", model_class=BaseDekE001
         )
 
     def test_check__e002(self):
         """Raises an error if the DEK field is not a string."""
 
-        class E002(BaseDataEncryptionKeyModel):
+        class BaseDekE002(BaseDataEncryptionKeyModel):
             DEK_FIELD = 123  # type: ignore[assignment]
 
             class Meta(TypedModelMeta):
                 app_label = "codeforlife.user"
 
         self.assert_check(
-            error_id="base_data_encryption_key.E002", model_class=E002
+            error_id="base_data_encryption_key.E002", model_class=BaseDekE002
         )
 
     def test_check__e003(self):
         """Raises an error if the DEK field name is empty."""
 
-        class E003(BaseDataEncryptionKeyModel):
+        class BaseDekE003(BaseDataEncryptionKeyModel):
             DEK_FIELD = ""
 
             class Meta(TypedModelMeta):
                 app_label = "codeforlife.user"
 
         self.assert_check(
-            error_id="base_data_encryption_key.E003", model_class=E003
+            error_id="base_data_encryption_key.E003", model_class=BaseDekE003
         )
 
     def test_check__e004(self):
         """Raises an error if the DEK field does not exist on the model."""
 
-        class E004(BaseDataEncryptionKeyModel):
+        class BaseDekE004(BaseDataEncryptionKeyModel):
             DEK_FIELD = "non_existent_field"
 
             class Meta(TypedModelMeta):
                 app_label = "codeforlife.user"
 
         self.assert_check(
-            error_id="base_data_encryption_key.E004", model_class=E004
+            error_id="base_data_encryption_key.E004", model_class=BaseDekE004
         )

@@ -9,7 +9,7 @@ from hashlib import sha256
 
 from django.conf import settings
 from django.core.exceptions import ValidationError
-from django.db.models import CharField, lookups
+from django.db.models import CharField, Model, lookups
 
 
 class Sha256Field(CharField):
@@ -39,7 +39,7 @@ class Sha256Field(CharField):
         super().__init__(editable=editable, max_length=max_length, **kwargs)
 
     @staticmethod
-    def hash(value: t.Optional[str]):
+    def hash(value: str):
         """Create a consistent, salted hash of a value.
 
         Args:
@@ -48,15 +48,26 @@ class Sha256Field(CharField):
         Returns:
             A hash of the value salted with the Django secret key.
         """
-        return (
-            None
-            if value is None
-            else hmac.new(
-                key=settings.SECRET_KEY.encode("utf-8"),
-                msg=value.encode("utf-8"),
-                digestmod=sha256,
-            ).hexdigest()
-        )
+        return hmac.new(
+            key=settings.SECRET_KEY.encode("utf-8"),
+            msg=value.encode("utf-8"),
+            digestmod=sha256,
+        ).hexdigest()
+
+    @classmethod
+    def set(cls, instance: Model, value: t.Optional[str], field_name: str):
+        """
+        Convenience method to set a value for a Sha256Field, hashing it first.
+
+        Args:
+            instance: The model instance on which to set the value.
+            value: The plaintext value to hash and set.
+            field_name: The name of the Sha256Field on the model.
+        """
+        if value is not None:
+            value = cls.hash(value)
+
+        setattr(instance, field_name, value)
 
 
 # pylint: disable-next=abstract-method

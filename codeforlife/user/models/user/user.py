@@ -170,7 +170,7 @@ class User(AbstractBaseUser, PermissionsMixin, DataEncryptionKeyModel):
     def username(self):
         """The user's username."""
         if self._username_enc is not None:
-            return EncryptedTextField.decrypt(self, "_username_enc")
+            return EncryptedTextField.get(self, "_username_enc")
         return self._username_plain
 
     @username.setter
@@ -178,7 +178,7 @@ class User(AbstractBaseUser, PermissionsMixin, DataEncryptionKeyModel):
         """Set the user's username."""
         self._username_plain = value
         EncryptedTextField.set(self, value, "_username_enc")
-        self._username_hash = Sha256Field.hash(value)
+        Sha256Field.set(self, value, "_username_hash")
 
     # --------------------------------------------------------------------------
     # First name
@@ -203,15 +203,15 @@ class User(AbstractBaseUser, PermissionsMixin, DataEncryptionKeyModel):
     def first_name(self):
         """The user's first name."""
         if self._first_name_enc is not None:
-            return EncryptedTextField.decrypt(self, "_first_name_enc")
+            return EncryptedTextField.get(self, "_first_name_enc")
         return self._first_name_plain
 
     @first_name.setter
     def first_name(self, value: str):
         """Set the user's first name."""
-        EncryptedTextField.set(self, value, "_first_name_enc")
         self._first_name_plain = value
-        self._first_name_hash = Sha256Field.hash(value)
+        EncryptedTextField.set(self, value, "_first_name_enc")
+        Sha256Field.set(self, value, "_first_name_hash")
 
     # --------------------------------------------------------------------------
     # Last name
@@ -231,14 +231,14 @@ class User(AbstractBaseUser, PermissionsMixin, DataEncryptionKeyModel):
     def last_name(self):
         """The user's last name."""
         if self._last_name_enc is not None:
-            return EncryptedTextField.decrypt(self, "_last_name_enc")
+            return EncryptedTextField.get(self, "_last_name_enc")
         return self._last_name_plain
 
     @last_name.setter
     def last_name(self, value: str):
         """Set the user's last name."""
-        EncryptedTextField.set(self, value, "_last_name_enc")
         self._last_name_plain = value
+        EncryptedTextField.set(self, value, "_last_name_enc")
 
     # --------------------------------------------------------------------------
     # Email
@@ -261,7 +261,7 @@ class User(AbstractBaseUser, PermissionsMixin, DataEncryptionKeyModel):
     def email(self):
         """The user's email address."""
         if self._email_enc is not None:
-            return EncryptedTextField.decrypt(self, "_email_enc")
+            return EncryptedTextField.get(self, "_email_enc")
         return self._email_plain
 
     @email.setter
@@ -270,7 +270,7 @@ class User(AbstractBaseUser, PermissionsMixin, DataEncryptionKeyModel):
         value = self.__class__.objects.normalize_email(value)
         self._email_plain = value
         EncryptedTextField.set(self, value, "_email_enc")
-        self._email_hash = Sha256Field.hash(value)
+        Sha256Field.set(self, value, "_email_hash")
 
     # --------------------------------------------------------------------------
     # Other

@@ -213,9 +213,16 @@ class BaseEncryptedField(BinaryField, t.Generic[T]):
 
         return self.bytes_to_value(data)
 
+    def _encrypt(self, instance: EncryptedModel, plaintext: T):
+        """Encrypts a single value using the DEK and associated data."""
+        return instance.dek_aead.encrypt(
+            plaintext=self.value_to_bytes(plaintext),
+            associated_data=self.full_associated_data,
+        )
+
     @staticmethod
-    def decrypt(instance: EncryptedModel, field_name: str):
-        """Convenience method to decrypt a value and return the plaintext.
+    def get(instance: EncryptedModel, field_name: str):
+        """Convenience method to get the decrypted value of an encrypted field.
 
         Args:
             instance: The model instance from which to decrypt the value.
@@ -252,13 +259,6 @@ class BaseEncryptedField(BinaryField, t.Generic[T]):
 
         return decrypted_value
 
-    def _encrypt(self, instance: EncryptedModel, plaintext: T):
-        """Encrypts a single value using the DEK and associated data."""
-        return instance.dek_aead.encrypt(
-            plaintext=self.value_to_bytes(plaintext),
-            associated_data=self.full_associated_data,
-        )
-
     @staticmethod
     def set(instance: EncryptedModel, value: t.Optional[T], field_name: str):
         """Convenience method to set a value for an encrypted field.
@@ -277,9 +277,11 @@ class BaseEncryptedField(BinaryField, t.Generic[T]):
             BaseEncryptedField[T], instance._meta.get_field(field_name)
         )
 
-        # If the value is not None, mark it as pending encryption.
-        if value is not None:
+        # Set the pending encryption value.
+        if value is None:
+            instance.__pending_encryption_values__.pop(field.attname, None)
+        else:
             instance.__pending_encryption_values__[field.attname] = value
 
-        # In all cases we need to clear the internal and cached decrypted value.
+        # In all cases we need to clear the internal and cached-decrypted value.
         setattr(instance, field_name, None)

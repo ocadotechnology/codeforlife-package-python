@@ -91,7 +91,7 @@ class Class(EncryptedModel):
     def name(self):
         """Get the name of the class."""
         if self._name_enc is not None:
-            return EncryptedTextField.decrypt(self, "_name_enc")
+            return EncryptedTextField.get(self, "_name_enc")
         return self._name_plain
 
     @name.setter
@@ -134,7 +134,7 @@ class Class(EncryptedModel):
     def access_code(self):
         """Get the access code for the class."""
         if self._access_code_enc is not None:
-            return EncryptedTextField.decrypt(self, "_access_code_enc")
+            return EncryptedTextField.get(self, "_access_code_enc")
         return self._access_code_plain
 
     @access_code.setter
@@ -142,7 +142,7 @@ class Class(EncryptedModel):
         """Set the access code for the class."""
         self._access_code_plain = value
         EncryptedTextField.set(self, value, "_access_code_enc")
-        self._access_code_hash = Sha256Field.hash(value)
+        Sha256Field.set(self, value, "_access_code_hash")
 
     # --------------------------------------------------------------------------
 

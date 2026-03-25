@@ -272,7 +272,7 @@ class SchoolTeacherInvitation(EncryptedModel):
     def token(self):
         """Get the decrypted token value."""
         if self._token_enc is not None:
-            return EncryptedTextField.decrypt(self, "_token_enc")
+            return EncryptedTextField.get(self, "_token_enc")
         return self._token_plain
 
     @token.setter
@@ -280,7 +280,7 @@ class SchoolTeacherInvitation(EncryptedModel):
         """Sets the token value."""
         self._token_plain = value
         EncryptedTextField.set(self, value, "_token_enc")
-        self._token_hash = Sha256Field.hash(value)
+        Sha256Field.set(self, value, "_token_hash")
 
     # --------------------------------------------------------------------------
 
@@ -320,7 +320,7 @@ class SchoolTeacherInvitation(EncryptedModel):
     def invited_teacher_first_name(self):
         """Get the decrypted invited teacher first name value."""
         if self._invited_teacher_first_name_enc is not None:
-            return EncryptedTextField.decrypt(
+            return EncryptedTextField.get(
                 self, "_invited_teacher_first_name_enc"
             )
         return self._invited_teacher_first_name_plain
@@ -351,7 +351,7 @@ class SchoolTeacherInvitation(EncryptedModel):
     def invited_teacher_last_name(self):
         """Get the decrypted invited teacher last name value."""
         if self._invited_teacher_last_name_enc is not None:
-            return EncryptedTextField.decrypt(
+            return EncryptedTextField.get(
                 self, "_invited_teacher_last_name_enc"
             )
         return self._invited_teacher_last_name_plain
@@ -382,9 +382,7 @@ class SchoolTeacherInvitation(EncryptedModel):
     def invited_teacher_email(self):
         """Get the decrypted invited teacher email value."""
         if self._invited_teacher_email_enc is not None:
-            return EncryptedTextField.decrypt(
-                self, "_invited_teacher_email_enc"
-            )
+            return EncryptedTextField.get(self, "_invited_teacher_email_enc")
         return self._invited_teacher_email_plain
 
     @invited_teacher_email.setter

@@ -321,38 +321,38 @@ class TestBaseEncryptedField(TestCase):
 
         self.field._decrypt.assert_not_called()
 
-    def test_decrypt__pending_encryption(self):
+    def test_get__pending_encryption(self):
         """
-        Decrypting a field that's pending encryption returns the pending value.
+        Getting a field that's pending encryption returns the pending value.
         """
         value = "pending value"
         instance = self._get_model_instance()
         instance.set_pending_encryption_value(self.field, value)
 
-        assert FakeEncryptedField.decrypt(instance, "field") == value
+        assert FakeEncryptedField.get(instance, "field") == value
 
-    def test_decrypt__decrypted(self):
+    def test_get__decrypted(self):
         """
-        Decrypting a field that's already decrypted returns the decrypted value.
+        Getting a field that's already decrypted returns the decrypted value.
         """
         value = "decrypted value"
         instance = self._get_model_instance()
         instance.set_decrypted_value(self.field, value)
 
-        assert FakeEncryptedField.decrypt(instance, "field") == value
+        assert FakeEncryptedField.get(instance, "field") == value
 
         self.field._decrypt.assert_not_called()
 
-    def test_decrypt__none(self):
-        """Decrypting a field when stored value is None returns None."""
+    def test_get__none(self):
+        """Getting a field when stored value is None returns None."""
         instance = self._get_model_instance(field=None)
-        assert FakeEncryptedField.decrypt(instance, "field") is None
+        assert FakeEncryptedField.get(instance, "field") is None
 
         self.field._decrypt.assert_not_called()
 
-    def test_decrypt__encrypted(self):
+    def test_get__encrypted(self):
         """
-        Decrypting a field with stored ciphertext decrypts, caches and returns
+        Getting a field with stored ciphertext decrypts, caches and returns
         the value.
         """
         plaintext = "decrypted_value"
@@ -366,7 +366,7 @@ class TestBaseEncryptedField(TestCase):
 
         # Get the field value, which should decrypt the ciphertext.
         instance.assert_decrypted_value_is_not_cached(self.field)
-        assert FakeEncryptedField.decrypt(instance, "field") == plaintext
+        assert FakeEncryptedField.get(instance, "field") == plaintext
         instance.assert_decrypted_value_is_cached(self.field, plaintext)
 
         self.field._decrypt.assert_called_once_with(instance, ciphertext)

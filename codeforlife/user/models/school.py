@@ -71,7 +71,7 @@ class School(DataEncryptionKeyModel):
     def name(self):
         """Get the school's name."""
         if self._name_enc is not None:
-            return EncryptedTextField.decrypt(self, "_name_enc")
+            return EncryptedTextField.get(self, "_name_enc")
         return self._name_plain
 
     @name.setter
@@ -112,7 +112,7 @@ class School(DataEncryptionKeyModel):
     def county(self):
         """Get the school's county."""
         if self._county_enc is not None:
-            return EncryptedTextField.decrypt(self, "_county_enc")
+            return EncryptedTextField.get(self, "_county_enc")
         return self._county_plain
 
     @county.setter
