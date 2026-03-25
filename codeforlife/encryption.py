@@ -10,10 +10,11 @@ pipelines, we use fake (mock) implementations of the KMS client and its AEAD
 primitive. A simple check for the environment (e.g., `settings.ENV == "local"`)
 determines whether to use the real `GcpKmsClient` or a `FakeGcpKmsClient`.
 
-The fake client mimics the behavior of the real one. Instead of performing real
-encryption, it simulates it by encoding the plaintext in base64 and adding a
-prefix. This allows the application to run without needing cloud credentials
-while still being able to distinguish between "encrypted" and plaintext data.
+The fake client mimics the behavior of the real one while still using a real
+AEAD algorithm locally. `FakeAead` uses `AESGCM` with random nonces and
+associated data support, then prefixes the resulting blob so local ciphertext
+can be identified as fake-KMS output. This keeps local behavior close to cloud
+execution while avoiding cloud credentials.
 
 While the `FakeAead` and `FakeGcpKmsClient` are sufficient for running a local
 development server, they are not `unittest.mock.MagicMock` instances by default.

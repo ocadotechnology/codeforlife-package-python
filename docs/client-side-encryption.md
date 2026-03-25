@@ -1,14 +1,14 @@
 # Client-Side Encryption
 
-Client-Side Encryption with Per-User Keys and Django ORM Integration
+Client-Side Encryption with Per-Entity Keys and Django ORM Integration
 
 ---
 
 ## 1. Executive Summary
 
-This architecture implements **Application-Layer Encryption** (often called **Client-Side Encryption** relative to the database) using a **Per-User Key** strategy.
+This architecture implements **Application-Layer Encryption** (often called **Client-Side Encryption** relative to the database) using a **Per-Entity Key** strategy.
 
-Instead of relying on a single global key (which is a single point of failure), every user in the system is assigned a unique **Data Encryption Key (DEK)**. This key wraps their specific data. These DEKs are themselves encrypted by a master **Key Encryption Key (KEK)** managed by **Google Cloud KMS**.
+Instead of relying on a single global key (which is a single point of failure), each key-owning entity in the system (for example, a user or a school) is assigned a unique **Data Encryption Key (DEK)**. These DEKs are themselves encrypted by a master **Key Encryption Key (KEK)** managed by **Google Cloud KMS**.
 
 **Security Guarantee:** The database (PostgreSQL) never sees plaintext data or the plaintext keys required to decrypt it. A database leak results in zero data compromise without also compromising the running application server and Google Cloud credentials.
 
@@ -26,14 +26,14 @@ We utilize a hierarchy of keys to balance security and performance.
     * **Location:** Google Cloud KMS (Hardware Security Module).
     * **Role:** The "Master Lock." It never leaves Google. It is used only to encrypt/decrypt the User Keys (DEKs).
 2. **DEK (Data Encryption Key):**
-    * **Location:** Encrypted in the database (e.g., in the `users` table); Decrypted only in Application Memory (RAM).
-    * **Role:** The "Worker Bee." Unique to every user. Used to encrypt/decrypt the actual database fields (e.g., SSNs, names).
+    * **Location:** Encrypted in the database (e.g., in key-owning model rows); Decrypted only in Application Memory (RAM).
+    * **Role:** The "Worker Bee." Unique per key-owning entity (for example, per-user or per-school). Used to encrypt/decrypt actual database fields (e.g., user email).
 
 ---
 
 ## 3. Encryption/Decryption Utilities
 
-At the core of this system are a few utility functions that interact with Google Cloud KMS and the `tink` cryptography library. In addition, to avoid a dependency on Google Cloud KMS during local development and in CI/CD pipelines, we use fake (mock) implementations of the KMS client and its AEAD primitive.
+At the core of this system are a few utility functions that interact with Google Cloud KMS and the `tink` cryptography library. In addition, to avoid a dependency on Google Cloud KMS during local development and in CI/CD pipelines, we use fake implementations of the KMS client and its AEAD primitive. The local fake path still uses a real AEAD algorithm (`AESGCM`) so behavior remains close to cloud execution.
 
 **[codeforlife/encryption.py](../codeforlife/encryption.py)**
 
@@ -334,7 +334,7 @@ sequenceDiagram
     User->>PostgreSQL: UPDATE users SET encrypted_dek=NULL WHERE id=...
     PostgreSQL-->>User: Returns
 
-    Note over Developer, PostgreSQL: The user's data (e.g., SSN) is now permanently unrecoverable.
+    Note over Developer, PostgreSQL: The user's data (e.g., email) is now permanently unrecoverable.
 ```
 
 ### 5. Encrypted Model and Field Initialization
@@ -366,7 +366,7 @@ sequenceDiagram
     end
     deactivate EncryptedModel
 
-    Django->>BaseEncryptedField: contribute_to_class(EncryptedModel, "ssn")
+    Django->>BaseEncryptedField: contribute_to_class(EncryptedModel, "email")
     activate BaseEncryptedField
     
     Note over BaseEncryptedField: 4. Validate Model Subclass
@@ -375,12 +375,12 @@ sequenceDiagram
     end
 
     Note over BaseEncryptedField: 5. Check for Duplicate Fields
-    alt "ssn" is already in Model.ENCRYPTED_FIELDS
+    alt "email" is already in Model.ENCRYPTED_FIELDS
         BaseEncryptedField-->>Django: raise ValidationError
     end
 
     Note over BaseEncryptedField: 6. Check for Duplicate Associated Data
-    alt "model:ssn" is already used by another field
+    alt "model:email" is already used by another field
         BaseEncryptedField-->>Django: raise ValidationError
     end
 
@@ -392,7 +392,7 @@ sequenceDiagram
 
 ### 6. DEK Model and Field Initialization
 
-This diagram details the validation that occurs when a `DataEncryptionKeyField` is added to a model. The field's `contribute_to_class` method ensures that the model is a valid `BaseDataEncryptionKeyModel` and that it contains only one DEK field.
+This diagram details model-level DEK validation. `DataEncryptionKeyField.contribute_to_class()` sets the model's `DEK_FIELD`, and `BaseDataEncryptionKeyModel.check()` validates that `DEK_FIELD` is correctly defined and resolves to a real model field.
 
 ```mermaid
 sequenceDiagram
@@ -403,20 +403,44 @@ sequenceDiagram
     Django->>DataEncryptionKeyField: contribute_to_class(Model, "dek")
     activate DataEncryptionKeyField
 
-    Note over DataEncryptionKeyField: 1. Validate Model Subclass
-    alt issubclass(Model, BaseDataEncryptionKeyModel) is False
+    Note over DataEncryptionKeyField: 1. Validate model subclass
+    alt Model does not subclass BaseDataEncryptionKeyModel
         DataEncryptionKeyField-->>Django: raise ValidationError
     end
 
-    Note over DataEncryptionKeyField: 2. Check for multiple DEK fields
-    alt Model.DEK_FIELD is not None
+    Note over DataEncryptionKeyField: 2. Ensure a single DEK field
+    alt Model already has DEK_FIELD set
         DataEncryptionKeyField-->>Django: raise ValidationError
     end
 
-    Note over DataEncryptionKeyField: 3. Register Field on Model
+    Note over DataEncryptionKeyField: 3. Register field on model
     DataEncryptionKeyField->>BaseDataEncryptionKeyModel: Model.DEK_FIELD = self
-    
     deactivate DataEncryptionKeyField
+
+    Django->>BaseDataEncryptionKeyModel: check()
+    activate BaseDataEncryptionKeyModel
+
+    Note over BaseDataEncryptionKeyModel: 4. Ensure DEK_FIELD exists
+    alt DEK_FIELD attribute is missing
+        BaseDataEncryptionKeyModel-->>Django: add checks.Error(E001)
+    end
+
+    Note over BaseDataEncryptionKeyModel: 5. Ensure DEK_FIELD is a string
+    alt DEK_FIELD is not str
+        BaseDataEncryptionKeyModel-->>Django: add checks.Error(E002)
+    end
+
+    Note over BaseDataEncryptionKeyModel: 6. Ensure DEK_FIELD is non-empty
+    alt DEK_FIELD == ""
+        BaseDataEncryptionKeyModel-->>Django: add checks.Error(E003)
+    end
+
+    Note over BaseDataEncryptionKeyModel: 7. Ensure DEK_FIELD resolves to a field
+    alt _meta.get_field(DEK_FIELD) raises FieldDoesNotExist
+        BaseDataEncryptionKeyModel-->>Django: add checks.Error(E004)
+    end
+
+    deactivate BaseDataEncryptionKeyModel
 ```
 
 ### 7. DEK AEAD Caching
