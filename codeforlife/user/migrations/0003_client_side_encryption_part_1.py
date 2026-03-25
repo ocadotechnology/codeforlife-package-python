@@ -5,8 +5,13 @@ from ...models.fields import (
     EncryptedTextField,
     Sha256Field,
 )
+from ..models.user import UserManager
 
 user_migrations = [
+    migrations.AlterModelManagers(
+        name="user",
+        managers=[("objects", UserManager())],
+    ),
     migrations.AddField(
         model_name="user",
         name="dek",
