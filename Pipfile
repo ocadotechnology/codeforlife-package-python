@@ -19,7 +19,7 @@ python-dotenv = "==1.0.1"
 psycopg2-binary = "==2.9.9"
 redis = {version = "==5.2.1", extras = ["hiredis"]}
 regex = "==2024.11.6"
-requests = "==2.32.5"
+requests = "==2.33.0"
 gunicorn = "==23.0.0"
 uvicorn-worker = "==0.2.0"
 pyjwt = "==2.12.1" 
