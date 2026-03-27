@@ -62,8 +62,7 @@ class BaseDataEncryptionKeyModel(EncryptedModel):
 
         def _inject_dek_kwarg(self, kwargs: KwArgs):
             """Inject a DEK into the kwargs."""
-            if self.model.DEK_FIELD is not None:
-                kwargs[self.model.DEK_FIELD] = create_dek()
+            kwargs[self.model.DEK_FIELD] = create_dek()
 
         def create(self, **kwargs):
             """Ensure a DEK is created for new instances."""
@@ -178,11 +177,7 @@ class BaseDataEncryptionKeyModel(EncryptedModel):
         update_fields=None,
     ):
         # Lazily create a new DEK for new instances.
-        if (
-            self.pk is None
-            and self.DEK_FIELD is not None
-            and getattr(self, self.DEK_FIELD) is None
-        ):
+        if self.pk is None and getattr(self, self.DEK_FIELD) is None:
             self.__dict__[self.DEK_FIELD] = create_dek()
 
         # pylint: disable=duplicate-code
