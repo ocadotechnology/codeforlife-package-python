@@ -4,7 +4,6 @@ Created on 20/02/2024 at 15:37:52(+00:00).
 """
 
 import typing as t
-from uuid import uuid4
 
 from django.db import models
 from django.utils import timezone
@@ -162,6 +161,5 @@ class School(DataEncryptionKeyModel):
     def anonymise(self):
         """Anonymize the school."""
         self.dek = None
-        self.name = uuid4().hex
         self.is_active = False
-        self.save()
+        self.save(update_fields=["dek", "is_active"])

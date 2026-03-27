@@ -397,18 +397,11 @@ class User(AbstractBaseUser, PermissionsMixin, DataEncryptionKeyModel):
         """
         return user_class(
             pk=self.pk,
-            _first_name_hash=self._first_name_hash,
-            _first_name_plain=self._first_name_plain,
-            _first_name_enc=self._first_name_enc,
-            _last_name_plain=self._last_name_plain,
-            _last_name_enc=self._last_name_enc,
-            _username_hash=self._username_hash,
-            _username_plain=self._username_plain,
-            _username_enc=self._username_enc,
-            _email_plain=self._email_plain,
-            _email_enc=self._email_enc,
-            _email_hash=self._email_hash,
+            first_name=self.first_name,
+            last_name=self.last_name,
+            username=self.username,
             is_active=self.is_active,
+            email=self.email,
             is_staff=self.is_staff,
             date_joined=self.date_joined,
             is_superuser=self.is_superuser,
@@ -419,22 +412,8 @@ class User(AbstractBaseUser, PermissionsMixin, DataEncryptionKeyModel):
     def anonymize(self):
         """Anonymize the user."""
         self.dek = None
-        self._first_name_plain = ""
-        self._last_name_plain = ""
-        self._email_plain = ""
         self.is_active = False
-        self.save(
-            update_fields=[
-                # pylint: disable=duplicate-code
-                "dek",
-                "_first_name_plain",
-                "_last_name_plain",
-                "_email_plain",
-                "username_plain",
-                "is_active",
-                # pylint: enable=duplicate-code
-            ]
-        )
+        self.save(update_fields=["dek", "is_active"])
 
         # self.userprofile.google_refresh_token = None
         # self.userprofile.google_sub = None
