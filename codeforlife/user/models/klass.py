@@ -5,7 +5,6 @@ Created on 19/02/2024 at 21:54:04(+00:00).
 
 import typing as t
 from datetime import timedelta
-from uuid import uuid4
 
 from django.core.validators import MaxLengthValidator, MinLengthValidator
 from django.db import models
@@ -214,8 +213,6 @@ class Class(EncryptedModel):
 
     def anonymise(self):
         """Anonymise the class."""
-        self.name = uuid4().hex
-        self.access_code = ""
         self.is_active = False
         self.save()
 
