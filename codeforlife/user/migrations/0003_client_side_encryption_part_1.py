@@ -273,22 +273,6 @@ school_migrations = [
             db_column="name_enc",
         ),
     ),
-    # County
-    migrations.RenameField(
-        model_name="school",
-        old_name="county",
-        new_name="_county_plain",
-    ),
-    migrations.AddField(
-        model_name="school",
-        name="_county_enc",
-        field=EncryptedTextField(
-            associated_data="county",
-            null=True,
-            verbose_name="county",
-            db_column="county_enc",
-        ),
-    ),
 ]
 
 

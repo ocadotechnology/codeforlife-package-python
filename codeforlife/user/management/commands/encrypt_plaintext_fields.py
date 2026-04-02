@@ -188,6 +188,8 @@ class Command(BaseCommand):
             "class",
         ]:
             models = models.exclude(is_active=False)
+        if model_class._meta.model_name == "level":  # Skip default levels.
+            models = models.exclude(default=True)
         model_count = models.count()
 
         if dry_run:

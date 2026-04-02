@@ -234,11 +234,10 @@
     "model": "user.school",
     "pk": 1,
     "fields": {
-      "_county_enc": "ZmFrZV9lbmM6l7av2jdw+0G9Q+RDIsM7lR9somu89lQem87teDVsvg==",
-      "_county_plain": "nan",
       "_name_enc": "ZmFrZV9lbmM6OZ5fpw/7lnlu6VCmZ1D9j/ypiKMWMpPS4xgpUVojgcT7kmoAI8VUeao08V7yLsHnE+SyTew=",
       "_name_plain": "Swiss Federal Polytechnic",
       "country": "GB",
+      "county": "nan",
       "creation_time": null,
       "dek": "ZmFrZV9lbmM6+bOK8/jOfj3VDE4HWSqQTMr9+j/QCITdy63oBgTo7tLAfLBvdQBtdP9NkAe1hRpvA8yHhxE9Wd+nBwvh",
       "is_active": true

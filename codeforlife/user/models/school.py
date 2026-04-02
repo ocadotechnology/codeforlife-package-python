@@ -46,7 +46,6 @@ class School(DataEncryptionKeyModel):
     associated_data = "school"
     field_aliases = {
         "name": {"_name_plain", "_name_enc"},
-        "county": {"_county_plain", "_county_enc"},
     }
 
     # --------------------------------------------------------------------------
@@ -89,38 +88,12 @@ class School(DataEncryptionKeyModel):
         blank=True,
     )
 
-    # --------------------------------------------------------------------------
-    # County
-    # --------------------------------------------------------------------------
-
-    # TODO: Create an Address model to house address details
-    _county_plain: t.Optional[str]
-    _county_plain = models.CharField(  # type: ignore[assignment]
+    county: t.Optional[str]
+    county = models.CharField(  # type: ignore[assignment]
         max_length=50,
         blank=True,
         null=True,
     )
-    _county_enc = EncryptedTextField(
-        associated_data="county",
-        null=True,
-        verbose_name=_("county"),
-        db_column="county_enc",
-    )
-
-    @property
-    def county(self):
-        """Get the school's county."""
-        if self._county_enc is not None:
-            return EncryptedTextField.get(self, "_county_enc")
-        return self._county_plain
-
-    @county.setter
-    def county(self, value: str):
-        """Set the school's county."""
-        self._county_plain = value
-        EncryptedTextField.set(self, value, "_county_enc")
-
-    # --------------------------------------------------------------------------
 
     creation_time: t.Optional["datetime"]
     creation_time = models.DateTimeField(  # type: ignore[assignment]
