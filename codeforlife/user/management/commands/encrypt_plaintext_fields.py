@@ -11,6 +11,7 @@ from django.core.management.base import BaseCommand
 from django.db.models import CharField, Field, Model, Q, TextField
 
 from ....encryption import create_dek
+from ....models import BaseDataEncryptionKeyModel
 from ....models.fields import EncryptedTextField, Sha256Field
 from ....models.utils import is_real_model_class
 from ....pprint import PrettyPrinter
@@ -129,6 +130,29 @@ class Command(BaseCommand):
 
         return fields_to_encrypt
 
+    def _create_dek(
+        self,
+        chunk_size: int,
+        dry_run: bool,
+        model_class: t.Type[BaseDataEncryptionKeyModel],
+        pprint: PrettyPrinter,
+    ):
+        models = model_class.objects.filter(  # type: ignore[misc]
+            is_active=True, **{f"{model_class.DEK_FIELD}__isnull": True}
+        )
+        model_count = models.count()
+
+        if dry_run:
+            pprint(f"Dry run: would update {model_count} records.")
+            return
+
+        for model_index, model in enumerate(models.iterator(chunk_size)):
+            if model_index % chunk_size == 0:
+                pprint(f"({model_index}/{model_count})")
+
+            setattr(model, model_class.DEK_FIELD, create_dek())
+            model.save(update_fields=[model_class.DEK_FIELD])
+
     # pylint: disable-next=too-many-arguments,too-many-positional-arguments,too-many-locals
     def _encrypt_field(
         self,
@@ -170,31 +194,17 @@ class Command(BaseCommand):
             pprint(f"Dry run: would update {model_count} records.")
             return
 
-        is_school_or_user = model_class._meta.model_name in [
-            "school",
-            "user",
-        ]
-
         for model_index, model in enumerate(models.iterator(chunk_size)):
             if model_index % chunk_size == 0:
                 pprint(f"({model_index}/{model_count})")
 
             plaintext = getattr(model, plain_field.name)
-
-            should_update_dek = (
-                is_school_or_user and getattr(model, "dek", None) is None
-            )
-            if should_update_dek:
-                model.dek = create_dek()  # type: ignore[attr-defined]
-
             field_property_name = plain_field.name.removesuffix(
                 "_plain"
             ).removeprefix("_")
             setattr(model, field_property_name, plaintext)
 
             update_fields: t.List[str] = []
-            if should_update_dek:
-                update_fields.append("dek")
             if enc_field is not None:
                 update_fields.append(enc_field.name)
             if hash_field is not None:
@@ -214,17 +224,28 @@ class Command(BaseCommand):
                 f"Processing app: {pprint.notice.apply(app_label)}"
             ) as app_pprint:
                 app_config = apps.get_app_config(app_label)
-                for model_class in app_config.get_models():
-                    if not is_real_model_class(model_class):
-                        app_pprint(
-                            "Skipping non-real model: "
-                            + pprint.notice.apply(
+                model_classes = [
+                    model_class
+                    for model_class in app_config.get_models()
+                    if is_real_model_class(model_class)
+                ]
+
+                # First create any missing DEKs for the models, so they're
+                # available for encrypting fields in the next step.
+                for model_class in model_classes:
+                    if issubclass(model_class, BaseDataEncryptionKeyModel):
+                        with app_pprint.process(
+                            "Creating DEK: "
+                            + app_pprint.notice.apply(
                                 f"{model_class._meta.app_label}"
                                 f".{model_class._meta.model_name}"
                             )
-                        )
-                        continue
+                        ) as dek_pprint:
+                            self._create_dek(
+                                chunk_size, dry_run, model_class, dek_pprint
+                            )
 
+                for model_class in model_classes:
                     with app_pprint.process(
                         "Encrypting model: "
                         + app_pprint.notice.apply(
