@@ -255,16 +255,23 @@ class Command(BaseCommand):
             ) as app_pprint:
                 app_config = apps.get_app_config(app_label)
 
-                for model_class in app_config.get_models():
-                    if not is_real_model_class(model_class):
-                        app_pprint(
-                            "Skipping non-real model class: "
-                            + app_pprint.notice.apply(
-                                model_class._meta.model_name
-                            )
-                        )
-                        continue
+                # Get real model classes.
+                model_classes = [
+                    model_class
+                    for model_class in app_config.get_models()
+                    if is_real_model_class(model_class)
+                ]
 
+                # Sort model classes so that those saving DEKs are processed
+                # first, ensuring that other models with dependencies on DEKs
+                # can encrypt their fields.
+                model_classes = sorted(
+                    model_classes,
+                    key=lambda cls: issubclass(cls, BaseDataEncryptionKeyModel),
+                    reverse=True,
+                )
+
+                for model_class in model_classes:
                     with app_pprint.process(
                         "Processing model: "
                         + app_pprint.notice.apply(model_class._meta.model_name)
