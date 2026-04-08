@@ -15,14 +15,23 @@ from .style import Style
 class PrettyPrinter:
     """A utility class for pretty-printing styled messages to the terminal."""
 
-    def __init__(self, write: Style.Write, name: str, indent_level=0):
+    def __init__(
+        self,
+        write: Style.Write,
+        name: str,
+        indent_level=0,
+        disable_styles=False,
+    ):
         self.write = write
         self.name = name
         self.indent_level = indent_level
+        self.disable_styles = disable_styles
         self.start_time: t.Optional[float] = None
         self.end_time: t.Optional[float] = None
 
-        self.style = Style.with_write(self.__call__)
+        self.style = Style.with_defaults(
+            write=self.__call__, enabled=not disable_styles
+        )
 
         # Black and white.
         self.black = self.style.ansi(ANSI.BLACK)
@@ -102,7 +111,12 @@ class PrettyPrinter:
             + self.bold.apply(f" ({elapsed_time:.2f}s elapsed)")
         )
 
-    def process(self, name: str, indent_level: t.Optional[int] = None):
+    def process(
+        self,
+        name: str,
+        indent_level: t.Optional[int] = None,
+        disable_styles: t.Optional[bool] = None,
+    ):
         """
         A context manager for processing a message with automatic success or
         error handling. If an exception is raised within the context, the
@@ -116,6 +130,11 @@ class PrettyPrinter:
             name=name,
             indent_level=(
                 self.indent_level if indent_level is None else indent_level
+            ),
+            disable_styles=(
+                self.disable_styles
+                if disable_styles is None
+                else disable_styles
             ),
         )
 

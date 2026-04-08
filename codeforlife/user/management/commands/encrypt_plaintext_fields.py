@@ -8,7 +8,7 @@ import typing as t
 from django.apps import apps
 from django.core.exceptions import FieldDoesNotExist
 from django.core.management.base import BaseCommand
-from django.db.models import CharField, Field, Model, Q, TextField
+from django.db.models import CharField, Field, Model, Q, QuerySet, TextField
 
 from ....encryption import create_dek
 from ....models import BaseDataEncryptionKeyModel
@@ -17,7 +17,7 @@ from ....models.utils import is_real_model_class
 from ....pprint import PrettyPrinter
 
 PlaintextField: t.TypeAlias = t.Union[CharField, TextField]
-FieldsToEncrypt: t.TypeAlias = t.List[
+FieldsToUpdate: t.TypeAlias = t.List[
     t.Tuple[
         PlaintextField,
         t.Optional[EncryptedTextField],
@@ -50,13 +50,18 @@ class Command(BaseCommand):
             action="store_true",
             help="Print what would be updated without writing to the database.",
         )
+        parser.add_argument(
+            "--disable-styles",
+            action="store_true",
+            help="Disable styled output.",
+        )
 
     # pylint: disable-next=too-many-locals
     def _discover_model_fields(
         self,
         model_class: t.Type[Model],
         pprint: PrettyPrinter,
-    ) -> FieldsToEncrypt:
+    ) -> FieldsToUpdate:
         model_spec = (
             f"{model_class._meta.app_label}.{model_class._meta.model_name}"
         )
@@ -67,7 +72,7 @@ class Command(BaseCommand):
             and field.name.endswith("_plain")
         }
 
-        fields_to_encrypt: FieldsToEncrypt = []
+        fields_to_update: FieldsToUpdate = []
         for field_name, plain_field in plain_fields_by_name.items():
             field_name_prefix = field_name[: -len("_plain")]
             enc_field_name = f"{field_name_prefix}_enc"
@@ -126,61 +131,53 @@ class Command(BaseCommand):
                 "Discovered field mapping: "
                 + pprint.notice.apply(f"{field_name} -> {target_fields}")
             )
-            fields_to_encrypt.append((plain_field, enc_field, hash_field))
+            fields_to_update.append((plain_field, enc_field, hash_field))
 
-        return fields_to_encrypt
+        return fields_to_update
 
-    def _create_dek(
+    def _get_model_queryset(
         self,
-        chunk_size: int,
-        dry_run: bool,
-        model_class: t.Type[BaseDataEncryptionKeyModel],
-        pprint: PrettyPrinter,
-    ):
-        models = model_class.objects.filter(  # type: ignore[misc]
-            is_active=True, **{f"{model_class.DEK_FIELD}__isnull": True}
-        )
-        model_count = models.count()
-
-        if dry_run:
-            pprint(f"Dry run: would update {model_count} records.")
-            return
-
-        for model_index, model in enumerate(models.iterator(chunk_size)):
-            if model_index % chunk_size == 0:
-                pprint(f"({model_index}/{model_count})")
-
-            setattr(model, model_class.DEK_FIELD, create_dek())
-            model.save(update_fields=[model_class.DEK_FIELD])
-
-    # pylint: disable-next=too-many-arguments,too-many-positional-arguments,too-many-locals
-    def _encrypt_field(
-        self,
-        chunk_size: int,
         model_class: t.Type[Model],
-        plain_field: PlaintextField,
-        enc_field: t.Optional[EncryptedTextField],
-        hash_field: t.Optional[Sha256Field],
-        dry_run: bool,
+        fields_to_update: FieldsToUpdate,
         pprint: PrettyPrinter,
     ):
+        if not fields_to_update:
+            pprint("No fields to update.")
+            return model_class.objects.none()  # type: ignore[attr-defined]
+
+        models = model_class.objects.all()  # type: ignore[attr-defined]
+
+        # Pre-fetch the fields which will be read.
+        only_fields = [
+            plain_field.name for plain_field, _, _ in fields_to_update
+        ]
+        if issubclass(model_class, BaseDataEncryptionKeyModel):
+            only_fields.append(model_class.DEK_FIELD)
+        models = models.only(*only_fields)
+
+        # Generate a filter for a field that has a null or empty value.
         def null_or_empty(field: Field, empty: t.Any):
             return Q(**{f"{field.name}__isnull": True}) | Q(
-                **{f"{field.name}": empty}
+                **{field.name: empty}
             )
 
-        if enc_field is not None and hash_field is not None:
-            q = null_or_empty(enc_field, b"") | null_or_empty(hash_field, "")
-        elif enc_field is not None:
-            q = null_or_empty(enc_field, b"")
-        elif hash_field is not None:
-            q = null_or_empty(hash_field, "")
-        else:
-            return
+        # Filter to models where at least one field needs to be updated.
+        q = Q()
+        for plain_field, enc_field, hash_field in fields_to_update:
+            # Exclude models where the plaintext field is null or empty and
+            # include models where the encrypted or hash field is null or empty.
+            q |= ~null_or_empty(plain_field, "") & (
+                null_or_empty(enc_field, b"") | null_or_empty(hash_field, "")
+                if enc_field is not None and hash_field is not None
+                else (
+                    null_or_empty(enc_field, b"")
+                    if enc_field is not None
+                    else null_or_empty(t.cast(Sha256Field, hash_field), "")
+                )
+            )
+        models = models.filter(q)
 
-        models = model_class.objects.exclude(  # type: ignore[attr-defined]
-            null_or_empty(plain_field, "")
-        ).filter(q)
+        # Exclude inactive records for certain models.
         if model_class._meta.model_name in [
             "school",
             "user",
@@ -188,29 +185,55 @@ class Command(BaseCommand):
             "class",
         ]:
             models = models.exclude(is_active=False)
-        if model_class._meta.model_name == "level":  # Skip default levels.
+
+        # Exclude default levels, which are shared across users and not
+        # encrypted.
+        if model_class._meta.model_name == "level":
             models = models.exclude(default=True)
-        model_count = models.count()
 
-        if dry_run:
-            pprint(f"Dry run: would update {model_count} records.")
-            return
+        return models
 
+    # pylint: disable-next=too-many-arguments,too-many-positional-arguments
+    def _update_models(
+        self,
+        chunk_size: int,
+        model_class: t.Type[Model],
+        models: QuerySet[Model],
+        model_count: int,
+        fields_to_update: FieldsToUpdate,
+        pprint: PrettyPrinter,
+    ):
         for model_index, model in enumerate(models.iterator(chunk_size)):
+            # Print progress at the start of each chunk.
             if model_index % chunk_size == 0:
                 pprint(f"({model_index}/{model_count})")
 
-            plaintext = getattr(model, plain_field.name)
-            field_property_name = plain_field.name.removesuffix(
-                "_plain"
-            ).removeprefix("_")
-            setattr(model, field_property_name, plaintext)
-
             update_fields: t.List[str] = []
-            if enc_field is not None:
-                update_fields.append(enc_field.name)
-            if hash_field is not None:
-                update_fields.append(hash_field.name)
+
+            # If the model uses DEKs and doesn't have one set, create and assign
+            # a DEK so that it can be used for encrypting fields.
+            if (
+                issubclass(model_class, BaseDataEncryptionKeyModel)
+                and getattr(model, model_class.DEK_FIELD) is None
+            ):
+                setattr(model, model_class.DEK_FIELD, create_dek())
+                update_fields.append(model_class.DEK_FIELD)
+
+            # Iterate through the fields to update and copy the plaintext value
+            # into the encrypted and hash fields as appropriate.
+            for plain_field, enc_field, hash_field in fields_to_update:
+                plaintext = getattr(model, plain_field.name)
+                field_property_name = plain_field.name.removesuffix(
+                    "_plain"
+                ).removeprefix("_")
+                setattr(model, field_property_name, plaintext)
+
+                if enc_field is not None:
+                    update_fields.append(enc_field.name)
+                if hash_field is not None:
+                    update_fields.append(hash_field.name)
+
+            # Save the model with the updated fields.
             model.save(update_fields=update_fields)
 
     # pylint: disable-next=too-many-locals
@@ -218,71 +241,58 @@ class Command(BaseCommand):
         app_labels: t.List[str] = options["app_labels"]
         chunk_size: int = options["chunk_size"]
         dry_run: bool = options["dry_run"]
+        disable_styles: bool = options["disable_styles"]
 
-        pprint = PrettyPrinter(write=self.stdout.write, name=self.__module__)
+        pprint = PrettyPrinter(
+            write=self.stdout.write,
+            name=self.__module__,
+            disable_styles=disable_styles,
+        )
 
-        for app_label in app_labels:
+        for app_label in set(app_label.lower() for app_label in app_labels):
             with pprint.process(
                 f"Processing app: {pprint.notice.apply(app_label)}"
             ) as app_pprint:
                 app_config = apps.get_app_config(app_label)
-                model_classes = [
-                    model_class
-                    for model_class in app_config.get_models()
-                    if is_real_model_class(model_class)
-                ]
 
-                # First create any missing DEKs for the models, so they're
-                # available for encrypting fields in the next step.
-                for model_class in model_classes:
-                    if issubclass(model_class, BaseDataEncryptionKeyModel):
-                        with app_pprint.process(
-                            "Creating DEK: "
+                for model_class in app_config.get_models():
+                    if not is_real_model_class(model_class):
+                        app_pprint(
+                            "Skipping non-real model class: "
                             + app_pprint.notice.apply(
-                                f"{model_class._meta.app_label}"
-                                f".{model_class._meta.model_name}"
+                                model_class._meta.model_name
                             )
-                        ) as dek_pprint:
-                            self._create_dek(
-                                chunk_size, dry_run, model_class, dek_pprint
-                            )
+                        )
+                        continue
 
-                for model_class in model_classes:
                     with app_pprint.process(
-                        "Encrypting model: "
-                        + app_pprint.notice.apply(
-                            f"{model_class._meta.app_label}"
-                            f".{model_class._meta.model_name}"
-                        )
-                    ) as enc_model_pprint:
-                        fields_to_encrypt = self._discover_model_fields(
-                            model_class,
-                            enc_model_pprint,
+                        "Processing model: "
+                        + app_pprint.notice.apply(model_class._meta.model_name)
+                    ) as model_pprint:
+                        fields_to_update = self._discover_model_fields(
+                            model_class, model_pprint
                         )
 
-                        for (
-                            plain_field,
-                            enc_field,
-                            hash_field,
-                        ) in fields_to_encrypt:
-                            target_field_names = [
-                                field.name
-                                for field in (enc_field, hash_field)
-                                if field is not None
-                            ]
-                            with enc_model_pprint.process(
-                                "Field: "
-                                + enc_model_pprint.notice.apply(
-                                    f"{plain_field.name} -> "
-                                    + ", ".join(target_field_names)
-                                )
-                            ) as enc_field_pprint:
-                                self._encrypt_field(
-                                    chunk_size,
-                                    model_class,
-                                    plain_field,
-                                    enc_field,
-                                    hash_field,
-                                    dry_run,
-                                    enc_field_pprint,
-                                )
+                        models = self._get_model_queryset(
+                            model_class, fields_to_update, model_pprint
+                        )
+                        model_count = models.count()
+
+                        if dry_run:
+                            model_pprint(
+                                f"Dry run: would update {model_count} records."
+                            )
+                            continue
+
+                        if model_count == 0:
+                            model_pprint("No models to update.")
+                            continue
+
+                        self._update_models(
+                            chunk_size=chunk_size,
+                            model_class=model_class,
+                            models=models,
+                            model_count=model_count,
+                            fields_to_update=fields_to_update,
+                            pprint=model_pprint,
+                        )

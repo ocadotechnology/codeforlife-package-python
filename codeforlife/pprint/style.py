@@ -23,13 +23,28 @@ class Style:
     Apply: t.TypeAlias = "ApplyProtocol"
     Write: t.TypeAlias = t.Callable[[str], None]
 
-    def __init__(self, apply: Apply, write: Write = print):
-        self.apply = apply
+    def __init__(self, apply: Apply, write: Write = print, enabled=True):
+        self.original_apply = apply
         self.write = write
+        self.enabled = enabled
 
     def __call__(self, message: str, *args, **kwargs):
         styled_message = self.apply(message)
         self.write(styled_message, *args, **kwargs)
+
+    def apply(self, message: str, **kwargs):
+        """Apply the style to the given message.
+
+        Args:
+            message: The message to apply the style to.
+            **kwargs: Keyword arguments that may be used by the style.
+
+        Returns:
+            The styled message.
+        """
+        return (
+            self.original_apply(message, **kwargs) if self.enabled else message
+        )
 
     @classmethod
     def ansi(cls, code: ANSI):
@@ -70,20 +85,23 @@ class Style:
         return cls(apply)
 
     @classmethod
-    def with_write(cls, write: Write):
-        """Create a style class that uses the given write function.
+    def with_defaults(cls, write: Write, enabled=True):
+        """Create a style class that uses the given defaults.
 
         Args:
             write: The function to use for writing the styled message.
+            enabled: Whether the style is enabled.
 
         Returns:
-            A style class that uses the given write function.
+            A style class that uses the given defaults.
         """
 
-        class StyleWithWrite(cls):  # type: ignore[valid-type,misc]
-            """A style class that uses the given write function."""
+        class StyleWithDefaults(cls):  # type: ignore[valid-type,misc]
+            """A style class that uses the given defaults."""
 
-            def __init__(self, apply: Style.Apply):
-                super().__init__(apply, write)
+            def __init__(
+                self, apply: Style.Apply, write=write, enabled=enabled
+            ):
+                super().__init__(apply, write, enabled)
 
-        return StyleWithWrite
+        return StyleWithDefaults
