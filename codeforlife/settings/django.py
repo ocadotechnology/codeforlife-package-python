@@ -11,6 +11,7 @@ import os
 from django.utils.translation import gettext_lazy as _
 
 from .. import TEMPLATES_DIR
+from ._secrets import secrets
 from .custom import (
     ENV,
     LOG_LEVEL,
@@ -26,7 +27,7 @@ from .custom import (
 DEBUG = bool(int(os.getenv("DEBUG", "1")))
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.getenv("SECRET_KEY", "replace-me")
+SECRET_KEY = secrets.SECRET_KEY or "REPLACE_ME"
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
@@ -39,11 +40,12 @@ ALLOWED_HOSTS = ["*"]
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": os.getenv("DB_NAME", SERVICE_NAME),
-        "USER": os.getenv("DB_USER", "root"),
-        "PASSWORD": os.getenv("DB_PASSWORD", "password"),
-        "HOST": os.getenv("DB_HOST", "db"),
-        "PORT": int(os.getenv("DB_PORT", "5432")),
+        # "legacy_portal"
+        "NAME": secrets.DB_NAME or SERVICE_NAME,
+        "USER": secrets.DB_USER or "root",
+        "PASSWORD": secrets.DB_PASSWORD or "password",
+        "HOST": secrets.DB_HOST or "db",
+        "PORT": int(secrets.DB_PORT or "5432"),
         "ATOMIC_REQUESTS": True,
     }
 }
@@ -213,7 +215,6 @@ INSTALLED_APPS = [
     "corsheaders",
     "rest_framework",
     "django_filters",
-    "storages",
 ]
 
 # Templates
