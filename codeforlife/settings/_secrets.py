@@ -231,3 +231,47 @@ class LatestSecret(t.Generic[T]):
             version="latest",
             cache=cache,
         )
+
+
+# pylint: disable-next=too-few-public-methods
+class TypedLatestSecret(LatestSecret[T], t.Generic[T, T2]):
+    """A `LatestSecret` that also casts the secret value to a specific type."""
+
+    @t.overload
+    def __init__(
+        self,
+        name: str,
+        cast: t.Callable[[str], T],
+        default: t.Optional[T2] = None,
+    ): ...
+
+    @t.overload
+    def __init__(self, name: str, cast: t.Callable[[str], T], default: T): ...
+
+    def __init__(
+        self,
+        name: str,
+        cast: t.Callable[[str], T],
+        default: t.Optional[t.Union[T, T2]] = None,
+    ):
+        super().__init__(name=name, default=t.cast(t.Optional[T], default))
+
+        self.cast = cast
+
+    @t.overload  # type: ignore[override]
+    def __call__(self, default: None = None, cache=True) -> t.Union[T, T2]: ...
+
+    @t.overload
+    # pylint: disable-next=signature-differs
+    def __call__(self, default: T, cache=True) -> T: ...
+
+    def __call__(self, default: t.Optional[T] = None, cache=True):
+        secret = super().__call__(default=default, cache=cache)
+
+        # If the secret is None, default, or self.default, return it as-is
+        # without casting.
+        return (
+            t.cast(t.Union[T, T2], secret)
+            if secret is None or secret is default or secret is self.default
+            else self.cast(t.cast(str, secret))
+        )
