@@ -27,7 +27,7 @@ from .custom import (
 DEBUG = bool(int(os.getenv("DEBUG", "1")))
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = secrets.SECRET_KEY or "REPLACE_ME"
+SECRET_KEY = secrets.SECRET_KEY or "replace-me"
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
@@ -40,7 +40,6 @@ ALLOWED_HOSTS = ["*"]
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        # "legacy_portal"
         "NAME": secrets.DB_NAME or SERVICE_NAME,
         "USER": secrets.DB_USER or "root",
         "PASSWORD": secrets.DB_PASSWORD or "password",
