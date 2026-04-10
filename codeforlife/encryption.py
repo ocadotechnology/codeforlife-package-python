@@ -131,8 +131,8 @@ class FakeGcpKmsClient:
 
 def _get_kek_aead():
     """Get the AEAD primitive for the key encryption key (KEK)."""
-    return GcpKmsClient(key_uri=settings.GCP_KMS_KEY_URI).get_aead(
-        key_uri=settings.GCP_KMS_KEY_URI
+    return GcpKmsClient(key_uri=settings.GCP_KMS_KEY_URI()).get_aead(
+        key_uri=settings.GCP_KMS_KEY_URI()
     )
 
 
@@ -180,5 +180,5 @@ GcpKmsClient = FakeGcpKmsClient if settings.ENV == "local" else _GcpKmsClient
 
 # Register the GCP KMS client with Tink.
 GcpKmsClient.register_client(
-    key_uri=settings.GCP_KMS_KEY_URI, credentials_path=None
+    key_uri=settings.GCP_KMS_KEY_URI(), credentials_path=None
 )

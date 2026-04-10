@@ -18,6 +18,8 @@ if t.TYPE_CHECKING:
     from ..types import Env
 
 T = TypeVar("T", default=None)
+# pylint: disable-next=invalid-name
+T2 = TypeVar("T2", default=None)
 
 _LATEST_CACHE: Cache[str, t.Tuple[str, str]] = Cache(maxsize=256)
 _LATEST_CACHE_LOCK = RLock()
@@ -181,29 +183,51 @@ def get_secret(
 
 
 # pylint: disable-next=too-few-public-methods
-class SecretsNamespace(t.Generic[T]):
+class LatestSecret(t.Generic[T]):
     """
-    A namespace for secrets which allows you to access secrets as attributes,
-    e.g. `secrets.SECRET_KEY`.
+    A callable wrapper around `get_secret()` that allows you to define a secret
+    once and then call it to always get the latest value.
 
-    This is useful for Django settings, where we want to always get the latest
-    version of a secret.
+    This is useful for Django settings, where values are only evaluated once at
+    startup.
+
+    Examples:
+    ```
+    ### In settings.py
+    from codeforlife.settings import LatestSecret
+
+    API_KEY = LatestSecret(name="API_KEY", default="a")  # Define once.
+
+    ### In your code
+    from django.conf import settings
+
+    # Always returns the latest value.
+    # If the secret does not exist, it returns the default value "a".
+    value = settings.API_KEY()
+
+    # You can also override the default value at call time.
+    # If the secret does not exist, it returns the default value "b".
+    value = settings.API_KEY(default="b")
+
+    # You can also bypass the cache to get the latest value directly from GCP.
+    value = settings.API_KEY(cache=False)
+    ```
     """
 
-    def __init__(
-        self, default: t.Optional[T] = None, version="latest", cache=True
-    ):
+    def __init__(self, name: str, default: t.Optional[T] = None):
+        self.name = name
         self.default = default
-        self.version = version
-        self.cache = cache
 
-    def __getattr__(self, name: str) -> t.Union[str, T]:
+    @t.overload
+    def __call__(self, default: None = None, cache=True) -> t.Union[str, T]: ...
+
+    @t.overload
+    def __call__(self, default: T2, cache=True) -> t.Union[str, T2]: ...
+
+    def __call__(self, default: t.Optional[T2] = None, cache=True):
         return get_secret(
-            name=name,
-            default=t.cast(T, self.default),
-            version=self.version,
-            cache=self.cache,
+            name=self.name,
+            default=t.cast(T, self.default) if default is None else default,
+            version="latest",
+            cache=cache,
         )
-
-
-secrets = SecretsNamespace()

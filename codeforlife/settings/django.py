@@ -11,7 +11,7 @@ import os
 from django.utils.translation import gettext_lazy as _
 
 from .. import TEMPLATES_DIR
-from ._secrets import secrets
+from ._secrets import get_secret
 from .custom import (
     ENV,
     LOG_LEVEL,
@@ -27,7 +27,7 @@ from .custom import (
 DEBUG = bool(int(os.getenv("DEBUG", "1")))
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = secrets.SECRET_KEY or "replace-me"
+SECRET_KEY = get_secret("SECRET_KEY", "replace-me")
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
@@ -40,11 +40,11 @@ ALLOWED_HOSTS = ["*"]
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": secrets.DB_NAME or SERVICE_NAME,
-        "USER": secrets.DB_USER or "root",
-        "PASSWORD": secrets.DB_PASSWORD or "password",
-        "HOST": secrets.DB_HOST or "db",
-        "PORT": int(secrets.DB_PORT or "5432"),
+        "NAME": get_secret("DB_NAME", SERVICE_NAME),
+        "USER": get_secret("DB_USER", "root"),
+        "PASSWORD": get_secret("DB_PASSWORD", "password"),
+        "HOST": get_secret("DB_HOST", "db"),
+        "PORT": int(get_secret("DB_PORT", "5432")),
         "ATOMIC_REQUESTS": True,
     }
 }

@@ -22,9 +22,6 @@ def set_up_settings(service_base_dir: Path, service_name: str):
 
     *This needs to be called before importing the CFL settings!*
 
-    To expose a secret to your Django project, you'll need to create a setting
-    for it following Django's conventions.
-
     Examples:
         ```
         from codeforlife import set_up_settings
@@ -33,9 +30,6 @@ def set_up_settings(service_base_dir: Path, service_name: str):
         set_up_settings(BASE_DIR, service_name="my-service")
 
         from codeforlife.settings import *
-
-        # Expose secret to django project.
-        SECRET_KEY = secrets.SECRET_KEY or "DEFAULT_VALUE"
         ```
 
     Args:

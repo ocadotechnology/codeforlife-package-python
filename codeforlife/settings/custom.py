@@ -10,7 +10,7 @@ import re
 import typing as t
 from pathlib import Path
 
-from ._secrets import secrets
+from ._secrets import LatestSecret
 
 if t.TYPE_CHECKING:
     from ..types import CookieSamesite, Env
@@ -53,7 +53,7 @@ SERVICE_SITE_URL = os.getenv("SERVICE_SITE_URL", "http://localhost:5173")
 
 
 # The authorization bearer token used to authenticate with Dotdigital.
-MAIL_AUTH = secrets.MAIL_AUTH or "REPLACE_ME"
+MAIL_AUTH = LatestSecret("MAIL_AUTH", "REPLACE_ME")
 
 # A global flag to enable/disable sending emails.
 # If disabled, emails will be logged to the console instead.
