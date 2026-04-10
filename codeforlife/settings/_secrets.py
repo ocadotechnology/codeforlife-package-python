@@ -23,7 +23,7 @@ _LATEST_CACHE_EVENTS: t.Dict[str, Event] = {}
 
 @lru_cache(maxsize=1)  # This is a singleton, so we only want to create it once.
 def _client():
-    # pylint: disable-next=import-outside-toplevel
+    # pylint: disable-next=import-outside-toplevel,cyclic-import
     from .custom import ENV
 
     return (
