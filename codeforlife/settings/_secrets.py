@@ -23,21 +23,14 @@ _LATEST_CACHE_EVENTS: t.Dict[str, Event] = {}
 
 @lru_cache(maxsize=1)  # This is a singleton, so we only want to create it once.
 def _client():
-    # pylint: disable-next=import-outside-toplevel,cyclic-import
-    from .custom import ENV
-
-    return (
-        None
-        if ENV == "local"
-        else SecretManagerServiceClient(
-            client_options={
-                "api_endpoint": (
-                    "secretmanager."
-                    + os.environ["GCP_SECRET_MANAGER_REGION"]
-                    + ".rep.googleapis.com"
-                )
-            }
-        )
+    return SecretManagerServiceClient(
+        client_options={
+            "api_endpoint": (
+                "secretmanager."
+                + os.environ["GCP_SECRET_MANAGER_REGION"]
+                + ".rep.googleapis.com"
+            )
+        }
     )
 
 
@@ -51,12 +44,8 @@ def _get_full_secret_name(name: str, version: str):
 
 
 def _get_secret_metadata(name: str, version: str):
-    client = _client()
-    if client is None:
-        return None
-
     try:
-        return client.get_secret_version(
+        return _client().get_secret_version(
             request={"name": _get_full_secret_name(name, version)}
         )
     except NotFound:
@@ -64,12 +53,8 @@ def _get_secret_metadata(name: str, version: str):
 
 
 def _get_secret(name: str, version: str):
-    client = _client()
-    if client is None:
-        return None
-
     try:
-        response = client.access_secret_version(
+        response = _client().access_secret_version(
             request={"name": _get_full_secret_name(name, version)}
         )
     except NotFound:
@@ -159,7 +144,7 @@ def get_secret(
 
     https://docs.cloud.google.com/secret-manager/docs/samples/secretmanager-access-regional-secret-version#secretmanager_access_regional_secret_version-python
 
-    If running locally, this will return the default value.
+    If running locally, this value will be read from environment variables.
 
     Args:
         name: The name of the secret.
@@ -174,6 +159,12 @@ def get_secret(
         The value of the secret, or the default value if the secret does not
         exist.
     """
+    # pylint: disable-next=import-outside-toplevel,cyclic-import
+    from .custom import ENV
+
+    if ENV == "local":
+        return os.getenv(name, default)
+
     value = (
         (
             _get_secret_with_latest_version_cache(name)
