@@ -14,6 +14,9 @@ from google.api_core.exceptions import NotFound
 from google.cloud.secretmanager import SecretManagerServiceClient
 from typing_extensions import TypeVar
 
+if t.TYPE_CHECKING:
+    from ..types import Env
+
 T = TypeVar("T", default=None)
 
 _LATEST_CACHE: Cache[str, t.Tuple[str, str]] = Cache(maxsize=256)
@@ -27,7 +30,7 @@ def _client():
         client_options={
             "api_endpoint": (
                 "secretmanager."
-                + os.environ["GCP_SECRET_MANAGER_REGION"]
+                + os.environ["GCP_SECRET_MANAGER_LOCATION"]
                 + ".rep.googleapis.com"
             )
         }
@@ -37,7 +40,7 @@ def _client():
 def _get_full_secret_name(name: str, version: str):
     return (
         f"projects/{os.environ['GOOGLE_CLOUD_PROJECT_ID']}"
-        f"/locations/{os.environ['GCP_SECRET_MANAGER_REGION']}"
+        f"/locations/{os.environ['GCP_SECRET_MANAGER_LOCATION']}"
         f"/secrets/{name}"
         f"/versions/{version}"
     )
@@ -159,12 +162,11 @@ def get_secret(
         The value of the secret, or the default value if the secret does not
         exist.
     """
-    # pylint: disable-next=import-outside-toplevel,cyclic-import
-    from .custom import ENV
-
-    if ENV == "local":
+    env = t.cast("Env", os.getenv("ENV", "local"))
+    if env == "local":
         return os.getenv(name, default)
 
+    name = f"{env}_{name}".upper()
     value = (
         (
             _get_secret_with_latest_version_cache(name)

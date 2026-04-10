@@ -52,4 +52,3 @@ def set_up_settings(service_base_dir: Path, service_name: str):
     # Set required environment variables.
     os.environ["SERVICE_BASE_DIR"] = str(service_base_dir)
     os.environ["SERVICE_NAME"] = service_name
-    os.environ.setdefault("ENV", "local")
