@@ -70,6 +70,9 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           python -m pip install build python-semantic-release==10.*
+          # Temporarily pin GitPython to bypass the 3.1.60 breaking change
+          # TODO: Remove once python-semantic-release have released a fix
+          python -m pip install build GitPython==3.1.59
 
       - name: 📜 Detect Semantic Version
         env:
